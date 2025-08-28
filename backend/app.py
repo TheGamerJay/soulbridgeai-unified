@@ -13822,7 +13822,17 @@ def ai_image_generation_usage():
             # Bronze=0, Silver=10, Gold=unlimited
             
         from constants import AI_IMAGE_LIMITS
-        monthly_limit = AI_IMAGE_LIMITS.get(ai_image_tier, 0)
+        
+        # For users with artistic time credits, calculate limit based on available credits
+        user_id = session.get('user_id')
+        artistic_time = get_artistic_time(user_id) if user_id else 0
+        
+        if artistic_time > 0:
+            # Limit based on available artistic time credits (5 per image)
+            monthly_limit = artistic_time // AI_IMAGE_COST  
+        else:
+            # Fallback to tier-based limits for users without artistic time
+            monthly_limit = AI_IMAGE_LIMITS.get(ai_image_tier, 0)
         
         current_month = datetime.now().strftime('%Y-%m')
         usage_key = f'ai_image_usage_{current_month}'

@@ -18,25 +18,45 @@
                     🎨 Themes
                 </button>
                 <div id="themeSelector" class="theme-selector-panel" style="display: none;">
-                    <h4>Choose Your Theme</h4>
-                    <div class="theme-options">
-                        <div class="theme-option" data-theme="default" style="background: linear-gradient(135deg, #00ffff, #0099cc);">
-                            <span>Default Cyan</span>
+                    <h4>Choose Your Silver Theme</h4>
+                    <div class="theme-categories">
+                        <!-- Section 1: Background Changes -->
+                        <div class="theme-section">
+                            <h5>🎨 Background Themes</h5>
+                            <div class="theme-options">
+                                <div class="theme-option" data-theme="default" style="background: linear-gradient(135deg, #C0C0C0, #A8A8A8);">
+                                    <span>Classic Silver</span>
+                                </div>
+                                <div class="theme-option" data-theme="purple" style="background: linear-gradient(135deg, #a855f7, #7c3aed);">
+                                    <span>Royal Purple</span>
+                                </div>
+                                <div class="theme-option" data-theme="blue" style="background: linear-gradient(135deg, #3b82f6, #2563eb);">
+                                    <span>Ocean Blue</span>
+                                </div>
+                            </div>
                         </div>
-                        <div class="theme-option" data-theme="purple" style="background: linear-gradient(135deg, #a855f7, #7c3aed);">
-                            <span>Royal Purple</span>
+
+                        <!-- Section 2: Text Color Changes -->
+                        <div class="theme-section">
+                            <h5>✍️ Text Colors</h5>
+                            <div class="theme-options">
+                                <div class="theme-option" data-theme="green" style="background: linear-gradient(135deg, #10b981, #059669);">
+                                    <span>Forest Green</span>
+                                </div>
+                                <div class="theme-option" data-theme="pink" style="background: linear-gradient(135deg, #ec4899, #db2777);">
+                                    <span>Rose Pink</span>
+                                </div>
+                            </div>
                         </div>
-                        <div class="theme-option" data-theme="green" style="background: linear-gradient(135deg, #10b981, #059669);">
-                            <span>Forest Green</span>
-                        </div>
-                        <div class="theme-option" data-theme="orange" style="background: linear-gradient(135deg, #f97316, #ea580c);">
-                            <span>Sunset Orange</span>
-                        </div>
-                        <div class="theme-option" data-theme="pink" style="background: linear-gradient(135deg, #ec4899, #db2777);">
-                            <span>Rose Pink</span>
-                        </div>
-                        <div class="theme-option" data-theme="blue" style="background: linear-gradient(135deg, #3b82f6, #2563eb);">
-                            <span>Ocean Blue</span>
+
+                        <!-- Section 3: Pre-mixed Combinations -->
+                        <div class="theme-section">
+                            <h5>🌟 Premium Presets</h5>
+                            <div class="theme-options">
+                                <div class="theme-option" data-theme="orange" style="background: linear-gradient(135deg, #f97316, #ea580c);">
+                                    <span>Sunset Orange</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -67,6 +87,12 @@
                 <i class="fas fa-pen"></i>
                 ✍️ Creative Writer
                 <span class="usage-counter" id="creativeLimit">{{ limits.creative_writer if limits.creative_writer != 999 else '∞' }}/day</span>
+            </a>
+            
+            <a href="/chat/silver" class="action-btn silver-feature">
+                <i class="fas fa-robot"></i>
+                🤖 AI Companions
+                <span class="silver-badge">Silver Tier</span>
             </a>
             
             <!-- SILVER PREMIUM FEATURES -->
@@ -102,7 +128,7 @@
                     <li>🤖 Mini Studio</li>
                     <li>♾️ Unlimited everything</li>
                 </ul>
-                <a href="/tiers?upgrade=gold" class="upgrade-btn">
+                <a href="/plan-selection?upgrade=gold" class="upgrade-btn">
                     🥇 Upgrade to Gold
                 </a>
             </div>
@@ -598,58 +624,82 @@
         
         .theme-selector-panel {
             position: absolute;
-            top: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.95);
-            border: 2px solid rgba(192, 192, 192, 0.3);
+            top: 45px;
+            left: 0;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+            border: 2px solid #C0C0C0;
             border-radius: 15px;
             padding: 20px;
-            min-width: 300px;
+            box-shadow: 0 10px 30px rgba(192, 192, 192, 0.3);
+            min-width: 400px;
             z-index: 1000;
-            margin-top: 10px;
             backdrop-filter: blur(10px);
         }
         
         .theme-selector-panel h4 {
-            color: #c0c0c0;
-            margin-bottom: 15px;
+            color: #C0C0C0;
             text-align: center;
-            font-size: 1.1rem;
+            margin: 0 0 20px 0;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .theme-categories {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .theme-section h5 {
+            color: #C0C0C0;
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
         
         .theme-options {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
             gap: 10px;
         }
         
         .theme-option {
-            padding: 15px 10px;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-align: center;
-            border: 2px solid transparent;
             position: relative;
+            height: 60px;
+            border-radius: 10px;
+            border: 2px solid #C0C0C0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
             overflow: hidden;
         }
         
         .theme-option:hover {
-            transform: scale(1.05);
-            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(192, 192, 192, 0.5);
+            border-color: #FFF;
         }
         
         .theme-option.active {
-            border-color: #fff;
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+            border-color: #FFF;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.6);
+            transform: scale(1.05);
         }
         
         .theme-option span {
-            color: #fff;
-            font-weight: 600;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
-            font-size: 0.85rem;
+            position: relative;
+            color: #FFF;
+            font-weight: bold;
+            font-size: 11px;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+            text-align: center;
+            padding: 5px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 5px;
         }
         
         .theme-selector-container {

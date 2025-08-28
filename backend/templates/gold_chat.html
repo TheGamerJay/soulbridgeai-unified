@@ -24,36 +24,56 @@
                 </button>
                 <div id="themeSelector" class="theme-selector-panel" style="display: none;">
                     <h4>Choose Your Gold Theme</h4>
-                    <div class="theme-options gold-themes">
-                        <div class="theme-option" data-theme="default" style="background: linear-gradient(135deg, #ffd700, #ffb347);">
-                            <span>Classic Gold</span>
+                    <div class="theme-categories">
+                        <!-- Section 1: Background Changes -->
+                        <div class="theme-section">
+                            <h5>🎨 Background Themes</h5>
+                            <div class="theme-options">
+                                <div class="theme-option" data-theme="default" style="background: linear-gradient(135deg, #ffd700, #ffb347);">
+                                    <span>Classic Gold</span>
+                                </div>
+                                <div class="theme-option" data-theme="royal" style="background: linear-gradient(135deg, #4b0082, #8b00ff);">
+                                    <span>Royal Purple</span>
+                                </div>
+                                <div class="theme-option" data-theme="emerald" style="background: linear-gradient(135deg, #50c878, #228b22);">
+                                    <span>Emerald Green</span>
+                                </div>
+                                <div class="theme-option" data-theme="sapphire" style="background: linear-gradient(135deg, #0f52ba, #4169e1);">
+                                    <span>Sapphire Blue</span>
+                                </div>
+                            </div>
                         </div>
-                        <div class="theme-option" data-theme="royal" style="background: linear-gradient(135deg, #4b0082, #8b00ff);">
-                            <span>Royal Purple</span>
+
+                        <!-- Section 2: Text Color Changes -->
+                        <div class="theme-section">
+                            <h5>✍️ Text Colors</h5>
+                            <div class="theme-options">
+                                <div class="theme-option" data-theme="ruby" style="background: linear-gradient(135deg, #e0115f, #dc143c);">
+                                    <span>Ruby Red</span>
+                                </div>
+                                <div class="theme-option" data-theme="platinum" style="background: linear-gradient(135deg, #e5e4e2, #c0c0c0);">
+                                    <span>Platinum Silver</span>
+                                </div>
+                                <div class="theme-option" data-theme="cosmic" style="background: linear-gradient(135deg, #483d8b, #9932cc, #ff1493);">
+                                    <span>Cosmic Aurora</span>
+                                </div>
+                            </div>
                         </div>
-                        <div class="theme-option" data-theme="emerald" style="background: linear-gradient(135deg, #50c878, #228b22);">
-                            <span>Emerald Green</span>
-                        </div>
-                        <div class="theme-option" data-theme="sapphire" style="background: linear-gradient(135deg, #0f52ba, #4169e1);">
-                            <span>Sapphire Blue</span>
-                        </div>
-                        <div class="theme-option" data-theme="ruby" style="background: linear-gradient(135deg, #e0115f, #dc143c);">
-                            <span>Ruby Red</span>
-                        </div>
-                        <div class="theme-option" data-theme="platinum" style="background: linear-gradient(135deg, #e5e4e2, #c0c0c0);">
-                            <span>Platinum Silver</span>
-                        </div>
-                        <div class="theme-option" data-theme="cosmic" style="background: linear-gradient(135deg, #483d8b, #9932cc, #ff1493);">
-                            <span>Cosmic Aurora</span>
-                        </div>
-                        <div class="theme-option" data-theme="sunset" style="background: linear-gradient(135deg, #ff4500, #ff8c00, #ffd700);">
-                            <span>Sunset Glow</span>
-                        </div>
-                        <div class="theme-option" data-theme="ocean" style="background: linear-gradient(135deg, #008b8b, #20b2aa, #40e0d0);">
-                            <span>Deep Ocean</span>
-                        </div>
-                        <div class="theme-option" data-theme="forest" style="background: linear-gradient(135deg, #228b22, #32cd32, #90ee90);">
-                            <span>Mystic Forest</span>
+
+                        <!-- Section 3: Pre-mixed Combinations -->
+                        <div class="theme-section">
+                            <h5>🌟 Premium Presets</h5>
+                            <div class="theme-options">
+                                <div class="theme-option" data-theme="sunset" style="background: linear-gradient(135deg, #ff4500, #ff8c00, #ffd700);">
+                                    <span>Sunset Glow</span>
+                                </div>
+                                <div class="theme-option" data-theme="ocean" style="background: linear-gradient(135deg, #008b8b, #20b2aa, #40e0d0);">
+                                    <span>Deep Ocean</span>
+                                </div>
+                                <div class="theme-option" data-theme="forest" style="background: linear-gradient(135deg, #228b22, #32cd32, #90ee90);">
+                                    <span>Mystic Forest</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -71,7 +91,7 @@
             <a href="/fortune" class="action-btn gold-feature unlimited" data-feature="fortune">
                 <i class="fas fa-crystal-ball"></i>
                 🔮 Fortune
-                <span class="usage-counter unlimited-badge" id="fortuneLimit">∞</span>
+                <span class="usage-counter unlimited-badge" id="fortuneLimit">999</span>
             </a>
             
             <a href="/horoscope" class="action-btn gold-feature unlimited" data-feature="horoscope">
@@ -84,6 +104,12 @@
                 <i class="fas fa-pen"></i>
                 ✍️ Creative Writer
                 <span class="usage-counter unlimited-badge" id="creativeLimit">∞</span>
+            </a>
+            
+            <a href="/chat/gold" class="action-btn gold-feature unlimited">
+                <i class="fas fa-robot"></i>
+                🤖 AI Companions
+                <span class="exclusive-badge">Gold Access</span>
             </a>
             
             <!-- PREMIUM FEATURES -->
@@ -123,7 +149,7 @@
             <div class="trial-message">
                 <h3>🎯 Enjoying Gold Access?</h3>
                 <p>You're experiencing our full Gold tier during your trial!</p>
-                <a href="/tiers" class="upgrade-btn">
+                <a href="/plan-selection" class="upgrade-btn">
                     💎 Subscribe to Keep Full Access
                 </a>
             </div>
@@ -150,6 +176,107 @@
         border-color: #FF6B6B; 
         background: linear-gradient(135deg, rgba(255, 107, 107, 0.2), rgba(255, 107, 107, 0.3)); 
         box-shadow: 0 0 20px rgba(255, 107, 107, 0.4);
+    }
+    
+    /* Gold Theme Selector Styling */
+    .theme-selector-panel {
+        position: absolute;
+        top: 45px;
+        left: 0;
+        background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+        border: 2px solid #FFD700;
+        border-radius: 15px;
+        padding: 20px;
+        box-shadow: 0 10px 30px rgba(255, 215, 0, 0.3);
+        min-width: 400px;
+        z-index: 1000;
+        backdrop-filter: blur(10px);
+    }
+    
+    .theme-selector-panel h4 {
+        color: #FFD700;
+        text-align: center;
+        margin: 0 0 20px 0;
+        font-size: 18px;
+        font-weight: bold;
+    }
+    
+    .theme-categories {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .theme-section h5 {
+        color: #FFD700;
+        margin: 0 0 10px 0;
+        font-size: 14px;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    .theme-options {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 10px;
+    }
+    
+    .theme-option {
+        position: relative;
+        height: 60px;
+        border-radius: 10px;
+        border: 2px solid #FFD700;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        overflow: hidden;
+    }
+    
+    .theme-option:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(255, 215, 0, 0.5);
+        border-color: #FFF;
+    }
+    
+    .theme-option span {
+        position: relative;
+        color: #FFF;
+        font-weight: bold;
+        font-size: 11px;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+        text-align: center;
+        padding: 5px;
+        background: rgba(0, 0, 0, 0.4);
+        border-radius: 5px;
+    }
+    
+    .theme-option.selected {
+        border-color: #FFF;
+        box-shadow: 0 0 20px rgba(255, 255, 255, 0.6);
+        transform: scale(1.05);
+    }
+    
+    .theme-selector-container {
+        position: relative;
+    }
+    
+    .theme-selector-btn {
+        background: linear-gradient(135deg, #FFD700, #FFA500);
+        color: #000;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: all 0.3s ease;
+    }
+    
+    .theme-selector-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
     }
     .unlimited-badge { 
         background: linear-gradient(45deg, #FFD700, #FFA500); 
@@ -386,10 +513,10 @@
                     decoderLimit.textContent = '∞';
                 }
                 
-                // Update fortune counter (Gold always unlimited)
+                // Update fortune counter (Gold shows 999)
                 const fortuneLimit = document.getElementById('fortuneLimit');
                 if (fortuneLimit) {
-                    fortuneLimit.textContent = '∞';
+                    fortuneLimit.textContent = '999';
                 }
                 
                 // Update horoscope counter (Gold always unlimited)
