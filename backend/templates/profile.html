@@ -1158,12 +1158,20 @@
                 <div class="user-info">
                     <div class="info-label">Current Tier</div>
                     <div id="tierBadge">
-                        <div class="tier-badge tier-bronze">🥉 Bronze</div>
+                        <div class="tier-badge" style="background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.7);">⏳ Loading...</div>
                     </div>
                     <!-- Trial Activation Button (shown only for eligible Bronze users) -->
                     <button id="trialActivationBtn" class="profile-btn" style="display: none; margin-top: 0.5rem;" onclick="activateTrial()">
                         ⏰ Start 5-Hour Trial
                     </button>
+                    
+                    <!-- Trial Timer (shown for active trial users) -->
+                    <div id="trialTimer" class="trial-timer" style="display: none; margin-top: 0.5rem;">
+                        <div style="background: linear-gradient(135deg, #22d3ee, #0891b2); color: #000; padding: 8px 12px; border-radius: 8px; font-weight: 600; text-align: center;">
+                            <div style="font-size: 0.9rem;">⏰ Trial Time Remaining</div>
+                            <div id="trialTimeDisplay" style="font-size: 1.1rem; margin-top: 4px;">--:--:--</div>
+                        </div>
+                    </div>
                     
                     <!-- Trial Used Message (shown for Bronze users who already used trial) -->
                     <div id="trialUsedMessage" class="trial-used-message" style="display: none; margin-top: 0.5rem;">
@@ -1276,6 +1284,11 @@
                                 </div>
                             </div>
                             
+                        </div>
+                        
+                        <!-- Intro Logo (shown for GamerJay Silver) -->
+                        <div style="text-align: center; margin-top: 15px;">
+                            <img id="introLogo" style="max-width: 200px; height: auto; display: none;" alt="SoulBridge AI Intro Logo">
                         </div>
 
                         <!-- Companion Dropdown Menu - HIDDEN -->
@@ -1802,9 +1815,17 @@
                     tierBadge.innerHTML = `
                         <div class="tier-badge tier-${plan}">
                             ${tierEmojis[plan]} ${tierNames[plan]}
-                            ${this.userTrial?.active ? ' <span class="trial-indicator">⏰ TRIAL</span>' : ''}
                         </div>
                     `;
+                    
+                    // Show trial timer if trial is active
+                    const trialTimer = document.getElementById('trialTimer');
+                    if (this.userTrial?.active && trialTimer) {
+                        trialTimer.style.display = 'block';
+                        window.startTrialTimer();
+                    } else if (trialTimer) {
+                        trialTimer.style.display = 'none';
+                    }
                 }
 
                 // Update credits display
@@ -2780,6 +2801,47 @@
             }
         };
 
+        // Trial timer functionality
+        window.startTrialTimer = function() {
+            const trialTimeDisplay = document.getElementById('trialTimeDisplay');
+            if (!trialTimeDisplay) return;
+
+            // Clear any existing timer
+            if (window.trialTimerInterval) {
+                clearInterval(window.trialTimerInterval);
+            }
+
+            // Get trial expiry time from user data
+            const expiryTime = profileApp?.userTrial?.expires_at;
+            if (!expiryTime) {
+                trialTimeDisplay.textContent = 'Error loading timer';
+                return;
+            }
+
+            const updateTimer = () => {
+                const now = new Date();
+                const expiry = new Date(expiryTime);
+                const timeLeft = expiry - now;
+
+                if (timeLeft <= 0) {
+                    trialTimeDisplay.textContent = 'EXPIRED';
+                    clearInterval(window.trialTimerInterval);
+                    // Reload page to update trial status
+                    setTimeout(() => location.reload(), 2000);
+                    return;
+                }
+
+                const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+                const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+
+                trialTimeDisplay.textContent = `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            };
+
+            // Update immediately and then every second
+            updateTimer();
+            window.trialTimerInterval = setInterval(updateTimer, 1000);
+        };
 
         // Color customization functions
 
@@ -3823,6 +3885,15 @@
                 avatarEl.style.display = 'flex';
                 avatarEl.textContent = companionData.avatar;
                 if (imageEl) imageEl.style.display = 'none';
+            }
+
+            // Show intro logo if available (for GamerJay Silver)
+            const introLogoEl = document.getElementById('introLogo');
+            if (introLogoEl && companionData.introLogo) {
+                introLogoEl.src = companionData.introLogo;
+                introLogoEl.style.display = 'block';
+            } else if (introLogoEl) {
+                introLogoEl.style.display = 'none';
             }
         }
 
