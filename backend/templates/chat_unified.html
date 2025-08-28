@@ -28,7 +28,12 @@
     <script>
         window.APP_DATA = {
             userPlan: "{{ user_plan }}",
-            trialActive: {{ 'true' if trial_active else 'false' }}
+            trialActive: {{ 'true' if trial_active else 'false' }},
+            companionInfo: {
+                name: "{{ ai_character_name or companion_info.name if companion_info else 'GamerJay' }}",
+                image: "{{ companion_avatar or companion_info.image_url if companion_info else '/static/logos/GamerJay_Free_companion.png' }}",
+                greeting: "{{ companion_info.greeting if companion_info and companion_info.greeting else 'Hey there! Ready to explore some features together?' }}"
+            }
         };
     </script>
 
@@ -37,17 +42,12 @@
         const Send = window.lucide?.Send || (() => React.createElement('span', {}, '→'));
 
         function UnifiedChatPage({ userPlan = "bronze", trialActive = false }) {
-          // Get companion info based on tier
-          const getCompanionInfo = (plan) => {
-            const companions = {
-              bronze: { name: "GamerJay", image: "/static/logos/GamerJay_Free_companion.png", greeting: "Hey there! I'm GamerJay, your Bronze tier companion. Ready to explore some awesome features together?" },
-              silver: { name: "Sky", image: "/static/logos/Sky_a_premium_companion.png", greeting: "Hello! I'm Sky, your Silver tier companion. I'm here to help you with enhanced features and premium tools!" },
-              gold: { name: "Crimson", image: "/static/logos/Crimson_a_Max_companion.png", greeting: "Welcome! I'm Crimson, your Gold tier companion. You have access to all our premium features and unlimited usage!" }
-            };
-            return companions[plan] || companions.bronze;
+          // Get companion info from backend data
+          const companion = window.APP_DATA?.companionInfo || {
+            name: "GamerJay",
+            image: "/static/logos/GamerJay_Free_companion.png", 
+            greeting: "Hey there! Ready to explore some features together?"
           };
-
-          const companion = getCompanionInfo(userPlan);
           
           const [messages, setMessages] = useState([
             { id: 1, sender: "bot", text: companion.greeting, companion: companion },
@@ -413,13 +413,13 @@
 
             // Input row
             React.createElement('div', { className: "border-t bg-white" },
-              React.createElement('div', { className: "max-w-3xl mx-auto w-full p-3 flex items-center gap-2" },
+              React.createElement('div', { className: "max-w-4xl mx-auto w-full p-4 flex items-center gap-3" },
                 React.createElement('input', {
                   type: "text",
                   value: input,
                   onChange: (e) => setInput(e.target.value),
                   placeholder: "Message your AI companion...",
-                  className: "flex-1 px-4 py-3 rounded-full border-2 focus:outline-none focus:ring-2 text-black placeholder-black placeholder-opacity-60",
+                  className: "flex-1 px-6 py-4 rounded-full border-2 focus:outline-none focus:ring-2 text-black placeholder-black placeholder-opacity-60 text-lg",
                   style: { 
                     background: colors.primary,
                     borderColor: colors.primary,
@@ -431,14 +431,14 @@
                 React.createElement('button', {
                   onClick: sendMessage,
                   disabled: loading,
-                  className: "h-12 w-12 rounded-full text-black grid place-items-center transition-colors",
+                  className: "h-14 w-14 rounded-full text-black grid place-items-center transition-colors",
                   style: {
                     background: colors.primary,
                     opacity: loading ? 0.5 : 1
                   },
                   'aria-label': "Send",
                   title: "Send"
-                }, React.createElement(Send, { size: 18 }))
+                }, React.createElement(Send, { size: 20 }))
               )
             )
           );
