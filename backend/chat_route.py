@@ -43,6 +43,7 @@ def api_chat():
         tier_features = payload.get("tier_features") or {}
         context = (payload.get("context") or "").strip()
         conversation_history = payload.get("conversation_history") or []
+        user_tier = payload.get("user_tier") or "bronze"  # Get user's tier for model selection
 
         if not user_message:
             return jsonify({
@@ -114,11 +115,20 @@ def api_chat():
         # Add current user message
         messages.append({"role": "user", "content": user_message})
         
+        # Select model based on user tier
+        model_by_tier = {
+            "bronze": "gpt-3.5-turbo",    # Bronze: GPT-3.5-turbo
+            "silver": "gpt-4o",           # Silver: GPT-4.0  
+            "gold": "gpt-4o"              # Gold: GPT-4.0 (can upgrade to GPT-5 when available)
+        }
+        selected_model = model_by_tier.get(user_tier.lower(), "gpt-3.5-turbo")
+        
         logging.info(f"🔄 CHAT CONTEXT: Using {len(messages)-2} history messages + current")
+        logging.info(f"🤖 MODEL: {selected_model} for {user_tier} tier")
 
-        # Call OpenAI with higher creativity settings
+        # Call OpenAI with tier-appropriate model
         resp = client.chat.completions.create(
-            model="gpt-3.5-turbo",  # Using 3.5-turbo as it's more reliable than gpt-5
+            model=selected_model,
             messages=messages,
             temperature=0.9,  # Increased for more creativity and variety
             top_p=0.9,  # Nucleus sampling for more diverse responses

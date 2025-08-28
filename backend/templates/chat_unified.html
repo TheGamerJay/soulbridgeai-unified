@@ -294,7 +294,8 @@
                 body: JSON.stringify({ 
                   message: input,
                   character: companion.name,
-                  conversation_history: conversationHistory
+                  conversation_history: conversationHistory,
+                  user_tier: userPlan  // Send user tier for model selection
                 })
               });
 
