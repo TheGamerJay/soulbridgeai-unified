@@ -13627,33 +13627,37 @@ def ai_image_generation_usage():
             
         from constants import AI_IMAGE_LIMITS, AI_IMAGE_COST
         
-        # For Gold users, always use unlimited tier limit regardless of artistic time
-        if ai_image_tier == 'gold':
+        # Get artistic time for credit-based features
+        user_id = session.get('user_id')
+        artistic_time = get_artistic_time(user_id) if user_id else 0
+        
+        # For Gold users, show 999 limit but still use credits for trial users
+        if ai_image_tier == 'gold' and not (trial_active and user_plan == 'bronze'):
+            # Real Gold subscribers get unlimited
             monthly_limit = AI_IMAGE_LIMITS.get('gold', 999999)  # Always unlimited for Gold
-        elif trial_active and user_plan == 'bronze':
-            # Bronze trial users get Silver tier limits (10 images), not credit-based limits
-            monthly_limit = AI_IMAGE_LIMITS.get('silver', 10)
+        elif artistic_time > 0:
+            # Credit-based limits for Silver users and Bronze trial users
+            monthly_limit = artistic_time // AI_IMAGE_COST  
         else:
-            # For other non-Gold users, use artistic time credits if available
-            user_id = session.get('user_id')
-            artistic_time = get_artistic_time(user_id) if user_id else 0
-            
-            if artistic_time > 0:
-                # Limit based on available artistic time credits (5 per image)
-                monthly_limit = artistic_time // AI_IMAGE_COST  
-            else:
-                # Fallback to tier-based limits for users without artistic time
-                monthly_limit = AI_IMAGE_LIMITS.get(ai_image_tier, 0)
+            # Fallback to tier-based limits for users without artistic time
+            monthly_limit = AI_IMAGE_LIMITS.get(ai_image_tier, 0)
         
         current_month = datetime.now().strftime('%Y-%m')
         usage_key = f'ai_image_usage_{current_month}'
         monthly_usage = session.get(usage_key, 0)
         
-        # Handle unlimited plans (Gold tier) - show 999 instead of infinity
-        if monthly_limit >= 999999:
+        # Handle display limits - show tier limits for UI, but use actual limits for functionality
+        if ai_image_tier == 'gold':
+            # Gold tier always shows 999 in UI, even for Bronze trial users
             display_limit = 999
-            remaining = 999
+            if monthly_limit >= 999999:
+                # Real Gold users get unlimited remaining
+                remaining = 999  
+            else:
+                # Bronze trial users on Gold tier show actual remaining credits
+                remaining = max(0, monthly_limit - monthly_usage)
         else:
+            # Silver and Bronze tiers show actual limits
             display_limit = monthly_limit
             remaining = max(0, monthly_limit - monthly_usage)
         
