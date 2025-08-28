@@ -2345,8 +2345,8 @@ def home():
 
 @app.route("/login")
 def login_page():
-    """Simple login page that works without complex authentication"""
-    return render_template("simple_login.html")
+    """Login page"""
+    return render_template("login.html")
 
 @app.route("/test-login")
 def test_login_page():
