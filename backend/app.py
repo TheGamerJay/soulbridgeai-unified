@@ -4291,11 +4291,24 @@ def horoscope():
 
 @app.route("/creative-writing")
 def creative_writing():
-    """Creative Writing page with tier-based limits"""
+    """Creative Writing page with tier-based limits - redirect to tier-specific route"""
+    if not is_logged_in():
+        return redirect("/login")
+    
+    user_plan = session.get('user_plan', 'bronze')
+    return redirect(f"/creative-writing/{user_plan}")
+
+@app.route("/creative-writing/<tier>")
+def creative_writing_tier(tier):
+    """Tier-specific Creative Writing pages with proper isolation"""
     try:
         if not is_logged_in():
             return redirect("/login")
             
+        # Validate tier
+        if tier not in ['bronze', 'silver', 'gold']:
+            return redirect("/creative-writing/bronze")
+        
         # Get user's plan and creative writer usage
         user_id = session.get('user_id')
         user_plan = session.get('user_plan', 'bronze')
@@ -4305,22 +4318,26 @@ def creative_writing():
         trial_active = session.get('trial_active', False)
         effective_plan = get_effective_plan(user_plan, trial_active)
         
-        # FIXED: Use user_plan for limits, effective_plan for feature access
-        daily_limit = get_feature_limit(user_plan, 'creative_writer', trial_active)  # Limits based on subscription
+        # Use tier for limits and template selection
+        daily_limit = get_feature_limit(tier, 'creative_writer', trial_active)
+        
+        # Use tier-specific templates
+        tier_templates = {
+            'bronze': 'creative_writing_bronze.html',
+            'silver': 'creative_writing_silver.html', 
+            'gold': 'creative_writing_gold.html'
+        }
+        template_name = tier_templates.get(tier, 'creative_writing_bronze.html')
         
         # DEBUG: Log creative writing access info
-        logger.info(f"✍️ CREATIVE WRITING DEBUG: user_plan = {user_plan}")
-        logger.info(f"✍️ CREATIVE WRITING DEBUG: effective_plan = {effective_plan}")
-        logger.info(f"✍️ CREATIVE WRITING DEBUG: daily_limit = {daily_limit}")
-        logger.info(f"✍️ CREATIVE WRITING DEBUG: creative_usage = {creative_usage}")
+        logger.info(f"✍️ CREATIVE WRITING {tier.upper()}: user_plan = {user_plan}")
+        logger.info(f"✍️ CREATIVE WRITING {tier.upper()}: daily_limit = {daily_limit}")
+        logger.info(f"✍️ CREATIVE WRITING {tier.upper()}: template = {template_name}")
         
-        return render_template("creative_writing.html", 
-                             user_plan=user_plan,  # Use actual user plan for correct tier image
+        return render_template(template_name,
                              daily_limit=daily_limit,
                              current_usage=creative_usage,
-                             ad_free=user_plan in ['silver', 'gold'],
-                             trial_active=trial_active,
-                             effective_plan=effective_plan)  # Pass effective plan separately if needed
+                             trial_active=trial_active)
     except Exception as e:
         logger.error(f"Creative writing template error: {e}")
         return jsonify({"error": "Creative writing temporarily unavailable"}), 500
