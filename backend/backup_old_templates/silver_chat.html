@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Silver Tier - SoulBridge AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/chat.css') }}">
+</head>
+<body class="silver-tier">
+    <div class="container">
+        <div class="header">
+            <h1>🥈 Silver Tier Chat</h1>
+            <p>Enhanced AI companion with premium features</p>
+            
+            <!-- Theme Selector Button (Silver Exclusive) -->
+            <div class="theme-selector-container">
+                <button onclick="toggleThemeSelector()" class="theme-selector-btn">
+                    🎨 Themes
+                </button>
+                <div id="themeSelector" class="theme-selector-panel" style="display: none;">
+                    <h4>Choose Your Silver Theme</h4>
+                    <div class="theme-categories">
+                        <!-- Section 1: Background Changes -->
+                        <div class="theme-section">
+                            <h5>🎨 Background Themes</h5>
+                            <div class="theme-options">
+                                <div class="theme-option" data-theme="default" style="background: linear-gradient(135deg, #C0C0C0, #A8A8A8);">
+                                    <span>Classic Silver</span>
+                                </div>
+                                <div class="theme-option" data-theme="purple" style="background: linear-gradient(135deg, #a855f7, #7c3aed);">
+                                    <span>Royal Purple</span>
+                                </div>
+                                <div class="theme-option" data-theme="blue" style="background: linear-gradient(135deg, #3b82f6, #2563eb);">
+                                    <span>Ocean Blue</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section 2: Text Color Changes -->
+                        <div class="theme-section">
+                            <h5>✍️ Text Colors</h5>
+                            <div class="theme-options">
+                                <div class="theme-option" data-theme="green" style="background: linear-gradient(135deg, #10b981, #059669);">
+                                    <span>Forest Green</span>
+                                </div>
+                                <div class="theme-option" data-theme="pink" style="background: linear-gradient(135deg, #ec4899, #db2777);">
+                                    <span>Rose Pink</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section 3: Pre-mixed Combinations -->
+                        <div class="theme-section">
+                            <h5>🌟 Premium Presets</h5>
+                            <div class="theme-options">
+                                <div class="theme-option" data-theme="orange" style="background: linear-gradient(135deg, #f97316, #ea580c);">
+                                    <span>Sunset Orange</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="features-grid">
+            <!-- BASIC FEATURES (Enhanced for Silver) -->
+            <a href="/decoder" class="action-btn silver-feature" data-feature="decoder">
+                <i class="fas fa-brain"></i>
+                🧠 Decoder
+                <span class="usage-counter" id="decoderLimit">{{ limits.decoder if limits.decoder != 999 else '∞' }}/day</span>
+            </a>
+            
+            <a href="/fortune" class="action-btn silver-feature" data-feature="fortune">
+                <i class="fas fa-crystal-ball"></i>
+                🔮 Fortune
+                <span class="usage-counter" id="fortuneLimit">{{ limits.fortune if limits.fortune != 999 else '∞' }}/day</span>
+            </a>
+            
+            <a href="/horoscope" class="action-btn silver-feature" data-feature="horoscope">
+                <i class="fas fa-star"></i>
+                ⭐ Horoscope
+                <span class="usage-counter" id="horoscopeLimit">{{ limits.horoscope if limits.horoscope != 999 else '∞' }}/day</span>
+            </a>
+            
+            <a href="/creative-writing" class="action-btn silver-feature" data-feature="creative_writer">
+                <i class="fas fa-pen"></i>
+                ✍️ Creative Writer
+                <span class="usage-counter" id="creativeLimit">{{ limits.creative_writer if limits.creative_writer != 999 else '∞' }}/day</span>
+            </a>
+            
+            <a href="/chat/sky_silver" class="action-btn silver-feature">
+                <i class="fas fa-robot"></i>
+                🤖 AI Companions
+                <span class="silver-badge">Silver Tier</span>
+            </a>
+            
+            <!-- SILVER PREMIUM FEATURES -->
+            <a href="/voice-journaling" class="action-btn premium-feature">
+                <i class="fas fa-microphone"></i>
+                🎤 Voice Journal
+                <span class="premium-badge">Premium</span>
+            </a>
+            
+            <a href="/ai-image-generation" class="action-btn premium-feature">
+                <i class="fas fa-palette"></i>
+                🎨 AI Images
+                <span class="premium-badge">Premium</span>
+            </a>
+            
+            <a href="/relationship-profiles" class="action-btn premium-feature">
+                <i class="fas fa-heart"></i>
+                ❤️ Relationships
+                <span class="premium-badge">Premium</span>
+            </a>
+            
+            <a href="/emotional-meditations" class="action-btn premium-feature">
+                <i class="fas fa-om"></i>
+                🧘 Meditations
+                <span class="premium-badge">Premium</span>
+            </a>
+            
+            <!-- UPGRADE TO GOLD -->
+            <div class="upgrade-section">
+                <h3>🚀 Unlock Gold Features</h3>
+                <p>Upgrade to Gold for:</p>
+                <ul>
+                    <li>🤖 Mini Studio</li>
+                    <li>♾️ Unlimited everything</li>
+                </ul>
+                <a href="/plan-selection?upgrade=gold" class="upgrade-btn">
+                    🥇 Upgrade to Gold
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <style>
+    .silver-tier { background: linear-gradient(135deg, #000000 0%, #1a1a1a 50%, #000000 100%); color: #C0C0C0; }
+    .silver-feature { border-color: #C0C0C0; background: rgba(192, 192, 192, 0.1); color: #C0C0C0; }
+    .premium-feature { 
+        border-color: #C0C0C0; 
+        background: linear-gradient(135deg, rgba(192, 192, 192, 0.15), rgba(192, 192, 192, 0.1));
+        color: #C0C0C0; 
+    }
+    .premium-badge { 
+        background: #C0C0C0; 
+        color: #000000; 
+        font-size: 10px; 
+        padding: 2px 6px; 
+        border-radius: 4px; 
+        margin-left: 8px; 
+    }
+    .upgrade-section { 
+        grid-column: 1 / -1; 
+        background: rgba(255,215,0,0.1); 
+        padding: 20px; 
+        border-radius: 12px; 
+        text-align: center; 
+    }
+    .upgrade-btn { 
+        display: inline-block; 
+        padding: 12px 24px; 
+        background: linear-gradient(45deg, #FFD700, #FFA500); 
+        color: #333; 
+        text-decoration: none; 
+        border-radius: 8px; 
+        font-weight: bold; 
+    }
+    .usage-limit { font-size: 12px; opacity: 0.8; }
+    
+    /* Creative Writing Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        z-index: 9999;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    .modal-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+    }
+    
+    .modal-content {
+        background: linear-gradient(135deg, #0f172a, #1e293b);
+        border: 2px solid rgba(34, 211, 238, 0.3);
+        border-radius: 20px;
+        padding: 2rem;
+        position: relative;
+        z-index: 1;
+        max-width: 600px;
+        width: 90%;
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+    
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        color: #22d3ee;
+    }
+    
+    .close-btn {
+        background: none;
+        border: none;
+        color: #22d3ee;
+        font-size: 1.5rem;
+        cursor: pointer;
+        padding: 0.5rem;
+    }
+    
+    .mode-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+        margin: 1rem 0;
+    }
+    
+    .mode-btn {
+        background: rgba(34, 211, 238, 0.1);
+        border: 2px solid rgba(34, 211, 238, 0.3);
+        color: #e2e8f0;
+        padding: 1rem;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .mode-btn:hover {
+        border-color: #22d3ee;
+        background: rgba(34, 211, 238, 0.2);
+    }
+    
+    .mode-btn.active {
+        border-color: #22d3ee;
+        background: rgba(34, 211, 238, 0.3);
+    }
+    
+    .writing-input {
+        margin-top: 1.5rem;
+    }
+    
+    .writing-input textarea {
+        width: 100%;
+        min-height: 100px;
+        background: rgba(0, 0, 0, 0.3);
+        border: 2px solid rgba(34, 211, 238, 0.3);
+        border-radius: 8px;
+        color: #e2e8f0;
+        padding: 1rem;
+        font-size: 1rem;
+        resize: vertical;
+    }
+    
+    .mood-selector {
+        margin: 1rem 0;
+    }
+    
+    .mood-selector select {
+        background: rgba(0, 0, 0, 0.3);
+        border: 2px solid rgba(34, 211, 238, 0.3);
+        border-radius: 8px;
+        color: #e2e8f0;
+        padding: 0.5rem;
+        width: 100%;
+    }
+    
+    .creative-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+    
+    .creative-actions button {
+        flex: 1;
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 8px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .generate-btn {
+        background: linear-gradient(135deg, #22d3ee, #0891b2);
+        color: #000;
+    }
+    
+    .generate-btn:hover {
+        background: linear-gradient(135deg, #0891b2, #0e7490);
+        color: #fff;
+    }
+    </style>
+
+    <!-- Creative Writing Modal -->
+    <div id="creativeWritingModal" class="modal">
+        <div class="modal-overlay" onclick="closeCreativeWriting()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-feather-alt"></i> Creative Writing Assistant</h2>
+                <div class="usage-counter-display" id="creativeWritingUsageCounter" style="text-align: center; color: #22d3ee; font-size: 0.9rem; margin-top: 0.5rem; font-weight: 600;">
+                    Loading usage...
+                </div>
+                <button class="close-btn" onclick="closeCreativeWriting()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="writing-intro">
+                    <p>Welcome to your personal Creative Writing Assistant! Choose a writing mode to get started:</p>
+                </div>
+                <div class="writing-modes">
+                    <h3>Choose Your Creative Mode:</h3>
+                    <div class="mode-grid">
+                        <button class="mode-btn" onclick="selectWritingMode('poetry')" data-mode="poetry">
+                            <i class="fas fa-heart"></i><br>Poetry & Verses
+                        </button>
+                        <button class="mode-btn" onclick="selectWritingMode('inspiration')" data-mode="inspiration">
+                            <i class="fas fa-lightbulb"></i><br>Daily Inspiration
+                        </button>
+                        <button class="mode-btn" onclick="selectWritingMode('story')" data-mode="story">
+                            <i class="fas fa-book"></i><br>Short Stories
+                        </button>
+                        <button class="mode-btn" onclick="selectWritingMode('journal')" data-mode="journal">
+                            <i class="fas fa-pen"></i><br>Personal Journal
+                        </button>
+                        <button class="mode-btn" onclick="selectWritingMode('letter')" data-mode="letter">
+                            <i class="fas fa-envelope"></i><br>Personal Letters
+                        </button>
+                        <button class="mode-btn" onclick="selectWritingMode('music')" data-mode="music">
+                            <i class="fas fa-music"></i><br>Music & Lyrics
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="writing-input" id="writingInput" style="display: none;">
+                    <h3 id="modeTitle">Creative Writing</h3>
+                    <textarea id="writingPrompt" placeholder="Describe what you'd like help with..." rows="4"></textarea>
+                    <div class="mood-selector">
+                        <label>Mood/Tone:</label>
+                        <select id="moodSelect">
+                            <option value="uplifting">Uplifting & Positive</option>
+                            <option value="calming">Calm & Peaceful</option>
+                            <option value="motivational">Motivational & Energizing</option>
+                            <option value="romantic">Romantic & Loving</option>
+                            <option value="reflective">Reflective & Thoughtful</option>
+                            <option value="playful">Playful & Fun</option>
+                        </select>
+                    </div>
+                    <div class="creative-actions">
+                        <button class="generate-btn" onclick="generateCreativeContent()">Generate Content</button>
+                        <button onclick="closeCreativeWriting()" style="background: #6b7280; color: white;">Cancel</button>
+                    </div>
+                </div>
+                
+                <div id="creativeOutput" style="display: none;">
+                    <h3>Your Creative Content:</h3>
+                    <div id="generatedContent" style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; margin: 1rem 0; white-space: pre-wrap;"></div>
+                    <div class="creative-actions">
+                        <button onclick="saveToLibrary()" style="background: #10b981; color: white;">Save to Library</button>
+                        <button onclick="resetCreativeWriting()" style="background: #6b7280; color: white;">New Writing</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function openCreativeWriting() {
+            const modal = document.getElementById('creativeWritingModal');
+            if (modal) {
+                modal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+                // Update usage counter when modal opens
+                await updateCreativeWritingUsage();
+            }
+        }
+        
+        async function updateCreativeWritingUsage() {
+            try {
+                const counterEl = document.getElementById('creativeWritingUsageCounter');
+                if (!counterEl) return;
+                
+                const response = await fetch('/api/tier-limits', { credentials: 'include' });
+                if (response.ok) {
+                    const data = await response.json();
+                    const limit = data.limits?.creative_writer || 15;
+                    const usage = data.usage?.creative_writer || 0;
+                    
+                    if (limit === 'unlimited' || limit >= 999) {
+                        counterEl.textContent = '∞ Unlimited Usage';
+                        counterEl.style.color = '#FFD700';
+                    } else {
+                        counterEl.textContent = `${usage}/${limit} uses today`;
+                        counterEl.style.color = usage >= limit ? '#ff6b6b' : '#22d3ee';
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to update Creative Writing usage:', error);
+            }
+        }
+        
+        function closeCreativeWriting() {
+            document.getElementById('creativeWritingModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+            resetCreativeWriting();
+        }
+        
+        function selectWritingMode(mode) {
+            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`[data-mode="${mode}"]`).classList.add('active');
+            
+            const modeNames = {
+                poetry: 'Poetry & Verses',
+                inspiration: 'Daily Inspiration', 
+                story: 'Short Stories',
+                journal: 'Personal Journal',
+                letter: 'Personal Letters',
+                music: 'Music & Lyrics'
+            };
+            
+            document.getElementById('modeTitle').textContent = modeNames[mode];
+            document.getElementById('writingInput').style.display = 'block';
+            document.getElementById('writingPrompt').focus();
+        }
+        
+        function generateCreativeContent() {
+            const prompt = document.getElementById('writingPrompt').value.trim();
+            const mood = document.getElementById('moodSelect').value;
+            const activeMode = document.querySelector('.mode-btn.active')?.getAttribute('data-mode');
+            
+            if (!prompt) {
+                alert('Please describe what you\'d like help with first!');
+                return;
+            }
+            
+            // Show loading state
+            const generateBtn = document.querySelector('.generate-btn');
+            generateBtn.textContent = 'Generating...';
+            generateBtn.disabled = true;
+            
+            // Simulate API call to creative writing service
+            setTimeout(() => {
+                const mockContent = `This is a sample ${activeMode} with ${mood} tone based on: "${prompt}"\\n\\nYour creative content would appear here after connecting to the actual AI service.`;
+                
+                document.getElementById('generatedContent').textContent = mockContent;
+                document.getElementById('creativeOutput').style.display = 'block';
+                document.getElementById('writingInput').style.display = 'none';
+                
+                generateBtn.textContent = 'Generate Content';
+                generateBtn.disabled = false;
+            }, 2000);
+        }
+        
+        async function saveToLibrary() {
+            const content = document.getElementById('generatedContent').textContent;
+            const activeMode = document.querySelector('.mode-btn.active')?.getAttribute('data-mode');
+            const prompt = document.getElementById('writingPrompt').value;
+            const mood = document.getElementById('moodSelect').value;
+            
+            if (!content || !activeMode) {
+                alert('Please generate content first before saving!');
+                return;
+            }
+            
+            const saveBtn = event.target;
+            const originalText = saveBtn.textContent;
+            saveBtn.textContent = 'Saving...';
+            saveBtn.disabled = true;
+            
+            try {
+                const response = await fetch('/api/save-creative-content', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({
+                        title: `${activeMode.charAt(0).toUpperCase() + activeMode.slice(1)} - ${new Date().toLocaleDateString()}`,
+                        content: content,
+                        mode: activeMode,
+                        prompt: prompt,
+                        mood: mood,
+                        type: 'creative_writing'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    alert('✅ Content saved to your library successfully!');
+                    closeCreativeWriting();
+                } else {
+                    alert('❌ Failed to save: ' + (data.error || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Save error:', error);
+                alert('❌ Failed to save content. Please try again.');
+            } finally {
+                saveBtn.textContent = originalText;
+                saveBtn.disabled = false;
+            }
+        }
+        
+        function resetCreativeWriting() {
+            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('writingInput').style.display = 'none';
+            document.getElementById('creativeOutput').style.display = 'none';
+            document.getElementById('writingPrompt').value = '';
+            document.getElementById('moodSelect').value = 'uplifting';
+        }
+        
+        // Usage Counter System
+        async function updateUsageCounters() {
+            try {
+                const response = await fetch('/api/tier-limits', { credentials: 'include' });
+                const data = await response.json();
+                
+                if (!data.success) return;
+                
+                const { limits, usage, unlimited_features } = data;
+                
+                // Update decoder counter
+                const decoderLimit = document.getElementById('decoderLimit');
+                if (decoderLimit) {
+                    const decoderUsed = usage.decoder || 0;
+                    const decoderMax = limits.decoder;
+                    if (unlimited_features && unlimited_features.includes('decoder') || decoderMax >= 999) {
+                        decoderLimit.textContent = '∞';
+                    } else {
+                        decoderLimit.textContent = `${decoderUsed}/${decoderMax}`;
+                    }
+                }
+                
+                // Update fortune counter
+                const fortuneLimit = document.getElementById('fortuneLimit');
+                if (fortuneLimit) {
+                    const fortuneUsed = usage.fortune || 0;
+                    const fortuneMax = limits.fortune;
+                    if (unlimited_features && unlimited_features.includes('fortune') || fortuneMax >= 999) {
+                        fortuneLimit.textContent = '∞';
+                    } else {
+                        fortuneLimit.textContent = `${fortuneUsed}/${fortuneMax}`;
+                    }
+                }
+                
+                // Update horoscope counter
+                const horoscopeLimit = document.getElementById('horoscopeLimit');
+                if (horoscopeLimit) {
+                    const horoscopeUsed = usage.horoscope || 0;
+                    const horoscopeMax = limits.horoscope;
+                    if (unlimited_features && unlimited_features.includes('horoscope') || horoscopeMax >= 999) {
+                        horoscopeLimit.textContent = '∞';
+                    } else {
+                        horoscopeLimit.textContent = `${horoscopeUsed}/${horoscopeMax}`;
+                    }
+                }
+                
+                // Update creative writer counter
+                const creativeLimit = document.getElementById('creativeLimit');
+                if (creativeLimit) {
+                    const creativeUsed = usage.creative_writer || 0;
+                    const creativeMax = limits.creative_writer;
+                    if (unlimited_features && unlimited_features.includes('creative_writer') || creativeMax >= 999) {
+                        creativeLimit.textContent = '∞';
+                    } else {
+                        creativeLimit.textContent = `${creativeUsed}/${creativeMax}`;
+                    }
+                }
+                
+            } catch (error) {
+                console.error('Error updating usage counters:', error);
+            }
+        }
+        
+        // Update counters on page load and periodically
+        document.addEventListener('DOMContentLoaded', function() {
+            updateUsageCounters();
+            
+            // Refresh counters when page gains focus
+            window.addEventListener('focus', updateUsageCounters);
+            document.addEventListener('visibilitychange', () => {
+                if (!document.hidden) updateUsageCounters();
+            });
+            
+            // Update counters every 30 seconds
+            setInterval(updateUsageCounters, 30000);
+        });
+    </script>
+
+    <style>
+        /* Theme Selector Styles */
+        .theme-selector-container {
+            margin-top: 15px;
+            text-align: center;
+        }
+        
+        .theme-selector-btn {
+            background: linear-gradient(135deg, #c0c0c0, #a8a8a8);
+            color: #1a1a1a;
+            border: none;
+            border-radius: 25px;
+            padding: 10px 20px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+        
+        .theme-selector-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(192, 192, 192, 0.3);
+        }
+        
+        .theme-selector-panel {
+            position: absolute;
+            top: 45px;
+            left: 0;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+            border: 2px solid #C0C0C0;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(192, 192, 192, 0.3);
+            min-width: 400px;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+        
+        .theme-selector-panel h4 {
+            color: #C0C0C0;
+            text-align: center;
+            margin: 0 0 20px 0;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .theme-categories {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .theme-section h5 {
+            color: #C0C0C0;
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .theme-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+        }
+        
+        .theme-option {
+            position: relative;
+            height: 60px;
+            border-radius: 10px;
+            border: 2px solid #C0C0C0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+        
+        .theme-option:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(192, 192, 192, 0.5);
+            border-color: #FFF;
+        }
+        
+        .theme-option.active {
+            border-color: #FFF;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.6);
+            transform: scale(1.05);
+        }
+        
+        .theme-option span {
+            position: relative;
+            color: #FFF;
+            font-weight: bold;
+            font-size: 11px;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+            text-align: center;
+            padding: 5px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 5px;
+        }
+        
+        .theme-selector-container {
+            position: relative;
+        }
+    </style>
+
+    <script>
+        function toggleThemeSelector() {
+            const panel = document.getElementById('themeSelector');
+            panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+        }
+
+        // Close theme selector when clicking outside
+        document.addEventListener('click', function(event) {
+            const container = event.target.closest('.theme-selector-container');
+            const panel = document.getElementById('themeSelector');
+            
+            if (!container && panel && panel.style.display === 'block') {
+                panel.style.display = 'none';
+            }
+        });
+
+        // Theme switching functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const themeOptions = document.querySelectorAll('.theme-option');
+            
+            themeOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    const theme = this.dataset.theme;
+                    applyTheme(theme);
+                    
+                    // Update active state
+                    themeOptions.forEach(opt => opt.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Save to localStorage
+                    localStorage.setItem('silverTheme', theme);
+                    
+                    // Close panel
+                    document.getElementById('themeSelector').style.display = 'none';
+                });
+            });
+            
+            // Load saved theme
+            const savedTheme = localStorage.getItem('silverTheme') || 'default';
+            applyTheme(savedTheme);
+            
+            // Set active state for saved theme
+            const activeOption = document.querySelector(`[data-theme="${savedTheme}"]`);
+            if (activeOption) {
+                activeOption.classList.add('active');
+            }
+        });
+
+        function applyTheme(theme) {
+            const themes = {
+                'default': {
+                    primary: '#00ffff',
+                    secondary: '#0099cc',
+                    glow: 'rgba(0, 255, 255, 0.3)'
+                },
+                'purple': {
+                    primary: '#a855f7',
+                    secondary: '#7c3aed', 
+                    glow: 'rgba(168, 85, 247, 0.3)'
+                },
+                'green': {
+                    primary: '#10b981',
+                    secondary: '#059669',
+                    glow: 'rgba(16, 185, 129, 0.3)'
+                },
+                'orange': {
+                    primary: '#f97316',
+                    secondary: '#ea580c',
+                    glow: 'rgba(249, 115, 22, 0.3)'
+                },
+                'pink': {
+                    primary: '#ec4899',
+                    secondary: '#db2777',
+                    glow: 'rgba(236, 72, 153, 0.3)'
+                },
+                'blue': {
+                    primary: '#3b82f6',
+                    secondary: '#2563eb',
+                    glow: 'rgba(59, 130, 246, 0.3)'
+                }
+            };
+
+            const selectedTheme = themes[theme] || themes['default'];
+            
+            // Apply CSS custom properties
+            document.documentElement.style.setProperty('--primary-color', selectedTheme.primary);
+            document.documentElement.style.setProperty('--secondary-color', selectedTheme.secondary);
+            document.documentElement.style.setProperty('--glow-color', selectedTheme.glow);
+            
+            // Update dynamic elements that use these colors
+            const actionBtns = document.querySelectorAll('.action-btn');
+            actionBtns.forEach(btn => {
+                btn.style.borderColor = selectedTheme.primary;
+                btn.style.boxShadow = `0 4px 15px ${selectedTheme.glow}`;
+            });
+        }
+    </script>
+</body>
+</html>

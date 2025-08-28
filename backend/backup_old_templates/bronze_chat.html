@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bronze Tier - SoulBridge AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/chat.css') }}">
+    
+    <!-- Ad Integration for Bronze Tier -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3869471953521437" crossorigin="anonymous"></script>
+    <script>
+        window.bronzeTierAds = true;
+        console.log('📺 Bronze Tier - Ads enabled for monetization');
+    </script>
+</head>
+<body class="bronze-tier">
+    <div class="container">
+        <div class="header">
+            <h1>🥉 Bronze Tier Chat</h1>
+            <p>Your essential AI companion features</p>
+        </div>
+        
+        <div class="features-grid">
+            <!-- BRONZE TIER FEATURES ONLY -->
+            <a href="/decoder" class="action-btn bronze-feature" data-feature="decoder">
+                <i class="fas fa-brain"></i>
+                🧠 Decoder
+                <span class="usage-counter" id="decoderLimit">{{ limits.decoder if limits.decoder != 999 else '∞' }}/day</span>
+            </a>
+            
+            <a href="/fortune" class="action-btn bronze-feature" data-feature="fortune">
+                <i class="fas fa-crystal-ball"></i>
+                🔮 Fortune
+                <span class="usage-counter" id="fortuneLimit">{{ limits.fortune if limits.fortune != 999 else '∞' }}/day</span>
+            </a>
+            
+            <a href="/horoscope" class="action-btn bronze-feature" data-feature="horoscope">
+                <i class="fas fa-star"></i>
+                ⭐ Horoscope
+                <span class="usage-counter" id="horoscopeLimit">{{ limits.horoscope if limits.horoscope != 999 else '∞' }}/day</span>
+            </a>
+            
+            <a href="/creative-writing" class="action-btn bronze-feature" data-feature="creative_writer">
+                <i class="fas fa-pen"></i>
+                ✍️ Creative Writer
+                <span class="usage-counter" id="creativeLimit">{{ limits.creative_writer if limits.creative_writer != 999 else '∞' }}/day</span>
+            </a>
+            
+            <a href="/chat/gamerjay_bronze" class="action-btn bronze-navigation">
+                <i class="fas fa-robot"></i>
+                🤖 AI Companions
+                <span class="bronze-badge">Bronze Tier</span>
+            </a>
+            
+            <!-- UPGRADE PROMPT -->
+            <div class="upgrade-section">
+                <h3>🚀 Want More Features?</h3>
+                <p>Upgrade to Silver or Gold to unlock:</p>
+                <ul>
+                    <li>🎤 Voice Journal</li>
+                    <li>🎨 AI Images</li>
+                    <li>❤️ Relationships</li>
+                    <li>🧘 Meditations</li>
+                    <li>🤖 Mini Studio (Gold)</li>
+                </ul>
+                {% if not session.get('trial_used_permanently') %}
+                <button id="startTrialBtn" class="upgrade-btn trial-btn">
+                    🎯 Start 5-Hour FREE Trial
+                </button>
+                {% endif %}
+                <a href="/plan-selection" class="upgrade-btn">
+                    💎 View Plans
+                </a>
+            </div>
+        </div>
+
+        <!-- Ad Container for Bronze Tier -->
+        <div id="bronzeAdContainer" class="ad-container" style="display: none;">
+            <div class="ad-header">
+                <span class="ad-label">📺 Advertisement</span>
+                <span class="ad-timer">Please wait <span id="bronzeAdTimer">15</span> seconds...</span>
+            </div>
+            <div class="ad-content" id="bronzeAdContent">
+                <div class="ad-placeholder">
+                    <div class="ad-placeholder-content">
+                        <i class="fas fa-ad"></i>
+                        <p>Loading advertisement...</p>
+                        <p class="ad-placeholder-note">Support SoulBridge AI by viewing this ad</p>
+                    </div>
+                </div>
+            </div>
+            <button class="ad-skip-button" id="bronzeAdSkip" disabled>Continue (<span id="bronzeSkipTimer">15</span>s)</button>
+        </div>
+    </div>
+
+    <style>
+    /* Ad Container Styles for Bronze Tier */
+    .ad-container {
+        background: rgba(205, 127, 50, 0.1);
+        border: 2px solid rgba(205, 127, 50, 0.3);
+        border-radius: 12px;
+        padding: 20px;
+        margin: 20px 0;
+        text-align: center;
+        backdrop-filter: blur(10px);
+    }
+
+    .ad-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid rgba(205, 127, 50, 0.2);
+    }
+
+    .ad-label {
+        color: #00FFFF;
+        font-size: 0.9rem;
+        font-weight: bold;
+    }
+
+    .ad-timer {
+        color: #94a3b8;
+        font-size: 0.8rem;
+    }
+
+    .ad-content {
+        min-height: 200px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .ad-placeholder {
+        text-align: center;
+        color: #94a3b8;
+    }
+
+    .ad-placeholder i {
+        font-size: 3rem;
+        margin-bottom: 15px;
+        opacity: 0.5;
+        color: #00FFFF;
+    }
+
+    .ad-placeholder p {
+        margin: 10px 0;
+    }
+
+    .ad-placeholder-note {
+        font-size: 0.85rem;
+        color: #00FFFF;
+    }
+
+    .ad-skip-button {
+        background: #00FFFF;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-weight: bold;
+        cursor: pointer;
+        margin-top: 15px;
+        transition: all 0.3s ease;
+    }
+
+    .ad-skip-button:hover:not(:disabled) {
+        background: #008B8B;
+        transform: translateY(-2px);
+    }
+
+    .ad-skip-button:disabled {
+        background: #6b7280;
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+
+    <style>
+    .bronze-tier { background: linear-gradient(135deg, #000000 0%, #1a1a1a 50%, #000000 100%); color: #00FFFF; }
+    .bronze-feature { border-color: #00FFFF; background: rgba(0, 255, 255, 0.1); color: #00FFFF; }
+    .bronze-navigation { border-color: #00FFFF; background: rgba(0, 255, 255, 0.1); color: #00FFFF; }
+    .upgrade-section { 
+        grid-column: 1 / -1; 
+        background: rgba(255,255,255,0.05); 
+        padding: 20px; 
+        border-radius: 12px; 
+        text-align: center; 
+    }
+    .usage-limit { font-size: 12px; opacity: 0.8; }
+    .trial-btn { background: linear-gradient(45deg, #00ff7f, #00c6ff); }
+    .upgrade-btn { 
+        display: inline-block; 
+        padding: 10px 20px; 
+        margin: 10px; 
+        background: #00FFFF; 
+        color: white; 
+        text-decoration: none; 
+        border-radius: 8px; 
+    }
+    
+    /* Creative Writing Modal - Bronze Version */
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        z-index: 9999;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    .modal-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+    }
+    
+    .modal-content {
+        background: linear-gradient(135deg, #0f172a, #1e293b);
+        border: 2px solid rgba(205, 127, 50, 0.5);
+        border-radius: 20px;
+        padding: 2rem;
+        position: relative;
+        z-index: 1;
+        max-width: 600px;
+        width: 90%;
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+    
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        color: #00FFFF;
+    }
+    
+    .close-btn {
+        background: none;
+        border: none;
+        color: #00FFFF;
+        font-size: 1.5rem;
+        cursor: pointer;
+        padding: 0.5rem;
+    }
+    
+    .mode-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+        margin: 1rem 0;
+    }
+    
+    .mode-btn {
+        background: rgba(205, 127, 50, 0.1);
+        border: 2px solid rgba(205, 127, 50, 0.3);
+        color: #e2e8f0;
+        padding: 1rem;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .mode-btn:hover, .mode-btn.active {
+        border-color: #00FFFF;
+        background: rgba(205, 127, 50, 0.2);
+    }
+    </style>
+
+    <!-- Creative Writing Modal -->
+    <div id="creativeWritingModal" class="modal">
+        <div class="modal-overlay" onclick="closeCreativeWriting()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-medal"></i> Bronze Creative Writing</h2>
+                <button class="close-btn" onclick="closeCreativeWriting()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="text-align: center; margin-bottom: 2rem; color: #CD7F32;">
+                    <i class="fas fa-star"></i> <strong>Essential Creative Writing</strong> - Start your creative journey with our core writing modes!
+                </p>
+                <div class="mode-grid">
+                    <button class="mode-btn" onclick="selectWritingMode('poetry')">
+                        <i class="fas fa-heart"></i><br>Poetry & Verses
+                    </button>
+                    <button class="mode-btn" onclick="selectWritingMode('inspiration')">
+                        <i class="fas fa-lightbulb"></i><br>Daily Inspiration
+                    </button>
+                    <button class="mode-btn" onclick="selectWritingMode('story')">
+                        <i class="fas fa-book"></i><br>Short Stories
+                    </button>
+                    <button class="mode-btn" onclick="selectWritingMode('journal')">
+                        <i class="fas fa-pen"></i><br>Personal Journal
+                    </button>
+                    <button class="mode-btn" onclick="selectWritingMode('letter')">
+                        <i class="fas fa-envelope"></i><br>Personal Letters
+                    </button>
+                    <button class="mode-btn" onclick="selectWritingMode('music')">
+                        <i class="fas fa-music"></i><br>Music & Lyrics
+                    </button>
+                </div>
+                <div style="text-align: center; margin-top: 2rem; padding: 1rem; background: rgba(205, 127, 50, 0.1); border-radius: 10px;">
+                    <p style="color: #94a3b8; font-size: 0.9rem; margin-bottom: 1rem;">
+                        Want unlimited creative writing? <strong>Upgrade to Silver or Gold!</strong>
+                    </p>
+                    <button onclick="redirectToMainChat()" style="background: linear-gradient(135deg, #00FFFF, #008B8B); color: white; padding: 0.75rem 1.5rem; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-right: 0.5rem;">
+                        <i class="fas fa-arrow-right"></i> Continue in Main Chat
+                    </button>
+                    <button onclick="window.location.href='/tiers'" style="background: linear-gradient(135deg, #22d3ee, #0891b2); color: #000; padding: 0.75rem 1.5rem; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">
+                        <i class="fas fa-arrow-up"></i> Upgrade Now
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Bronze Tier Ad System
+        let bronzeAdShown = false;
+        
+        // Show Bronze Tier Ad
+        async function showBronzeAd() {
+            if (bronzeAdShown) {
+                console.log('📺 Ad already shown this session');
+                return Promise.resolve();
+            }
+            
+            return new Promise((resolve) => {
+                const adContainer = document.getElementById('bronzeAdContainer');
+                const adTimer = document.getElementById('bronzeAdTimer');
+                const skipButton = document.getElementById('bronzeAdSkip');
+                const skipTimer = document.getElementById('bronzeSkipTimer');
+                
+                let timeLeft = 15;
+                
+                // Show ad container
+                adContainer.style.display = 'block';
+                adContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                // Load actual AdSense ad (placeholder for now)
+                loadBronzeAdSenseAd('bronzeAdContent');
+                
+                // Start countdown
+                const timer = setInterval(() => {
+                    timeLeft--;
+                    adTimer.textContent = timeLeft;
+                    skipTimer.textContent = timeLeft;
+                    
+                    if (timeLeft <= 0) {
+                        clearInterval(timer);
+                        skipButton.disabled = false;
+                        skipButton.textContent = 'Continue to Feature';
+                        skipButton.style.background = '#CD7F32';
+                    }
+                }, 1000);
+                
+                // Skip button click
+                skipButton.onclick = function() {
+                    if (timeLeft <= 0) {
+                        adContainer.style.display = 'none';
+                        bronzeAdShown = true;
+                        clearInterval(timer);
+                        resolve();
+                    }
+                };
+                
+                console.log('📺 Bronze tier ad displayed');
+            });
+        }
+        
+        // Load AdSense Ad for Bronze Tier
+        function loadBronzeAdSenseAd(containerId) {
+            console.log('📺 Loading Bronze tier ad:', containerId);
+            
+            try {
+                const adContainer = document.getElementById(containerId);
+                if (adContainer && window.adsbygoogle) {
+                    // Try to load real AdSense ad
+                    adContainer.innerHTML = `
+                        <ins class="adsbygoogle"
+                             style="display:block"
+                             data-ad-client="ca-pub-3869471953521437"
+                             data-ad-slot="1234567890"
+                             data-ad-format="auto"
+                             data-full-width-responsive="true"></ins>
+                    `;
+                    
+                    try {
+                        (window.adsbygoogle = window.adsbygoogle || []).push({});
+                        console.log('📺 Real AdSense ad loaded');
+                    } catch (e) {
+                        console.log('📺 AdSense failed, showing placeholder');
+                        showBronzeAdPlaceholder(adContainer);
+                    }
+                } else {
+                    showBronzeAdPlaceholder(document.getElementById(containerId));
+                }
+            } catch (error) {
+                console.warn('⚠️ Failed to load Bronze ad:', error);
+                showBronzeAdPlaceholder(document.getElementById(containerId));
+            }
+        }
+        
+        // Show Ad Placeholder
+        function showBronzeAdPlaceholder(container) {
+            if (container) {
+                container.innerHTML = `
+                    <div style="background: linear-gradient(135deg, #00FFFF, #20B2AA); color: white; padding: 40px; border-radius: 8px; text-align: center; font-family: Arial, sans-serif;">
+                        <h3 style="margin: 0 0 10px 0; font-size: 1.2em;">🥉 Support Bronze Tier ✨</h3>
+                        <p style="margin: 0; opacity: 0.9; font-size: 0.9em;">Thank you for viewing this ad! Your support keeps SoulBridge AI free.</p>
+                        <p style="margin: 10px 0 0 0; opacity: 0.8; font-size: 0.8em;">💎 Upgrade to Silver/Gold to remove ads</p>
+                    </div>
+                `;
+                console.log('📺 Bronze ad placeholder loaded');
+            }
+        }
+        
+        // Intercept feature clicks to show ads for Bronze users
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add click handlers to Bronze features
+            const featureButtons = document.querySelectorAll('.bronze-feature');
+            featureButtons.forEach(button => {
+                button.addEventListener('click', async function(e) {
+                    e.preventDefault();
+                    
+                    console.log('📺 Bronze tier feature clicked - showing ad first');
+                    await showBronzeAd();
+                    
+                    // After ad, redirect to the original destination
+                    const originalHref = this.getAttribute('href');
+                    if (originalHref) {
+                        window.location.href = originalHref;
+                    }
+                });
+            });
+            
+            console.log('📺 Bronze tier ad system initialized');
+        });
+        
+        async function openCreativeWriting() {
+            console.log('📺 Bronze Creative Writing clicked - showing ad first');
+            await showBronzeAd();
+            
+            const modal = document.getElementById('creativeWritingModal');
+            if (modal) {
+                modal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            }
+        }
+        
+        function closeCreativeWriting() {
+            document.getElementById('creativeWritingModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+        
+        function selectWritingMode(mode) {
+            // Show selection and redirect to main chat for full experience
+            alert(`Great choice! Redirecting to the main chat for ${mode} mode...`);
+            redirectToMainChat();
+        }
+        
+        function redirectToMainChat() {
+            // Redirect to main chat where the full Creative Writing system is available
+            window.location.href = '/chat';
+        }
+        
+        // Usage Counter System
+        async function updateUsageCounters() {
+            try {
+                const response = await fetch('/api/tier-limits', { credentials: 'include' });
+                const data = await response.json();
+                
+                if (!data.success) return;
+                
+                const { limits, usage, unlimited_features } = data;
+                
+                // Update decoder counter
+                const decoderLimit = document.getElementById('decoderLimit');
+                if (decoderLimit) {
+                    const decoderUsed = usage.decoder || 0;
+                    const decoderMax = limits.decoder;
+                    if (unlimited_features && unlimited_features.includes('decoder') || decoderMax >= 999) {
+                        decoderLimit.textContent = '∞';
+                    } else {
+                        decoderLimit.textContent = `${decoderUsed}/${decoderMax}`;
+                    }
+                }
+                
+                // Update fortune counter
+                const fortuneLimit = document.getElementById('fortuneLimit');
+                if (fortuneLimit) {
+                    const fortuneUsed = usage.fortune || 0;
+                    const fortuneMax = limits.fortune;
+                    if (unlimited_features && unlimited_features.includes('fortune') || fortuneMax >= 999) {
+                        fortuneLimit.textContent = '∞';
+                    } else {
+                        fortuneLimit.textContent = `${fortuneUsed}/${fortuneMax}`;
+                    }
+                }
+                
+                // Update horoscope counter
+                const horoscopeLimit = document.getElementById('horoscopeLimit');
+                if (horoscopeLimit) {
+                    const horoscopeUsed = usage.horoscope || 0;
+                    const horoscopeMax = limits.horoscope;
+                    if (unlimited_features && unlimited_features.includes('horoscope') || horoscopeMax >= 999) {
+                        horoscopeLimit.textContent = '∞';
+                    } else {
+                        horoscopeLimit.textContent = `${horoscopeUsed}/${horoscopeMax}`;
+                    }
+                }
+                
+                // Update creative writer counter
+                const creativeLimit = document.getElementById('creativeLimit');
+                if (creativeLimit) {
+                    const creativeUsed = usage.creative_writer || 0;
+                    const creativeMax = limits.creative_writer;
+                    if (unlimited_features && unlimited_features.includes('creative_writer') || creativeMax >= 999) {
+                        creativeLimit.textContent = '∞';
+                    } else {
+                        creativeLimit.textContent = `${creativeUsed}/${creativeMax}`;
+                    }
+                }
+                
+            } catch (error) {
+                console.error('Error updating usage counters:', error);
+            }
+        }
+        
+        // Update counters on page load and periodically
+        document.addEventListener('DOMContentLoaded', function() {
+            updateUsageCounters();
+            
+            // Refresh counters when page gains focus
+            window.addEventListener('focus', updateUsageCounters);
+            document.addEventListener('visibilitychange', () => {
+                if (!document.hidden) updateUsageCounters();
+            });
+            
+            // Update counters every 30 seconds
+            setInterval(updateUsageCounters, 30000);
+        });
+    </script>
+    
+    <script src="{{ url_for('static', filename='js/tiers.js') }}"></script>
+</body>
+</html>

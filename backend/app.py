@@ -18590,95 +18590,54 @@ if __name__ == "__main__":
     app.run(host="0.0.0.0", port=port, debug=False, threaded=True, use_reloader=False)
 
 # ========================================
-# TIER-SPECIFIC CHAT ROUTES - Complete tier isolation  
+# UNIFIED CHAT INTERFACE - Single modern interface for all tiers
 # ========================================
 
+# FEATURE FLAG - Set to False to instantly revert to old system
+UNIFIED_CHAT_ENABLED = True
+
+@app.route("/chat")
+@app.route("/bronze") 
+@app.route("/silver")
+@app.route("/gold")
 @app.route("/chat/bronze")
-def bronze_chat():
-    """Bronze tier exclusive chat page"""
-    if not is_logged_in():
-        return redirect("/login?return_to=chat/bronze")
-    return tier_chat_handler("bronze")
-
 @app.route("/chat/silver") 
-def silver_chat():
-    """Silver tier exclusive chat page"""
-    if not is_logged_in():
-        return redirect("/login?return_to=chat/silver")
-    
-    # Verify Silver/Gold access or trial
-    user_plan = session.get("user_plan", "bronze")
-    trial_active = session.get("trial_active", False)
-    if user_plan not in ["silver", "gold"] and not trial_active:
-        return redirect("/chat/bronze")
-    
-    return tier_chat_handler("silver")
-
 @app.route("/chat/gold")
-def gold_chat():
-    """Gold tier exclusive chat page"""  
+def unified_chat():
+    """Unified chat interface that adapts to user's tier"""
+    # Feature flag check - instant revert capability
+    if not UNIFIED_CHAT_ENABLED:
+        # Fall back to old system (companion selection)
+        user_plan = session.get("user_plan", "bronze")
+        return redirect(f"/companion-selection?tier={user_plan}")
+    
     if not is_logged_in():
-        return redirect("/login?return_to=chat/gold")
+        return redirect("/login?return_to=chat")
     
-    # Verify Gold access or trial
+    # Check if user has accepted terms
+    terms_check = requires_terms_acceptance()
+    if terms_check:
+        return terms_check
+    
+    # Get user's tier information
     user_plan = session.get("user_plan", "bronze")
     trial_active = session.get("trial_active", False)
-    if user_plan != "gold" and not trial_active:
-        return redirect("/chat/silver" if user_plan == "silver" else "/chat/bronze")
     
-    return tier_chat_handler("gold")
+    # Set access flags (preserves your existing logic)
+    session['access_bronze'] = True
+    session['access_silver'] = user_plan in ['silver', 'gold'] or trial_active
+    session['access_gold'] = user_plan == 'gold' or trial_active
+    session['access_trial'] = trial_active
+    session.modified = True
+    
+    logger.info(f"✅ UNIFIED CHAT: user_plan={user_plan}, trial_active={trial_active}")
+    logger.info(f"Access flags: bronze={session['access_bronze']}, silver={session['access_silver']}, gold={session['access_gold']}, trial={session['access_trial']}")
+    
+    return render_template("chat_unified.html", 
+                         user_plan=user_plan,
+                         trial_active=trial_active)
 
-def tier_chat_handler(tier):
-    """Handle tier-specific chat - shows companion selection for this tier"""
-    from unified_tier_system import get_feature_limit
-    
-    # Get user's accessible companions for this tier
-    user_plan = session.get("user_plan", "bronze")
-    trial_active = session.get("trial_active", False)
-    referrals = int(session.get('referrals', 0))
-    
-    # Map user_plan to unlock tiers  
-    plan_mapping = {'bronze': 'bronze', 'silver': 'silver', 'gold': 'gold'}
-    user_tier = plan_mapping.get(user_plan, 'bronze')
-    
-    # Calculate unlocked tiers
-    unlocked_tiers, referral_ids = companion_unlock_state_new(user_tier, trial_active, referrals)
-    
-    # Filter companions for this specific tier
-    tier_reverse_mapping = {'bronze': 'bronze', 'silver': 'silver', 'gold': 'gold'}
-    companion_tier = tier_reverse_mapping.get(tier, 'bronze')
-    
-    accessible_companions = []
-    for companion in COMPANIONS_NEW:
-        can_access = False
-        if companion['tier'] in ('bronze', 'silver', 'gold'):
-            can_access = companion['tier'] in unlocked_tiers
-        elif companion['tier'] == 'referral':
-            can_access = companion['id'] in referral_ids
-        
-        # Only include companions for this tier (or referral companions for Bronze)
-        if can_access and (companion['tier'] == companion_tier or 
-                          (tier == 'bronze' and companion['tier'] == 'referral')):
-            accessible_companions.append(companion)
-    
-    # Calculate tier-specific limits
-    limits = {
-        "decoder": get_feature_limit(tier, "decoder", False),
-        "fortune": get_feature_limit(tier, "fortune", False),
-        "horoscope": get_feature_limit(tier, "horoscope", False),
-        "creative_writer": get_feature_limit(tier, "creative_writer", False)
-    }
-    
-    return render_template("companion_selection.html",
-        tier=tier,
-        tier_display=tier.title(),
-        companions=accessible_companions,
-        user_plan=user_plan,
-        trial_active=trial_active,
-        limits=limits
-    )
-
-logger.info("✅ Tier-specific chat routes added")
+logger.info("✅ Unified chat interface added")
 
 # ================================================
 # COMPANION-SPECIFIC ISOLATION ROUTES  
@@ -19014,3 +18973,21 @@ def get_user_theme():
 
 logger.info("✅ Theme persistence API endpoints added")
 
+
+
+# UNIFIED CHAT INTERFACE (OPTION A TEST)
+# ========================================
+@app.route("/chat-unified")
+def unified_chat_test():
+    """Test route for unified chat interface - safe alongside existing system"""
+    if not is_logged_in():
+        return redirect("/login?return_to=chat-unified")
+    
+    user_plan = session.get("user_plan", "bronze")
+    trial_active = session.get("trial_active", False)
+    
+    return render_template("unified_chat.html", 
+                         user_plan=user_plan,
+                         trial_active=trial_active)
+
+logger.info("✅ Unified chat test route added")
