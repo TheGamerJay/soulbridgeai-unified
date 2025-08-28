@@ -644,9 +644,12 @@ async function refreshFortuneLimits() {
         const planDesc = document.getElementById("plan-description");
 
         if (companion_tier === "gold") {
-            // 🔴 Gold companion - show unlimited message
-            if (planNotice) planNotice.style.display = "block";
-            if (planDesc) planDesc.style.display = "none";
+            // 🔴 Gold companion - show 999 limit
+            if (planNotice) planNotice.style.display = "none";
+            if (planDesc) {
+                planDesc.style.display = "block";
+                planDesc.textContent = `🔮 Daily Fortunes: ${usage} / ${displayLimit} used`;
+            }
         } else if (companion_tier === "silver") {
             // 🔵 Silver companion
             if (planNotice) planNotice.style.display = "none";

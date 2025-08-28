@@ -633,8 +633,8 @@ async function refreshDecoderLimits() {
         const maxMsg = document.getElementById("max-plan-message");
 
         if (user_plan === "gold") {
-            maxMsg.style.display = "block";
-            msg.style.display = "none";
+            maxMsg.style.display = "none";
+            msg.textContent = `🧠 Daily Decodes: ${usage} / ${displayLimit} used`;
         } else if (user_plan === "silver") {
             maxMsg.style.display = "none";
             msg.textContent = `🧠 Daily Decodes: ${usage} / ${displayLimit} used`;
