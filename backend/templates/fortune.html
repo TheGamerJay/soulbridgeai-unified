@@ -617,9 +617,9 @@ async function refreshFortuneLimits() {
         console.log("🔮 Fortune API response:", data);
 
         // Updated to use companion-tier system (same as decoder/horoscope)
-        const { companion_tier, usage_today, daily_limit, companion_id } = data;
+        const { companion_tier, usage_today, daily_limit, companion_id, user_plan, trial_active } = data;
         
-        const hasUnlimited = userPlan === "gold" && companion_tier === "gold";  // Only if REAL Gold tier
+        const hasUnlimited = user_plan === "gold" && !trial_active;  // Only if REAL Gold tier (not trial)
         const displayLimit = hasUnlimited ? "∞" : daily_limit;
 
         const usage = usage_today ?? 0;

@@ -9104,7 +9104,9 @@ def limits():
         "companion_id": companion_id,
         "companion_tier": companion_tier,
         "daily_limit": daily_limit,
-        "usage_today": usage_today
+        "usage_today": usage_today,
+        "user_plan": session.get('user_plan', 'bronze'),
+        "trial_active": session.get('trial_active', False)
     })
 
 # ---------- /api/fortune/tarot ----------
@@ -13381,7 +13383,9 @@ def ai_image_generation_generate():
         
         # Check and deduct credits before generating
         user_id = session.get('user_id')
-        AI_IMAGE_COST = 5  # 5 credits per AI image
+        
+        # Import AI_IMAGE_COST from constants
+        from constants import AI_IMAGE_COST
         
         # Check if user has enough artistic time
         # Functions now defined inline in app.py, refund_artistic_time
@@ -13622,7 +13626,7 @@ def ai_image_generation_usage():
             ai_image_tier = user_plan  # Use actual subscription plan
             # Bronze=0, Silver=10, Gold=unlimited
             
-        from constants import AI_IMAGE_LIMITS
+        from constants import AI_IMAGE_LIMITS, AI_IMAGE_COST
         
         # For users with artistic time credits, calculate limit based on available credits
         user_id = session.get('user_id')

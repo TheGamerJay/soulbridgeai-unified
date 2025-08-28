@@ -142,4 +142,6 @@ AI_IMAGE_LIMITS = {
     "gold": 999999    # Gold: Unlimited AI images per day
 }
 
+AI_IMAGE_COST = 5  # 5 artistic time credits per AI image
+
 # Legacy mapping removed - all users should be migrated to bronze/silver/gold system
