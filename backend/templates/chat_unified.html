@@ -49,11 +49,53 @@
             greeting: "Hey there! Ready to explore some features together?"
           };
           
-          const [messages, setMessages] = useState([
-            { id: 1, sender: "bot", text: `${companion.greeting} How can I help you today?`, companion: companion }
-          ]);
+          // Load conversation history from localStorage or use default greeting
+          const getStoredMessages = () => {
+            try {
+              const storageKey = `soulbridge_chat_${companion.name.replace(/\s+/g, '_')}`;
+              const stored = localStorage.getItem(storageKey);
+              if (stored) {
+                const parsed = JSON.parse(stored);
+                // Ensure messages have companion info
+                return parsed.map(msg => ({
+                  ...msg,
+                  companion: msg.companion || companion
+                }));
+              }
+            } catch (e) {
+              console.warn('Failed to load chat history:', e);
+            }
+            // Default greeting if no stored messages
+            return [{ id: 1, sender: "bot", text: `${companion.greeting} How can I help you today?`, companion: companion }];
+          };
+
+          const [messages, setMessages] = useState(getStoredMessages());
           const [input, setInput] = useState("");
           const [loading, setLoading] = useState(false);
+
+          // Save messages to localStorage whenever messages change
+          useEffect(() => {
+            try {
+              const storageKey = `soulbridge_chat_${companion.name.replace(/\s+/g, '_')}`;
+              localStorage.setItem(storageKey, JSON.stringify(messages));
+            } catch (e) {
+              console.warn('Failed to save chat history:', e);
+            }
+          }, [messages, companion.name]);
+
+          // Clear conversation function
+          const clearConversation = () => {
+            if (confirm('Clear this conversation? This cannot be undone.')) {
+              const defaultMessages = [{ id: 1, sender: "bot", text: `${companion.greeting} How can I help you today?`, companion: companion }];
+              setMessages(defaultMessages);
+              try {
+                const storageKey = `soulbridge_chat_${companion.name.replace(/\s+/g, '_')}`;
+                localStorage.removeItem(storageKey);
+              } catch (e) {
+                console.warn('Failed to clear chat history:', e);
+              }
+            }
+          };
 
           // TIER-SPECIFIC FEATURES - Matches your exact system
           const getFeatures = (plan, trial) => {
@@ -198,12 +240,28 @@
               });
             }
 
+            // Add clear conversation button (always available)
+            baseFeatures.push({
+              icon: "🗑️", 
+              label: "Clear Chat", 
+              action: "clear_conversation",
+              tag: "Reset",
+              available: true,
+              tier: "bronze"
+            });
+
             return baseFeatures;
           };
 
           const features = getFeatures(userPlan, trialActive);
 
           const handleFeatureClick = (feature) => {
+            // Handle special actions
+            if (feature.action === 'clear_conversation') {
+              clearConversation();
+              return;
+            }
+            
             if (!feature.available) {
               alert(`This feature requires ${feature.tier === 'silver' ? 'Silver' : 'Gold'} tier. Upgrade now?`);
               window.location.href = '/plan-selection';
