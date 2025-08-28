@@ -17,7 +17,7 @@
             height: 100vh; 
             font-family: system-ui, -apple-system, sans-serif;
             background: #000000;
-            color: #00FFFF;
+            color: #22d3ee;
         }
     </style>
 </head>
@@ -46,9 +46,9 @@
         function BronzeChatPage({ userPlan = "bronze", trialActive = false }) {
           // Bronze tier colors - Fixed to cyan
           const colors = {
-            primary: '#00FFFF',
+            primary: '#22d3ee',
             secondary: '#1a1a1a',
-            gradient: 'from-cyan-500 to-cyan-600'
+            gradient: 'from-cyan-400 to-cyan-500'
           };
           
           console.log('🥉 BRONZE TIER: Fixed colors =', colors);
@@ -324,11 +324,11 @@
                     React.createElement('div', {
                       className: `max-w-[85%] rounded-2xl px-4 py-2 ${
                         msg.sender === "user" 
-                          ? "text-white ml-auto" 
+                          ? "text-black ml-auto" 
                           : "bg-white text-gray-900 border border-gray-200"
                       }`,
                       style: msg.sender === "user" ? {
-                        background: `linear-gradient(135deg, ${colors.primary}, ${colors.primary}dd)`
+                        backgroundColor: colors.primary
                       } : {}
                     },
                       React.createElement('p', { className: "text-sm leading-relaxed whitespace-pre-wrap" }, msg.text)
@@ -372,9 +372,9 @@
                 React.createElement('button', {
                   onClick: sendMessage,
                   disabled: loading || !input.trim(),
-                  className: "rounded-full px-4 py-2 text-white font-medium transition-all hover:opacity-90 disabled:opacity-50",
+                  className: "rounded-full px-4 py-2 text-black font-medium transition-all hover:opacity-90 disabled:opacity-50",
                   style: { 
-                    background: `linear-gradient(135deg, ${colors.primary}, ${colors.primary}dd)`
+                    backgroundColor: colors.primary
                   }
                 }, React.createElement(Send, { size: 20 }))
               )
