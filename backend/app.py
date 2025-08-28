@@ -9070,7 +9070,7 @@ def limits():
     # Calculate companion-tier limits (same as decoder/horoscope)
     def get_simple_feature_limit(tier_name, feature):
         limits_map = {
-            "bronze": {"decoder": 3, "fortune": 2, "horoscope": 3, "creative_writer": 2},
+            "bronze": {"decoder": 3, "fortune": 3, "horoscope": 3, "creative_writer": 2},
             "silver": {"decoder": 15, "fortune": 8, "horoscope": 10, "creative_writer": 20},
             "gold": {"decoder": 999, "fortune": 999, "horoscope": 999, "creative_writer": 999}
         }

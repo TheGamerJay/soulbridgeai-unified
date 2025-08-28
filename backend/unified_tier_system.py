@@ -110,7 +110,7 @@ def ensure_database_schema():
             
             # Seed default limits
             default_limits = [
-                ('bronze','decoder',3), ('bronze','fortune',2), ('bronze','horoscope',3),
+                ('bronze','decoder',3), ('bronze','fortune',3), ('bronze','horoscope',3),
                 ('silver','decoder',15), ('silver','fortune',8), ('silver','horoscope',10),
                 ('gold','decoder',None), ('gold','fortune',None), ('gold','horoscope',None)
             ]
