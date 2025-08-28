@@ -29,10 +29,10 @@ TIER_LIMITS = {
         "ads": False
     },
     "gold": {
-        "decoder": float("inf"),
-        "fortune": float("inf"),
-        "horoscope": float("inf"),
-        "creative_writer": float("inf"),
+        "decoder": 999,
+        "fortune": 999,
+        "horoscope": 999,
+        "creative_writer": 999,
         "credits": 500,
         "premium_features": True,
         "mini_studio": True,

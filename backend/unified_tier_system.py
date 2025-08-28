@@ -112,7 +112,7 @@ def ensure_database_schema():
             default_limits = [
                 ('bronze','decoder',3), ('bronze','fortune',3), ('bronze','horoscope',3),
                 ('silver','decoder',15), ('silver','fortune',8), ('silver','horoscope',10),
-                ('gold','decoder',None), ('gold','fortune',None), ('gold','horoscope',None)
+                ('gold','decoder',999), ('gold','fortune',999), ('gold','horoscope',999)
             ]
             
             for tier, feature, limit in default_limits:
@@ -296,7 +296,7 @@ def check_active_subscription(user_id, plan):
 DAILY_LIMITS = {
     "bronze":  {"decoder": 3,  "fortune": 3,  "horoscope": 3, "creative_writer": 2},    # Bronze tier
     "silver":  {"decoder": 15, "fortune": 8,  "horoscope": 10, "creative_writer": 15},  # Silver tier  
-    "gold":    {"decoder": 999999, "fortune": 999, "horoscope": 999999, "creative_writer": 999999}  # Gold tier
+    "gold":    {"decoder": 999, "fortune": 999, "horoscope": 999, "creative_writer": 999}  # Gold tier
 }
 
 # MONTHLY CREDITS (premium features)

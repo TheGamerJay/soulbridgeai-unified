@@ -21,11 +21,11 @@ PLAN_LIMITS = {
         "library_chats": 50     # Save max 50 chat conversations
     },
     "gold": {
-        "decoder": 999999,  # Large number that displays as "unlimited"
-        "fortune": 999,     # Gold tier gets 999 fortune readings per day (shows as "999")
-        "horoscope": 999999,  # Large number that displays as "unlimited"
-        "creative_writer": 999999,  # Large number that displays as "unlimited"
-        "library_chats": 999999     # Large number that displays as "unlimited"
+        "decoder": 999,     # Gold tier gets 999 daily uses
+        "fortune": 999,     # Gold tier gets 999 fortune readings per day
+        "horoscope": 999,   # Gold tier gets 999 horoscope readings per day
+        "creative_writer": 999,  # Gold tier gets 999 creative writing uses per day
+        "library_chats": 999     # Gold tier gets 999 saved chats
     }
 }
 
