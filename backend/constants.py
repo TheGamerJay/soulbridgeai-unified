@@ -8,16 +8,16 @@ Centralized configuration for all magic numbers and constants
 PLAN_LIMITS = {
     "bronze": {
         "decoder": 3,
-        "fortune": 3, 
+        "fortune": 2, 
         "horoscope": 3,
-        "creative_writer": 3,  # 3 uses per day for bronze tier
+        "creative_writer": 2,  # 2 uses per day for bronze tier
         "library_chats": 3     # Save max 3 chat conversations
     },
     "silver": {
         "decoder": 15,
         "fortune": 8,
         "horoscope": 10,
-        "creative_writer": 15,  # 15 uses per day
+        "creative_writer": 20,  # 20 uses per day
         "library_chats": 50     # Save max 50 chat conversations
     },
     "gold": {

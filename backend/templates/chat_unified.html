@@ -82,7 +82,7 @@
               {
                 icon: "🤖", 
                 label: "AI Companions", 
-                route: plan === 'bronze' ? "chat/gamerjay_bronze" : plan === 'silver' ? "chat/sky_silver" : "chat/crimson_gold",
+                route: plan === 'bronze' ? "chat/bronze/gamerjay_bronze" : plan === 'silver' ? "chat/silver/sky_silver" : "chat/gold/crimson_gold",
                 tag: `${plan.charAt(0).toUpperCase() + plan.slice(1)} Access`,
                 available: true,
                 tier: plan
@@ -113,8 +113,8 @@
               }
             ];
 
-            // Add trial counter for Bronze users only
-            if (plan === 'bronze') {
+            // Add trial counter for Bronze users who haven't used their trial yet
+            if (plan === 'bronze' && !trial) {
               baseFeatures.push({
                 icon: "⏱️", 
                 label: "Trial Counter", 
