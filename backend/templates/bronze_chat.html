@@ -46,7 +46,7 @@
                 <span class="usage-counter" id="creativeLimit">{{ limits.creative_writer if limits.creative_writer != 999 else '∞' }}/day</span>
             </a>
             
-            <a href="/chat/bronze" class="action-btn bronze-feature">
+            <a href="/chat/bronze" class="action-btn bronze-navigation">
                 <i class="fas fa-robot"></i>
                 🤖 AI Companions
                 <span class="bronze-badge">Bronze Tier</span>
@@ -179,6 +179,7 @@
     <style>
     .bronze-tier { background: linear-gradient(135deg, #000000 0%, #1a1a1a 50%, #000000 100%); color: #00FFFF; }
     .bronze-feature { border-color: #00FFFF; background: rgba(0, 255, 255, 0.1); color: #00FFFF; }
+    .bronze-navigation { border-color: #00FFFF; background: rgba(0, 255, 255, 0.1); color: #00FFFF; }
     .upgrade-section { 
         grid-column: 1 / -1; 
         background: rgba(255,255,255,0.05); 
