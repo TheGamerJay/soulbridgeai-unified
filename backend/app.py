@@ -18589,7 +18589,7 @@ if __name__ == "__main__":
 # ========================================
 
 # FEATURE FLAG - Set to False to instantly revert to old system
-UNIFIED_CHAT_ENABLED = True
+UNIFIED_CHAT_ENABLED = False
 
 @app.route("/chat")
 @app.route("/bronze") 
