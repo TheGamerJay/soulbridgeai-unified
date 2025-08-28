@@ -13618,12 +13618,12 @@ def ai_image_generation_usage():
         # Allow all users to view usage stats, Bronze users will see 0/0 limits
         
         # Get current month usage and tier-based limits
-        # Determine AI image tier: Bronze trial users get Silver access, others keep their tier
+        # Determine effective tier for AI Images access
         if trial_active and user_plan == 'bronze':
-            ai_image_tier = 'silver'  # Bronze trial users get Silver-level AI image access (10 images)
+            # Bronze trial users get Gold-level display but credit-based functionality
+            ai_image_tier = 'gold'  # Show Gold-level UI (999 limit display)
         else:
             ai_image_tier = user_plan  # Use actual subscription plan
-            # Bronze=0, Silver=10, Gold=unlimited
             
         from constants import AI_IMAGE_LIMITS, AI_IMAGE_COST
         
