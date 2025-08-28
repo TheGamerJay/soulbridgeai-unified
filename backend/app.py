@@ -13610,13 +13610,12 @@ def ai_image_generation_usage():
         if not is_logged_in():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
-        # Check if user has ai-image-generation access (Silver/Gold tier, addon, or trial)
+        # Get user info for usage calculation (allow all users to view usage stats)
         user_plan = session.get('user_plan', 'bronze')
         user_addons = session.get('user_addons', [])
         trial_active = session.get('trial_active', False)
         
-        if user_plan not in ['silver', 'gold'] and not trial_active and 'ai-image-generation' not in user_addons:
-            return jsonify({"success": False, "error": "AI Image Generation requires Silver/Gold tier, addon, or trial"}), 403
+        # Allow all users to view usage stats, Bronze users will see 0/0 limits
         
         # Get current month usage and tier-based limits
         # Determine AI image tier: Bronze trial users get Silver access, others keep their tier
