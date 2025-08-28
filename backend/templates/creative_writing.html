@@ -34,6 +34,23 @@
     </script>
     
     <style>
+        :root {
+            /* Tier-specific color variables */
+            {% if user_plan == 'silver' %}
+            --primary-color: #C0C0C0;
+            --primary-rgb: 192, 192, 192;
+            --accent-color: #A8A8A8;
+            {% elif user_plan == 'gold' %}
+            --primary-color: #FFD700;
+            --primary-rgb: 255, 215, 0;
+            --accent-color: #FFC107;
+            {% else %}
+            --primary-color: #22d3ee;
+            --primary-rgb: 34, 211, 238;
+            --accent-color: #0891b2;
+            {% endif %}
+        }
+        
         * {
             margin: 0;
             padding: 0;

@@ -317,32 +317,39 @@
 
           // TIER-SPECIFIC STYLING
           const getTierColors = (plan) => {
+            let colors;
             switch (plan) {
               case 'bronze':
-                return {
+                colors = {
                   primary: '#00FFFF',
                   secondary: '#1a1a1a',
                   gradient: 'from-cyan-500 to-cyan-600'
                 };
+                break;
               case 'silver':
-                return {
+                colors = {
                   primary: '#C0C0C0',
                   secondary: '#1a1a1a',
                   gradient: 'from-gray-400 to-gray-500'
                 };
+                break;
               case 'gold':
-                return {
+                colors = {
                   primary: '#FFD700',
                   secondary: '#1a1a1a',
                   gradient: 'from-yellow-400 to-yellow-500'
                 };
+                break;
               default:
-                return {
+                colors = {
                   primary: '#00FFFF',
                   secondary: '#1a1a1a',
                   gradient: 'from-cyan-500 to-cyan-600'
                 };
+                break;
             }
+            console.log('🎨 TIER COLORS: plan =', plan, ', colors =', colors);
+            return colors;
           };
 
           const colors = getTierColors(userPlan);
@@ -507,12 +514,15 @@
         try {
             const container = document.getElementById('app');
             if (container && window.ReactDOM && window.APP_DATA) {
+                console.log('🎨 TIER DEBUG: APP_DATA.userPlan =', window.APP_DATA.userPlan);
+                console.log('🎨 TIER DEBUG: Expected colors for', window.APP_DATA.userPlan);
+                
                 const root = ReactDOM.createRoot(container);
                 root.render(React.createElement(UnifiedChatPage, {
                     userPlan: window.APP_DATA.userPlan,
                     trialActive: window.APP_DATA.trialActive
                 }));
-                console.log('React app mounted successfully');
+                console.log('React app mounted successfully with userPlan:', window.APP_DATA.userPlan);
             } else {
                 throw new Error('Missing container, ReactDOM, or APP_DATA');
             }
