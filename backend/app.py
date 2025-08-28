@@ -4315,11 +4315,12 @@ def creative_writing():
         logger.info(f"✍️ CREATIVE WRITING DEBUG: creative_usage = {creative_usage}")
         
         return render_template("creative_writing.html", 
-                             user_plan=effective_plan,
+                             user_plan=user_plan,  # Use actual user plan for correct tier image
                              daily_limit=daily_limit,
                              current_usage=creative_usage,
                              ad_free=user_plan in ['silver', 'gold'],
-                             trial_active=trial_active)
+                             trial_active=trial_active,
+                             effective_plan=effective_plan)  # Pass effective plan separately if needed
     except Exception as e:
         logger.error(f"Creative writing template error: {e}")
         return jsonify({"error": "Creative writing temporarily unavailable"}), 500
