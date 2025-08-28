@@ -9071,7 +9071,7 @@ def limits():
     def get_simple_feature_limit(tier_name, feature):
         limits_map = {
             "bronze": {"decoder": 3, "fortune": 3, "horoscope": 3, "creative_writer": 2},
-            "silver": {"decoder": 15, "fortune": 8, "horoscope": 10, "creative_writer": 20},
+            "silver": {"decoder": 15, "fortune": 8, "horoscope": 10, "creative_writer": 15},
             "gold": {"decoder": 999, "fortune": 999, "horoscope": 999, "creative_writer": 999}
         }
         return limits_map.get(tier_name, limits_map["bronze"]).get(feature, 0)

@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 TIER_LIMITS = {
     "bronze": {
         "decoder": 3,
-        "fortune": 2,
+        "fortune": 3,
         "horoscope": 3,
         "creative_writer": 2,
         "credits": 0,
@@ -22,7 +22,7 @@ TIER_LIMITS = {
         "decoder": 15,
         "fortune": 8,
         "horoscope": 10,
-        "creative_writer": 20,
+        "creative_writer": 15,
         "credits": 100,
         "premium_features": True,
         "mini_studio": False,
