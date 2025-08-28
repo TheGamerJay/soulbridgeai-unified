@@ -13630,8 +13630,11 @@ def ai_image_generation_usage():
         # For Gold users, always use unlimited tier limit regardless of artistic time
         if ai_image_tier == 'gold':
             monthly_limit = AI_IMAGE_LIMITS.get('gold', 999999)  # Always unlimited for Gold
+        elif trial_active and user_plan == 'bronze':
+            # Bronze trial users get Silver tier limits (10 images), not credit-based limits
+            monthly_limit = AI_IMAGE_LIMITS.get('silver', 10)
         else:
-            # For non-Gold users, use artistic time credits if available
+            # For other non-Gold users, use artistic time credits if available
             user_id = session.get('user_id')
             artistic_time = get_artistic_time(user_id) if user_id else 0
             

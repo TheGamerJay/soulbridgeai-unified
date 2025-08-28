@@ -917,7 +917,7 @@
 
         if (result.success) {
           // Ensure we display the correct limit format
-          const displayLimit = result.limit === 999999 ? '∞' : (result.limit || '?');
+          const displayLimit = result.limit >= 999 ? '999' : (result.limit || '?');
           usageElement.textContent = `${result.used || 0} / ${displayLimit}`;
           console.log(`AI Usage loaded: ${result.used || 0} / ${displayLimit} (raw limit: ${result.limit})`);
         } else {
