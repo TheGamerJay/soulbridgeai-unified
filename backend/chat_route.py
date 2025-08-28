@@ -115,11 +115,11 @@ def api_chat():
         # Add current user message
         messages.append({"role": "user", "content": user_message})
         
-        # Select model based on user tier
+        # Select model based on user tier (Updated Aug 2025: GPT-5 now available)
         model_by_tier = {
             "bronze": "gpt-3.5-turbo",    # Bronze: GPT-3.5-turbo
-            "silver": "gpt-4o-mini",      # Silver: GPT-4o-mini (faster, efficient)  
-            "gold": "gpt-4o"              # Gold: GPT-4o (best conversational model available)
+            "silver": "gpt-4o",           # Silver: GPT-4o (solid premium experience)
+            "gold": "gpt-5"               # Gold: GPT-5 (flagship model, most advanced available)
         }
         selected_model = model_by_tier.get(user_tier.lower(), "gpt-3.5-turbo")
         
