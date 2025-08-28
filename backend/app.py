@@ -761,7 +761,7 @@ def voice_chat_page():
         
         # Check tier access - Silver/Gold only
         if not (session.get('access_silver') or session.get('access_gold')):
-            return render_template('chat_unified.html', error="Voice Chat requires Silver or Gold tier. Upgrade to access this feature!"), 403
+            return render_template('chat_silver.html', error="Voice Chat requires Silver or Gold tier. Upgrade to access this feature!"), 403
         
         return render_template('voice_chat.html')
     except Exception as e:
@@ -866,8 +866,11 @@ def create_companion_routes():
                 # Get effective plan for feature access
                 effective_plan = get_effective_plan(user_plan, trial_active)
                 
-                # Use unified chat template for all tiers
-                return render_template('chat_unified.html',
+                # Use tier-specific isolated chat templates
+                tier_templates = {'bronze': 'chat_bronze.html', 'silver': 'chat_silver.html', 'gold': 'chat_gold.html'}
+                template_name = tier_templates.get(comp_tier, 'chat_bronze.html')
+                logger.info(f"🎯 Using isolated template: {template_name} for tier {comp_tier}")
+                return render_template(template_name,
                     companion=comp_id,
                     companion_display_name=f"{comp_name} {comp_tier.title()}",
                     companion_avatar=comp_avatar,
@@ -18407,10 +18410,14 @@ def unified_chat():
     session['access_trial'] = trial_active
     session.modified = True
     
-    logger.info(f"✅ UNIFIED CHAT: user_plan={user_plan}, trial_active={trial_active}")
+    logger.info(f"✅ ISOLATED CHAT: user_plan={user_plan}, trial_active={trial_active}")
     logger.info(f"Access flags: bronze={session['access_bronze']}, silver={session['access_silver']}, gold={session['access_gold']}, trial={session['access_trial']}")
     
-    return render_template("chat_unified.html", 
+    # Use tier-specific isolated template based on user's plan
+    tier_templates = {'bronze': 'chat_bronze.html', 'silver': 'chat_silver.html', 'gold': 'chat_gold.html'}
+    template_name = tier_templates.get(user_plan, 'chat_bronze.html')
+    logger.info(f"🎯 UNIFIED ROUTE: Using isolated template: {template_name} for plan {user_plan}")
+    return render_template(template_name, 
                          user_plan=user_plan,
                          trial_active=trial_active)
 
@@ -18517,10 +18524,12 @@ def companion_chat_handler(tier, companion_id):
         
         logger.info(f"🎨 RENDERING: tier={tier}, companion={companion_info['name']}, limits={limits}")
         
-        # Use unified chat template for all tiers
-        logger.info(f"🎯 TEMPLATE: Using chat_unified.html for tier {tier}")
+        # Use tier-specific isolated chat templates
+        tier_templates = {'bronze': 'chat_bronze.html', 'silver': 'chat_silver.html', 'gold': 'chat_gold.html'}
+        template_name = tier_templates.get(tier, 'chat_bronze.html')
+        logger.info(f"🎯 COMPANION HANDLER: Using isolated template: {template_name} for tier {tier}")
         
-        return render_template('chat_unified.html',
+        return render_template(template_name,
             companion=companion_id,
             companion_display_name=f"{companion_info['name']} {tier.title()}",
             companion_avatar=companion_info['image_url'],
@@ -18757,9 +18766,13 @@ def unified_chat_test():
     user_plan = session.get("user_plan", "bronze")
     trial_active = session.get("trial_active", False)
     
-    return render_template("chat_unified.html", 
+    # Use tier-specific isolated template based on user's plan
+    tier_templates = {'bronze': 'chat_bronze.html', 'silver': 'chat_silver.html', 'gold': 'chat_gold.html'}
+    template_name = tier_templates.get(user_plan, 'chat_bronze.html')
+    logger.info(f"🎯 TEST ROUTE: Using isolated template: {template_name} for plan {user_plan}")
+    return render_template(template_name, 
                          user_plan=user_plan,
                          trial_active=trial_active)
 
-logger.info("✅ Unified chat test route added")
+logger.info("✅ Isolated chat test route added")
 

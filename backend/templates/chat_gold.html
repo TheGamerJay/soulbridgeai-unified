@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SoulBridge AI - Gold Tier</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/lucide-react@latest/dist/umd/lucide-react.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .loading { 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            font-family: system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #1a1100 0%, #2a2200 50%, #3a3300 100%);
+            color: #FFD700;
+        }
+    </style>
+</head>
+<body style="background: linear-gradient(135deg, #1a1100 0%, #2a2200 50%, #3a3300 100%);">
+    <div id="app">
+        <div class="loading">Loading SoulBridge AI - Gold Tier...</div>
+    </div>
+    
+    <!-- Pass data from Flask to React -->
+    <script>
+        window.APP_DATA = {
+            userPlan: "gold", // Force gold tier
+            trialActive: {{ 'true' if trial_active else 'false' }},
+            companionInfo: {
+                name: "{{ ai_character_name or companion_info.name if companion_info else 'Crimson Gold' }}",
+                image: "{{ companion_avatar or companion_info.image_url if companion_info else '/static/logos/Crimson_Gold_companion.png' }}",
+                greeting: "{{ (companion_info.greeting if companion_info and companion_info.greeting else 'Welcome to Gold tier! I am your premium AI companion.') | safe }}"
+            }
+        };
+    </script>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        const Send = window.lucide?.Send || (() => React.createElement('span', {}, '→'));
+
+        function GoldChatPage({ userPlan = "gold", trialActive = false }) {
+          // Gold tier colors - Fixed to gold
+          const colors = {
+            primary: '#FFD700',
+            secondary: '#1a1a1a',
+            gradient: 'from-yellow-400 to-yellow-500'
+          };
+          
+          console.log('🥇 GOLD TIER: Fixed colors =', colors);
+          
+          // Get companion info from backend data
+          const companion = window.APP_DATA?.companionInfo || {
+            name: "Crimson Gold",
+            image: "/static/logos/Crimson_Gold_companion.png", 
+            greeting: "Welcome to Gold tier! I am your premium AI companion."
+          };
+          
+          // Load conversation history from localStorage or use default greeting
+          const getStoredMessages = () => {
+            try {
+              const storageKey = `soulbridge_chat_${companion.name.replace(/\s+/g, '_')}`;
+              const stored = localStorage.getItem(storageKey);
+              if (stored) {
+                const parsed = JSON.parse(stored);
+                return parsed.map(msg => ({
+                  ...msg,
+                  companion: msg.companion || companion
+                }));
+              }
+            } catch (e) {
+              console.warn('Failed to load chat history:', e);
+            }
+            return [{ id: 1, sender: "bot", text: `${companion.greeting} How can I help you today?`, companion: companion }];
+          };
+
+          const [messages, setMessages] = useState(getStoredMessages());
+          const [input, setInput] = useState("");
+          const [loading, setLoading] = useState(false);
+
+          // Save messages to localStorage whenever messages change
+          useEffect(() => {
+            try {
+              const storageKey = `soulbridge_chat_${companion.name.replace(/\s+/g, '_')}`;
+              localStorage.setItem(storageKey, JSON.stringify(messages));
+            } catch (e) {
+              console.warn('Failed to save chat history:', e);
+            }
+          }, [messages, companion.name]);
+
+          // Clear conversation function
+          const clearConversation = () => {
+            if (confirm('Clear this conversation? This cannot be undone.')) {
+              const defaultMessages = [{ id: 1, sender: "bot", text: `${companion.greeting} How can I help you today?`, companion: companion }];
+              setMessages(defaultMessages);
+              try {
+                const storageKey = `soulbridge_chat_${companion.name.replace(/\s+/g, '_')}`;
+                localStorage.removeItem(storageKey);
+              } catch (e) {
+                console.warn('Failed to clear chat history:', e);
+              }
+            }
+          };
+
+          // Gold tier features
+          const features = [
+            {
+              icon: "🧠", 
+              label: "Decoder", 
+              route: "decoder",
+              tag: "∞",
+              available: true,
+              tier: "gold"
+            },
+            {
+              icon: "🔮", 
+              label: "Fortune", 
+              route: "fortune",
+              tag: "∞",
+              available: true,
+              tier: "gold"
+            },
+            {
+              icon: "⭐", 
+              label: "Horoscope", 
+              route: "horoscope",
+              tag: "∞",
+              available: true,
+              tier: "gold"
+            },
+            {
+              icon: "✍️", 
+              label: "Creative Writer", 
+              route: "creative-writing",
+              tag: "∞",
+              available: true,
+              tier: "gold"
+            },
+            {
+              icon: "🤖", 
+              label: "AI Companions", 
+              route: "chat/gold/crimson_gold",
+              tag: "Gold Access",
+              available: true,
+              tier: "gold"
+            },
+            {
+              icon: "🎤", 
+              label: "Voice Journal", 
+              route: "voice-journaling",
+              tag: "Available",
+              available: true,
+              tier: "gold"
+            },
+            {
+              icon: "🎨", 
+              label: "AI Images", 
+              route: "ai-image-generation",
+              tag: "∞",
+              available: true,
+              tier: "gold"
+            },
+            {
+              icon: "🎭", 
+              label: "Mini Studio", 
+              route: "mini-studio",
+              tag: "Gold Exclusive",
+              available: true,
+              tier: "gold"
+            }
+          ];
+
+          const handleFeatureClick = (feature) => {
+            if (feature.available) {
+              if (feature.route === "clear-conversation") {
+                clearConversation();
+              } else {
+                window.location.href = `/${feature.route}`;
+              }
+            }
+          };
+
+          const sendMessage = async () => {
+            if (!input.trim() || loading) return;
+
+            const userMessage = { id: Date.now(), sender: "user", text: input };
+            setMessages(prev => [...prev, userMessage]);
+            setInput("");
+            setLoading(true);
+
+            try {
+              const conversationHistory = messages.slice(-10).map(msg => ({
+                role: msg.sender === "user" ? "user" : "assistant",
+                content: msg.text
+              }));
+              
+              const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ 
+                  message: input,
+                  character: companion.name,
+                  conversation_history: conversationHistory,
+                  user_tier: "gold"
+                })
+              });
+
+              const data = await response.json();
+              
+              if (data.success) {
+                setMessages(prev => [...prev, {
+                  id: Date.now() + 1,
+                  sender: "bot",
+                  text: data.response,
+                  companion: companion
+                }]);
+              } else {
+                throw new Error(data.error || 'Failed to get response');
+              }
+            } catch (error) {
+              setMessages(prev => [...prev, {
+                id: Date.now() + 1,
+                sender: "bot",
+                text: "I'm having trouble connecting right now. Please try again in a moment.",
+                companion: companion
+              }]);
+            } finally {
+              setLoading(false);
+            }
+          };
+
+          return React.createElement('div', { className: "flex flex-col h-screen bg-gray-50 text-gray-900" },
+            // Gold tier - premium experience
+            React.createElement('div', { 
+              className: "text-center py-1 text-xs font-medium border-b text-white",
+              style: { backgroundColor: colors.primary + "20", borderColor: colors.primary }
+            }, 
+              "👑 Gold tier - Premium unlimited experience"
+            ),
+
+            // Top bar with gold-specific styling
+            React.createElement('div', { className: "sticky top-0 z-20 w-full bg-gray-900/95 backdrop-blur supports-[backdrop-filter]:bg-gray-900/80 shadow-sm" },
+              React.createElement('div', { className: "text-center py-2 text-sm font-medium text-white" },
+                React.createElement('span', { style: { color: colors.primary } }, 'Gold Tier ✨'),
+                trialActive && React.createElement('span', { 
+                  className: "ml-2 px-2 py-1 rounded-full bg-green-500/20 text-green-300 text-xs" 
+                }, "Trial Active")
+              ),
+              
+              // Feature chips with gold colors
+              React.createElement('div', { className: "max-w-6xl mx-auto px-3 py-2 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3" },
+                features.map((f, i) => {
+                  const isInfinity = f.tag === "∞";
+                  return React.createElement('button', {
+                    key: i,
+                    onClick: () => handleFeatureClick(f),
+                    className: `group flex flex-col items-center gap-1 rounded-lg px-2 py-3 text-sm font-medium ring-1 ring-white/10 transition-all min-h-[80px] bg-gray-900 hover:bg-gray-800 cursor-pointer text-white`,
+                    style: { borderColor: colors.primary }
+                  },
+                    React.createElement('span', { className: "text-xl mb-1" }, f.icon),
+                    React.createElement('span', { className: "text-xs font-medium text-center leading-tight px-1" }, f.label),
+                    isInfinity 
+                      ? React.createElement('span', { 
+                          className: "mt-1 rounded-md px-1.5 py-0.5 text-[10px] font-semibold bg-emerald-400/15 text-emerald-300 ring-1 ring-emerald-400/30" 
+                        }, f.tag)
+                      : React.createElement('span', {
+                          className: "mt-1 rounded-md px-1.5 py-0.5 text-[10px] font-semibold ring-1",
+                          style: {
+                            backgroundColor: `${colors.primary}15`,
+                            color: colors.primary,
+                            borderColor: `${colors.primary}30`
+                          }
+                        }, f.tag)
+                  );
+                })
+              )
+            ),
+
+            // Chat area with gold styling
+            React.createElement('div', { className: "flex-1 overflow-y-auto" },
+              React.createElement('div', { className: "max-w-3xl mx-auto w-full p-4 space-y-4" },
+                messages.map((msg) =>
+                  React.createElement('div', {
+                    key: msg.id,
+                    className: `flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`
+                  },
+                    msg.sender !== "user" && React.createElement('div', {
+                      className: "w-8 h-8 shrink-0 mr-2 rounded-full overflow-hidden bg-gray-800 border-2",
+                      style: { borderColor: colors.primary }
+                    }, 
+                      msg.companion && msg.companion.image 
+                        ? React.createElement('img', {
+                            src: msg.companion.image,
+                            alt: msg.companion.name || 'AI',
+                            className: "w-full h-full object-cover"
+                          })
+                        : React.createElement('div', {
+                            className: "w-full h-full flex items-center justify-center text-white font-bold",
+                            style: { backgroundColor: colors.primary }
+                          }, "👑")
+                    ),
+                    React.createElement('div', {
+                      className: `max-w-[85%] rounded-2xl px-4 py-2 ${
+                        msg.sender === "user" 
+                          ? "text-black ml-auto" 
+                          : "bg-white text-gray-900 border border-gray-200"
+                      }`,
+                      style: msg.sender === "user" ? {
+                        background: `linear-gradient(135deg, ${colors.primary}, ${colors.primary}dd)`
+                      } : {}
+                    },
+                      React.createElement('p', { className: "text-sm leading-relaxed whitespace-pre-wrap" }, msg.text)
+                    )
+                  )
+                )
+              )
+            ),
+
+            // Input area with gold styling
+            React.createElement('div', { className: "border-t border-gray-200 bg-white p-4" },
+              React.createElement('div', { className: "max-w-3xl mx-auto flex gap-3" },
+                React.createElement('input', {
+                  type: "text",
+                  value: input,
+                  onChange: (e) => setInput(e.target.value),
+                  onKeyPress: (e) => e.key === 'Enter' && sendMessage(),
+                  placeholder: "Type your premium message...",
+                  className: "flex-1 rounded-full border border-gray-300 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-offset-2",
+                  style: { 
+                    focusRingColor: colors.primary,
+                    borderColor: colors.primary + "40"
+                  },
+                  disabled: loading
+                }),
+                React.createElement('button', {
+                  onClick: sendMessage,
+                  disabled: loading || !input.trim(),
+                  className: "rounded-full px-4 py-2 text-black font-medium transition-all hover:opacity-90 disabled:opacity-50",
+                  style: { 
+                    background: `linear-gradient(135deg, ${colors.primary}, ${colors.primary}dd)`
+                  }
+                }, React.createElement(Send, { size: 20 }))
+              )
+            )
+          );
+        }
+
+        // Mount Gold Chat App
+        try {
+            const container = document.getElementById('app');
+            if (container && window.ReactDOM && window.APP_DATA) {
+                console.log('🥇 GOLD CHAT: Mounting with fixed gold colors');
+                
+                const root = ReactDOM.createRoot(container);
+                root.render(React.createElement(GoldChatPage, {
+                    userPlan: "gold",
+                    trialActive: window.APP_DATA.trialActive
+                }));
+                console.log('Gold chat mounted successfully');
+            }
+        } catch (error) {
+            console.error('Failed to mount Gold chat:', error);
+            document.getElementById('app').innerHTML = '<div style="padding: 20px; text-align: center; color: #FFD700;"><h2>Loading Error</h2><p>Please refresh the page</p></div>';
+        }
+    </script>
+</body>
+</html>
