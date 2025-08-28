@@ -3,7 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SoulBridge AI - Bronze Tier</title>
+    <title>SoulBridge AI - Bronze Tier v2.1</title>
+    <!-- Cache busting for color updates -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -51,7 +55,8 @@
             gradient: 'from-cyan-400 to-cyan-500'
           };
           
-          console.log('🥉 BRONZE TIER: Fixed colors =', colors);
+          console.log('🥉 BRONZE TIER v2.1: Fixed colors =', colors);
+          console.log('🎨 PRIMARY COLOR:', colors.primary, 'should be #22d3ee not #00FFFF');
           
           // Get companion info from backend data
           const companion = window.APP_DATA?.companionInfo || {
