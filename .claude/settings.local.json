@@ -145,7 +145,11 @@
       "Bash(for file in analytics.html companion_selection.html plan_selection.html profile.html profile_broken.html tier_lock_demo.html)",
       "Bash(do echo \"=== Updating $file ===\")",
       "Bash(if grep -q \"openCreativeWriting\" \"$file\")",
-      "Bash(else echo \"No Creative Writer button found in $file\")"
+      "Bash(else echo \"No Creative Writer button found in $file\")",
+      "Bash(start:*)",
+      "WebFetch(domain:railway.app)",
+      "Bash(git pull:*)",
+      "Bash(git log:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"

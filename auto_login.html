@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Auto Login Test</title>
+</head>
+<body>
+    <h2>Auto Login Test</h2>
+    <p>This will automatically log you in and redirect to the unified chat...</p>
+    <div id="status">Logging in...</div>
+    
+    <script>
+        async function autoLogin() {
+            const statusDiv = document.getElementById('status');
+            
+            try {
+                statusDiv.innerHTML = 'Attempting login...';
+                
+                const response = await fetch('http://localhost:5000/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: 'aceelnene@gmail.com',
+                        password: 'Yariel13'
+                    }),
+                    credentials: 'include'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    statusDiv.innerHTML = '✅ Login successful! Redirecting to unified chat...';
+                    setTimeout(() => {
+                        window.location.href = 'http://localhost:5000/chat-unified';
+                    }, 2000);
+                } else {
+                    statusDiv.innerHTML = '❌ Login failed: ' + (data.error || 'Unknown error');
+                    console.log('Login response:', data);
+                }
+            } catch (error) {
+                statusDiv.innerHTML = '❌ Error: ' + error.message;
+                console.error('Login error:', error);
+            }
+        }
+        
+        // Auto-start login when page loads
+        window.onload = autoLogin;
+    </script>
+</body>
+</html>

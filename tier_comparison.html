@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SoulBridge AI - Tier Comparison Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f9fafb;
+            color: #111827;
+        }
+        
+        .tier-selector {
+            background: #1f2937;
+            color: white;
+            padding: 16px;
+            text-align: center;
+        }
+        
+        .tier-buttons {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin-top: 8px;
+        }
+        
+        .tier-button {
+            padding: 8px 16px;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            background: #374151;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+        
+        .tier-button.active {
+            background: transparent;
+        }
+        
+        .tier-button.bronze.active {
+            border-color: #00ffff;
+            color: #00ffff;
+        }
+        
+        .tier-button.silver.active {
+            border-color: #c0c0c0;
+            color: #c0c0c0;
+        }
+        
+        .tier-button.gold.active {
+            border-color: #ffd700;
+            color: #ffd700;
+        }
+        
+        .interface-container {
+            min-height: calc(100vh - 100px);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .notification-bar {
+            background: #10b981;
+            color: white;
+            text-align: center;
+            padding: 8px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .header {
+            background: rgba(17, 24, 39, 0.95);
+            backdrop-filter: blur(10px);
+            color: white;
+            padding: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .tier-indicator {
+            text-align: center;
+            margin-bottom: 16px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .tier-name {
+            font-weight: 600;
+            font-size: 16px;
+        }
+        
+        .trial-badge {
+            background: rgba(34, 197, 94, 0.2);
+            color: #4ade80;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-left: 8px;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 8px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .feature-chip {
+            background: #1f2937;
+            border: 2px solid #374151;
+            border-radius: 8px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: white;
+        }
+        
+        .feature-chip:hover {
+            background: #374151;
+            transform: translateY(-1px);
+        }
+        
+        .feature-chip.locked {
+            opacity: 0.6;
+            border-color: #6b7280;
+        }
+        
+        .feature-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .feature-icon {
+            font-size: 18px;
+        }
+        
+        .feature-label {
+            font-weight: 500;
+            font-size: 13px;
+        }
+        
+        .feature-tag {
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            text-align: center;
+            min-width: 35px;
+        }
+        
+        .feature-tag.unlimited {
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+        }
+        
+        .feature-tag.locked {
+            background: rgba(245, 158, 11, 0.15);
+            color: #f59e0b;
+            font-size: 9px;
+            padding: 2px 4px;
+        }
+        
+        .ads-notice {
+            background: #fef3c7;
+            color: #92400e;
+            text-align: center;
+            padding: 8px;
+            font-size: 12px;
+            font-weight: 500;
+            border-top: 1px solid #fbbf24;
+        }
+        
+        .chat-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            max-width: 768px;
+            margin: 0 auto;
+            width: 100%;
+            min-height: 200px;
+        }
+        
+        .message {
+            margin-bottom: 12px;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+        
+        .message.user {
+            flex-direction: row-reverse;
+        }
+        
+        .message-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+        }
+        
+        .message-content {
+            background: white;
+            padding: 10px 14px;
+            border-radius: 16px;
+            max-width: 75%;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            border: 1px solid #e5e7eb;
+            font-size: 14px;
+        }
+        
+        .message.user .message-content {
+            font-weight: 500;
+        }
+        
+        .input-area {
+            border-top: 1px solid #e5e7eb;
+            background: white;
+            padding: 16px;
+        }
+        
+        .input-container {
+            max-width: 768px;
+            margin: 0 auto;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .message-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid #d1d5db;
+            border-radius: 24px;
+            font-size: 14px;
+            outline: none;
+        }
+        
+        .message-input:focus {
+            border-color: #374151;
+            box-shadow: 0 0 0 3px rgba(55, 65, 81, 0.1);
+        }
+        
+        .send-button {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: #374151;
+            border: none;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        
+        .send-button:hover {
+            background: #1f2937;
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="tier-selector">
+        <h3>🔄 Switch Tiers to See Different Experiences:</h3>
+        <div class="tier-buttons">
+            <button class="tier-button bronze active" onclick="switchTier('bronze')">🥉 Bronze Tier</button>
+            <button class="tier-button silver" onclick="switchTier('silver')">🥈 Silver Tier</button>
+            <button class="tier-button gold" onclick="switchTier('gold')">🥇 Gold Tier</button>
+        </div>
+    </div>
+
+    <div class="interface-container" id="interface">
+        <!-- Content will be loaded here -->
+    </div>
+
+    <script>
+        const tierConfigs = {
+            bronze: {
+                name: 'Bronze',
+                color: '#00ffff',
+                hasAds: true,
+                features: [
+                    { icon: '🧠', label: 'Decoder', tag: '3/day', available: true },
+                    { icon: '🔮', label: 'Fortune', tag: '3/day', available: true },
+                    { icon: '⭐', label: 'Horoscope', tag: '3/day', available: true },
+                    { icon: '✍️', label: 'Creative Writer', tag: '2/day', available: true },
+                    { icon: '🤖', label: 'AI Companions', tag: 'Bronze Access', available: true },
+                    { icon: '📚', label: 'Library', tag: 'Available', available: true },
+                    { icon: '🗑️', label: 'Clear Chat', tag: 'Available', available: true },
+                    { icon: '💾', label: 'Save Chat', tag: 'Available', available: true },
+                    { icon: '⏱️', label: 'Trial Counter', tag: 'One-Time Only', available: true }
+                ],
+                messages: [
+                    "Welcome to SoulBridge AI! You're on the Bronze tier with basic features.",
+                    "You have access to essential features with daily limits. Try our 5-hour premium trial - one time only!",
+                    "Note: Bronze tier includes ads to keep the service free for basic features."
+                ]
+            },
+            silver: {
+                name: 'Silver',
+                color: '#c0c0c0',
+                hasAds: false,
+                features: [
+                    { icon: '🧠', label: 'Decoder', tag: '15/day', available: true },
+                    { icon: '🔮', label: 'Fortune', tag: '8/day', available: true },
+                    { icon: '⭐', label: 'Horoscope', tag: '10/day', available: true },
+                    { icon: '✍️', label: 'Creative Writer', tag: '15/day', available: true },
+                    { icon: '🤖', label: 'AI Companions', tag: 'Silver Access', available: true },
+                    { icon: '📚', label: 'Library', tag: 'Available', available: true },
+                    { icon: '🗑️', label: 'Clear Chat', tag: 'Available', available: true },
+                    { icon: '💾', label: 'Save Chat', tag: 'Available', available: true },
+                    { icon: '🎭', label: 'Theme Palette', tag: '12 Colors', available: true },
+                    { icon: '🎤', label: 'Voice Journal', tag: 'Available', available: true },
+                    { icon: '🎨', label: 'AI Images', tag: '10/month', available: true },
+                    { icon: '❤️', label: 'Relationships', tag: 'Available', available: true },
+                    { icon: '🧘', label: 'Meditations', tag: 'Available', available: true }
+                ],
+                messages: [
+                    "Welcome to Silver tier! You have enhanced limits and access to premium features.",
+                    "Enjoy ad-free experience with voice journaling, AI images, relationships, and meditations."
+                ]
+            },
+            gold: {
+                name: 'Gold',
+                color: '#ffd700',
+                hasAds: false,
+                features: [
+                    { icon: '🧠', label: 'Decoder', tag: '999', available: true },
+                    { icon: '🔮', label: 'Fortune', tag: '999', available: true },
+                    { icon: '⭐', label: 'Horoscope', tag: '999', available: true },
+                    { icon: '✍️', label: 'Creative Writer', tag: '999', available: true },
+                    { icon: '🤖', label: 'AI Companions', tag: 'Gold Access', available: true },
+                    { icon: '📚', label: 'Library', tag: 'Available', available: true },
+                    { icon: '🗑️', label: 'Clear Chat', tag: 'Available', available: true },
+                    { icon: '💾', label: 'Save Chat', tag: 'Available', available: true },
+                    { icon: '🎭', label: 'Theme Palette', tag: '24 Colors', available: true },
+                    { icon: '🎤', label: 'Voice Journal', tag: 'Available', available: true },
+                    { icon: '🎨', label: 'AI Images', tag: '999', available: true },
+                    { icon: '❤️', label: 'Relationships', tag: 'Available', available: true },
+                    { icon: '🧘', label: 'Meditations', tag: 'Available', available: true },
+                    { icon: '🎵', label: 'Mini Studio', tag: 'Available', available: true }
+                ],
+                messages: [
+                    "🎉 Welcome to Gold tier - the ultimate SoulBridge AI experience!",
+                    "Enjoy unlimited access to ALL premium features including exclusive Mini Studio access.",
+                    "Create music, generate unlimited AI content, and access premium companions!"
+                ]
+            }
+        };
+
+        function switchTier(tier) {
+            // Update active button
+            document.querySelectorAll('.tier-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`.tier-button.${tier}`).classList.add('active');
+            
+            // Load tier interface
+            loadTierInterface(tier);
+        }
+
+        function loadTierInterface(tier) {
+            const config = tierConfigs[tier];
+            const container = document.getElementById('interface');
+            
+            container.innerHTML = `
+                <div class="notification-bar">
+                    🔄 TIER COMPARISON: This shows how the unified interface adapts to each tier
+                </div>
+
+                <div class="header">
+                    <div class="tier-indicator">
+                        <span class="tier-name" style="color: ${config.color}">${config.name} Tier</span>
+                        ${tier === 'bronze' ? '<span class="trial-badge">Available</span>' : ''}
+                    </div>
+                    
+                    <div class="features-grid">
+                        ${config.features.map(feature => `
+                            <div class="feature-chip ${!feature.available ? 'locked' : ''}" 
+                                 style="border-color: ${feature.available ? config.color : '#6b7280'}"
+                                 onclick="showFeature('${feature.label}', ${feature.available})">
+                                <div class="feature-info">
+                                    <span class="feature-icon">${feature.icon}</span>
+                                    <span class="feature-label">${feature.label}</span>
+                                </div>
+                                <span class="feature-tag ${feature.tag === '999' || feature.tag === '∞' ? 'unlimited' : feature.tag.includes('🔒') ? 'locked' : ''}"
+                                      style="${feature.available && !feature.tag.includes('🔒') ? `background: rgba(${hexToRgb(config.color)}, 0.15); color: ${config.color};` : ''}">${feature.tag}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                ${config.hasAds ? '<div class="ads-notice">📢 Bronze tier includes ads • Upgrade to Silver/Gold for ad-free experience</div>' : ''}
+
+                <div class="chat-area">
+                    ${config.messages.map(msg => `
+                        <div class="message">
+                            <div class="message-avatar" style="background: linear-gradient(135deg, ${config.color}, #1a1a1a)">🤖</div>
+                            <div class="message-content">${msg}</div>
+                        </div>
+                    `).join('')}
+                </div>
+
+                <div class="input-area">
+                    <div class="input-container">
+                        <input type="text" class="message-input" placeholder="Message your AI companion..." id="messageInput" onkeypress="handleKeyPress(event)">
+                        <button class="send-button" onclick="sendMessage()" style="background: ${config.color}">➤</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function showFeature(name, available) {
+            if (available) {
+                alert(`✅ ${name} is available for your tier!\n\nIn the real implementation, this would navigate to the feature page.`);
+            } else {
+                alert(`🔒 ${name} is locked for your current tier.\n\nUpgrade to unlock this premium feature!`);
+            }
+        }
+
+        function hexToRgb(hex) {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            if (!result) {
+                // Handle named colors
+                const colors = {
+                    '#00ffff': '0, 255, 255',
+                    '#c0c0c0': '192, 192, 192', 
+                    '#ffd700': '255, 215, 0'
+                };
+                return colors[hex] || '255, 255, 255';
+            }
+            return parseInt(result[1], 16) + ', ' + parseInt(result[2], 16) + ', ' + parseInt(result[3], 16);
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            // Get current tier for styling
+            const activeButton = document.querySelector('.tier-button.active');
+            const currentTier = activeButton.className.includes('bronze') ? 'bronze' : 
+                               activeButton.className.includes('silver') ? 'silver' : 'gold';
+            const config = tierConfigs[currentTier];
+            
+            // Add user message
+            addMessage('user', message, config);
+            input.value = '';
+            
+            // Simulate bot response
+            setTimeout(() => {
+                const responses = [
+                    `Great question! As a ${config.name} tier user, you have access to ${config.name === 'Bronze' ? 'essential features' : config.name === 'Silver' ? 'enhanced features' : 'unlimited features'}.`,
+                    "This unified interface preserves all your existing backend logic while providing a modern experience.",
+                    `Try clicking the feature chips above to see how they work for ${config.name} tier!`,
+                    "In the real implementation, this connects to your existing chat APIs with full tier isolation."
+                ];
+                
+                const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+                addMessage('bot', randomResponse, config);
+            }, 1000);
+        }
+        
+        function addMessage(sender, text, config) {
+            const chatArea = document.querySelector('.chat-area');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.textContent = sender === 'user' ? '👤' : '🤖';
+            if (sender === 'bot') {
+                avatar.style.background = `linear-gradient(135deg, ${config.color}, #1a1a1a)`;
+            }
+            
+            const content = document.createElement('div');
+            content.className = 'message-content';
+            content.textContent = text;
+            if (sender === 'user') {
+                content.style.background = config.color;
+                content.style.color = config.name === 'Bronze' || config.name === 'Gold' ? '#1a1a1a' : 'white';
+            }
+            
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(content);
+            
+            chatArea.appendChild(messageDiv);
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+        
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        // Load bronze tier by default
+        loadTierInterface('bronze');
+    </script>
+</body>
+</html>
