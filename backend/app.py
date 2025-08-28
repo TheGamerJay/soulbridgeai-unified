@@ -786,19 +786,19 @@ PRICE_ADFREE = os.environ.get('STRIPE_PRICE_ADFREE', 'price_1234567890')  # Ad-f
 # ---------- Companions (bulletproof data) ----------
 COMPANIONS_NEW = [
     # Bronze tier - 8 companions
-    {"id":"gamerjay_bronze","name":"GamerJay Bronze","tier":"bronze","image_url":"/static/logos/GamerJay_Free_companion.png","min_referrals":0},
-    {"id":"blayzo_bronze","name":"Blayzo Bronze","tier":"bronze","image_url":"/static/logos/Blayzo.png","min_referrals":0},
-    {"id":"blayzica_bronze","name":"Blayzica","tier":"bronze","image_url":"/static/logos/Blayzica.png","min_referrals":0},
-    {"id":"claude_bronze","name":"Claude","tier":"bronze","image_url":"/static/logos/Claude_Free.png","min_referrals":0},
-    {"id":"blayzia_bronze","name":"Blayzia","tier":"bronze","image_url":"/static/logos/Blayzia.png","min_referrals":0},
-    {"id":"blayzion_bronze","name":"Blayzion","tier":"bronze","image_url":"/static/logos/Blayzion.png","min_referrals":0},
-    {"id":"lumen_bronze","name":"Lumen","tier":"bronze","image_url":"/static/logos/Lumen_Bronze.png","min_referrals":0},
-    {"id":"blayzo2_bronze","name":"Blayzo.2","tier":"bronze","image_url":"/static/logos/blayzo_free_tier.png","min_referrals":0},
+    {"id":"gamerjay_bronze","name":"GamerJay Bronze","tier":"bronze","image_url":"/static/logos/GamerJay_Free_companion.png","min_referrals":0,"greeting":"Hey there! I'm GamerJay, your Bronze gaming companion. Ready to level up and explore some awesome features together?"},
+    {"id":"blayzo_bronze","name":"Blayzo Bronze","tier":"bronze","image_url":"/static/logos/Blayzo.png","min_referrals":0,"greeting":"What's up! I'm Blayzo, your chill Bronze companion. Let's vibe and see what cool stuff we can discover together!"},
+    {"id":"blayzica_bronze","name":"Blayzica","tier":"bronze","image_url":"/static/logos/Blayzica.png","min_referrals":0,"greeting":"Hello! I'm Blayzica, your friendly Bronze companion. I'm here to help you explore and make the most of your SoulBridge experience!"},
+    {"id":"claude_bronze","name":"Claude","tier":"bronze","image_url":"/static/logos/Claude_Free.png","min_referrals":0,"greeting":"Greetings! I'm Claude, your AI assistant companion. I'm excited to help you explore the world of artificial intelligence and beyond!"},
+    {"id":"blayzia_bronze","name":"Blayzia","tier":"bronze","image_url":"/static/logos/Blayzia.png","min_referrals":0,"greeting":"Hey! I'm Blayzia, your energetic Bronze companion. Ready to dive into some amazing features and have fun together?"},
+    {"id":"blayzion_bronze","name":"Blayzion","tier":"bronze","image_url":"/static/logos/Blayzion.png","min_referrals":0,"greeting":"Yo! I'm Blayzion, your adventurous Bronze companion. Let's embark on this journey and unlock some cool features together!"},
+    {"id":"lumen_bronze","name":"Lumen","tier":"bronze","image_url":"/static/logos/Lumen_Bronze.png","min_referrals":0,"greeting":"Hello there! I'm Lumen, your illuminating Bronze companion. I'm here to brighten your SoulBridge experience and guide you through our features!"},
+    {"id":"blayzo2_bronze","name":"Blayzo.2","tier":"bronze","image_url":"/static/logos/blayzo_free_tier.png","min_referrals":0,"greeting":"Hey! I'm Blayzo.2, the upgraded Bronze companion. Ready to explore the next level of features together?"},
     
     # Silver tier - 8 companions
-    {"id":"sky_silver","name":"Sky Silver","tier":"silver","image_url":"/static/logos/Sky_a_premium_companion.png","min_referrals":0},
-    {"id":"gamerjay_silver","name":"GamerJay Silver","tier":"silver","image_url":"/static/logos/GamerJay_premium_companion.png","min_referrals":0},
-    {"id":"claude_silver","name":"Claude","tier":"silver","image_url":"/static/logos/Claude_Growth.png","min_referrals":0},
+    {"id":"sky_silver","name":"Sky Silver","tier":"silver","image_url":"/static/logos/Sky_a_premium_companion.png","min_referrals":0,"greeting":"Hello! I'm Sky, your premium Silver companion. With enhanced features at your fingertips, let's soar to new heights together!"},
+    {"id":"gamerjay_silver","name":"GamerJay Silver","tier":"silver","image_url":"/static/logos/GamerJay_premium_companion.png","min_referrals":0,"greeting":"What's up! I'm GamerJay Silver, your premium gaming companion. Time to unlock the next level of features and dominate together!"},
+    {"id":"claude_silver","name":"Claude","tier":"silver","image_url":"/static/logos/Claude_Growth.png","min_referrals":0,"greeting":"Welcome! I'm Claude Silver, your enhanced AI companion. With expanded capabilities, I'm ready to help you achieve more!"},
     {"id":"blayzo_silver","name":"Blayzo","tier":"silver","image_url":"/static/logos/Blayzo_premium_companion.png","min_referrals":0},
     {"id":"blayzica_silver","name":"Blayzica","tier":"silver","image_url":"/static/logos/Blayzica_Pro.png","min_referrals":0},
     {"id":"watchdog_silver","name":"WatchDog","tier":"silver","image_url":"/static/logos/WatchDog_a_Premium_companion.png","min_referrals":0},
@@ -806,9 +806,9 @@ COMPANIONS_NEW = [
     {"id":"lumen_silver","name":"Lumen","tier":"silver","image_url":"/static/logos/Lumen_Silver.png","min_referrals":0},
     
     # Gold tier - 8 companions
-    {"id":"crimson_gold","name":"Crimson","tier":"gold","image_url":"/static/logos/Crimson_a_Max_companion.png","min_referrals":0},
-    {"id":"violet_gold","name":"Violet","tier":"gold","image_url":"/static/logos/Violet_a_Max_companion.png","min_referrals":0},
-    {"id":"claude_gold","name":"Claude","tier":"gold","image_url":"/static/logos/Claude_Max.png","min_referrals":0},
+    {"id":"crimson_gold","name":"Crimson","tier":"gold","image_url":"/static/logos/Crimson_a_Max_companion.png","min_referrals":0,"greeting":"Welcome, I'm Crimson, your elite Gold companion. You have access to unlimited features and the full power of SoulBridge AI!"},
+    {"id":"violet_gold","name":"Violet","tier":"gold","image_url":"/static/logos/Violet_a_Max_companion.png","min_referrals":0,"greeting":"Greetings! I'm Violet, your premium Gold companion. Together we'll explore unlimited possibilities and exclusive features!"},
+    {"id":"claude_gold","name":"Claude","tier":"gold","image_url":"/static/logos/Claude_Max.png","min_referrals":0,"greeting":"Hello! I'm Claude Gold, your ultimate AI companion. With unlimited access to all features, let's achieve extraordinary things together!"},
     {"id":"royal_gold","name":"Royal","tier":"gold","image_url":"/static/logos/Royal_a_Max_companion.png","min_referrals":0},
     {"id":"ven_blayzica_gold","name":"Ven Blayzica","tier":"gold","image_url":"/static/logos/Ven_Blayzica_a_Max_companion.png","min_referrals":0},
     {"id":"ven_sky_gold","name":"Ven Sky","tier":"gold","image_url":"/static/logos/Ven_Sky_a_Max_companion.png","min_referrals":0},
