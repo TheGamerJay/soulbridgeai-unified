@@ -38,6 +38,63 @@ def debug_model_selection():
             "error": str(e)
         }), 500
 
+@bp.route("/api/chat/debug/test-models", methods=["POST"])
+def test_model_calls():
+    """Test actual OpenAI API calls for each tier to verify which models are really used"""
+    try:
+        results = {}
+        
+        for tier, model in [("bronze", "gpt-3.5-turbo"), ("silver", "gpt-4o"), ("gold", "gpt-5")]:
+            try:
+                logging.info(f"🧪 TESTING {tier.upper()} tier with {model}")
+                
+                # Make actual API call
+                resp = client.chat.completions.create(
+                    model=model,
+                    messages=[
+                        {"role": "system", "content": "You are a test assistant. Respond with just 'OK' and nothing else."},
+                        {"role": "user", "content": "test"}
+                    ],
+                    max_tokens=10,
+                    temperature=0.1
+                )
+                
+                # Extract what OpenAI actually used
+                actual_model = getattr(resp, 'model', 'unknown')
+                response_text = resp.choices[0].message.content if resp.choices else "no response"
+                
+                results[tier] = {
+                    "requested_model": model,
+                    "actual_model_used": actual_model,
+                    "success": True,
+                    "response": response_text,
+                    "usage": getattr(resp, 'usage', {}).dict() if hasattr(getattr(resp, 'usage', {}), 'dict') else str(getattr(resp, 'usage', {}))
+                }
+                
+                logging.info(f"✅ {tier.upper()}: Requested={model}, Got={actual_model}")
+                
+            except Exception as e:
+                results[tier] = {
+                    "requested_model": model,
+                    "actual_model_used": "ERROR",
+                    "success": False,
+                    "error": str(e)
+                }
+                logging.error(f"❌ {tier.upper()}: Failed to test {model} - {e}")
+        
+        return jsonify({
+            "success": True,
+            "test_results": results,
+            "message": "Check logs for detailed verification"
+        })
+        
+    except Exception as e:
+        logging.exception("Model testing failed")
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
+
 def build_system_prompt(character: str, tier_features: dict) -> str:
     """Build system prompt based on character and tier features"""
     character_prompts = {
@@ -166,6 +223,15 @@ def api_chat():
             presence_penalty=0.1,  # Encourage new topics/ideas
             max_tokens=800  # Increased for longer responses like stories
         )
+        
+        # REAL VERIFICATION: Log what OpenAI actually returned
+        actual_model_used = getattr(resp, 'model', 'unknown')
+        logging.info(f"🔍 REAL MODEL VERIFICATION: Requested={selected_model}, OpenAI Returned={actual_model_used}")
+        
+        # Log full response object for debugging (first time only to avoid spam)
+        if user_message.lower().strip() == "debug model":
+            logging.info(f"🔬 FULL OPENAI RESPONSE: {resp}")
+            logging.info(f"🔬 RESPONSE OBJECT ATTRIBUTES: {dir(resp)}")
 
         # Extract response
         content = ""
@@ -215,7 +281,8 @@ def api_chat():
             "success": True,
             "response": content,
             "character": character,
-            "model_used": selected_model,  # Show which model was actually used
+            "model_requested": selected_model,  # What we asked for
+            "model_actually_used": actual_model_used,  # What OpenAI actually gave us
             "user_tier": user_tier
         })
 
