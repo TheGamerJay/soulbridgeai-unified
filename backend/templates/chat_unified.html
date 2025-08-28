@@ -32,7 +32,7 @@
             companionInfo: {
                 name: "{{ ai_character_name or companion_info.name if companion_info else 'GamerJay' }}",
                 image: "{{ companion_avatar or companion_info.image_url if companion_info else '/static/logos/GamerJay_Free_companion.png' }}",
-                greeting: "{{ companion_info.greeting if companion_info and companion_info.greeting else 'Hey there! Ready to explore some features together?' }}"
+                greeting: "{{ (companion_info.greeting if companion_info and companion_info.greeting else 'Hey there! Ready to explore some features together?') | safe }}"
             }
         };
     </script>
