@@ -619,8 +619,8 @@ async function refreshFortuneLimits() {
         // Updated to use companion-tier system (same as decoder/horoscope)
         const { companion_tier, usage_today, daily_limit, companion_id } = data;
         
-        // Show actual limit for Gold tier (no more infinity symbol)
-        const displayLimit = daily_limit;
+        const hasUnlimited = userPlan === "gold" && companion_tier === "gold";  // Only if REAL Gold tier
+        const displayLimit = hasUnlimited ? "∞" : daily_limit;
 
         const usage = usage_today ?? 0;
 
