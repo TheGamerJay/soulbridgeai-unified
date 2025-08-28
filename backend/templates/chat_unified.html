@@ -9,9 +9,20 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://unpkg.com/lucide-react@latest/dist/umd/lucide-react.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .loading { 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+    </style>
 </head>
 <body>
-    <div id="app"></div>
+    <div id="app">
+        <div class="loading">Loading SoulBridge AI...</div>
+    </div>
     
     <!-- Pass data from Flask to React -->
     <script>
@@ -23,7 +34,7 @@
 
     <script type="text/babel">
         const { useState, useEffect } = React;
-        const { Send } = lucide;
+        const Send = window.lucide?.Send || (() => React.createElement('span', {}, '→'));
 
         function UnifiedChatPage({ userPlan = "bronze", trialActive = false }) {
           const [messages, setMessages] = useState([
@@ -405,13 +416,23 @@
           );
         }
 
-        // Mount the app with data from Flask
-        const container = document.getElementById('app');
-        const root = ReactDOM.createRoot(container);
-        root.render(React.createElement(UnifiedChatPage, {
-            userPlan: window.APP_DATA.userPlan,
-            trialActive: window.APP_DATA.trialActive
-        }));
+        // Safe mounting with error handling
+        try {
+            const container = document.getElementById('app');
+            if (container && window.ReactDOM && window.APP_DATA) {
+                const root = ReactDOM.createRoot(container);
+                root.render(React.createElement(UnifiedChatPage, {
+                    userPlan: window.APP_DATA.userPlan,
+                    trialActive: window.APP_DATA.trialActive
+                }));
+                console.log('React app mounted successfully');
+            } else {
+                throw new Error('Missing container, ReactDOM, or APP_DATA');
+            }
+        } catch (error) {
+            console.error('Failed to mount React app:', error);
+            document.getElementById('app').innerHTML = '<div style="padding: 20px; text-align: center;"><h2>Loading Error</h2><p>Please refresh the page or <a href="/bronze">go back</a></p></div>';
+        }
     </script>
 </body>
 </html>

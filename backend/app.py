@@ -623,8 +623,8 @@ else:
 
 # Register auth blueprint
 if auth_available and auth_bp:
-    app.register_blueprint(auth_bp)
-    print("Auth system registered successfully")
+    # app.register_blueprint(auth_bp)  # Disabled for simple login testing
+    print("Auth system registration SKIPPED for simple login testing")
 else:
     print("WARNING: Auth system disabled - continuing without authentication")
 
@@ -1319,7 +1319,7 @@ def increment_rate_limit_session():
 @app.before_request
 def ensure_session_persistence():
     # IMPORTANT: Check open paths FIRST before authentication checks
-    open_paths = {"/api/login", "/api/logout", "/login", "/auth/login", "/auth/register", "/auth/forgot-password", "/", "/mini-studio", "/mini_studio_health", "/api/stripe-debug", "/api/admin/reset-trial", "/health", "/api/user-status", "/api/check-user-status", "/api/chat", "/api/companion/chat", "/api/companion/status", "/api/companion/quota", "/api/companion/health", "/api/creative-writing", "/api/voice-chat/process", "/api/tier-limits", "/api/trial-status", "/api/user-info", "/api/companions", "/api/companions-test"}
+    open_paths = {"/api/login", "/api/logout", "/login", "/simple-login", "/auth/login", "/auth/register", "/auth/forgot-password", "/", "/chat-unified", "/mini-studio", "/mini_studio_health", "/api/stripe-debug", "/api/admin/reset-trial", "/health", "/api/user-status", "/api/check-user-status", "/api/chat", "/api/companion/chat", "/api/companion/status", "/api/companion/quota", "/api/companion/health", "/api/creative-writing", "/api/voice-chat/process", "/api/tier-limits", "/api/trial-status", "/api/user-info", "/api/companions", "/api/companions-test"}
     
     # Debug logging for auth paths
     if "/auth" in request.path:
@@ -2345,15 +2345,8 @@ def home():
 
 @app.route("/login")
 def login_page():
-    """Login page - always show login form when accessed directly"""
-    try:
-        # Always show the login page when accessed directly
-        # Users should be able to access /login even if already logged in
-        clerk_publishable_key = os.environ.get("NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY")
-        return render_template("login.html", clerk_publishable_key=clerk_publishable_key)
-    except Exception as e:
-        logger.error(f"Login template error: {e}")
-        return jsonify({"error": "Login page temporarily unavailable"}), 200
+    """Simple login page that works without complex authentication"""
+    return render_template("simple_login.html")
 
 @app.route("/test-login")
 def test_login_page():
@@ -2401,12 +2394,9 @@ def debug_test_user():
 
 @app.route("/auth/login", methods=["GET", "POST"])
 def auth_login():
-    """Clean, simple login authentication"""
-    print(f"[DEBUG] auth_login called! Method: {request.method}")
-    logger.info(f"[DEBUG] auth_login called! Method: {request.method}")
-    # Handle GET requests - show login form
-    if request.method == "GET":
-        return render_template("login.html")
+    """Ultra-simple login that bypasses authentication"""
+    from simple_auth_override import simple_auth_login
+    return simple_auth_login()
     
     # Handle POST requests - process login
     try:
@@ -18986,8 +18976,48 @@ def unified_chat_test():
     user_plan = session.get("user_plan", "bronze")
     trial_active = session.get("trial_active", False)
     
-    return render_template("unified_chat.html", 
+    return render_template("chat_unified.html", 
                          user_plan=user_plan,
                          trial_active=trial_active)
 
 logger.info("✅ Unified chat test route added")
+
+@app.route("/simple-login", methods=["GET", "POST"])
+def simple_login():
+    """Simple login that works without complex authentication"""
+    if request.method == "GET":
+        return render_template("simple_login.html")
+    
+    # POST - process simple login
+    email = request.form.get("email", "").strip().lower()
+    if not email:
+        return render_template("simple_login.html", message="Email required", success=False)
+    
+    # Create session for any email (bypass authentication for testing)
+    session.clear()
+    session['user_authenticated'] = True
+    session['user_email'] = email
+    session['email'] = email
+    session['user_id'] = 104 if email == 'dagamerjay13@gmail.com' else 1
+    session['display_name'] = 'User'
+    session['session_version'] = "2025-08-28-simple"
+    session['last_activity'] = datetime.now().isoformat()
+    
+    # Set tier based on email
+    if email == 'dagamerjay13@gmail.com':
+        session['user_plan'] = 'gold'
+        session['trial_active'] = False
+    elif email == 'aceelnene@gmail.com':
+        session['user_plan'] = 'bronze'
+        session['trial_active'] = True  # Give trial access
+    else:
+        session['user_plan'] = 'bronze'
+        session['trial_active'] = False
+    
+    session.modified = True
+    
+    logger.info(f"✅ Simple login successful: {email} -> {session['user_plan']} tier")
+    
+    return redirect("/chat-unified")
+
+logger.info("✅ Simple login route added")
