@@ -608,7 +608,6 @@ app.config['SESSION_COOKIE_SAMESITE'] = 'None'  # Allow cross-site cookies (for 
 app.config['SESSION_COOKIE_HTTPONLY'] = True  # Prevent JS access to session cookie
 
 # Set domain conditionally based on environment
-import os
 railway_env = os.environ.get('RAILWAY_ENVIRONMENT_NAME', '')
 railway_public = os.environ.get('RAILWAY_PUBLIC_DOMAIN', '')
 print(f"ENVIRONMENT DEBUG: RAILWAY_ENVIRONMENT_NAME={railway_env}, RAILWAY_PUBLIC_DOMAIN={railway_public}")
@@ -762,7 +761,7 @@ def voice_chat_page():
         
         # Check tier access - Silver/Gold only
         if not (session.get('access_silver') or session.get('access_gold')):
-            return render_template('bronze_chat.html', error="Voice Chat requires Silver or Gold tier. Upgrade to access this feature!"), 403
+            return render_template('chat_unified.html', error="Voice Chat requires Silver or Gold tier. Upgrade to access this feature!"), 403
         
         return render_template('voice_chat.html')
     except Exception as e:
@@ -867,16 +866,8 @@ def create_companion_routes():
                 # Get effective plan for feature access
                 effective_plan = get_effective_plan(user_plan, trial_active)
                 
-                # Use tier-specific templates for consistent theme systems
-                template_map = {
-                    'bronze': 'bronze_chat.html',
-                    'silver': 'silver_chat.html', 
-                    'gold': 'gold_chat.html'
-                }
-                template_name = template_map.get(comp_tier, 'bronze_chat.html')
-                
-                # Render tier-specific chat template
-                return render_template(template_name,
+                # Use unified chat template for all tiers
+                return render_template('chat_unified.html',
                     companion=comp_id,
                     companion_display_name=f"{comp_name} {comp_tier.title()}",
                     companion_avatar=comp_avatar,
@@ -2171,9 +2162,8 @@ def initialize_services():
         except Exception as e:
             logger.warning(f"⚠️ Stripe event cleanup failed: {e}")
     
-    # Run periodic plan migration as safety net during startup
-    logger.info("🧼 Running periodic plan migration safety check...")
-    run_periodic_plan_migration()
+    # Legacy migration removed - all users migrated to bronze/silver/gold system
+    logger.info("✅ Database initialization complete")
     
     return results
 
@@ -2360,7 +2350,6 @@ def debug_test_user():
     try:
         from auth import Database
         from simple_auth import SimpleAuth
-        import os
         
         # Check environment variables
         env_info = {
@@ -6459,32 +6448,7 @@ def admin_manage_users():
         logger.error(f"Error in user management: {e}")
         return jsonify({"error": str(e)}), 500
 
-@app.route("/admin/migrate-plans")
-def admin_migrate_plans():
-    """🧼 ADMIN: Manually trigger periodic plan migration"""
-    key = request.args.get("key")
-    if key != ADMIN_DASH_KEY:
-        return jsonify({"error": "Unauthorized"}), 403
-    
-    try:
-        logger.info("🧼 Admin triggered manual plan migration")
-        success = run_periodic_plan_migration()
-        
-        if success:
-            return jsonify({
-                "success": True, 
-                "message": "Plan migration completed successfully",
-                "redirect": f"/admin/surveillance?key={ADMIN_DASH_KEY}"
-            })
-        else:
-            return jsonify({
-                "success": False, 
-                "error": "Plan migration failed - check logs for details"
-            }), 500
-            
-    except Exception as e:
-        logger.error(f"Error in admin plan migration: {e}")
-        return jsonify({"error": str(e)}), 500
+# Legacy admin migration endpoint removed - all users migrated to bronze/silver/gold system
 
 @app.route("/admin/users/delete/<int:user_id>", methods=["DELETE"])
 def admin_delete_user(user_id):
@@ -8153,59 +8117,7 @@ def get_feature_limit_v2(effective_plan: str, feature: str) -> int:
     # Redirect to the main function to avoid duplication
     return get_feature_limit(effective_plan, feature)
 
-def run_periodic_plan_migration():
-    """Periodic safety net to migrate any remaining legacy plans in database"""
-    try:
-        db_instance = get_database()
-        if not db_instance:
-            logger.warning("Database not available for periodic plan migration")
-            return False
-        
-        conn = db_instance.get_connection()
-        cursor = conn.cursor()
-        
-        # Check for any remaining legacy plans
-        legacy_plans = ['foundation', 'premium', 'enterprise']
-        total_migrated = 0
-        
-        for legacy_plan in legacy_plans:
-            # Skip legacy migration - we only use bronze/silver/gold now
-            continue
-            
-            if db_instance.use_postgres:
-                # Update user_plan
-                cursor.execute("UPDATE users SET user_plan = %s WHERE user_plan = %s", (new_plan, legacy_plan))
-                user_plan_migrated = cursor.rowcount
-                
-                # Update plan_type
-                cursor.execute("UPDATE users SET plan_type = %s WHERE plan_type = %s", (new_plan, legacy_plan))
-                plan_type_migrated = cursor.rowcount
-            else:
-                # Update user_plan
-                cursor.execute("UPDATE users SET user_plan = ? WHERE user_plan = ?", (new_plan, legacy_plan))
-                user_plan_migrated = cursor.rowcount
-                
-                # Update plan_type
-                cursor.execute("UPDATE users SET plan_type = ? WHERE plan_type = ?", (new_plan, legacy_plan))
-                plan_type_migrated = cursor.rowcount
-            
-            migrated_count = user_plan_migrated + plan_type_migrated
-            if migrated_count > 0:
-                total_migrated += migrated_count
-                logger.info(f"🧼 Periodic migration: {legacy_plan} → {new_plan} ({migrated_count} records)")
-        
-        if total_migrated > 0:
-            conn.commit()
-            logger.info(f"✅ Periodic plan migration completed: {total_migrated} total records updated")
-        else:
-            logger.info("✅ Periodic plan migration: No legacy plans found")
-        
-        conn.close()
-        return True
-        
-    except Exception as e:
-        logger.error(f"❌ Periodic plan migration failed: {e}")
-        return False
+# Legacy migration function removed - all users migrated to bronze/silver/gold system
 
 # Feature access control system
 FEATURE_ACCESS = {
@@ -9916,7 +9828,7 @@ def debug_test_signup_direct():
         name = "Test User"
         
         # Direct database operation
-        import os, psycopg2, bcrypt
+        import psycopg2, bcrypt
         conn = psycopg2.connect(os.environ.get('DATABASE_URL'))
         conn.autocommit = True
         cursor = conn.cursor()
@@ -10645,7 +10557,6 @@ def debug_reset_password():
 def debug_check_user():
     """FORCE DELETE specific user across all connections"""
     try:
-        import os
         import psycopg2
         import time
         
@@ -10806,7 +10717,6 @@ def debug_delete_users():
 def debug_raw_sql():
     """Raw SQL to check users - bypass all connection issues"""
     try:
-        import os
         import psycopg2
         
         # Connect directly to PostgreSQL
@@ -10841,7 +10751,6 @@ def debug_raw_sql():
 def clean_users():
     """Clean problematic users from database"""
     try:
-        import os
         import psycopg2
         
         postgres_url = os.environ.get('DATABASE_URL') or os.environ.get('POSTGRES_URL')
@@ -11398,125 +11307,6 @@ def _get_openai_response(message: str, character: str, model: str, max_tokens: i
         logger.warning(f"OpenAI API error: {ai_error}")
         return f"Hello! I'm {character}, your AI companion. I understand you said: '{message[:50]}...'. I'm experiencing some technical difficulties with our premium service right now, but I'm still here to help you! What would you like to talk about?"
 
-# OLD ROUTE - Replaced by clean chat_route.py
-# @app.route("/api/chat", methods=["POST"])
-def api_chat_old():
-    """Chat API endpoint"""
-    try:
-        if not is_logged_in():
-            return jsonify({"success": False, "response": "Authentication required"}), 401
-            
-        data = request.get_json()
-        if not data:
-            return jsonify({"success": False, "response": "Invalid request data"}), 400
-            
-        if not services["openai"]:
-            logger.warning("OpenAI service not available - using premium bronze AI service")
-            # Use premium bronze AI service instead of simple fallback
-            character = data.get("character", "Blayzo")
-            message = data.get("message", "").strip()
-            context = data.get("context", "")
-            
-            logger.info(f"🎭 FALLBACK DEBUG: Using premium AI for character='{character}', message='{message[:50]}...'")
-            
-            try:
-                from premium_free_ai_service import get_premium_free_ai_service
-                premium_ai = get_premium_free_ai_service()
-                user_id = session.get('user_id', 'anonymous')
-                premium_response = premium_ai.generate_response(message, character, context, user_id)
-                ai_response = premium_response["response"]
-                
-                logger.info(f"✅ Premium AI fallback successful for character '{character}'")
-                return jsonify({"success": True, "response": ai_response, "character": character})
-                
-            except Exception as premium_error:
-                logger.error(f"Premium AI fallback error: {premium_error}")
-                fallback_response = f"Hello! I'm {character}, your AI companion. I'm currently running in offline mode, but I'm here to help! How can I assist you today?"
-                return jsonify({"success": True, "response": fallback_response, "character": character})
-            
-        message = data.get("message", "").strip()
-        character = data.get("character", "Blayzo")
-        context = data.get("context", "")
-        
-        # DEBUG: Log the character parameter
-        logger.info(f"🎭 API CHAT DEBUG: Received character='{character}', message='{message}'")
-        
-        if not message or len(message) > 1000:
-            return jsonify({"success": False, "response": "Message is required and must be under 1000 characters"}), 400
-        
-        # Check decoder usage limits if this is a decoder request
-        if context == 'decoder_mode':
-            # Calculate fresh effective_plan
-            effective_plan = get_effective_plan(user_plan, trial_active)
-            user_plan = session.get('user_plan', 'bronze')
-            trial_active = session.get('trial_active', False)
-            user_id = session.get('user_id')
-            daily_limit = get_feature_limit(user_plan, 'decoder')
-            
-            # Check decoder usage limits
-            current_usage = get_decoder_usage()
-            
-            # Check if user has exceeded limit
-            if daily_limit < 999999 and current_usage >= daily_limit:
-                return jsonify({
-                    "success": False, 
-                    "response": f"Daily decoder limit reached ({daily_limit} uses). Upgrade to Growth for 15 daily uses, or Max for unlimited access!",
-                    "limit_reached": True,
-                    "current_usage": current_usage,
-                    "daily_limit": daily_limit,
-                    "upgrade_required": True
-                }), 429
-            
-            # Increment usage for decoder requests
-            increment_decoder_usage()
-        
-        # Sanitize character input
-        if character not in VALID_CHARACTERS:
-            character = "Blayzo"  # Default fallback
-        
-        # Get user's subscription tier for enhanced features (calculate fresh)
-        user_plan = session.get('user_plan', 'bronze')
-        trial_active = session.get('trial_active', False)
-        user_tier = get_effective_plan(user_plan, trial_active)
-        
-        # Tier-specific AI model and parameters
-        if user_tier == 'gold':  # Gold Plan - Premium OpenAI
-            ai_response = _get_openai_response(
-                message, character, "gpt-4", 300, 0.8,
-                f"You are {character}, an advanced AI companion from SoulBridge AI Gold Plan. You have enhanced emotional intelligence, deeper insights, and provide more thoughtful, nuanced responses. You can engage in complex discussions and offer premium-level guidance."
-            )
-        elif user_tier == 'silver':  # Silver Plan - Standard OpenAI
-            ai_response = _get_openai_response(
-                message, character, "gpt-3.5-turbo", 200, 0.75,
-                f"You are {character}, an enhanced AI companion from SoulBridge AI Silver Plan. You provide more detailed responses and have access to advanced conversation features. You're helpful, insightful, and offer quality guidance."
-            )
-        else:  # Foundation (Bronze) - Premium Local AI
-            logger.info(f"🎭 MAIN FLOW DEBUG: Using premium bronze AI for character='{character}', message='{message[:50]}...'")
-            try:
-                premium_ai = get_premium_bronze_ai_service()
-                user_id = session.get('user_id', 'anonymous')
-                logger.info(f"🎭 CALLING AI SERVICE: character='{character}', user_id='{user_id}'")
-                premium_response = premium_ai.generate_response(message, character, context, user_id)
-                ai_response = premium_response["response"]
-                
-                logger.info(f"Premium bronze AI response generated in {premium_response.get('response_time', 0):.2f}s")
-                logger.info(f"Emotions detected: {premium_response.get('emotions_detected', [])}")
-                logger.info(f"Enhancement level: {premium_response.get('enhancement_level', 'none')}")
-                    
-            except Exception as premium_error:
-                logger.error(f"Premium bronze AI error: {premium_error}")
-                ai_response = f"Hello! I'm {character}, your caring AI companion from SoulBridge AI. I'm here to listen and support you through whatever you're experiencing. What would you like to talk about today?"
-        
-        return jsonify({
-            "success": True, 
-            "response": ai_response,
-            "tier": user_tier,
-            "enhanced": user_tier in ['silver', 'gold']
-        })
-        
-    except Exception as e:
-        logger.error(f"Chat API error: {e}")
-        return jsonify({"success": False, "response": "Sorry, I encountered an error."}), 500
 
 @app.route("/api/creative-writing", methods=["POST"])
 def api_creative_writing():
@@ -14668,7 +14458,6 @@ def api_mini_assistant_history():
 def api_mini_assistant_status():
     """Check Mini Assistant capabilities"""
     try:
-        import os
         claude_api_key = os.getenv('CLAUDE_API_KEY')
         claude_available = bool(claude_api_key)
         
@@ -14755,13 +14544,11 @@ ALLOWED_EDIT_FOLDERS = ["backend/templates", "backend/static", "backend/utils", 
 MINI_ASSISTANT_LOG = "backend/logs/mini_assistant.log"
 
 # Create logs directory if it doesn't exist
-import os
 os.makedirs("backend/logs", exist_ok=True)
 
 def call_claude_advanced(prompt, file_path="", project_context=""):
     """Advanced Claude API call with file editing capabilities"""
     import requests
-    import os
     
     file_content = ""
     if file_path and os.path.exists(file_path):
@@ -18730,16 +18517,10 @@ def companion_chat_handler(tier, companion_id):
         
         logger.info(f"🎨 RENDERING: tier={tier}, companion={companion_info['name']}, limits={limits}")
         
-        # Use tier-specific templates for consistent theme systems
-        template_map = {
-            'bronze': 'bronze_chat.html',
-            'silver': 'silver_chat.html', 
-            'gold': 'gold_chat.html'
-        }
-        template_name = template_map.get(tier, 'bronze_chat.html')
-        logger.info(f"🎯 TEMPLATE: Using {template_name} for tier {tier}")
+        # Use unified chat template for all tiers
+        logger.info(f"🎯 TEMPLATE: Using chat_unified.html for tier {tier}")
         
-        return render_template(template_name,
+        return render_template('chat_unified.html',
             companion=companion_id,
             companion_display_name=f"{companion_info['name']} {tier.title()}",
             companion_avatar=companion_info['image_url'],

@@ -142,13 +142,4 @@ AI_IMAGE_LIMITS = {
     "gold": 999999    # Gold: Unlimited AI images per day
 }
 
-# Legacy plan migration mapping (for backward compatibility only; do not use for new features)
-LEGACY_PLAN_MAPPING = {
-    'foundation': 'bronze',
-    'premium': 'silver', 
-    'enterprise': 'gold',
-    # Old tier names for backward compatibility
-    'free': 'bronze',
-    'growth': 'silver',
-    'max': 'gold'
-}
+# Legacy mapping removed - all users should be migrated to bronze/silver/gold system
