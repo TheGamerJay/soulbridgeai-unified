@@ -391,9 +391,11 @@
                 React.createElement('button', {
                   onClick: sendMessage,
                   disabled: loading || !input.trim(),
-                  className: "rounded-full px-4 py-2 text-white font-medium transition-all hover:opacity-90 disabled:opacity-50",
+                  className: "rounded-full px-4 py-2 font-medium transition-all hover:opacity-90 disabled:opacity-50",
                   style: { 
-                    background: `linear-gradient(135deg, ${colors.primary}, ${colors.primary}dd)`
+                    background: '#000000',
+                    border: `2px solid ${colors.primary}`,
+                    color: colors.primary
                   }
                 }, React.createElement(Send, { size: 20 }))
               )
