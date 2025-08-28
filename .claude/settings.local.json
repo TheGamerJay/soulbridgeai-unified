@@ -149,7 +149,9 @@
       "Bash(start:*)",
       "WebFetch(domain:railway.app)",
       "Bash(git pull:*)",
-      "Bash(git log:*)"
+      "Bash(git log:*)",
+      "Bash(if [ -z \"$OPENAI_API_KEY\" ])",
+      "Bash(then echo \"❌ OPENAI_API_KEY is NOT set\")"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"
