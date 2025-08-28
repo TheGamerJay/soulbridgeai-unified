@@ -223,12 +223,21 @@
             setLoading(true);
 
             try {
-              // Use existing chat API (preserves all backend logic)
+              // Send conversation history for context
+              const conversationHistory = messages.map(msg => ({
+                role: msg.sender === "user" ? "user" : "assistant",
+                content: msg.text
+              }));
+              
               const response = await fetch('/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
-                body: JSON.stringify({ message: input })
+                body: JSON.stringify({ 
+                  message: input,
+                  character: companion.name,
+                  conversation_history: conversationHistory
+                })
               });
 
               const data = await response.json();

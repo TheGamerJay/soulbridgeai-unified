@@ -40,6 +40,7 @@ def api_chat():
         character = (payload.get("character") or "Blayzo").strip()
         tier_features = payload.get("tier_features") or {}
         context = (payload.get("context") or "").strip()
+        conversation_history = payload.get("conversation_history") or []
 
         if not user_message:
             return jsonify({
@@ -96,13 +97,27 @@ def api_chat():
         # Build system prompt with character personality
         system_prompt = build_system_prompt(character, tier_features)
 
+        # Build message history for context
+        messages = [{"role": "system", "content": system_prompt}]
+        
+        # Add conversation history (limit to last 10 messages to avoid token limits)
+        recent_history = conversation_history[-10:] if len(conversation_history) > 10 else conversation_history
+        for msg in recent_history:
+            if msg.get("role") and msg.get("content"):
+                messages.append({
+                    "role": msg["role"], 
+                    "content": msg["content"]
+                })
+        
+        # Add current user message
+        messages.append({"role": "user", "content": user_message})
+        
+        logging.info(f"🔄 CHAT CONTEXT: Using {len(messages)-2} history messages + current")
+
         # Call OpenAI
         resp = client.chat.completions.create(
             model="gpt-3.5-turbo",  # Using 3.5-turbo as it's more reliable than gpt-5
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_message}
-            ],
+            messages=messages,
             temperature=0.7,
             max_tokens=800  # Increased for longer responses like stories
         )
