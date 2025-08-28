@@ -1822,7 +1822,7 @@
                     const trialTimer = document.getElementById('trialTimer');
                     if (this.userTrial?.active && trialTimer) {
                         trialTimer.style.display = 'block';
-                        window.startTrialTimer();
+                        window.startTrialTimer(this.userTrial);
                     } else if (trialTimer) {
                         trialTimer.style.display = 'none';
                     }
@@ -2802,7 +2802,7 @@
         };
 
         // Trial timer functionality
-        window.startTrialTimer = function() {
+        window.startTrialTimer = function(trialData) {
             const trialTimeDisplay = document.getElementById('trialTimeDisplay');
             if (!trialTimeDisplay) return;
 
@@ -2811,8 +2811,8 @@
                 clearInterval(window.trialTimerInterval);
             }
 
-            // Get trial expiry time from user data
-            const expiryTime = profileApp?.userTrial?.expires_at;
+            // Get trial expiry time from passed data
+            const expiryTime = trialData?.expires_at;
             if (!expiryTime) {
                 trialTimeDisplay.textContent = 'Error loading timer';
                 return;
