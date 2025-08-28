@@ -50,8 +50,7 @@
           };
           
           const [messages, setMessages] = useState([
-            { id: 1, sender: "bot", text: companion.greeting, companion: companion },
-            { id: 2, sender: "bot", text: "How can I help you today?", companion: companion }
+            { id: 1, sender: "bot", text: `${companion.greeting} How can I help you today?`, companion: companion }
           ]);
           const [input, setInput] = useState("");
           const [loading, setLoading] = useState(false);
