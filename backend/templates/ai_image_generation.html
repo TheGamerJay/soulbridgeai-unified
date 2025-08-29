@@ -909,7 +909,16 @@
         const usageElement = document.getElementById('usageCount');
         usageElement.textContent = '... / ...';
         
-        const response = await fetch('/api/ai-image-generation/usage', {
+        // Detect current tier from URL path
+        const currentPath = window.location.pathname;
+        let tierParam = '';
+        if (currentPath.includes('/silver')) {
+          tierParam = '?tier=silver';
+        } else if (currentPath.includes('/gold')) {
+          tierParam = '?tier=gold';
+        }
+        
+        const response = await fetch(`/api/ai-image-generation/usage${tierParam}`, {
           credentials: 'include'
         });
 

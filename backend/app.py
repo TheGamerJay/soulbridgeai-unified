@@ -13334,6 +13334,36 @@ def ai_image_generation_page():
     
     return render_template("ai_image_generation.html")
 
+@app.route("/ai-image-generation/silver")
+def ai_image_generation_silver():
+    """AI image generation Silver tier page"""
+    if not is_logged_in():
+        return redirect("/login")
+    
+    user_plan = session.get('user_plan', 'bronze')
+    trial_active = session.get('trial_active', False)
+    
+    # Check Silver tier access
+    if user_plan not in ['silver', 'gold'] and not trial_active:
+        return redirect("/subscription?feature=ai-image-generation")
+    
+    return render_template("ai_image_generation.html", tier="silver")
+
+@app.route("/ai-image-generation/gold")  
+def ai_image_generation_gold():
+    """AI image generation Gold tier page"""
+    if not is_logged_in():
+        return redirect("/login")
+    
+    user_plan = session.get('user_plan', 'bronze')
+    trial_active = session.get('trial_active', False)
+    
+    # Check Gold tier access (trial users can access, but real Gold users get unlimited)
+    if user_plan not in ['gold'] and not trial_active:
+        return redirect("/subscription?feature=ai-image-generation")
+    
+    return render_template("ai_image_generation.html", tier="gold")
+
 @app.route("/api/ai-image-generation/generate", methods=["POST"])
 def ai_image_generation_generate():
     """Generate AI image from prompt"""
@@ -13603,6 +13633,57 @@ def ai_image_generation_gallery():
         logger.error(f"AI image gallery error: {e}")
         return jsonify({"success": False, "error": "Failed to fetch gallery"}), 500
 
+# ========================================
+# THEME PALETTE FEATURE
+# ========================================
+
+@app.route("/theme-palette")
+def theme_palette_page():
+    """Theme palette page - redirects to tier-specific routes"""
+    if not is_logged_in():
+        return redirect("/login")
+        
+    user_plan = session.get('user_plan', 'bronze')
+    trial_active = session.get('trial_active', False)
+    
+    # Redirect to appropriate tier
+    if user_plan == 'gold' or (trial_active and user_plan == 'bronze'):
+        return redirect("/theme-palette/gold")
+    elif user_plan == 'silver':
+        return redirect("/theme-palette/silver")
+    else:
+        return redirect("/subscription?feature=theme-palette")
+
+@app.route("/theme-palette/silver")
+def theme_palette_silver():
+    """Theme palette Silver tier page"""
+    if not is_logged_in():
+        return redirect("/login")
+    
+    user_plan = session.get('user_plan', 'bronze')
+    trial_active = session.get('trial_active', False)
+    
+    if user_plan not in ['silver', 'gold'] and not trial_active:
+        return redirect("/subscription?feature=theme-palette")
+    
+    # For now, redirect to companion selection until theme palette is built
+    return redirect("/companion-selection")
+
+@app.route("/theme-palette/gold")
+def theme_palette_gold():
+    """Theme palette Gold tier page"""
+    if not is_logged_in():
+        return redirect("/login")
+    
+    user_plan = session.get('user_plan', 'bronze')
+    trial_active = session.get('trial_active', False)
+    
+    if user_plan not in ['gold'] and not trial_active:
+        return redirect("/subscription?feature=theme-palette")
+    
+    # For now, redirect to companion selection until theme palette is built
+    return redirect("/companion-selection")
+
 @app.route("/api/ai-image-generation/usage", methods=["GET"])
 def ai_image_generation_usage():
     """Get user's monthly usage statistics"""
@@ -13618,10 +13699,15 @@ def ai_image_generation_usage():
         # Allow all users to view usage stats, Bronze users will see 0/0 limits
         
         # Get current month usage and tier-based limits
-        # Determine effective tier for AI Images access
-        if trial_active and user_plan == 'bronze':
-            # Bronze trial users get Gold-level display but credit-based functionality
-            ai_image_tier = 'gold'  # Show Gold-level UI (999 limit display)
+        # Get the requested tier from the request or determine from user plan
+        requested_tier = request.args.get('tier')  # e.g., /api/ai-image-generation/usage?tier=gold
+        
+        if requested_tier and trial_active and user_plan == 'bronze':
+            # Bronze trial users can access the tier they're viewing (silver or gold)
+            ai_image_tier = requested_tier if requested_tier in ['silver', 'gold'] else user_plan
+        elif trial_active and user_plan == 'bronze':
+            # Default to silver for Bronze trial users
+            ai_image_tier = 'silver'  
         else:
             ai_image_tier = user_plan  # Use actual subscription plan
             
