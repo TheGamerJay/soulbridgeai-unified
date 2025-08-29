@@ -1872,47 +1872,20 @@ def is_logged_in():
 
 def has_accepted_terms():
     """Check if user has accepted terms and conditions"""
-    try:
-        # Check if already marked as accepted in session
-        if session.get('terms_accepted', False):
-            return True
-        
-        # LEGACY USERS: Auto-accept terms for existing users
-        # If user is logged in but doesn't have terms_accepted flag,
-        # they are an existing user from before terms requirement
-        if is_logged_in() and session.get('user_id'):
-            # Auto-mark existing users as having accepted terms
-            session['terms_accepted'] = True
-            session.modified = True
-            logger.warning(f"🔧 AUTO-ACCEPTING terms for existing user: {session.get('user_email')} (user_id: {session.get('user_id')})")
-            return True
-            
-        return False
-    except Exception as e:
-        logger.error(f"Error in has_accepted_terms(): {e}")
-        return False
+    # EMERGENCY DISABLE: Always return True to prevent redirect loops
+    if is_logged_in() and session.get('user_id'):
+        session['terms_accepted'] = True
+        session.modified = True
+    return True  # Always return True
 
 def requires_terms_acceptance():
     """Decorator/helper to check if user needs to accept terms before accessing content"""
-    if not is_logged_in():
-        return redirect("/login")
-    
-    # Prevent redirect loop - don't check terms on terms-acceptance page itself
-    if request.path == '/terms-acceptance':
-        return None
-    
-    # EMERGENCY BYPASS: Temporarily auto-accept all logged-in users to prevent redirect loops
-    if is_logged_in() and session.get('user_id') and not session.get('terms_accepted'):
-        logger.warning(f"🚨 EMERGENCY BYPASS: Auto-accepting terms for user {session.get('user_email')} to prevent redirect loop")
+    # EMERGENCY DISABLE: Terms system temporarily disabled to prevent redirect loops
+    logger.warning(f"🚨 TERMS SYSTEM DISABLED: Auto-accepting all users to prevent redirect loops")
+    if is_logged_in() and session.get('user_id'):
         session['terms_accepted'] = True
         session.modified = True
-        return None
-    
-    if not has_accepted_terms():
-        logger.warning(f"🔄 REDIRECT LOOP PREVENTION: User {session.get('user_email')} from {request.path} needs to accept terms, redirecting to terms-acceptance")
-        return redirect("/terms-acceptance")
-    
-    return None  # No redirect needed
+    return None  # Always allow access
 
 def get_user_plan():
     """Get user's selected plan"""
