@@ -3664,9 +3664,9 @@
                 ]
             };
 
-            // Determine access levels
-            const hasGoldAccess = userTier === 'gold' || trialActive;
-            const hasSilverAccess = hasGoldAccess || userTier === 'silver';
+            // Determine access levels - trial only gives Silver/Gold companion ACCESS, not tier benefits
+            const hasGoldAccess = userTier === 'gold' || (userTier === 'bronze' && trialActive);
+            const hasSilverAccess = userTier === 'silver' || userTier === 'gold' || (userTier === 'bronze' && trialActive);
             
             // Update tier status displays
             const silverStatusEl = document.getElementById('silverTierStatusDropdown');
