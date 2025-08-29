@@ -1362,9 +1362,12 @@ def check_avatar_change_availability():
 @community_bp.route('/avatar', methods=['POST'])
 def set_community_avatar():
     """Set user's community avatar companion with cooldown system"""
+    logger.info("🚨 DEBUG: set_community_avatar endpoint called - changes are deployed!")
     try:
         user_id = session.get('user_id')
+        logger.info(f"🚨 DEBUG: user_id from session: {user_id}")
         if not user_id:
+            logger.error("🚨 DEBUG: No user_id in session - auth required")
             return jsonify({"error": "Authentication required"}), 401
         
         data = request.get_json()
