@@ -1731,11 +1731,97 @@
 
         function showConfirmationDialog() {
             const companionName = selectedCompanion.display_name || selectedCompanion.name;
-            const confirmed = confirm(`Are you sure you want to set ${companionName} as your community avatar?\\n\\nNote: You'll need to wait before changing again (cooldown varies by tier).`);
+            const avatarUrl = selectedCompanion.avatar_url || '/static/logos/New IntroLogo.png';
             
-            if (confirmed) {
+            // Create professional confirmation modal
+            const confirmModal = document.createElement('div');
+            confirmModal.className = 'modal';
+            confirmModal.style.display = 'block';
+            confirmModal.innerHTML = `
+                <div class="modal-content" style="max-width: 500px; text-align: center;">
+                    <div class="modal-header" style="text-align: center; margin-bottom: 25px;">
+                        <h2 style="color: #00ffff; margin: 0; font-size: 1.8rem;">
+                            🎭 Set Community Avatar
+                        </h2>
+                    </div>
+                    
+                    <div style="margin: 25px 0;">
+                        <img src="${avatarUrl}" alt="${companionName}" 
+                             style="width: 80px; height: 80px; border-radius: 50%; 
+                                    border: 3px solid rgba(0, 255, 255, 0.4); 
+                                    margin-bottom: 15px;">
+                        <h3 style="color: #e2e8f0; margin: 15px 0;">
+                            Set <span style="color: #00ffff;">${companionName}</span> as your avatar?
+                        </h3>
+                        <p style="color: rgba(226, 232, 240, 0.8); font-size: 0.95rem; line-height: 1.5; margin: 20px 0;">
+                            This will be your companion avatar in the community. 
+                            <br><span style="color: rgba(255, 255, 0, 0.9);">Note:</span> 
+                            There's a cooldown between changes (varies by tier).
+                        </p>
+                    </div>
+                    
+                    <div style="display: flex; gap: 15px; justify-content: center; margin-top: 30px;">
+                        <button id="confirm-cancel-btn" class="btn" 
+                                style="background: rgba(255, 255, 255, 0.1); 
+                                       border: 2px solid rgba(255, 255, 255, 0.3); 
+                                       color: #e2e8f0; padding: 12px 24px; 
+                                       border-radius: 25px; cursor: pointer; 
+                                       transition: all 0.3s ease;">
+                            Cancel
+                        </button>
+                        <button id="confirm-set-btn" class="btn btn-primary" 
+                                style="background: linear-gradient(135deg, #00ffff, #0080ff); 
+                                       border: none; color: #000; padding: 12px 24px; 
+                                       border-radius: 25px; cursor: pointer; 
+                                       font-weight: bold; transition: all 0.3s ease;">
+                            Set Avatar
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(confirmModal);
+            
+            // Add hover effects
+            const cancelBtn = confirmModal.querySelector('#confirm-cancel-btn');
+            const setBtn = confirmModal.querySelector('#confirm-set-btn');
+            
+            cancelBtn.addEventListener('mouseenter', () => {
+                cancelBtn.style.background = 'rgba(255, 255, 255, 0.2)';
+                cancelBtn.style.borderColor = 'rgba(255, 255, 255, 0.5)';
+            });
+            
+            cancelBtn.addEventListener('mouseleave', () => {
+                cancelBtn.style.background = 'rgba(255, 255, 255, 0.1)';
+                cancelBtn.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+            });
+            
+            setBtn.addEventListener('mouseenter', () => {
+                setBtn.style.background = 'linear-gradient(135deg, #00e6e6, #0073e6)';
+                setBtn.style.transform = 'translateY(-2px)';
+            });
+            
+            setBtn.addEventListener('mouseleave', () => {
+                setBtn.style.background = 'linear-gradient(135deg, #00ffff, #0080ff)';
+                setBtn.style.transform = 'translateY(0)';
+            });
+            
+            // Handle button clicks
+            cancelBtn.addEventListener('click', () => {
+                document.body.removeChild(confirmModal);
+            });
+            
+            setBtn.addEventListener('click', () => {
+                document.body.removeChild(confirmModal);
                 performAvatarChange('normal');
-            }
+            });
+            
+            // Close on backdrop click
+            confirmModal.addEventListener('click', (e) => {
+                if (e.target === confirmModal) {
+                    document.body.removeChild(confirmModal);
+                }
+            });
         }
 
         function showCooldownDialog(cooldownData) {
