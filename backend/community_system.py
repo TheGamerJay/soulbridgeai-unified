@@ -388,6 +388,7 @@ def set_user_community_avatar(user_id: int, companion_data: Dict[str, Any]) -> b
     try:
         import os
         import psycopg2
+        from database_utils import get_database
         
         try:
             logger.info("🚨 DEBUG: Attempting to get database connection...")
