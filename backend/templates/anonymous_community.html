@@ -1731,7 +1731,7 @@
 
         function showConfirmationDialog() {
             const companionName = selectedCompanion.display_name || selectedCompanion.name;
-            const avatarUrl = selectedCompanion.avatar_url || '/static/logos/New IntroLogo.png';
+            const avatarUrl = selectedCompanion.image_url || '/static/logos/New IntroLogo.png';
             
             // Create professional confirmation modal
             const confirmModal = document.createElement('div');
@@ -1746,10 +1746,13 @@
                     </div>
                     
                     <div style="margin: 25px 0;">
-                        <img src="${avatarUrl}" alt="${companionName}" 
+                        <div id="modal-companion-avatar" class="companion-avatar-preview" 
                              style="width: 80px; height: 80px; border-radius: 50%; 
-                                    border: 3px solid rgba(0, 255, 255, 0.4); 
-                                    margin-bottom: 15px;">
+                                    border: 3px solid rgba(0, 255, 255, 0.4); margin: 0 auto 15px; 
+                                    display: flex; align-items: center; justify-content: center; 
+                                    background: rgba(0, 255, 255, 0.1); font-size: 2rem;">
+                            <!-- Avatar will be set via JavaScript -->
+                        </div>
                         <h3 style="color: #e2e8f0; margin: 15px 0;">
                             Set <span style="color: #00ffff;">${companionName}</span> as your avatar?
                         </h3>
@@ -1781,6 +1784,16 @@
             `;
             
             document.body.appendChild(confirmModal);
+            
+            // Set companion avatar with proper fallback logic
+            const avatarContainer = confirmModal.querySelector('#modal-companion-avatar');
+            if (selectedCompanion.image_url) {
+                avatarContainer.innerHTML = `<img src="${selectedCompanion.image_url}" alt="${companionName}" 
+                                                  style="width: 100%; height: 100%; object-fit: contain; border-radius: 50%;" 
+                                                  onerror="this.style.display='none'; this.parentElement.innerHTML='${getCompanionEmoji(selectedCompanion.id)}';">`;
+            } else {
+                avatarContainer.innerHTML = getCompanionEmoji(selectedCompanion.id);
+            }
             
             // Add hover effects
             const cancelBtn = confirmModal.querySelector('#confirm-cancel-btn');
