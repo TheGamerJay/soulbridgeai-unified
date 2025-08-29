@@ -4157,10 +4157,15 @@ def tiers_page():
     referral_companions = []
     
     for c in COMPANIONS_NEW:
+        # Check companion access using the validated user data
+        can_access = user_can_access_companion(plan, trial, referral_count, c)
+        
         companion_data = {
             'slug': c['id'],  # Use 'id' as 'slug' for template compatibility
             'name': c['name'],
-            'image_url': c['image_url']
+            'image_url': c['image_url'],
+            'can_access': can_access,  # Add access validation result
+            'locked': not can_access   # Add locked status for template
         }
         # Prioritize referral companions first (they have min_referrals > 0)
         if c.get('min_referrals', 0) > 0:  # Referral companions are identified by min_referrals > 0
@@ -16244,7 +16249,7 @@ TIERS_TEMPLATE = r"""
       </div>
       <div class="row">
         {% for c in growth_list %}
-          {% set locked = not session.access_companions_silver %}
+          {% set locked = c.locked %}
           <div class="card {{ 'locked' if locked }}" onclick="{{ 'openChat(\"' ~ c.slug ~ '\")' if not locked else 'notifyUpgrade(\"Silver\")' }}" title="{{ c.name }}" data-tier="silver">
             <span class="lock">{{ '✅ Unlocked' if not locked else '🔒 Silver' }}</span>
             <img src="{{ c.image_url or '/static/logos/New IntroLogo.png' }}" alt="{{ c.name }}" onerror="this.src='/static/logos/New IntroLogo.png'">
@@ -16263,7 +16268,7 @@ TIERS_TEMPLATE = r"""
       </div>
       <div class="row">
         {% for c in max_list %}
-          {% set locked = not session.access_companions_gold %}
+          {% set locked = c.locked %}
           <div class="card {{ 'locked' if locked }}" onclick="{{ 'openChat(\"' ~ c.slug ~ '\")' if not locked else 'notifyUpgrade(\"Gold\")' }}" title="{{ c.name }}" data-tier="gold">
             <span class="lock">{{ '✅ Unlocked' if not locked else '🔒 Gold' }}</span>
             <img src="{{ c.image_url or '/static/logos/New IntroLogo.png' }}" alt="{{ c.name }}" onerror="this.src='/static/logos/New IntroLogo.png'">
