@@ -17,6 +17,7 @@ import os
 import time
 import json
 import logging
+import secrets
 import psycopg2
 from copy import deepcopy
 from datetime import datetime, timezone, timedelta
@@ -557,12 +558,78 @@ app = Flask(__name__, static_folder="static", static_url_path="/static")
 # Security: Use strong secret key or generate one
 secret_key = os.environ.get("SECRET_KEY")
 if not secret_key:
-
-#
     import secrets
     secret_key = secrets.token_hex(32)
     logger.warning("Generated temporary secret key - set SECRET_KEY environment variable for production")
 app.secret_key = secret_key
+
+# Security Headers - Add before any other middleware
+@app.after_request
+def add_security_headers(response):
+    """Add security headers to all responses"""
+    # HSTS - Force HTTPS for 1 year
+    response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+    
+    # Content Security Policy - Prevent XSS
+    response.headers['Content-Security-Policy'] = (
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://js.stripe.com https://maps.googleapis.com; "
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+        "font-src 'self' https://fonts.gstatic.com; "
+        "img-src 'self' data: https:; "
+        "connect-src 'self' https://api.stripe.com https://api.openai.com; "
+        "frame-src https://js.stripe.com https://hooks.stripe.com;"
+    )
+    
+    # Prevent clickjacking
+    response.headers['X-Frame-Options'] = 'DENY'
+    
+    # Prevent MIME type sniffing
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    
+    # Enable XSS protection
+    response.headers['X-XSS-Protection'] = '1; mode=block'
+    
+    # Control referrer information
+    response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+    
+    # Remove server header for security obscurity
+    response.headers.pop('Server', None)
+    
+    return response
+
+# CSRF Protection for state-changing requests
+@app.before_request
+def csrf_protect():
+    """Basic CSRF protection for POST/PUT/DELETE requests"""
+    if request.method in ['POST', 'PUT', 'DELETE']:
+        # Skip CSRF for API endpoints that use proper authentication
+        if request.path.startswith('/api/'):
+            return
+        
+        # Skip CSRF for webhooks (they have signature verification)
+        if 'webhook' in request.path:
+            return
+            
+        # Check for CSRF token in form or header
+        token = request.form.get('csrf_token') or request.headers.get('X-CSRF-Token')
+        session_token = session.get('csrf_token')
+        
+        if not token or not session_token or token != session_token:
+            # For AJAX requests, return JSON error
+            if request.is_json or 'application/json' in request.headers.get('Accept', ''):
+                return jsonify({'error': 'CSRF token missing or invalid'}), 403
+            # For form submissions, flash message and redirect
+            flash('Security token missing or invalid. Please try again.', 'error')
+            return redirect(request.referrer or '/')
+
+# Generate CSRF token for templates
+@app.context_processor
+def inject_csrf_token():
+    """Inject CSRF token into all templates"""
+    if 'csrf_token' not in session:
+        session['csrf_token'] = secrets.token_hex(16)
+    return {'csrf_token': session['csrf_token']}
 
 # ---- debug endpoints (safe, idempotent) --------------------------------------
 def register_debug_endpoints(app):
