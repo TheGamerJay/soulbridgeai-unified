@@ -667,7 +667,7 @@ def credits_purchase():
         
         # Check user plan - only Silver/Gold can purchase credits (support legacy names)
         plan = db_get_user_plan(uid)
-        if plan not in ['silver', 'gold', 'growth', 'max']:
+        if plan not in ['silver', 'gold']:
             return jsonify({
                 "success": False,
                 "error": "Credit purchases are only available for Silver and Gold subscribers"

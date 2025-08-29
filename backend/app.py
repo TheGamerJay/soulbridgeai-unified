@@ -1554,7 +1554,7 @@ _service_lock = threading.RLock()
 
 # Constants
 VALID_CHARACTERS = ["Blayzo", "Sapphire", "Violet", "Crimson", "Blayzia", "Blayzica", "Blayzike", "Blayzion", "Blazelian"]
-VALID_PLANS = ["silver", "gold"]  # Only Growth/Max selectable - Free is automatic default
+VALID_PLANS = ["silver", "gold"]  # Only Silver/Gold selectable - Bronze is automatic default
 
 # Admin and surveillance constants
 ADMIN_DASH_KEY = os.environ.get("ADMIN_DASH_KEY", "soulbridge_admin_2024")
@@ -4152,7 +4152,7 @@ def tiers_page():
     
     # Use bulletproof companion data organized by tier
     free_companions = []
-    growth_companions = []
+    silver_companions = []
     max_companions = []
     referral_companions = []
     
@@ -4175,7 +4175,7 @@ def tiers_page():
         elif c['tier'] == 'bronze':
             free_companions.append(companion_data)
         elif c['tier'] == 'silver':
-            growth_companions.append(companion_data)
+            silver_companions.append(companion_data)
         elif c['tier'] == 'gold':
             max_companions.append(companion_data)
     
@@ -4195,7 +4195,7 @@ def tiers_page():
                                 trial_expires_at=trial_expires_at,
                                 trial_used_permanently=trial_used_permanently,
                                 free_list=free_companions,
-                                growth_list=growth_companions,
+                                silver_list=silver_companions,
                                 max_list=max_companions,
                                 referral_list=referral_companions,
                                 referral_count=referral_count)
@@ -4947,7 +4947,7 @@ def get_library_content(user_id, content_type="all", user_plan="bronze"):
             except Exception as e:
                 logger.warning(f"Could not fetch chat conversations: {e}")
         
-        # Get music tracks if requested (only for Growth/Max users)
+        # Get music tracks if requested (only for Silver/Gold users)
         if content_type in ["all", "music", "tracks"] and effective_plan in ['silver', 'gold']:
             try:
                 if db_instance.use_postgres:
@@ -6180,9 +6180,9 @@ def admin_surveillance():
                 'conversion_rate': 0.0,
                 'avg_trial_days': 0.0,
                 'revenue_potential': 0.0,
-                'growth_users': 0,
-                'max_users': 0,
-                'free_users': 0,
+                'silver_users': 0,
+                'gold_users': 0,
+                'bronze_users': 0,
                 'trials_started_today': 0,
                 'recent_trials': [],
                 'used_trials': 0,
@@ -9219,7 +9219,7 @@ def debug_user_tier_info():
             "is_gold": user_plan == 'gold',
             "is_bronze": user_plan == 'bronze',
             # Legacy compatibility
-            "is_growth": user_plan == 'silver',
+            "is_silver": user_plan == 'silver',
             "is_max": user_plan == 'gold',
             "is_free": user_plan == 'bronze'
         }
@@ -16248,7 +16248,7 @@ TIERS_TEMPLATE = r"""
         {% endif %}
       </div>
       <div class="row">
-        {% for c in growth_list %}
+        {% for c in silver_list %}
           {% set locked = c.locked %}
           <div class="card {{ 'locked' if locked }}" onclick="{{ 'openChat(\"' ~ c.slug ~ '\")' if not locked else 'notifyUpgrade(\"Silver\")' }}" title="{{ c.name }}" data-tier="silver">
             <span class="lock">{{ '✅ Unlocked' if not locked else '🔒 Silver' }}</span>
@@ -17902,7 +17902,7 @@ def buy_credits_page():
     user_plan = session.get('user_plan', 'bronze')
     trial_active = session.get('trial_active', False)
     
-    # Only show for Growth/Max users (trial doesn't change this)
+    # Only show for Silver/Gold users (trial doesn't change this)
     if user_plan == 'bronze':
         return redirect("/tiers?upgrade=silver")
     
@@ -18066,9 +18066,9 @@ def api_buy_credits():
         user_plan = session.get('user_plan', 'bronze')
         trial_active = session.get('trial_active', False)
         
-        # Only allow Growth/Max users to purchase credits (trial doesn't change this)
+        # Only allow Silver/Gold users to purchase credits (trial doesn't change this)
         if user_plan == 'bronze':
-            return jsonify({"success": False, "error": "Credits purchase requires Growth/Max plan"}), 403
+            return jsonify({"success": False, "error": "Credits purchase requires Silver/Gold plan"}), 403
         
         # Check if user has active subscription (prevent cancelled users from purchasing)
         user_id = session.get('user_id')

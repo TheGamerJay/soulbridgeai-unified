@@ -12,8 +12,9 @@ def is_logged_in():
     return session.get('user_id') is not None
 
 def get_effective_plan(user_plan, trial_active):
-    if trial_active and user_plan == "free":
-        return "max"
+    """Get effective plan - Bronze users with active trial get Gold access"""
+    if trial_active and user_plan == "bronze":
+        return "gold"
     return user_plan
 
 bp = Blueprint("api_export", __name__)
@@ -26,11 +27,11 @@ def api_export(asset_id):
             return abort(401)
         
         # Check access permissions
-        user_plan = session.get('user_plan', 'free')
+        user_plan = session.get('user_plan', 'bronze')
         trial_active = session.get('trial_active', False)
         effective_plan = get_effective_plan(user_plan, trial_active)
         
-        if effective_plan != 'max':
+        if effective_plan != 'gold':
             return abort(403)
         
         user_id = session.get('user_id')

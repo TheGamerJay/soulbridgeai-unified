@@ -90,7 +90,7 @@ def get_quota_for_plan(plan: str, model: str = "gpt-4o-mini") -> Dict[str, Any]:
     Get quota specifically for a user plan, with plan-specific logic
     
     Args:
-        plan: User's subscription plan (free, growth, pro, vip, max)
+        plan: User's subscription plan (bronze, silver, gold)
         model: OpenAI model to calculate for
         
     Returns:
@@ -108,19 +108,19 @@ def get_quota_for_plan(plan: str, model: str = "gpt-4o-mini") -> Dict[str, Any]:
             "static_fallback": True
         }
     
-    # Growth users get limited access
+    # Silver users get limited access
     elif plan == "silver":
         # Could use auto-quota but with more conservative limits
         auto_result = auto_quota_tokens(model)
         # Cap silver users to lower limits
-        growth_max = int(os.getenv("COMP_MSG_LIMIT_GROWTH", "15"))
-        quota = min(auto_result["per_user_per_day"], growth_max)
+        silver_max = int(os.getenv("COMP_MSG_LIMIT_SILVER", "15"))
+        quota = min(auto_result["per_user_per_day"], silver_max)
         
         return {
             **auto_result,
             "per_user_per_day": quota,
             "plan": plan,
-            "capped_at": growth_max,
+            "capped_at": silver_max,
             "reason": f"auto-capped-for-{plan}"
         }
     

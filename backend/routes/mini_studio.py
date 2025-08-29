@@ -19,12 +19,12 @@ bp = Blueprint("mini_studio", __name__)
 
 @bp.route("/mini-studio")
 def mini_studio():
-    """Mini Studio - Professional music creation environment (Max users only)"""
+    """Mini Studio - Professional music creation environment (Gold users only)"""
     if not is_logged_in():
         return redirect("/login?return_to=mini-studio")
     
     # Check access permissions
-    user_plan = session.get('user_plan', 'free')
+    user_plan = session.get('user_plan', 'bronze')
     trial_active = session.get('trial_active', False)
     effective_plan = get_effective_plan(user_plan, trial_active)
     user_id = session.get('user_id')
@@ -39,10 +39,10 @@ def mini_studio():
         credits = get_user_credits(user_id) if user_id else 0
         
         # For trial users, they get 60 "trainer time" credits specifically for mini studio
-        if user_plan == 'free' and trial_active:
+        if user_plan == 'bronze' and trial_active:
             trial_credits = get_trial_trainer_time(user_id)
             credits = max(credits, trial_credits)  # Use trial credits if higher
     except ImportError:
-        credits = 60 if (user_plan == 'free' and trial_active) else 0
+        credits = 60 if (user_plan == 'bronze' and trial_active) else 0
     
     return render_template("mini_studio.html", credits=credits)

@@ -106,8 +106,8 @@ class CompanionSystem:
             }
         ]
         
-        # SILVER TIER COMPANIONS (was: GROWTH TIER)
-        growth_companions = [
+        # SILVER TIER COMPANIONS
+        silver_companions = [
             {
                 "companion_id": "companion_sky",
                 "name": "Sky",
@@ -129,7 +129,7 @@ class CompanionSystem:
                 "companion_id": "companion_gamerjay_premium",
                 "name": "GamerJay Premium",
                 "display_name": "GamerJay Premium - The Strategic Mind",
-                "tier": CompanionTier.GROWTH,
+                "tier": CompanionTier.SILVER,
                 "unlock_type": UnlockType.SUBSCRIPTION,
                 "personality_tags": [PersonalityTag.ANALYTICAL, PersonalityTag.WISE],
                 "avatar_image": "/static/logos/GamerJay_premium_companion.png",
@@ -145,7 +145,7 @@ class CompanionSystem:
         ]
         
         # GOLD TIER COMPANIONS (was: MAX TIER)
-        max_companions = [
+        gold_companions = [
             {
                 "companion_id": "companion_crimson",
                 "name": "Crimson",
@@ -221,7 +221,7 @@ class CompanionSystem:
         ]
         
         # Add all companions to the system
-        all_companions = free_companions + growth_companions + max_companions + referral_companions
+        all_companions = free_companions + silver_companions + gold_companions + referral_companions
         
         for comp_data in all_companions:
             companion = Companion(
@@ -309,8 +309,8 @@ class CompanionSystem:
     
     def _get_lock_reason(self, companion: Companion, user_tier: str, referral_points: int) -> str:
         """Get the reason why a companion is locked"""
-        if companion.tier == CompanionTier.GROWTH:
-            return "Requires Growth or Max subscription"
+        if companion.tier == CompanionTier.SILVER:
+            return "Requires Silver or Gold subscription"
         elif companion.tier == CompanionTier.MAX:
             return "Requires Max subscription" 
         elif companion.tier == CompanionTier.REFERRAL:
@@ -385,8 +385,8 @@ class CompanionSystem:
         
         companion = self.companions[companion_id]
         
-        # Only allow trials for Growth tier companions
-        if companion.tier != CompanionTier.GROWTH:
+        # Only allow trials for Silver tier companions
+        if companion.tier != CompanionTier.SILVER:
             return {"success": False, "error": "Trial not available for this companion"}
         
         user_access = self.user_access.get(user_id)

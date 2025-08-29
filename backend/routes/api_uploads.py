@@ -14,8 +14,9 @@ def is_logged_in():
     return session.get('user_id') is not None
 
 def get_effective_plan(user_plan, trial_active):
-    if trial_active and user_plan == "free":
-        return "max"
+    """Get effective plan - Bronze users with active trial get Gold access"""
+    if trial_active and user_plan == "bronze":
+        return "gold"
     return user_plan
 
 bp = Blueprint("api_uploads", __name__)
@@ -61,8 +62,8 @@ def upload_audio():
         trial_active = session.get('trial_active', False)
         effective_plan = get_effective_plan(user_plan, trial_active)
         
-        if effective_plan != 'max':
-            return jsonify({"success": False, "error": "Mini Studio requires Max tier or trial"}), 403
+        if effective_plan != 'gold':
+            return jsonify({"success": False, "error": "Mini Studio requires Gold tier or trial"}), 403
         
         if "file" not in request.files:
             return jsonify({"success": False, "error": "No file provided"}), 400
@@ -96,8 +97,8 @@ def upload_midi():
         trial_active = session.get('trial_active', False)
         effective_plan = get_effective_plan(user_plan, trial_active)
         
-        if effective_plan != 'max':
-            return jsonify({"success": False, "error": "Mini Studio requires Max tier or trial"}), 403
+        if effective_plan != 'gold':
+            return jsonify({"success": False, "error": "Mini Studio requires Gold tier or trial"}), 403
         
         if "file" not in request.files:
             return jsonify({"success": False, "error": "No file provided"}), 400
@@ -131,8 +132,8 @@ def upload_image():
         trial_active = session.get('trial_active', False)
         effective_plan = get_effective_plan(user_plan, trial_active)
         
-        if effective_plan != 'max':
-            return jsonify({"success": False, "error": "Mini Studio requires Max tier or trial"}), 403
+        if effective_plan != 'gold':
+            return jsonify({"success": False, "error": "Mini Studio requires Gold tier or trial"}), 403
         
         if "file" not in request.files:
             return jsonify({"success": False, "error": "No file provided"}), 400

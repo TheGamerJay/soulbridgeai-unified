@@ -43,12 +43,12 @@ def jobs_vocals():
         if not is_logged_in():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
-        user_plan = session.get('user_plan', 'free')
+        user_plan = session.get('user_plan', 'bronze')
         trial_active = session.get('trial_active', False)
         effective_plan = get_effective_plan(user_plan, trial_active)
         
-        if effective_plan != 'max':
-            return jsonify({"success": False, "error": "Mini Studio requires Max tier or trial"}), 403
+        if effective_plan != 'gold':
+            return jsonify({"success": False, "error": "Mini Studio requires Gold tier or trial"}), 403
         
         if not RQ_AVAILABLE:
             return jsonify({"success": False, "error": "Background jobs not available"}), 503
@@ -90,12 +90,12 @@ def jobs_effects():
         if not is_logged_in():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
-        user_plan = session.get('user_plan', 'free')
+        user_plan = session.get('user_plan', 'bronze')
         trial_active = session.get('trial_active', False)
         effective_plan = get_effective_plan(user_plan, trial_active)
         
-        if effective_plan != 'max':
-            return jsonify({"success": False, "error": "Mini Studio requires Max tier or trial"}), 403
+        if effective_plan != 'gold':
+            return jsonify({"success": False, "error": "Mini Studio requires Gold tier or trial"}), 403
         
         if not RQ_AVAILABLE:
             return jsonify({"success": False, "error": "Background jobs not available"}), 503
