@@ -9704,6 +9704,24 @@ def api_companions():
         trial_active = bool(session.get("trial_active", False))
         referrals = int(session.get("referrals", 0))
         
+        # Check if trial has actually expired and update session
+        if trial_active:
+            trial_expires_at = session.get("trial_expires_at")
+            if trial_expires_at:
+                try:
+                    from datetime import datetime, timezone
+                    expires_dt = datetime.fromisoformat(trial_expires_at.replace('Z', '+00:00'))
+                    now = datetime.now(timezone.utc)
+                    if now > expires_dt:
+                        # Trial expired, update session
+                        session["trial_active"] = False
+                        trial_active = False
+                        logger.info(f"🚨 COMPANIONS API: Trial expired for user {session.get('user_id')}, updated session")
+                except Exception as e:
+                    logger.error(f"Error checking trial expiration: {e}")
+        
+        logger.info(f"🔍 COMPANIONS API DEBUG: user_plan={user_plan}, trial_active={trial_active}, user_id={session.get('user_id')}")
+        
         # Get referral count from database if available
         try:
             db_instance = get_database()
