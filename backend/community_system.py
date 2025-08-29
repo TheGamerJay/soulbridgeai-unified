@@ -312,7 +312,7 @@ def get_user_companion_info(user_id: int) -> Dict[str, Any]:
                 'skin_id': companion.get('skin_id'),
                 'name': companion['name'],
                 'rarity': companion.get('rarity', 'common'),
-                'avatar_url': f"/static/companions/{companion['name'].lower()}.png"
+                'image_url': f"/static/companions/{companion['name'].lower()}.png"
             }
         else:
             # Default companion based on tier
@@ -333,7 +333,7 @@ def get_user_companion_info(user_id: int) -> Dict[str, Any]:
                 'skin_id': None,
                 'name': default['name'],
                 'rarity': default['rarity'],
-                'avatar_url': f"/static/logos/{default['name']} Free companion.png" if default['name'] == 'GamerJay' else f"/static/logos/{default['name']}.png"
+                'image_url': f"/static/logos/{default['name']} Free companion.png" if default['name'] == 'GamerJay' else f"/static/logos/{default['name']}.png"
             }
             
     except Exception as e:
@@ -343,7 +343,7 @@ def get_user_companion_info(user_id: int) -> Dict[str, Any]:
             'skin_id': None,
             'name': 'Soul',
             'rarity': 'common',
-            'avatar_url': '/static/logos/New IntroLogo.png'
+            'image_url': '/static/logos/New IntroLogo.png'
         }
 
 def get_user_community_avatar(user_id: int) -> Optional[Dict[str, Any]]:
@@ -375,7 +375,7 @@ def get_user_community_avatar(user_id: int) -> Optional[Dict[str, Any]]:
                 'skin_id': None,
                 'name': result[1],
                 'rarity': result[2],
-                'avatar_url': result[3]
+                'image_url': result[3]
             }
         return None
         
