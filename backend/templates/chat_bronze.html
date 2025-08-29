@@ -57,7 +57,7 @@
 
           React.useEffect(() => {
             // Load user theme from API
-            fetch('/api/user/get-theme')
+            fetch('/api/user/get-theme?tier=bronze')
               .then(response => response.json())
               .then(data => {
                 if (data.success && data.theme) {

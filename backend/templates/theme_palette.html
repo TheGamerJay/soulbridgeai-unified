@@ -544,7 +544,7 @@
 
         function loadSavedTheme() {
             // First try to load from server session (most reliable)
-            fetch('/api/user/get-theme', { credentials: 'include' })
+            fetch('/api/user/get-theme?tier={{ tier }}', { credentials: 'include' })
                 .then(response => response.json())
                 .then(data => {
                     if (data.success && data.theme) {
@@ -719,13 +719,16 @@
                         'Content-Type': 'application/json'
                     },
                     credentials: 'include',
-                    body: JSON.stringify(currentTheme)
+                    body: JSON.stringify({
+                        ...currentTheme,
+                        tier: '{{ tier }}'
+                    })
                 });
                 
                 const result = await response.json();
                 
                 if (result.success) {
-                    alert('🎨 Theme saved successfully! Your new colors are now applied across all SoulBridge AI pages.');
+                    alert('🎨 Theme saved successfully! Your new colors are now applied to {{ tier.title() }} chat pages only.');
                 } else {
                     throw new Error(result.error || 'Failed to save theme');
                 }

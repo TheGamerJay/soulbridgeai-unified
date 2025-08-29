@@ -4223,6 +4223,132 @@ def anonymous_community():
         logger.error(f"Community page error: {e}")
         return redirect("/")
 
+# Community API Endpoints
+@app.route("/community/companions")
+def community_companions():
+    """Get companions available for community avatar selection"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        user_plan = session.get("user_plan", "bronze")
+        trial_active = bool(session.get("trial_active", False))
+        referrals = int(session.get("referrals", 0))
+        
+        # Get referral count from database if available
+        try:
+            db_instance = get_database()
+            if db_instance:
+                user_id = session.get('user_id')
+                conn = db_instance.get_connection()
+                cursor = conn.cursor()
+                if db_instance.use_postgres:
+                    cursor.execute("SELECT referral_points FROM users WHERE id = %s", (user_id,))
+                else:
+                    cursor.execute("SELECT referral_points FROM users WHERE id = ?", (user_id,))
+                result = cursor.fetchone()
+                if result:
+                    referrals = result[0] or 0
+                conn.close()
+        except Exception as e:
+            logger.error(f"Error getting referral count: {e}")
+        
+        # Use same companion logic as main API
+        companions = []
+        for c in COMPANIONS_NEW:
+            # Use the companion access control logic
+            is_locked, lock_reason = is_companion_locked(c, user_plan, trial_active, referrals)
+            
+            companions.append({
+                "id": c["id"],
+                "name": c["name"],
+                "image_url": c["image_url"],
+                "tier": c["tier"],
+                "locked": is_locked,
+                "lock_reason": lock_reason
+            })
+        
+        return jsonify({
+            "success": True,
+            "companions": companions,
+            "user_plan": user_plan,
+            "trial_active": trial_active
+        })
+        
+    except Exception as e:
+        logger.error(f"Community companions error: {e}")
+        return jsonify({"success": False, "error": "Failed to load companions"}), 500
+
+@app.route("/community/avatar")
+def community_get_avatar():
+    """Get current user's community avatar/companion"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        # Get user's current companion from session or database
+        companion_info = session.get('companion_info', {
+            'name': 'Soul',
+            'companion_id': 1,
+            'avatar_url': None
+        })
+        
+        return jsonify({
+            "success": True,
+            "companion": companion_info
+        })
+        
+    except Exception as e:
+        logger.error(f"Community get avatar error: {e}")
+        return jsonify({"success": False, "error": "Failed to load avatar"}), 500
+
+@app.route("/community/avatar", methods=["POST"])
+def community_set_avatar():
+    """Set user's community avatar/companion"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        data = request.get_json()
+        companion_id = data.get('companion_id')
+        
+        if not companion_id:
+            return jsonify({"success": False, "error": "Companion ID required"}), 400
+        
+        # Update session with new companion info
+        session['companion_info'] = {
+            'name': data.get('name', 'Soul'),
+            'companion_id': companion_id,
+            'avatar_url': data.get('avatar_url')
+        }
+        session.modified = True
+        
+        return jsonify({
+            "success": True,
+            "message": "Avatar updated successfully"
+        })
+        
+    except Exception as e:
+        logger.error(f"Community set avatar error: {e}")
+        return jsonify({"success": False, "error": "Failed to set avatar"}), 500
+
+@app.route("/community/avatar/check")
+def community_avatar_cooldown():
+    """Check if user can change avatar (no cooldown for community)"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        # No cooldown for community avatar changes
+        return jsonify({
+            "success": True,
+            "can_change": True
+        })
+        
+    except Exception as e:
+        logger.error(f"Community avatar cooldown error: {e}")
+        return jsonify({"success": False, "error": "Failed to check cooldown"}), 500
+
 @app.route("/community-dashboard")
 def community_dashboard():
     """Wellness Gallery route (replaces old community dashboard)"""
@@ -13757,13 +13883,14 @@ def theme_palette_gold():
 
 @app.route("/api/user/save-theme", methods=["POST"])
 def save_user_theme():
-    """Save user's theme preferences"""
+    """Save user's theme preferences per tier"""
     try:
         if not is_logged_in():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
         data = request.get_json()
         user_id = session.get('user_id')
+        tier = data.get('tier', 'general')  # Get tier from request
         
         theme_data = {
             'background': data.get('background', '#0f172a'),
@@ -13771,20 +13898,41 @@ def save_user_theme():
             'accent': data.get('accent', '#06b6d4')
         }
         
-        # Save to session for immediate use
-        session['user_theme'] = theme_data
+        # Save tier-specific theme to session
+        if 'user_themes' not in session:
+            session['user_themes'] = {}
+        session['user_themes'][tier] = theme_data
         session.modified = True
         
         # Save to database for persistence across login sessions
         try:
             import json
-            theme_json = json.dumps(theme_data)
+            
+            # Load existing themes from database to merge with new tier
+            existing_themes = {}
+            user_id = session.get('user_id')
             
             # Try PostgreSQL first (production)
             if os.environ.get('DATABASE_URL'):
                 import psycopg2
                 conn = psycopg2.connect(os.environ.get('DATABASE_URL'))
                 cursor = conn.cursor()
+                
+                # Get existing themes
+                cursor.execute("SELECT theme_preferences FROM users WHERE id = %s", (user_id,))
+                result = cursor.fetchone()
+                if result and result[0]:
+                    try:
+                        existing_themes = json.loads(result[0])
+                        if not isinstance(existing_themes, dict):
+                            existing_themes = {}
+                    except:
+                        existing_themes = {}
+                
+                # Update with new tier theme
+                existing_themes[tier] = theme_data
+                theme_json = json.dumps(existing_themes)
+                
                 cursor.execute("""
                     UPDATE users 
                     SET theme_preferences = %s 
@@ -13793,15 +13941,31 @@ def save_user_theme():
                 conn.commit()
                 cursor.close()
                 conn.close()
-                logger.info(f"Theme saved to PostgreSQL for user {user_id}")
+                logger.info(f"Tier-specific theme saved to PostgreSQL for user {user_id}, tier {tier}")
             
-            # Try SQLite (local development)
+            # Try SQLite (local development)  
             else:
                 from database_utils import get_database
                 db = get_database()
                 if db:
                     conn = db.get_connection()
                     cursor = conn.cursor()
+                    
+                    # Get existing themes
+                    cursor.execute("SELECT theme_preferences FROM users WHERE id = ?", (user_id,))
+                    result = cursor.fetchone()
+                    if result and result[0]:
+                        try:
+                            existing_themes = json.loads(result[0])
+                            if not isinstance(existing_themes, dict):
+                                existing_themes = {}
+                        except:
+                            existing_themes = {}
+                    
+                    # Update with new tier theme
+                    existing_themes[tier] = theme_data
+                    theme_json = json.dumps(existing_themes)
+                    
                     cursor.execute("""
                         UPDATE users 
                         SET theme_preferences = ? 
@@ -13809,7 +13973,7 @@ def save_user_theme():
                     """, (theme_json, user_id))
                     conn.commit()
                     conn.close()
-                    logger.info(f"Theme saved to SQLite for user {user_id}")
+                    logger.info(f"Tier-specific theme saved to SQLite for user {user_id}, tier {tier}")
                     
         except Exception as db_error:
             logger.warning(f"Failed to save theme to database: {db_error}")
@@ -13890,17 +14054,18 @@ def load_user_theme(user_id):
 
 @app.route("/api/user/get-theme", methods=["GET"])
 def get_user_theme():
-    """Get user's current theme preferences from session and database"""
+    """Get user's tier-specific theme preferences from session and database"""
     try:
         if not is_logged_in():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
         user_id = session.get('user_id')
+        tier = request.args.get('tier', 'general')  # Get tier from query parameter
         
-        # First check session
-        theme = session.get('user_theme')
-        if theme:
-            return jsonify({"success": True, "theme": theme})
+        # First check session for tier-specific themes
+        user_themes = session.get('user_themes', {})
+        if tier in user_themes:
+            return jsonify({"success": True, "theme": user_themes[tier]})
         
         # If not in session, try loading from database
         try:
@@ -13914,37 +14079,49 @@ def get_user_theme():
                 cursor.execute("SELECT theme_preferences FROM users WHERE id = %s", (user_id,))
                 result = cursor.fetchone()
                 if result and result[0]:
-                    theme_data = json.loads(result[0])
-                    session['user_theme'] = theme_data  # Cache in session
-                    session.modified = True
-                    conn.close()
-                    return jsonify({"success": True, "theme": theme_data})
+                    all_themes = json.loads(result[0])
+                    if isinstance(all_themes, dict) and tier in all_themes:
+                        theme_data = all_themes[tier]
+                        # Cache in session
+                        if 'user_themes' not in session:
+                            session['user_themes'] = {}
+                        session['user_themes'][tier] = theme_data
+                        session.modified = True
+                        conn.close()
+                        return jsonify({"success": True, "theme": theme_data})
                 conn.close()
             
             # Try SQLite (local development)
-            db = get_database()
-            if db:
-                conn = db.get_connection()
-                cursor = conn.cursor()
-                cursor.execute("SELECT theme_preferences FROM users WHERE id = ?", (user_id,))
-                result = cursor.fetchone()
-                if result and result[0]:
-                    theme_data = json.loads(result[0])
-                    session['user_theme'] = theme_data  # Cache in session
-                    session.modified = True
+            else:
+                db = get_database()
+                if db:
+                    conn = db.get_connection()
+                    cursor = conn.cursor()
+                    cursor.execute("SELECT theme_preferences FROM users WHERE id = ?", (user_id,))
+                    result = cursor.fetchone()
+                    if result and result[0]:
+                        all_themes = json.loads(result[0])
+                        if isinstance(all_themes, dict) and tier in all_themes:
+                            theme_data = all_themes[tier]
+                            # Cache in session
+                            if 'user_themes' not in session:
+                                session['user_themes'] = {}
+                            session['user_themes'][tier] = theme_data
+                            session.modified = True
+                            conn.close()
+                            return jsonify({"success": True, "theme": theme_data})
                     conn.close()
-                    return jsonify({"success": True, "theme": theme_data})
-                conn.close()
                 
         except Exception as db_error:
             logger.warning(f"Database theme load failed: {db_error}")
         
-        # Return default theme if nothing found
-        default_theme = {
-            'background': '#0f172a',
-            'text': '#22d3ee',
-            'accent': '#06b6d4'
+        # Return tier-specific default theme if nothing found
+        tier_defaults = {
+            'bronze': {'background': '#0f172a', 'text': '#22d3ee', 'accent': '#22d3ee'},
+            'silver': {'background': '#1a1a1a', 'text': '#C0C0C0', 'accent': '#C0C0C0'},
+            'gold': {'background': '#1a1a1a', 'text': '#FFD700', 'accent': '#FFD700'}
         }
+        default_theme = tier_defaults.get(tier, tier_defaults['bronze'])
         return jsonify({"success": True, "theme": default_theme})
             
     except Exception as e:
