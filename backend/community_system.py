@@ -384,14 +384,18 @@ def get_user_community_avatar(user_id: int) -> Optional[Dict[str, Any]]:
 
 def set_user_community_avatar(user_id: int, companion_data: Dict[str, Any]) -> bool:
     """Set user's chosen community avatar companion"""
+    logger.info(f"🚨 DEBUG: set_user_community_avatar called with user_id={user_id}, companion_data={companion_data}")
     try:
         import os
         import psycopg2
         
         try:
+            logger.info("🚨 DEBUG: Attempting to get database connection...")
             db = get_database()
             conn = db.get_connection()
+            logger.info("🚨 DEBUG: Database connection successful!")
         except Exception as e:
+            logger.error(f"🚨 DEBUG: Database connection failed: {e}")
             return False
         cursor = conn.cursor()
         
