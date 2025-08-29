@@ -1346,25 +1346,17 @@ def set_community_avatar():
         if change_type == 'premium_skip' and effective_plan == 'bronze':
             return jsonify({"error": "Premium skip not available for bronze users"}), 403
         
-        # Validate that user has access to this companion
-        from cosmetic_system import get_available_companions_for_user
-        available_companions = get_available_companions_for_user(user_id)
+        # Validate that user has access to this companion using actual companion data
+        from app import COMPANIONS_NEW
         
-        # Allow basic tier companions for all users
-        default_companions = {
-            'bronze': [{'id': 1, 'name': 'GamerJay', 'rarity': 'common'}],
-            'silver': [
-                {'id': 1, 'name': 'GamerJay', 'rarity': 'common'},
-                {'id': 2, 'name': 'Sky', 'rarity': 'rare'}
-            ],
-            'gold': [
-                {'id': 1, 'name': 'GamerJay', 'rarity': 'common'},
-                {'id': 2, 'name': 'Sky', 'rarity': 'rare'},
-                {'id': 3, 'name': 'Crimson', 'rarity': 'epic'}
-            ]
+        # Get companions available for user's tier
+        tier_companions = {
+            'bronze': [c for c in COMPANIONS_NEW if c['tier'] == 'bronze'],
+            'silver': [c for c in COMPANIONS_NEW if c['tier'] in ['bronze', 'silver']], 
+            'gold': [c for c in COMPANIONS_NEW if c['tier'] in ['bronze', 'silver', 'gold']]
         }
         
-        allowed_companions = available_companions + default_companions.get(effective_plan, [])
+        allowed_companions = tier_companions.get(effective_plan, tier_companions['bronze'])
         
         # Check if companion is allowed
         companion_allowed = any(c.get('id') == companion_id for c in allowed_companions)
