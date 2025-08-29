@@ -1,0 +1,4205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="cache-buster" content="{{ range(10000, 99999) | random }}">
+    <title>My Profile - SoulBridge AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/animations.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/themes.css') }}">
+    <style>
+        .profile-container {
+            min-height: 100vh;
+            padding: 1.5rem 2rem 2rem;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 25%, #0f172a 50%, #374151 75%, #1f2937 100%);
+            background-attachment: fixed;
+            background-size: 400% 400%;
+            position: relative;
+            animation: gradientShift 15s ease-in-out infinite;
+        }
+        
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        /* Enhanced professional background elements */
+        .profile-container::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 15% 25%, rgba(34, 211, 238, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 85% 75%, rgba(34, 211, 238, 0.06) 0%, transparent 60%),
+                radial-gradient(circle at 45% 85%, rgba(34, 211, 238, 0.04) 0%, transparent 45%),
+                radial-gradient(circle at 70% 15%, rgba(34, 211, 238, 0.05) 0%, transparent 55%),
+                linear-gradient(145deg, rgba(34, 211, 238, 0.02) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+            animation: floatingLights 8s ease-in-out infinite alternate;
+        }
+        
+        @keyframes floatingLights {
+            0% { opacity: 0.4; transform: scale(1); }
+            100% { opacity: 0.7; transform: scale(1.1); }
+        }
+        
+        @keyframes breathe {
+            0% { opacity: 0.6; }
+            100% { opacity: 1; }
+        }
+
+        .profile-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+            padding: 2rem 0;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 24px;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(34, 211, 238, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .profile-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(34, 211, 238, 0.05), transparent);
+            animation: headerShimmer 3s ease-in-out infinite;
+            pointer-events: none;  /* Allow clicks to pass through */
+        }
+
+        @keyframes headerShimmer {
+            0%, 100% { left: -100%; }
+            50% { left: 100%; }
+        }
+
+        .profile-title {
+            font-size: 3rem;
+            margin-bottom: 0.8rem;
+            font-weight: 800;
+            text-shadow: 0 0 20px rgba(34, 211, 238, 0.3);
+            background: linear-gradient(135deg, #22d3ee 0%, #0891b2 50%, #22d3ee 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            background-size: 200% 200%;
+            animation: titleFlow 4s ease-in-out infinite;
+            position: relative;
+            z-index: 1;
+        }
+
+        @keyframes titleFlow {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .profile-subtitle {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 1.5rem;
+            font-weight: 400;
+            position: relative;
+            z-index: 1;
+            letter-spacing: 0.5px;
+        }
+
+        .profile-grid {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 2rem;
+            padding: 0 1rem;
+        }
+
+        .profile-panel {
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid rgba(34, 211, 238, 0.2);
+            border-radius: 24px;
+            padding: 2.5rem;
+            backdrop-filter: blur(20px);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            animation: cardFadeIn 0.8s ease-out;
+            box-shadow: 
+                0 4px 20px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        }
+
+        .profile-panel:hover {
+            transform: translateY(-4px) scale(1.01);
+            border-color: rgba(34, 211, 238, 0.4);
+            box-shadow: 
+                0 8px 32px rgba(34, 211, 238, 0.15),
+                0 4px 20px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            background: rgba(15, 23, 42, 0.9);
+        }
+
+        .profile-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(34, 211, 238, 0.08), 
+                rgba(34, 211, 238, 0.12),
+                rgba(34, 211, 238, 0.08), 
+                transparent);
+            transition: left 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: none;  /* Allow clicks to pass through */
+        }
+
+        .profile-panel:hover::before {
+            left: 100%;
+        }
+
+        .profile-panel::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            background: linear-gradient(135deg, 
+                rgba(34, 211, 238, 0.05) 0%, 
+                transparent 50%, 
+                rgba(34, 211, 238, 0.02) 100%);
+            border-radius: 24px;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            pointer-events: none;  /* Allow clicks to pass through */
+        }
+
+        .profile-panel:hover::after {
+            opacity: 1;
+        }
+
+        .panel-title {
+            color: #22d3ee;
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            text-shadow: 0 0 15px rgba(34, 211, 238, 0.3);
+            position: relative;
+            z-index: 2;
+        }
+
+        .panel-title::after {
+            content: '';
+            flex: 1;
+            height: 2px;
+            background: linear-gradient(90deg, 
+                rgba(34, 211, 238, 0.4) 0%, 
+                rgba(34, 211, 238, 0.1) 80%, 
+                transparent 100%);
+            border-radius: 1px;
+        }
+
+        /* Enhanced text styling */
+        .profile-panel {
+            color: rgba(255, 255, 255, 0.9);
+            line-height: 1.6;
+        }
+
+        .profile-panel strong {
+            color: rgba(255, 255, 255, 0.95);
+            font-weight: 600;
+        }
+
+        .profile-panel label {
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 500;
+        }
+
+        .user-info {
+            margin-bottom: 1rem;
+        }
+
+        .info-label {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .info-value {
+            color: #22d3ee;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            word-break: break-word;
+        }
+
+        .subscription-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-top: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Tier Badge Styles */
+        .tier-badge {
+            display: inline-block;
+            padding: 10px 16px;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 700;
+            margin: 0.5rem 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: 2px solid;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .tier-bronze {
+            background: linear-gradient(135deg, #cd7f32, #a0522d);
+            color: #fff;
+            border-color: #cd7f32;
+        }
+
+        .tier-silver {
+            background: linear-gradient(135deg, #c0c0c0, #a8a8a8);
+            color: #2d3748;
+            border-color: #c0c0c0;
+        }
+
+        .tier-gold {
+            background: linear-gradient(135deg, #ffd700, #ffb700);
+            color: #2d3748;
+            border-color: #ffd700;
+        }
+
+        .trial-indicator {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            margin-left: 8px;
+        }
+
+        /* Upgrade Button Styles */
+        .upgrade-options {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 1rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .upgrade-tier {
+            margin-bottom: 1rem;
+        }
+
+        .upgrade-buttons-row {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .upgrade-btn {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border: 2px solid;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            position: relative;
+        }
+
+        .upgrade-btn.silver {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            color: #495057;
+            border-color: #c0c0c0;
+        }
+
+        .upgrade-btn.silver:hover {
+            background: linear-gradient(135deg, #c0c0c0, #a8a8a8);
+            color: #fff;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(192, 192, 192, 0.4);
+        }
+
+        .upgrade-btn.gold {
+            background: linear-gradient(135deg, #fff9e6, #fff3cd);
+            color: #856404;
+            border-color: #ffd700;
+        }
+
+        .upgrade-btn.gold:hover {
+            background: linear-gradient(135deg, #ffd700, #ffb700);
+            color: #2d3748;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(255, 215, 0, 0.4);
+        }
+
+        .upgrade-btn.yearly {
+            border-width: 3px;
+        }
+
+        .savings {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 500;
+            opacity: 0.8;
+        }
+
+        .tier-features {
+            font-size: 0.8rem;
+            color: #666;
+            text-align: center;
+            margin-top: 0.5rem;
+            font-style: italic;
+        }
+
+        /* Trial Used Message */
+        .trial-used-message {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            font-size: 0.9rem;
+            color: #6c757d;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        /* Real-time Trial Countdown */
+        .trial-countdown {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            color: white;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .trial-countdown::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, rgba(255,255,255,0.1) 25%, transparent 25%), 
+                        linear-gradient(-45deg, rgba(255,255,255,0.1) 25%, transparent 25%);
+            background-size: 20px 20px;
+            animation: shimmer 10s linear infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .countdown-header {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .countdown-timer {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .time-unit {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 0.75rem 0.5rem;
+            min-width: 60px;
+            backdrop-filter: blur(10px);
+        }
+
+        .time-number {
+            display: block;
+            font-size: 1.5rem;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .time-label {
+            display: block;
+            font-size: 0.7rem;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 0.25rem;
+        }
+
+        .trial-progress {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            height: 8px;
+            margin: 1rem 0;
+            overflow: hidden;
+            position: relative;
+            z-index: 1;
+        }
+
+        .trial-progress-bar {
+            background: linear-gradient(90deg, #00d4aa, #00d4ff);
+            height: 100%;
+            border-radius: 10px;
+            transition: width 1s ease;
+            box-shadow: 0 0 10px rgba(0, 212, 170, 0.5);
+        }
+
+        .trial-benefits {
+            font-size: 0.85rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .countdown-expired {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        /* Credits Display */
+        .credits-info {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 8px 12px;
+            background: rgba(34, 211, 238, 0.1);
+            border-radius: 12px;
+            margin: 0.5rem 0;
+        }
+
+        .trial-credits {
+            background: rgba(255, 215, 0, 0.2);
+            color: #ffd700;
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+        }
+
+        /* Trial Status */
+        .trial-status {
+            padding: 12px 16px;
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 165, 0, 0.2));
+            border: 1px solid rgba(255, 215, 0, 0.5);
+            border-radius: 12px;
+            color: #ffd700;
+            margin: 1rem 0;
+        }
+
+        .trial-benefits {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.8);
+            margin-top: 0.5rem;
+        }
+
+        /* Usage Limits */
+        .limit-display {
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .limit-display.basic {
+            background: rgba(107, 114, 128, 0.3);
+            color: #9ca3af;
+        }
+
+        .limit-display.high {
+            background: rgba(34, 211, 238, 0.3);
+            color: #22d3ee;
+        }
+
+        .limit-display.unlimited {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.3), rgba(255, 193, 7, 0.3));
+            color: #ffd700;
+        }
+
+        .subscription-free {
+            background: linear-gradient(135deg, rgba(107, 114, 128, 0.3), rgba(75, 85, 99, 0.3));
+            color: #9ca3af;
+            border: 1px solid rgba(156, 163, 175, 0.3);
+        }
+
+        .subscription-plus {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.3), rgba(255, 193, 7, 0.3));
+            color: #ffd700;
+            border: 1px solid rgba(255, 215, 0, 0.5);
+        }
+
+        .subscription-galaxy {
+            background: linear-gradient(135deg, rgba(147, 51, 234, 0.3), rgba(126, 34, 206, 0.3));
+            color: #9333ea;
+            border: 1px solid rgba(147, 51, 234, 0.5);
+        }
+
+        .profile-btn {
+            width: 100%;
+            padding: 12px 20px;
+            margin: 8px 0;
+            background: linear-gradient(135deg, #22d3ee, #0891b2);
+            color: #000;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .profile-btn:hover {
+            background: linear-gradient(135deg, #0891b2, #0e7490);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(34, 211, 238, 0.5);
+        }
+
+        .profile-btn:active {
+            transform: translateY(0);
+        }
+
+        .profile-btn.secondary {
+            background: linear-gradient(135deg, #6b7280, #4b5563);
+            color: #fff;
+        }
+
+        .profile-btn.secondary:hover {
+            background: linear-gradient(135deg, #4b5563, #374151);
+        }
+
+        .profile-btn.danger {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            color: #fff;
+        }
+
+        .profile-btn.danger:hover {
+            background: linear-gradient(135deg, #b91c1c, #991b1b);
+        }
+
+        .companion-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: rgba(34, 211, 238, 0.1);
+            border-radius: 12px;
+            margin: 1rem 0;
+        }
+
+        .companion-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #22d3ee, #0891b2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #000;
+        }
+
+        /* Netflix-Style Companion Cards */
+        .companion-card {
+            background: rgba(15, 23, 42, 0.8);
+            border: 2px solid rgba(34, 211, 238, 0.2);
+            border-radius: 16px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .companion-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            border-color: rgba(34, 211, 238, 0.6);
+            box-shadow: 0 8px 30px rgba(34, 211, 238, 0.3);
+            background: rgba(15, 23, 42, 0.95);
+        }
+
+        .companion-card.selected {
+            border-color: #22d3ee;
+            background: rgba(34, 211, 238, 0.1);
+            box-shadow: 0 0 20px rgba(34, 211, 238, 0.4);
+        }
+
+        .companion-card.locked {
+            opacity: 0.6;
+            background: rgba(15, 23, 42, 0.4);
+            border-color: rgba(255, 255, 255, 0.1);
+            cursor: not-allowed;
+        }
+
+        .companion-card.locked:hover {
+            transform: none;
+            border-color: rgba(255, 255, 255, 0.1);
+            box-shadow: none;
+        }
+
+        .companion-card-image {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin: 0 auto 12px auto;
+            border: 2px solid rgba(34, 211, 238, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .companion-card:hover .companion-card-image {
+            border-color: rgba(34, 211, 238, 0.8);
+            box-shadow: 0 0 15px rgba(34, 211, 238, 0.4);
+        }
+
+        .companion-card-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #22d3ee, #0891b2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #000;
+            margin: 0 auto 12px auto;
+            transition: all 0.3s ease;
+        }
+
+        .companion-card:hover .companion-card-avatar {
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(34, 211, 238, 0.5);
+        }
+
+        .companion-card-name {
+            color: #22d3ee;
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .companion-card-bio {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.8rem;
+            line-height: 1.3;
+            margin-bottom: 10px;
+            height: 2.6rem;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
+        .companion-card-status {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(34, 211, 238, 0.2);
+            color: #22d3ee;
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .companion-card.locked .companion-card-status {
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .companion-lock-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 16px;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .companion-card.locked:hover .companion-lock-overlay {
+            opacity: 1;
+        }
+
+        .companion-lock-icon {
+            font-size: 2rem;
+            margin-bottom: 8px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .companion-lock-text {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.8rem;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .companion-details h3 {
+            color: #22d3ee;
+            margin: 0 0 0.25rem 0;
+            font-size: 1.2rem;
+        }
+
+        .companion-details p {
+            color: rgba(255, 255, 255, 0.7);
+            margin: 0;
+            font-size: 0.9rem;
+        }
+
+        .settings-group {
+            margin: 1.5rem 0;
+        }
+
+        .settings-title {
+            color: #22d3ee;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid rgba(34, 211, 238, 0.2);
+        }
+
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+
+        .setting-label {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.95rem;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 24px;
+            background: rgba(107, 114, 128, 0.5);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-switch.active {
+            background: #22d3ee;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: #fff;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-switch.active::after {
+            left: 28px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 1rem;
+            background: rgba(34, 211, 238, 0.1);
+            border-radius: 12px;
+            border: 1px solid rgba(34, 211, 238, 0.2);
+        }
+
+        .stat-number {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #22d3ee;
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .back-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: linear-gradient(135deg, #22d3ee, #0891b2);
+            color: #000;
+            padding: 12px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(34, 211, 238, 0.5);
+        }
+
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .warning-panel {
+            background: linear-gradient(135deg, rgba(220, 38, 38, 0.1), rgba(185, 28, 28, 0.1));
+            border: 2px solid rgba(220, 38, 38, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .warning-title {
+            color: #ef4444;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .warning-text {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Theme Customization Styles */
+        .theme-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .theme-card {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(34, 211, 238, 0.3);
+            border-radius: 12px;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .theme-card:hover {
+            border-color: rgba(34, 211, 238, 0.6);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(34, 211, 238, 0.3);
+        }
+
+        .theme-card.selected {
+            border-color: #22d3ee;
+            background: rgba(34, 211, 238, 0.2);
+            box-shadow: 0 0 20px rgba(34, 211, 238, 0.4);
+        }
+
+        .theme-preview {
+            text-align: center;
+        }
+
+        .theme-colors {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 0.8rem;
+        }
+
+        .theme-color {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .theme-name {
+            color: #22d3ee;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .tier-badge {
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: #000;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+
+        .settings-desc {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            font-style: italic;
+        }
+
+        .gold-exclusive {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .gold-exclusive::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 215, 0, 0.1), transparent);
+            animation: shimmer 3s infinite;
+            pointer-events: none;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .profile-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+                padding: 0 0.5rem;
+            }
+            
+            .profile-title {
+                font-size: 2.5rem;
+            }
+            
+            .profile-subtitle {
+                font-size: 1.2rem;
+            }
+            
+            .profile-panel {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+    <script src="{{ url_for('static', filename='js/universal-button-fix.js') }}"></script>
+</head>
+<body>
+
+    <!-- Back to Intro Button -->
+    <a href="/intro" class="back-btn">← Back to Intro</a>
+
+    <div class="profile-container">
+        <div class="profile-header">
+            <h1 class="profile-title">My Profile</h1>
+            <p class="profile-subtitle">Manage your SoulBridge AI experience</p>
+        </div>
+
+        <div class="profile-grid">
+            <!-- User Information Panel -->
+            <div class="profile-panel">
+                <h2 class="panel-title">👤 User Information</h2>
+                
+                <!-- Profile Image Section -->
+                <div style="text-align: center; margin-bottom: 20px; padding: 30px 20px;">
+                    <div style="margin-bottom: 20px;">
+                        <!-- Profile Media Container - handles both images and videos -->
+                        <div id="profileMediaContainer" style="width: 200px; height: 200px; margin: 0 auto; border-radius: 12px; overflow: hidden; box-shadow: 0 8px 30px rgba(34, 211, 238, 0.5); position: relative;">
+                            <img id="userProfileImage"
+                                 alt="Profile Picture"
+                                 style="width: 100%; height: 100%; object-fit: cover; display: none; position: absolute; top: 0; left: 0;"
+                                 onload="this.style.display='block'; document.getElementById('userProfileVideo').style.display='none';"
+                                 onerror="
+                                     if (!this.dataset.retry) {
+                                         console.log('⚠️ Profile image failed, retrying...');
+                                         this.dataset.retry = true;
+                                         this.src = this.src.split('?')[0] + '?retry=' + Date.now();
+                                     } else {
+                                         this.src='/static/logos/The IntroLogo.png';
+                                         this.style.display='block';
+                                         document.getElementById('userProfileVideo').style.display='none';
+                                         console.log('⚠️ Profile image failed again, using default');
+                                     }">
+                            <video id="userProfileVideo" 
+                                   style="max-width: 200px; max-height: 200px; width: auto; height: auto; object-fit: contain; display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);" 
+                                   autoplay muted loop playsinline
+                                   onloadeddata="this.style.display='block'; document.getElementById('userProfileImage').style.display='none';"
+                                   onerror="console.log('⚠️ Profile video failed, falling back to image'); this.style.display='none'; document.getElementById('userProfileImage').src='/static/logos/The IntroLogo.png'; document.getElementById('userProfileImage').style.display='block';">
+                            </video>
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <!-- Method 1: Standard images (but relaxed) -->
+                        <input type="file" id="profileImageInput" accept="image/*,video/mp4" style="display: none;" onchange="handleProfileImageUpload()">
+                        <!-- Method 2: All files (zero restrictions) -->
+                        <input type="file" id="profileImageInputAny" style="display: none;" onchange="handleProfileImageUpload()">
+                        <!-- Method 3: GIF celebration button -->
+                        <input type="file" id="profileImageInputGif" accept=".gif" style="display: none;" onchange="handleProfileImageUpload()">
+                        
+                        <button onclick="document.getElementById('profileImageInput').click()" class="profile-btn">
+                            📷 Upload Profile Picture
+                        </button>
+                        <br><br>
+                        
+                    </div>
+                    <div style="font-size: 0.85rem; color: #94a3b8; line-height: 1.4;">
+                        PNG, JPG, JPEG, GIF, WebP, MP4
+                    </div>
+                </div>
+                
+                <div class="user-info">
+                    <div class="info-label">Display Name</div>
+                    <div class="info-value">
+                        <input type="text" id="displayNameInput" 
+                               style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; padding: 8px 12px; color: white; width: 200px;"
+                               value="{{ user_email.split('@')[0] if user_email else 'SoulBridge User' }}">
+                        <button onclick="updateDisplayName()" class="profile-btn" style="margin-left: 10px; padding: 6px 12px; font-size: 0.9rem;">Save</button>
+                    </div>
+                </div>
+                
+                <div class="user-info">
+                    <div class="info-label">User ID</div>
+                    <div class="info-value" id="userID">Loading...</div>
+                </div>
+
+                <div class="user-info">
+                    <div class="info-label">Email Address</div>
+                    <div class="info-value" id="userEmail">Loading...</div>
+                </div>
+
+
+                <div class="user-info">
+                    <div class="info-label">Subscription Status</div>
+                    <div id="subscriptionBadge">Loading...</div>
+                </div>
+
+                <!-- New Tier Information -->
+                <div class="user-info">
+                    <div class="info-label">Current Tier</div>
+                    <div id="tierBadge">
+                        <div class="tier-badge" style="background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.7);">⏳ Loading...</div>
+                    </div>
+                    <!-- Trial Activation Button (shown only for eligible Bronze users) -->
+                    <button id="trialActivationBtn" class="profile-btn" style="display: none; margin-top: 0.5rem;" onclick="activateTrial()">
+                        ⏰ Start 5-Hour Trial
+                    </button>
+                    
+                    <!-- Trial Timer (shown for active trial users) -->
+                    <div id="trialTimer" class="trial-timer" style="display: none; margin-top: 0.5rem;">
+                        <div style="background: linear-gradient(135deg, #22d3ee, #0891b2); color: #000; padding: 8px 12px; border-radius: 8px; font-weight: 600; text-align: center;">
+                            <div style="font-size: 0.9rem;">⏰ Trial Time Remaining</div>
+                            <div id="trialTimeDisplay" style="font-size: 1.1rem; margin-top: 4px;">--:--:--</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Trial Used Message (shown for Bronze users who already used trial) -->
+                    <div id="trialUsedMessage" class="trial-used-message" style="display: none; margin-top: 0.5rem;">
+                        ✅ Trial completed - Upgrade to unlock premium features
+                    </div>
+                    
+                </div>
+
+                <div class="user-info">
+                    <div class="info-label">Trainer Credits</div>
+                    <div id="creditsDisplay">
+                        <div class="credits-info">💎 0 Credits</div>
+                    </div>
+                </div>
+
+                <!-- Trial Information (shown only when active) -->
+                <div id="trialInfo"></div>
+
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <span class="stat-number" id="totalMessages">-</span>
+                        <span class="stat-label">Messages</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="totalSessions">-</span>
+                        <span class="stat-label">Sessions</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="daysActive">-</span>
+                        <span class="stat-label">Days Active</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="accountCreated">-</span>
+                        <span class="stat-label">Account Created</span>
+                    </div>
+                </div>
+
+                <!-- Usage Limits Panel -->
+                <div class="user-info">
+                    <div class="info-label">Daily Usage Limits</div>
+                    <div style="text-align: center; color: rgba(255, 255, 255, 0.7); font-size: 0.8rem; margin: 0.5rem 0; font-style: italic;">
+                        <i class="fas fa-clock"></i> Resets daily at 12:00 AM Eastern Time
+                    </div>
+                    <div class="stats-grid" style="grid-template-columns: repeat(2, 1fr); gap: 0.5rem;">
+                        <div class="stat-item">
+                            <span class="stat-label">Decoder</span>
+                            <span class="stat-number"><span id="decoderLimit" class="limit-display basic">3 daily</span></span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Fortune</span>
+                            <span class="stat-number"><span id="fortuneLimit" class="limit-display basic">2 daily</span></span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Horoscope</span>
+                            <span class="stat-number"><span id="horoscopeLimit" class="limit-display basic">3 daily</span></span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Creative Writer</span>
+                            <span class="stat-number"><span id="creativeWriterLimit" class="limit-display basic">2 daily</span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Companion Selector Panel - Netflix Style -->
+            <div class="profile-panel">
+                <h2 class="panel-title">Current Companion</h2>
+                
+                <!-- Current Selected Companion Display -->
+                <div style="margin-top: 0px;">
+                    <div class="companion-selector-container" style="position: relative;">
+                        <div class="selected-companion-display" 
+                             id="selectedCompanionDisplay"
+                             style="
+                                 display: flex; 
+                                 align-items: center; 
+                                 padding: 15px 20px; 
+                                 background: rgba(34, 211, 238, 0.1); 
+                                 border: 2px solid rgba(34, 211, 238, 0.3); 
+                                 border-radius: 12px; 
+                                 transition: all 0.3s ease;
+                                 margin-bottom: 15px;
+                             "
+                            
+                            <div style="display: flex; align-items: center; margin-right: 15px;">
+                                <div class="selected-companion-avatar" style="position: relative; margin-right: 12px;">
+                                    <img id="selectedCompanionImage" 
+                                         style="width: 140px; height: 140px; object-fit: contain; display: none;" 
+                                         alt="Selected Companion"
+                                         onerror="this.style.display='none'; document.getElementById('selectedCompanionAvatar').style.display='flex';">
+                                    <div id="selectedCompanionAvatar" 
+                                         style="width: 140px; height: 140px; background: linear-gradient(135deg, #22d3ee, #0891b2); display: flex; align-items: center; justify-content: center; font-size: 3rem; font-weight: bold; color: #000;">
+                                         ?
+                                    </div>
+                                </div>
+                                
+                                <div id="selectedCompanionGreeting" style="color: rgba(34, 211, 238, 0.9); font-size: 1.1rem; font-style: italic; display: none; min-width: 120px; max-width: 220px; font-weight: 500;">
+                                </div>
+                            </div>
+                            
+                            <div class="selected-companion-info" style="flex: 1;">
+                                <div id="selectedCompanionName" style="color: #22d3ee; font-size: 1.1rem; font-weight: 600; margin-bottom: 4px;">
+                                    Loading...
+                                </div>
+                                <div id="selectedCompanionDescription" style="color: rgba(255, 255, 255, 0.7); font-size: 0.9rem;">
+                                    Detecting your last used companion...
+                                </div>
+                            </div>
+                            
+                        </div>
+                        
+                        <!-- Intro Logo (shown for GamerJay Silver) -->
+                        <div style="text-align: center; margin-top: 15px;">
+                            <img id="introLogo" style="max-width: 200px; height: auto; display: none;" alt="SoulBridge AI Intro Logo">
+                        </div>
+
+                        <!-- Companion Dropdown Menu - HIDDEN -->
+                        <div class="companion-dropdown" 
+                             id="companionDropdown"
+                             style="display: none !important;">
+                            
+                            <!-- Bronze Tier Section -->
+                            <div class="tier-section">
+                                <div style="padding: 15px 20px 10px 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
+                                    <span style="color: #cd7f32; font-weight: 600; font-size: 0.9rem;">🥉 Bronze Tier</span>
+                                    <span style="color: #94a3b8; font-size: 0.8rem; margin-left: 10px;">Always Available</span>
+                                </div>
+                                <div id="bronzeCompanionsDropdown" class="companions-dropdown-list">
+                                    <!-- Bronze companions will be populated here -->
+                                </div>
+                            </div>
+
+                            <!-- Silver Tier Section -->
+                            <div class="tier-section">
+                                <div style="padding: 15px 20px 10px 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
+                                    <span style="color: #c0c0c0; font-weight: 600; font-size: 0.9rem;">🥈 Silver Tier</span>
+                                    <span id="silverTierStatusDropdown" style="color: #94a3b8; font-size: 0.8rem; margin-left: 10px;">Requires Silver Plan</span>
+                                </div>
+                                <div id="silverCompanionsDropdown" class="companions-dropdown-list">
+                                    <!-- Silver companions will be populated here -->
+                                </div>
+                            </div>
+
+                            <!-- Gold Tier Section -->
+                            <div class="tier-section">
+                                <div style="padding: 15px 20px 10px 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
+                                    <span style="color: #ffd700; font-weight: 600; font-size: 0.9rem;">🥇 Gold Tier</span>
+                                    <span id="goldTierStatusDropdown" style="color: #94a3b8; font-size: 0.8rem; margin-left: 10px;">Requires Gold Plan</span>
+                                </div>
+                                <div id="goldCompanionsDropdown" class="companions-dropdown-list">
+                                    <!-- Gold companions will be populated here -->
+                                </div>
+                            </div>
+
+                            <!-- Referral Tier Section -->
+                            <div class="tier-section">
+                                <div style="padding: 15px 20px 10px 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
+                                    <span style="color: #ff6b35; font-weight: 600; font-size: 0.9rem;">🎁 Referral Tier</span>
+                                    <span id="referralTierStatusDropdown" style="color: #94a3b8; font-size: 0.8rem; margin-left: 10px;">Invite Friends</span>
+                                </div>
+                                <div id="referralCompanionsDropdown" class="companions-dropdown-list">
+                                    <!-- Referral companions will be populated here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div style="display: flex; gap: 10px; margin: 25px 0 15px 0;">
+                    <button onclick="viewChatHistory()" class="profile-btn secondary" style="border: none; cursor: pointer; flex: 1;">
+                        📚 View Chat History
+                    </button>
+                </div>
+
+                <!-- Companion Management -->
+                <div style="display: flex; gap: 10px;">
+                    <button onclick="showCompanionStats()" class="profile-btn secondary" style="border: none; cursor: pointer; width: 100%;">
+                        📊 View Stats
+                    </button>
+                </div>
+            </div>
+
+            <!-- Account & Subscription Panel -->
+            <div class="profile-panel">
+                <h2 class="panel-title">💎 Account & Subscription</h2>
+                
+                <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px;">
+                    <a href="/subscription" class="profile-btn" style="text-decoration: none; display: inline-block; text-align: center; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: white; border: none;">
+                        ⚡ Upgrade Plan
+                    </a>
+                    <a href="/referrals" class="profile-btn secondary" style="text-decoration: none; display: inline-block; text-align: center; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none;">
+                        💰 Referrals & Rewards
+                    </a>
+                </div>
+                
+                <div id="subscriptionDetails" style="margin-bottom: 15px;">
+                    <!-- Subscription details will be loaded here -->
+                </div>
+                
+                <p style="font-size: 0.9rem; color: #94a3b8; margin: 0;">
+                    Upgrade your plan for more features, manage your subscription, or earn rewards by referring friends.
+                </p>
+            </div>
+
+            <!-- Settings & Data Management Panel -->
+            <div class="profile-panel">
+                <h2 class="panel-title">⚙️ Settings & Data</h2>
+                
+                <div class="settings-group">
+                    <div class="settings-title">Chat Settings</div>
+                    
+                    <div class="setting-item">
+                        <span class="setting-label">Save Chat History</span>
+                        <div class="toggle-switch active" id="historySavingToggle" onclick="toggleHistorySaving()"></div>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <span class="setting-label">Voice Chat Enabled</span>
+                        <div class="toggle-switch active" id="voiceEnabledToggle" onclick="toggleVoiceEnabled()"></div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 15px; flex-wrap: wrap; margin: 20px 0;">
+                    <button class="profile-btn secondary" onclick="resetSettings()">
+                        🔄 Reset to Defaults
+                    </button>
+                    <button class="profile-btn" onclick="downloadChatHistory()">
+                        📥 Download Chat History
+                    </button>
+                    <button class="profile-btn secondary" onclick="exportUserData()">
+                        📦 Export All Data
+                    </button>
+                    <button class="profile-btn secondary" onclick="clearChatHistory()">
+                        🗑️ Clear Chat History
+                    </button>
+                </div>
+
+                <!-- Theme Customization - Silver & Gold Tier Only -->
+                <div class="settings-group" id="themeCustomizationGroup" style="display: none;">
+                    <div class="settings-title">🎨 Theme Customization</div>
+                    <p class="settings-desc">Personalize your SoulBridge AI experience with custom color themes</p>
+                    
+                    <div class="theme-selection">
+                        <div class="theme-grid">
+                            <div class="theme-card" data-theme="ocean" onclick="selectTheme('ocean')">
+                                <div class="theme-preview">
+                                    <div class="theme-colors">
+                                        <div class="theme-color" style="background: #0077be;"></div>
+                                        <div class="theme-color" style="background: #00a8cc;"></div>
+                                        <div class="theme-color" style="background: #1dd1a1;"></div>
+                                    </div>
+                                    <div class="theme-name">Ocean Breeze</div>
+                                </div>
+                            </div>
+                            
+                            <div class="theme-card" data-theme="forest" onclick="selectTheme('forest')">
+                                <div class="theme-preview">
+                                    <div class="theme-colors">
+                                        <div class="theme-color" style="background: #2d5a27;"></div>
+                                        <div class="theme-color" style="background: #4a7c59;"></div>
+                                        <div class="theme-color" style="background: #55a3ff;"></div>
+                                    </div>
+                                    <div class="theme-name">Forest Zen</div>
+                                </div>
+                            </div>
+                            
+                            <div class="theme-card" data-theme="sunset" onclick="selectTheme('sunset')">
+                                <div class="theme-preview">
+                                    <div class="theme-colors">
+                                        <div class="theme-color" style="background: #ff6b35;"></div>
+                                        <div class="theme-color" style="background: #f7931e;"></div>
+                                        <div class="theme-color" style="background: #ffd93d;"></div>
+                                    </div>
+                                    <div class="theme-name">Sunset Glow</div>
+                                </div>
+                            </div>
+                            
+                            <div class="theme-card" data-theme="purple" onclick="selectTheme('purple')">
+                                <div class="theme-preview">
+                                    <div class="theme-colors">
+                                        <div class="theme-color" style="background: #6c5ce7;"></div>
+                                        <div class="theme-color" style="background: #a29bfe;"></div>
+                                        <div class="theme-color" style="background: #fd79a8;"></div>
+                                    </div>
+                                    <div class="theme-name">Mystic Purple</div>
+                                </div>
+                            </div>
+
+                            <!-- Gold Tier Exclusive Themes -->
+                            <div class="theme-card gold-exclusive" data-theme="gold" onclick="selectTheme('gold')" id="goldTheme" style="display: none;">
+                                <div class="theme-preview">
+                                    <div class="theme-colors">
+                                        <div class="theme-color" style="background: linear-gradient(45deg, #FFD700, #FFA500);"></div>
+                                        <div class="theme-color" style="background: linear-gradient(45deg, #B8860B, #DAA520);"></div>
+                                        <div class="theme-color" style="background: linear-gradient(45deg, #FFDF00, #FFE135);"></div>
+                                    </div>
+                                    <div class="theme-name">Golden Luxury <span class="tier-badge">GOLD</span></div>
+                                </div>
+                            </div>
+                            
+                            <div class="theme-card gold-exclusive" data-theme="royal" onclick="selectTheme('royal')" id="royalTheme" style="display: none;">
+                                <div class="theme-preview">
+                                    <div class="theme-colors">
+                                        <div class="theme-color" style="background: linear-gradient(45deg, #4B0082, #9370DB);"></div>
+                                        <div class="theme-color" style="background: linear-gradient(45deg, #8A2BE2, #DA70D6);"></div>
+                                        <div class="theme-color" style="background: linear-gradient(45deg, #6A0DAD, #BA55D3);"></div>
+                                    </div>
+                                    <div class="theme-name">Royal Crown <span class="tier-badge">GOLD</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button class="profile-btn primary" onclick="openAdvancedThemes()" style="margin-top: 1rem;">
+                        🎨 Advanced Theme Editor
+                    </button>
+                </div>
+
+                <div class="warning-panel">
+                    <div class="warning-title">
+                        ⚠️ Data Deletion
+                    </div>
+                    <div class="warning-text">
+                        Permanently delete your account and all associated data. This action cannot be undone.
+                    </div>
+                    <button class="profile-btn danger" onclick="deleteAccount()">
+                        ❌ Delete Account
+                    </button>
+                </div>
+            </div>
+
+
+            <!-- Support Panel -->
+            <div class="profile-panel">
+                <h2 class="panel-title">🆘 Support</h2>
+                
+                <a href="mailto:soulbridgeai.contact@gmail.com?subject=SoulBridge AI Support" class="profile-btn secondary" style="text-decoration: none; display: inline-block; text-align: center;">
+                    📧 Contact Support
+                </a>
+
+                <a href="mailto:soulbridgeai.contact@gmail.com?subject=SoulBridge AI Issue Report" class="profile-btn secondary" style="text-decoration: none; display: inline-block; text-align: center;">
+                    🐛 Report Issue
+                </a>
+
+                <a href="/help" class="profile-btn secondary" style="text-decoration: none; display: inline-block; text-align: center;">
+                    📚 Help & FAQ
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase CDN -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+    
+    <!-- SoulBridge Firebase Integration -->
+    <script src="{{ url_for('static', filename='js/firebase-config.js') }}"></script>
+
+    <script>
+        // VERSION: 2025-08-25-v2 - ASYNC VIDEO PROFILE FIX
+        class SoulBridgeProfile {
+            constructor() {
+                this.currentUser = null;
+                this.userData = null;
+                this.initializeFirebase();
+                this.setupAuthListener();
+            }
+
+            initializeFirebase() {
+                // Firebase should already be initialized from firebase-config.js
+                if (window.SoulBridgeFirebase) {
+                    console.log('✅ Firebase integration found');
+                } else {
+                    console.warn('⚠️ Firebase integration not found, using fallback');
+                }
+            }
+
+            setupAuthListener() {
+                // Since server-side authentication already verified access,
+                // we can directly load the user profile
+                this.loadUserProfile();
+            }
+
+            async loadUserProfile() {
+                try {
+                    console.log('🔄 Loading user profile...');
+                    
+                    // Get lightweight user data with access permissions from new /api/me endpoint
+                    const response = await fetch('/api/me', {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        credentials: 'same-origin' // Ensure cookies are sent
+                    });
+
+                    console.log(`📡 Profile API response: ${response.status} ${response.statusText}`);
+
+                    if (response.ok) {
+                        const result = await response.json();
+                        console.log('📊 Profile API result:', result);
+                        
+                        if (result.success) {
+                            this.userData = result.user;
+                            this.userAccess = result.access || {}; // New: access permissions
+                            this.userTrial = result.trial || null; // New: trial information
+                            
+                            console.log('🎯 User tier access:', this.userAccess);
+                            console.log('⏰ Trial info:', this.userTrial);
+                            console.log('🖼️ Profile image in userData:', result.user.profileImage);
+                            console.log('📋 Full userData:', result.user);
+                            
+                            this.currentUser = {
+                                uid: result.user.uid || result.user.id,
+                                email: result.user.email,
+                                displayName: result.user.displayName,
+                                plan: result.user.plan, // New: current plan (bronze/silver/gold)
+                                trainerCredits: result.user.trainer_credits || 0 // New: available credits
+                            };
+                            
+                            console.log('✅ Profile loaded successfully:', this.userData);
+                            await this.updateProfileDisplay();
+                            this.updateTierDisplay(); // New: update tier-specific UI
+                        } else {
+                            console.error('❌ Profile API returned error:', result.error);
+                            throw new Error(result.error || 'Failed to load user data');
+                        }
+                    } else if (response.status === 401) {
+                        console.error('🔒 Authentication required - redirecting to login');
+                        this.showError('Session expired. Redirecting to login...');
+                        setTimeout(() => {
+                            window.location.href = '/login';
+                        }, 2000);
+                        return;
+                    } else {
+                        const errorText = await response.text();
+                        console.error(`🚨 HTTP Error ${response.status}:`, errorText);
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                } catch (error) {
+                    console.error('💥 Profile loading failed:', error);
+                    
+                    // Check if it's a network/auth error
+                    if (error.message.includes('401') || error.message.includes('Authentication')) {
+                        this.showError('Session expired. Please log in again.');
+                        setTimeout(() => {
+                            window.location.href = '/login';
+                        }, 3000);
+                        return;
+                    }
+                    
+                    this.showError(`Failed to load profile data: ${error.message}`);
+                    
+                    // Only provide minimal fallback data if absolutely necessary
+                    console.log('🔄 API failed, trying to preserve any existing data');
+                    if (!this.userData) {
+                        this.userData = {
+                            uid: 'user_fallback',
+                            email: 'user@soulbridgeai.com',
+                            displayName: '', // Don't default to anything
+                            plan: 'foundation',
+                            addons: [],
+                            profileImage: '', // Don't default to Sapphire
+                            joinDate: '2024-01-01',
+                            isActive: true
+                        };
+                    }
+                    // Don't call updateProfileDisplay() here to avoid overwriting any existing data
+                }
+            }
+
+            async createUserProfile() {
+                try {
+                    if (!this.currentUser) return;
+
+                    const response = await fetch('/api/users', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            email: this.currentUser.email || 'anonymous@soulbridge.ai',
+                            companion: 'Blayzo'
+                        })
+                    });
+
+                    if (response.ok) {
+                        const result = await response.json();
+                        this.userData = result.user;
+                        await this.updateProfileDisplay();
+                    }
+                } catch (error) {
+                    console.error('Failed to create profile:', error);
+                }
+            }
+
+            async updateProfileDisplay() {
+                if (!this.userData) return;
+
+                // Update user information with null checks
+                const userIDElement = document.getElementById('userID');
+                if (userIDElement) {
+                    userIDElement.textContent = this.userData.uid || this.userData.userID || 'Unknown';
+                }
+                
+                const userEmailElement = document.getElementById('userEmail');
+                if (userEmailElement) {
+                    userEmailElement.textContent = this.userData.email || 'Not provided';
+                }
+                
+                // PATCHED PROFILE MEDIA DISPLAY LOGIC - Supports Images & Videos
+                const rawProfileURL = this.userData?.profileImage;
+                await setProfileMedia(rawProfileURL);
+                
+                const displayNameInput = document.getElementById('displayNameInput');
+                if (displayNameInput && this.userData.displayName) {
+                    displayNameInput.value = this.userData.displayName;
+                }
+                
+                // Handle account creation date for stats display (short format)
+                let createdDateShort = '-';
+                const dateSource = this.userData.createdDate || this.userData.joinDate;
+                
+                console.log('Account created date source:', dateSource);
+                
+                if (dateSource && dateSource !== '2024-01-01' && dateSource !== '-') {
+                    try {
+                        const date = new Date(dateSource);
+                        if (!isNaN(date.getTime())) {
+                            createdDateShort = date.toLocaleDateString('en-US', {
+                                year: 'numeric',
+                                month: 'short'
+                            });
+                            console.log('Formatted account created date:', createdDateShort);
+                        }
+                    } catch (e) {
+                        console.log('Date parsing error:', e);
+                        // Try a simpler format if full parsing fails
+                        if (dateSource.length >= 7) {
+                            const yearMonth = dateSource.substring(0, 7); // YYYY-MM
+                            const [year, month] = yearMonth.split('-');
+                            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                                               'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                            const monthIndex = parseInt(month) - 1;
+                            if (monthIndex >= 0 && monthIndex < 12) {
+                                createdDateShort = `${monthNames[monthIndex]} ${year}`;
+                            }
+                        }
+                    }
+                } else {
+                    console.log('Using fallback date or invalid date source');
+                }
+                
+                const accountCreatedElement = document.getElementById('accountCreated');
+                if (accountCreatedElement) {
+                    accountCreatedElement.textContent = createdDateShort;
+                }
+
+                // Update subscription badge
+                this.updateSubscriptionBadge(this.userData.subscriptionStatus || 'free');
+
+                // Update statistics with null checks
+                const messageCount = this.userData.chatHistory ? this.userData.chatHistory.length : 0;
+                const totalMessagesElement = document.getElementById('totalMessages');
+                if (totalMessagesElement) {
+                    totalMessagesElement.textContent = messageCount;
+                }
+                
+                const totalSessionsElement = document.getElementById('totalSessions');
+                if (totalSessionsElement) {
+                    totalSessionsElement.textContent = Math.ceil(messageCount / 10) || 1;
+                }
+                
+                // Calculate days active more accurately
+                let daysSinceCreation = 1; // Default to 1 day
+                const creationDateSource = this.userData.createdDate || this.userData.joinDate;
+                
+                if (creationDateSource && creationDateSource !== '2024-01-01') {
+                    try {
+                        const creationDate = new Date(creationDateSource);
+                        if (!isNaN(creationDate.getTime())) {
+                            const diffTime = Date.now() - creationDate.getTime();
+                            daysSinceCreation = Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+                        }
+                    } catch (e) {
+                        console.log('Days calculation error:', e);
+                    }
+                }
+                
+                const daysActiveElement = document.getElementById('daysActive');
+                if (daysActiveElement) {
+                    daysActiveElement.textContent = daysSinceCreation;
+                }
+
+                // Update companion info
+                this.updateCompanionInfo(this.userData.companion || 'Blayzo');
+
+                // Update settings
+                this.updateSettingsDisplay();
+            }
+
+            updateSubscriptionBadge(status) {
+                const badgeContainer = document.getElementById('subscriptionBadge');
+                const badgeClass = `subscription-${status}`;
+                const statusText = status.charAt(0).toUpperCase() + status.slice(1);
+                
+                badgeContainer.innerHTML = `<div class="subscription-badge ${badgeClass}">${statusText}</div>`;
+
+                // Update upgrade button
+                const upgradeBtn = document.getElementById('upgradeBtn');
+                if (upgradeBtn) {
+                    if (status === 'free') {
+                        upgradeBtn.textContent = '🚀 Upgrade to Plus';
+                        upgradeBtn.style.display = 'block';
+                    } else if (status === 'plus') {
+                        upgradeBtn.textContent = '🌟 Upgrade to Galaxy';
+                        upgradeBtn.style.display = 'block';
+                    } else {
+                        upgradeBtn.style.display = 'none';
+                    }
+                }
+            }
+
+            updateTierDisplay() {
+                if (!this.userData || !this.userAccess) return;
+
+                console.log('🎯 Updating tier display for plan:', this.userData.plan);
+                
+                // Update tier badge
+                const tierBadge = document.getElementById('tierBadge');
+                if (tierBadge) {
+                    const plan = this.userData.plan || 'bronze';
+                    const tierEmojis = { bronze: '🥉', silver: '🥈', gold: '🥇' };
+                    const tierNames = { bronze: 'Bronze', silver: 'Silver', gold: 'Gold' };
+                    
+                    tierBadge.innerHTML = `
+                        <div class="tier-badge tier-${plan}">
+                            ${tierEmojis[plan]} ${tierNames[plan]}
+                        </div>
+                    `;
+                    
+                    // Show trial timer if trial is active
+                    const trialTimer = document.getElementById('trialTimer');
+                    if (this.userTrial?.active && trialTimer) {
+                        trialTimer.style.display = 'block';
+                        window.startTrialTimer(this.userTrial);
+                    } else if (trialTimer) {
+                        trialTimer.style.display = 'none';
+                    }
+                }
+
+                // Update credits display
+                const creditsDisplay = document.getElementById('creditsDisplay');
+                if (creditsDisplay) {
+                    const credits = this.userData.trainerCredits || 0;
+                    const trialCredits = this.userAccess?.trial_credits || 0;
+                    const totalCredits = credits + trialCredits;
+                    creditsDisplay.innerHTML = `
+                        <div class="credits-info">
+                            💎 ${totalCredits} Credits
+                            ${trialCredits > 0 ? `<span class="trial-credits">(${trialCredits} trial)</span>` : ''}
+                        </div>
+                    `;
+                }
+
+                // Update trial info with real-time countdown
+                const trialInfo = document.getElementById('trialInfo');
+                if (trialInfo) {
+                    if (this.userTrial?.active && this.userTrial?.expires_at) {
+                        this.startTrialCountdown(this.userTrial.expires_at, this.userAccess.unlocked_tiers);
+                    } else {
+                        trialInfo.innerHTML = '';
+                        this.stopTrialCountdown();
+                    }
+                }
+
+                // Show/hide trial activation button and trial used message
+                const trialBtn = document.getElementById('trialActivationBtn');
+                const trialUsedMsg = document.getElementById('trialUsedMessage');
+                
+                if (trialBtn && trialUsedMsg) {
+                    const plan = this.userData.plan || 'bronze';
+                    const trialActive = this.userTrial?.active || false;
+                    const trialEligible = this.userTrial?.eligible === true; // From /api/me endpoint
+                    
+                    if (plan === 'bronze') {
+                        if (!trialActive && trialEligible) {
+                            // Show activation button for eligible Bronze users
+                            trialBtn.style.display = 'block';
+                            trialUsedMsg.style.display = 'none';
+                        } else if (!trialActive && !trialEligible) {
+                            // Show "trial used" message for ineligible Bronze users
+                            trialBtn.style.display = 'none';
+                            trialUsedMsg.style.display = 'block';
+                        } else {
+                            // Trial is active - hide both
+                            trialBtn.style.display = 'none';
+                            trialUsedMsg.style.display = 'none';
+                        }
+                    } else {
+                        // Silver/Gold users - hide both
+                        trialBtn.style.display = 'none';
+                        trialUsedMsg.style.display = 'none';
+                    }
+                }
+
+                // Upgrade buttons removed - users should use Account & Subscription section
+
+                // Update usage limits display
+                this.updateUsageLimits();
+                
+                // Show theme customization for Silver/Gold tiers
+                const themeGroup = document.getElementById('themeCustomizationGroup');
+                const goldTheme = document.getElementById('goldTheme');
+                const royalTheme = document.getElementById('royalTheme');
+                
+                if (themeGroup) {
+                    const plan = this.userData.plan || 'bronze';
+                    if (plan === 'silver' || plan === 'gold') {
+                        themeGroup.style.display = 'block';
+                        console.log('🎨 Showing theme customization for', plan, 'tier');
+                        
+                        // Show Gold-exclusive themes for Gold tier only
+                        if (plan === 'gold') {
+                            if (goldTheme) goldTheme.style.display = 'block';
+                            if (royalTheme) royalTheme.style.display = 'block';
+                            console.log('✨ Gold tier detected - showing exclusive themes');
+                        } else {
+                            if (goldTheme) goldTheme.style.display = 'none';
+                            if (royalTheme) royalTheme.style.display = 'none';
+                        }
+                    } else {
+                        themeGroup.style.display = 'none';
+                        console.log('🚫 Bronze tier - theme customization hidden');
+                    }
+                }
+            }
+
+            updateUsageLimits() {
+                if (!this.userAccess?.limits) return;
+
+                const limits = this.userAccess.limits;
+                const limitElements = {
+                    decoder: document.getElementById('decoderLimit'),
+                    fortune: document.getElementById('fortuneLimit'),
+                    horoscope: document.getElementById('horoscopeLimit'),
+                    creative_writer: document.getElementById('creativeWriterLimit')
+                };
+
+                Object.entries(limitElements).forEach(([feature, element]) => {
+                    if (element && limits[feature] !== undefined) {
+                        const limit = limits[feature];
+                        // Check for unlimited: either Infinity or 999
+                        const isUnlimited = (limit === Infinity || limit >= 999);
+                        const displayLimit = isUnlimited ? '∞' : limit;
+                        element.textContent = `${displayLimit} daily`;
+                        
+                        // Add visual styling based on limits
+                        element.className = `limit-display ${isUnlimited ? 'unlimited' : limit > 10 ? 'high' : 'basic'}`;
+                    }
+                });
+            }
+
+            startTrialCountdown(expiresAt, unlockedTiers) {
+                // Clear any existing countdown
+                this.stopTrialCountdown();
+                
+                const trialInfo = document.getElementById('trialInfo');
+                if (!trialInfo) return;
+
+                const updateCountdown = () => {
+                    const now = new Date();
+                    let expiryTime;
+                    
+                    // Handle different expiration data formats
+                    if (typeof expiresAt === 'number') {
+                        expiryTime = new Date(expiresAt);
+                    } else if (typeof expiresAt === 'string') {
+                        expiryTime = new Date(expiresAt);
+                    } else {
+                        console.error('❌ PROFILE TIMER: Invalid expires_at format:', expiresAt);
+                        return;
+                    }
+                    
+                    // Validate the parsed date
+                    if (isNaN(expiryTime.getTime())) {
+                        console.error('❌ PROFILE TIMER: Invalid expiration timestamp');
+                        trialInfo.innerHTML = '<div class="trial-countdown">⏰ Trial Active — Loading...</div>';
+                        return;
+                    }
+                    
+                    const timeLeft = Math.max(0, expiryTime - now);
+                    
+                    if (timeLeft <= 0) {
+                        // Trial expired
+                        trialInfo.innerHTML = `
+                            <div class="trial-countdown countdown-expired">
+                                <div class="countdown-header">🔴 Trial Expired</div>
+                                <div class="trial-benefits">Refreshing page...</div>
+                            </div>
+                        `;
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 2000);
+                        this.stopTrialCountdown();
+                        return;
+                    }
+
+                    // Calculate time components
+                    const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+                    const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+
+                    // Calculate progress (5 hours = 18000000ms)
+                    const totalTime = 5 * 60 * 60 * 1000; // 5 hours in ms
+                    const elapsed = totalTime - timeLeft;
+                    const progressPercent = Math.max(0, Math.min(100, (elapsed / totalTime) * 100));
+
+                    // Update display
+                    trialInfo.innerHTML = `
+                        <div class="trial-countdown">
+                            <div class="countdown-header">⏰ Trial Active</div>
+                            
+                            <div class="countdown-timer">
+                                <div class="time-unit">
+                                    <span class="time-number">${hours.toString().padStart(2, '0')}</span>
+                                    <span class="time-label">Hours</span>
+                                </div>
+                                <div class="time-unit">
+                                    <span class="time-number">${minutes.toString().padStart(2, '0')}</span>
+                                    <span class="time-label">Minutes</span>
+                                </div>
+                                <div class="time-unit">
+                                    <span class="time-number">${seconds.toString().padStart(2, '0')}</span>
+                                    <span class="time-label">Seconds</span>
+                                </div>
+                            </div>
+                            
+                            <div class="trial-progress">
+                                <div class="trial-progress-bar" style="width: ${progressPercent}%"></div>
+                            </div>
+                            
+                            <div class="trial-benefits">
+                                🎉 Premium Access: ${unlockedTiers.join(' • ')}
+                            </div>
+                        </div>
+                    `;
+                };
+
+                // Initial update
+                updateCountdown();
+                
+                // Set up real-time updates every second
+                this.countdownInterval = setInterval(updateCountdown, 1000);
+            }
+
+            stopTrialCountdown() {
+                if (this.countdownInterval) {
+                    clearInterval(this.countdownInterval);
+                    this.countdownInterval = null;
+                }
+            }
+
+            updateCompanionInfo(companion) {
+                const companionData = {
+                    'Blayzo': {
+                        avatar: 'B',
+                        name: 'Blayzo',
+                        description: 'Wise and calm mentor for thoughtful guidance'
+                    },
+                    'Blayzion': {
+                        avatar: 'Bn',
+                        name: 'Blayzion',
+                        description: 'Creative and innovative problem solver'
+                    },
+                    'Crimson': {
+                        avatar: 'C',
+                        name: 'Crimson',
+                        description: 'Passionate and energetic motivator'
+                    },
+                    'Blayzica': {
+                        avatar: 'Bc',
+                        name: 'Blayzica',
+                        description: 'Empathetic and supportive companion'
+                    },
+                    'Blayzia': {
+                        avatar: 'Bz',
+                        name: 'Blayzia',
+                        description: 'Intuitive and mystical guide'
+                    },
+                    'Violet': {
+                        avatar: 'V',
+                        name: 'Violet',
+                        description: 'Gentle and nurturing presence'
+                    }
+                };
+
+                const info = companionData[companion] || companionData['Blayzo'];
+                
+                const companionAvatarElement = document.getElementById('companionAvatar');
+                if (companionAvatarElement) {
+                    companionAvatarElement.textContent = info.avatar;
+                }
+                
+                const companionNameElement = document.getElementById('companionName');
+                if (companionNameElement) {
+                    companionNameElement.textContent = info.name;
+                }
+                
+                const companionDescriptionElement = document.getElementById('companionDescription');
+                if (companionDescriptionElement) {
+                    companionDescriptionElement.textContent = info.description;
+                }
+
+                // Update companion stats and specialties
+                this.updateCompanionStats(info.name);
+                this.updateCompanionSpecialties(info.name);
+
+                // Update color palette
+                const colorPalettes = {
+                    'Blayzo': 'Cyan',
+                    'Blayzion': 'Galaxy',
+                    'Crimson': 'Blood Orange',
+                    'Blayzica': 'Red',
+                    'Blayzia': 'Galaxy',
+                    'Violet': 'Violet'
+                };
+                
+                const colorPaletteElement = document.getElementById('currentColorPalette');
+                if (colorPaletteElement) {
+                    colorPaletteElement.textContent = colorPalettes[companion] || 'Cyan';
+                }
+            }
+
+            updateSettingsDisplay() {
+                const settings = this.userData.settings || {};
+                
+                // Update toggles
+                const historyToggle = document.getElementById('historySavingToggle');
+                const voiceToggle = document.getElementById('voiceEnabledToggle');
+                
+                if (settings.historySaving !== false) {
+                    historyToggle.classList.add('active');
+                } else {
+                    historyToggle.classList.remove('active');
+                }
+                
+                if (settings.voiceEnabled !== false) {
+                    voiceToggle.classList.add('active');
+                } else {
+                    voiceToggle.classList.remove('active');
+                }
+            }
+
+            async downloadChatHistory() {
+                try {
+                    if (!this.userData || !this.userData.chatHistory || this.userData.chatHistory.length === 0) {
+                        alert('No chat history found to download.');
+                        return;
+                    }
+
+                    const chatData = this.userData.chatHistory;
+                    const exportData = {
+                        exportDate: new Date().toISOString(),
+                        userID: this.userData.userID,
+                        companion: this.userData.companion,
+                        totalMessages: chatData.length,
+                        chatHistory: chatData
+                    };
+
+                    const dataStr = JSON.stringify(exportData, null, 2);
+                    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                    
+                    const url = URL.createObjectURL(dataBlob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `soulbridge-chat-history-${Date.now()}.json`;
+                    link.click();
+                    
+                    URL.revokeObjectURL(url);
+                    
+                    this.showSuccess('Chat history downloaded successfully!');
+                } catch (error) {
+                    console.error('Download failed:', error);
+                    this.showError('Failed to download chat history');
+                }
+            }
+
+            async exportUserData() {
+                try {
+                    if (window.SoulBridgeFirebase && window.SoulBridgeFirebase.exportUserData) {
+                        await window.SoulBridgeFirebase.exportUserData();
+                        this.showSuccess('User data exported successfully!');
+                    } else {
+                        // Fallback export
+                        await this.downloadChatHistory();
+                    }
+                } catch (error) {
+                    console.error('Export failed:', error);
+                    this.showError('Failed to export user data');
+                }
+            }
+
+            redirectToLogin() {
+                alert('Please log in to view your profile.');
+                window.location.href = '/login';
+            }
+
+            showSuccess(message) {
+                // You can implement a toast notification here
+                alert(message);
+            }
+
+            showError(message) {
+                // You can implement a toast notification here
+                alert(message);
+            }
+
+            updateCompanionStats(companionName) {
+                // Update stats with persistent data
+                const todayMessagesEl = document.getElementById('todayMessages');
+                const companionDaysEl = document.getElementById('companionDays');
+                
+                if (todayMessagesEl) {
+                    // Use sessionStorage to keep consistent count during session
+                    let todayMessages = sessionStorage.getItem('todayMessageCount');
+                    if (!todayMessages) {
+                        // Set to 0 for now - this would come from real chat data
+                        todayMessages = '0';
+                        sessionStorage.setItem('todayMessageCount', todayMessages);
+                    }
+                    todayMessagesEl.textContent = todayMessages;
+                }
+                
+                if (companionDaysEl) {
+                    // Calculate days since joining (mock data)
+                    const joinDate = this.userData.joinDate || this.userData.createdDate;
+                    if (joinDate && joinDate !== '2024-01-01' && joinDate !== '-') {
+                        try {
+                            const created = new Date(joinDate);
+                            const now = new Date();
+                            const daysDiff = Math.floor((now - created) / (1000 * 60 * 60 * 24));
+                            companionDaysEl.textContent = Math.max(1, daysDiff);
+                        } catch (e) {
+                            companionDaysEl.textContent = '1';
+                        }
+                    } else {
+                        companionDaysEl.textContent = '1';
+                    }
+                }
+            }
+
+            updateCompanionSpecialties(companionName) {
+                const specialtiesEl = document.getElementById('companionSpecialties');
+                if (!specialtiesEl) return;
+                
+                // Define specialties for each companion
+                const companionSpecialties = {
+                    'Blayzo': ['Wisdom', 'Guidance', 'Deep Thinking'],
+                    'Violet': ['Creativity', 'Art', 'Inspiration'],
+                    'Crimson': ['Energy', 'Motivation', 'Action'],
+                    'Luna': ['Calm', 'Meditation', 'Balance'],
+                    'Phoenix': ['Growth', 'Transformation', 'Resilience']
+                };
+                
+                const specialties = companionSpecialties[companionName] || ['Wisdom', 'Guidance', 'Support'];
+                
+                specialtiesEl.innerHTML = specialties.map(specialty => 
+                    `<span style="background: rgba(34, 211, 238, 0.2); color: #22d3ee; padding: 4px 8px; border-radius: 12px; font-size: 0.8rem;">${specialty}</span>`
+                ).join('');
+            }
+        }
+
+        // Initialize profile page
+        const profile = new SoulBridgeProfile();
+
+        // Global functions
+        window.changeCompanion = () => {
+            window.location.href = '/tiers';
+        };
+
+        window.viewCompanionStats = () => {
+            showMessage('Companion statistics feature available in your dashboard!', 'info');
+        };
+
+        // Professional Profile Functions
+        window.updateDisplayName = async () => {
+            const nameInput = document.getElementById('displayNameInput');
+            const newName = nameInput.value.trim();
+            
+            if (!newName) {
+                showMessage('Please enter a valid display name', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/user/update-display-name', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ display_name: newName })
+                });
+                
+                if (response.ok) {
+                    showMessage('Display name updated successfully! ✨', 'success');
+                } else {
+                    showMessage('Display name saved locally', 'info');
+                }
+            } catch (error) {
+                showMessage('Display name saved locally', 'info');
+            }
+        };
+
+        // viewChatHistory function removed - newer implementation below redirects to /library instead of /chat-history
+
+        window.showCompanionStats = () => {
+            showMessage('Companion statistics available in the main dashboard', 'info');
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 1500);
+        };
+
+        window.activateTrial = async () => {
+            try {
+                const response = await fetch('/api/trial/activate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                if (response.ok) {
+                    showMessage('5-hour trial activated! Enjoy full access! 🎉', 'success');
+                    setTimeout(() => location.reload(), 2000);
+                } else {
+                    showMessage('Trial activation failed. Please try again.', 'error');
+                }
+            } catch (error) {
+                showMessage('Trial activation failed. Please try again.', 'error');
+            }
+        };
+
+        window.downloadChatHistory = async () => {
+            showMessage('Preparing chat history download...', 'info');
+            try {
+                const response = await fetch('/api/user/export-chat-history');
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'soulbridge-chat-history.json';
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    showMessage('Chat history downloaded! 📥', 'success');
+                } else {
+                    showMessage('No chat history available to download', 'info');
+                }
+            } catch (error) {
+                showMessage('Download feature temporarily unavailable', 'info');
+            }
+        };
+
+        window.clearChatHistory = () => {
+            if (confirm('Are you sure you want to clear all chat history? This action cannot be undone.')) {
+                showMessage('Chat history cleared successfully', 'success');
+            }
+        };
+
+        window.deleteAccount = () => {
+            const confirmed = confirm('⚠️ WARNING: This will permanently delete your account and all data. This action cannot be undone. Are you absolutely sure?');
+            if (confirmed) {
+                const doubleConfirm = confirm('This is your final confirmation. Type YES in the next prompt to proceed.');
+                if (doubleConfirm) {
+                    const finalConfirm = prompt('Type "DELETE MY ACCOUNT" to confirm account deletion:');
+                    if (finalConfirm === 'DELETE MY ACCOUNT') {
+                        showMessage('Account deletion request submitted. You will be contacted within 24 hours.', 'info');
+                        setTimeout(() => {
+                            window.location.href = '/logout';
+                        }, 3000);
+                    } else {
+                        showMessage('Account deletion cancelled', 'info');
+                    }
+                } else {
+                    showMessage('Account deletion cancelled', 'info');
+                }
+            }
+        };
+
+        // Message display system
+        window.showMessage = (message, type) => {
+            // Remove existing messages
+            const existing = document.querySelector('.profile-message');
+            if (existing) existing.remove();
+            
+            // Create new message
+            const messageEl = document.createElement('div');
+            messageEl.className = 'profile-message';
+            messageEl.textContent = message;
+            
+            // Style based on type
+            const colors = {
+                'success': 'background: rgba(34, 211, 238, 0.2); border: 2px solid rgba(34, 211, 238, 0.5); color: #22d3ee;',
+                'error': 'background: rgba(255, 107, 107, 0.2); border: 2px solid rgba(255, 107, 107, 0.5); color: #ff6b6b;',
+                'info': 'background: rgba(0, 255, 255, 0.1); border: 2px solid rgba(0, 255, 255, 0.3); color: #00ffff;'
+            };
+            
+            messageEl.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                z-index: 10000;
+                padding: 15px 20px;
+                border-radius: 12px;
+                ${colors[type] || colors.info}
+                font-weight: 600;
+                animation: slideIn 0.3s ease-out;
+                max-width: 400px;
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            `;
+            
+            document.body.appendChild(messageEl);
+            
+            // Auto remove after 4 seconds
+            setTimeout(() => {
+                messageEl.style.animation = 'slideOut 0.3s ease-in forwards';
+                setTimeout(() => messageEl.remove(), 300);
+            }, 4000);
+        };
+
+        // Add CSS for animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Helper function to get video duration
+        function getVideoDuration(file) {
+            return new Promise((resolve, reject) => {
+                const video = document.createElement('video');
+                video.preload = 'metadata';
+                
+                video.onloadedmetadata = function() {
+                    window.URL.revokeObjectURL(video.src);
+                    resolve(video.duration);
+                };
+                
+                video.onerror = function() {
+                    window.URL.revokeObjectURL(video.src);
+                    reject(new Error('Invalid video file'));
+                };
+                
+                video.src = URL.createObjectURL(file);
+            });
+        }
+
+        // Helper function to set profile media (image or video)
+        async function setProfileMedia(mediaUrl) {
+            const profileImage = document.getElementById('userProfileImage');
+            const profileVideo = document.getElementById('userProfileVideo');
+            
+            console.log('🖼️ Setting profile media (ASYNC VERSION):', mediaUrl);
+            
+            if (!mediaUrl || mediaUrl.trim() === '') {
+                // No media, show default image
+                profileImage.src = '/static/logos/The IntroLogo.png';
+                profileImage.style.display = 'block';
+                profileVideo.style.display = 'none';
+                return;
+            }
+            
+            // Add cache buster
+            const mediaSrc = mediaUrl + '?t=' + new Date().getTime();
+            
+            try {
+                // Check MIME type by making a HEAD request to determine if it's video or image
+                console.log('🔍 Making HEAD request to:', mediaSrc);
+                const response = await fetch(mediaSrc, { method: 'HEAD' });
+                console.log('📡 HEAD response status:', response.status);
+                const contentType = response.headers.get('content-type') || '';
+                
+                console.log('📄 Content type detected:', contentType);
+                
+                if (contentType.startsWith('video/')) {
+                    console.log('🎥 Loading as video:', mediaSrc);
+                    profileVideo.src = mediaSrc;
+                    profileVideo.style.display = 'block';
+                    profileImage.style.display = 'none';
+                } else {
+                    console.log('🖼️ Loading as image:', mediaSrc);
+                    profileImage.src = mediaSrc;
+                    profileImage.style.display = 'block';
+                    profileVideo.style.display = 'none';
+                }
+            } catch (error) {
+                console.warn('⚠️ Failed to detect media type, trying as image:', error);
+                // Fallback to image if HEAD request fails
+                profileImage.src = mediaSrc;
+                profileImage.style.display = 'block';
+                profileVideo.style.display = 'none';
+            }
+        }
+
+        // PATCHED PROFILE IMAGE UPLOAD FUNCTION - Enhanced & Bulletproof
+        window.handleProfileImageUpload = async function () {
+            // Check all three file inputs - regular, all files, and GIF only
+            const fileInput = document.getElementById('profileImageInput');
+            const fileInputAny = document.getElementById('profileImageInputAny');
+            const fileInputGif = document.getElementById('profileImageInputGif');
+            
+            let activeInput = null;
+            if (fileInput.files && fileInput.files[0]) {
+                activeInput = fileInput;
+            } else if (fileInputAny.files && fileInputAny.files[0]) {
+                activeInput = fileInputAny;
+            } else if (fileInputGif.files && fileInputGif.files[0]) {
+                activeInput = fileInputGif;
+            }
+            
+            if (!activeInput) return;
+
+            const file = activeInput.files[0];
+            console.log('📁 File selected from:', activeInput.id);
+
+            // Only the most common image formats that all websites accept
+            const fileExtension = file.name.split('.').pop().toLowerCase();
+            const commonFormats = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'mp4'];
+            
+            console.log('📁 Uploading file:', {
+                name: file.name,
+                type: file.type,
+                extension: fileExtension,
+                size: (file.size / 1024 / 1024).toFixed(2) + 'MB'
+            });
+            
+            // Check for common formats only
+            if (!commonFormats.includes(fileExtension)) {
+                alert(`❌ Only common formats allowed:\n${commonFormats.join(', ')}\n\nYour file: ${file.name} (${fileExtension})`);
+                activeInput.value = '';
+                return;
+            }
+
+            // Check MP4 video duration (must be ≤11 seconds)
+            if (fileExtension === 'mp4') {
+                try {
+                    const duration = await getVideoDuration(file);
+                    if (duration > 11) {
+                        alert(`🎬 Video too long! MP4 videos must be 11 seconds or less.\n\nYour video: ${duration.toFixed(1)} seconds`);
+                        activeInput.value = '';
+                        return;
+                    }
+                    console.log(`🎥 MP4 video duration: ${duration.toFixed(1)}s - Perfect! ✅`);
+                } catch (error) {
+                    console.error('Error checking video duration:', error);
+                    alert('❌ Unable to validate video duration. Please try again.');
+                    activeInput.value = '';
+                    return;
+                }
+            }
+            
+            // Special celebration for GIFs! 
+            if (file.type === 'image/gif' || fileExtension === 'gif') {
+                console.log('🎉 DANCING BLAYZO GIF DETECTED! Let\'s make this happen! 💃');
+            }
+            
+            // Reasonable size limit with user choice
+            if (file.size > 10 * 1024 * 1024) {
+                const proceed = confirm(`📦 That's a big file (${(file.size / 1024 / 1024).toFixed(1)}MB)! It might take a moment to upload. Continue?`);
+                if (!proceed) {
+                    activeInput.value = '';
+                    return;
+                }
+            }
+
+            const formData = new FormData();
+            formData.append('profileImage', file);
+
+            const profileImg = document.getElementById('userProfileImage');
+            const profileVideo = document.getElementById('userProfileVideo');
+            const mediaContainer = document.getElementById('profileMediaContainer');
+            const uploadBtn = document.getElementById('uploadBtn'); // Optional: disable while uploading
+
+            // Optional loading visual
+            if (uploadBtn) uploadBtn.disabled = true;
+            if (mediaContainer) mediaContainer.style.opacity = '0.6';
+
+            try {
+                console.log('📤 Uploading profile image...', file.name, file.size);
+                const response = await fetch('/api/upload-profile-image', {
+                    method: 'POST',
+                    credentials: 'include',  // 🔒 Important for session
+                    body: formData
+                });
+
+                const result = await response.json();
+                console.log('📡 Upload response status:', response.status);
+                console.log('📊 Upload result:', result);
+
+                if (response.status === 401) {
+                    alert('🔒 Session expired. Please log in again.');
+                    window.location.href = '/login'; // Redirect to login
+                    return;
+                }
+
+                if (!result.success) {
+                    alert(`❌ Upload failed: ${result.error}`);
+                    return;
+                }
+
+                // Update profile media (image or video)
+                await setProfileMedia(result.profileImage);
+                
+                // Add success visual feedback
+                const mediaContainer = document.getElementById('profileMediaContainer');
+                if (mediaContainer) {
+                    mediaContainer.style.boxShadow = '0 4px 20px rgba(16, 185, 129, 0.6)';
+                    setTimeout(() => {
+                        mediaContainer.style.boxShadow = '0 8px 30px rgba(34, 211, 238, 0.5)';
+                    }, 2000);
+                }
+
+                console.log('✅ Profile image updated successfully:', result.profileImage);
+                alert('✅ Profile image uploaded!');
+                fileInput.value = ''; // ✅ Clear input
+
+            } catch (err) {
+                console.error('💥 Upload error:', err);
+                alert('❌ Upload failed. Please try again. Error: ' + err.message);
+            } finally {
+                if (mediaContainer) mediaContainer.style.opacity = '1';
+                if (uploadBtn) uploadBtn.disabled = false;
+            }
+        };
+
+        window.toggleHistorySaving = async () => {
+            // Implementation for toggling history saving
+            const toggle = document.getElementById('historySavingToggle');
+            const isActive = toggle.classList.contains('active');
+            
+            if (isActive) {
+                toggle.classList.remove('active');
+            } else {
+                toggle.classList.add('active');
+            }
+            
+            // Update in database
+            if (window.SoulBridgeFirebase && window.SoulBridgeFirebase.updateSettings) {
+                await window.SoulBridgeFirebase.updateSettings({
+                    historySaving: !isActive
+                });
+            }
+        };
+
+        window.toggleVoiceEnabled = async () => {
+            const toggle = document.getElementById('voiceEnabledToggle');
+            const isActive = toggle.classList.contains('active');
+            
+            if (isActive) {
+                toggle.classList.remove('active');
+            } else {
+                toggle.classList.add('active');
+            }
+            
+            // Update in database
+            if (window.SoulBridgeFirebase && window.SoulBridgeFirebase.updateSettings) {
+                await window.SoulBridgeFirebase.updateSettings({
+                    voiceEnabled: !isActive
+                });
+            }
+        };
+
+        window.resetSettings = async () => {
+            if (confirm('Reset all settings to default values?')) {
+                if (window.SoulBridgeFirebase && window.SoulBridgeFirebase.updateSettings) {
+                    await window.SoulBridgeFirebase.updateSettings({
+                        historySaving: true,
+                        voiceEnabled: true,
+                        colorPalette: 'cyan'
+                    });
+                    location.reload();
+                }
+            }
+        };
+
+        // Simple profile image upload - no complex adjustments needed
+
+        // Removed complex image cropper - using simple upload instead
+
+        // All image adjustment functions removed - using simple upload
+
+        // Removed setupImageDrag function - no longer needed
+
+        // Removed acceptAdjustedImage and closeCropper functions - no longer needed
+
+        window.removeProfileImage = async () => {
+            if (confirm('Remove your profile picture?')) {
+                try {
+                    const response = await fetch('/api/users', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ profileImage: '/static/logos/The IntroLogo.png' })
+                    });
+                    
+                    const result = await response.json();
+                    if (result.success) {
+                        const profileImg = document.getElementById('userProfileImage');
+                        if (profileImg) {
+                            profileImg.src = '/static/logos/The IntroLogo.png';
+                        }
+                    }
+                } catch (error) {
+                    console.error('Remove image error:', error);
+                }
+            }
+        };
+
+        window.updateDisplayName = async () => {
+            const displayNameInput = document.getElementById('displayNameInput');
+            if (!displayNameInput) {
+                alert('Display name input field not found.');
+                return;
+            }
+            const displayName = displayNameInput.value.trim();
+            if (!displayName) {
+                alert('Please enter a display name.');
+                return;
+            }
+            
+            if (displayName.length > 50) {
+                alert('Display name must be 50 characters or less.');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/users', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ displayName: displayName })
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    alert('Display name updated successfully!');
+                } else {
+                    alert('Update failed: ' + result.error);
+                }
+            } catch (error) {
+                alert('Update failed. Please try again.');
+                console.error('Update error:', error);
+            }
+        };
+
+        window.downloadChatHistory = () => profile.downloadChatHistory();
+        window.exportUserData = () => profile.exportUserData();
+
+        window.clearChatHistory = async () => {
+            if (confirm('Are you sure you want to clear your chat history? This cannot be undone.')) {
+                try {
+                    if (window.SoulBridgeFirebase && window.SoulBridgeFirebase.clearChatHistory) {
+                        await window.SoulBridgeFirebase.clearChatHistory();
+                        profile.showSuccess('Chat history cleared successfully!');
+                        location.reload();
+                    }
+                } catch (error) {
+                    profile.showError('Failed to clear chat history');
+                }
+            }
+        };
+
+        window.deleteAccount = () => {
+            const confirmation = prompt('Type "DELETE" to confirm account deletion:');
+            if (confirmation === 'DELETE') {
+                alert('Account deletion feature will be implemented soon. Please contact support for account deletion.');
+            }
+        };
+
+        // Trial activation function
+        window.activateTrial = async () => {
+            if (!confirm('Start your 5-hour trial? This will unlock Silver and Gold features for 5 hours and give you 60 trainer credits.')) {
+                return;
+            }
+
+            const trialBtn = document.getElementById('trialActivationBtn');
+            if (trialBtn) {
+                trialBtn.disabled = true;
+                trialBtn.textContent = 'Activating...';
+            }
+
+            try {
+                const response = await fetch('/api/trial/activate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'same-origin'
+                });
+
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    alert('🎉 Trial activated! You now have access to Silver and Gold features for 5 hours, plus 60 trainer credits!');
+                    
+                    // Reload profile to update trial status
+                    window.location.reload();
+                } else {
+                    throw new Error(result.error || 'Trial activation failed');
+                }
+            } catch (error) {
+                console.error('Trial activation error:', error);
+                alert('❌ Failed to activate trial: ' + error.message);
+                
+                // Reset button
+                if (trialBtn) {
+                    trialBtn.disabled = false;
+                    trialBtn.textContent = '⏰ Start 5-Hour Trial';
+                }
+            }
+        };
+
+        // Trial timer functionality
+        window.startTrialTimer = function(trialData) {
+            const trialTimeDisplay = document.getElementById('trialTimeDisplay');
+            if (!trialTimeDisplay) return;
+
+            // Clear any existing timer
+            if (window.trialTimerInterval) {
+                clearInterval(window.trialTimerInterval);
+            }
+
+            // Get trial expiry time from passed data
+            const expiryTime = trialData?.expires_at;
+            if (!expiryTime) {
+                trialTimeDisplay.textContent = 'Error loading timer';
+                return;
+            }
+
+            const updateTimer = () => {
+                const now = new Date();
+                const expiry = new Date(expiryTime);
+                const timeLeft = expiry - now;
+
+                if (timeLeft <= 0) {
+                    trialTimeDisplay.textContent = 'EXPIRED';
+                    clearInterval(window.trialTimerInterval);
+                    // Reload page to update trial status
+                    setTimeout(() => location.reload(), 2000);
+                    return;
+                }
+
+                const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+                const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+
+                trialTimeDisplay.textContent = `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            };
+
+            // Update immediately and then every second
+            updateTimer();
+            window.trialTimerInterval = setInterval(updateTimer, 1000);
+        };
+
+        // Color customization functions
+
+        // Simulate payment confirmation (for testing)
+        window.confirmPayment = () => {
+            localStorage.setItem('soulbridge_payment_confirmed', 'true');
+            localStorage.setItem('soulbridge_subscription', 'plus');
+            alert('Payment confirmed! Color customization is now unlocked.');
+        };
+
+        window.upgradeSubscription = () => {
+            window.location.href = '/subscription';
+        };
+
+        // Removed dead upgradeToMaxTier function - debug route no longer exists
+
+        window.manageSubscription = () => {
+            window.location.href = '/subscription';
+        };
+
+        window.contactSupport = () => {
+            window.location.href = 'mailto:soulbridgeai.contact@gmail.com?subject=SoulBridge AI Support';
+        };
+
+        window.reportIssue = () => {
+            window.location.href = 'mailto:soulbridgeai.contact@gmail.com?subject=SoulBridge AI Issue Report';
+        };
+
+        window.openHelp = () => {
+            window.location.href = '/help';
+        };
+
+        window.showCompanionStats = () => {
+            const companion = profile.userData?.companion || 'Blayzo';
+            const messageCount = profile.userData?.chatHistory?.length || 0;
+            const totalSessions = Math.ceil(messageCount / 10) || 1;
+            
+            const statsHtml = `
+                <div style="text-align: center; padding: 20px;">
+                    <h3 style="color: #22d3ee; margin-bottom: 20px;">📊 ${companion} Stats</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;">
+                        <div style="background: rgba(34, 211, 238, 0.1); padding: 15px; border-radius: 8px;">
+                            <div style="font-size: 1.5rem; font-weight: bold; color: #22d3ee;">${messageCount}</div>
+                            <div style="color: #94a3b8; font-size: 0.9rem;">Total Messages</div>
+                        </div>
+                        <div style="background: rgba(34, 211, 238, 0.1); padding: 15px; border-radius: 8px;">
+                            <div style="font-size: 1.5rem; font-weight: bold; color: #22d3ee;">${totalSessions}</div>
+                            <div style="color: #94a3b8; font-size: 0.9rem;">Conversations</div>
+                        </div>
+                        <div style="background: rgba(34, 211, 238, 0.1); padding: 15px; border-radius: 8px;">
+                            <div style="font-size: 1.5rem; font-weight: bold; color: #22d3ee;">${companion}</div>
+                            <div style="color: #94a3b8; font-size: 0.9rem;">Current Companion</div>
+                        </div>
+                    </div>
+                    <p style="color: #94a3b8; margin-top: 15px; font-size: 0.9rem;">More detailed analytics coming soon!</p>
+                </div>
+            `;
+            
+            // Show in a simple modal/alert for now
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center;
+                z-index: 10000; backdrop-filter: blur(5px);
+            `;
+            
+            modal.innerHTML = `
+                <div style="background: linear-gradient(135deg, #0a0e1a 0%, #1a202c 100%); 
+                           padding: 30px; border-radius: 15px; max-width: 500px; width: 90%;
+                           border: 2px solid rgba(34, 211, 238, 0.3);">
+                    ${statsHtml}
+                    <button onclick="this.closest('div').parentElement.remove()" 
+                            style="width: 100%; margin-top: 20px; padding: 12px; 
+                                   background: linear-gradient(135deg, #22d3ee 0%, #0891b2 100%);
+                                   border: none; border-radius: 8px; color: #000; font-weight: 600; cursor: pointer;">
+                        Close
+                    </button>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+        };
+        
+        // ========================================
+        // AUTO-LOGOUT ON IDLE (Security Feature)
+        // ========================================
+        
+        let idleTimer;
+        const IDLE_TIMEOUT = 30 * 60 * 1000; // 30 minutes
+        let warningShown = false;
+        
+        function resetIdleTimer() {
+            clearTimeout(idleTimer);
+            warningShown = false;
+            
+            idleTimer = setTimeout(() => {
+                if (!warningShown) {
+                    warningShown = true;
+                    const userResponse = confirm('⚠️ Your session will expire in 2 minutes due to inactivity. Click OK to stay logged in.');
+                    
+                    if (userResponse) {
+                        resetIdleTimer();
+                        console.log('🔒 Session extended by user action');
+                    } else {
+                        setTimeout(() => {
+                            alert('🔒 Session expired due to inactivity. Redirecting to login...');
+                            window.location.href = '/auth/logout';
+                        }, 2 * 60 * 1000);
+                    }
+                } else {
+                    alert('🔒 Session expired due to inactivity. Redirecting to login...');
+                    window.location.href = '/auth/logout';
+                }
+            }, IDLE_TIMEOUT);
+        }
+        
+        // Track user activity
+        ['click', 'keydown', 'mousemove', 'scroll', 'touchstart'].forEach(event => {
+            document.addEventListener(event, resetIdleTimer, true);
+        });
+        
+        resetIdleTimer();
+        console.log('🔒 Auto-logout security active on profile page');
+
+        // Add universal Sapphire helper
+        function addSapphireHelper() {
+            const sapphireBtn = document.createElement('div');
+            sapphireBtn.innerHTML = `
+                <div id="sapphire-helper" style="
+                    position: fixed; bottom: 20px; right: 20px; z-index: 1000;
+                    width: 60px; height: 60px; border-radius: 50%;
+                    background: linear-gradient(135deg, #22d3ee 0%, #0891b2 100%);
+                    border: 3px solid rgba(0, 255, 255, 0.6);
+                    cursor: pointer; display: flex; align-items: center; justify-content: center;
+                    box-shadow: 0 4px 20px rgba(34, 211, 238, 0.4);
+                    transition: all 0.3s ease; animation: sapphireGlow 3s ease-in-out infinite alternate;
+                " onclick="openSapphireHelp()" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+                    <img src="/static/logos/Sapphire.png" alt="Sapphire" 
+                         style="width: 40px; height: 40px; border-radius: 50%;">
+                </div>
+            `;
+            
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes sapphireGlow {
+                    0% { box-shadow: 0 4px 20px rgba(34, 211, 238, 0.4); }
+                    100% { box-shadow: 0 8px 30px rgba(34, 211, 238, 0.7); }
+                }
+                .quickBtn {
+                    padding: 6px 12px;
+                    background: rgba(34, 211, 238, 0.2);
+                    border: 1px solid rgba(34, 211, 238, 0.4);
+                    border-radius: 20px;
+                    color: #22d3ee;
+                    font-size: 0.75rem;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                    white-space: nowrap;
+                }
+                .quickBtn:hover {
+                    background: rgba(34, 211, 238, 0.3);
+                    transform: translateY(-1px);
+                    box-shadow: 0 4px 12px rgba(34, 211, 238, 0.3);
+                }
+                /* Custom scrollbar for Sapphire modal */
+                #sapphireHelpModal div:first-child::-webkit-scrollbar {
+                    width: 8px;
+                }
+                #sapphireHelpModal div:first-child::-webkit-scrollbar-track {
+                    background: rgba(255, 255, 255, 0.1);
+                    border-radius: 10px;
+                }
+                #sapphireHelpModal div:first-child::-webkit-scrollbar-thumb {
+                    background: linear-gradient(135deg, #22d3ee, #0891b2);
+                    border-radius: 10px;
+                    border: 2px solid transparent;
+                    background-clip: content-box;
+                }
+                #sapphireHelpModal div:first-child::-webkit-scrollbar-thumb:hover {
+                    background: linear-gradient(135deg, #0891b2, #22d3ee);
+                }
+            `;
+            document.head.appendChild(style);
+            document.body.appendChild(sapphireBtn);
+        }
+        
+        function openSapphireHelp() {
+            const currentPage = window.location.pathname;
+            let contextualHelp = "";
+            
+            if (currentPage.includes('profile')) {
+                contextualHelp = "I'll show you where to upload profile images, change your display name, manage subscription, view stats, and navigate your account settings!";
+            } else if (currentPage.includes('community')) {
+                contextualHelp = "I'll guide you to join communities, participate in challenges, find peer support, and understand the activity feed!";
+            } else {
+                contextualHelp = "I'll guide you through SoulBridge AI, show you where features are located, and help you navigate!";
+            }
+            
+            // Create enhanced Sapphire modal
+            const modal = document.createElement('div');
+            modal.id = 'sapphireHelpModal';
+            modal.style.cssText = `
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(10px);
+                display: flex; justify-content: center; align-items: center;
+                z-index: 10000; animation: fadeIn 0.3s ease;
+            `;
+            
+            modal.innerHTML = `
+                <div style="
+                    background: linear-gradient(135deg, #0a0e1a 0%, #1a202c 100%);
+                    border: 2px solid rgba(34, 211, 238, 0.3);
+                    border-radius: 20px; padding: 30px; max-width: 600px; width: 90%;
+                    max-height: 85vh; overflow-y: auto;
+                    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+                    animation: slideUp 0.3s ease;
+                ">
+                    <div style="text-align: center; margin-bottom: 25px;">
+                        <img src="/static/logos/Sapphire.png" alt="Sapphire" 
+                             style="width: 80px; height: 80px; border-radius: 50%; margin-bottom: 15px; border: 3px solid #22d3ee;">
+                        <h3 style="color: #22d3ee; margin: 0 0 10px 0;">💎 Sapphire - Your Navigation Assistant</h3>
+                        <p style="color: #94a3b8; margin: 0 0 15px 0; font-size: 0.9rem;">I'll guide you step-by-step! ${contextualHelp}</p>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <input type="text" id="sapphireHelpQuestion" placeholder="Ask me anything about SoulBridge AI..." 
+                               style="width: 100%; padding: 15px; border: 2px solid rgba(34, 211, 238, 0.3);
+                                      border-radius: 12px; background: rgba(255, 255, 255, 0.1);
+                                      color: white; font-size: 1rem; outline: none;"
+                               onkeypress="if(event.key==='Enter') askSapphireHelp()">
+                        <button onclick="askSapphireHelp()" 
+                                style="width: 100%; margin-top: 15px; padding: 15px;
+                                       background: linear-gradient(135deg, #22d3ee 0%, #0891b2 100%);
+                                       border: none; border-radius: 12px; color: white;
+                                       font-weight: 600; cursor: pointer; transition: all 0.3s ease;">
+                            Ask Sapphire
+                        </button>
+                    </div>
+                    
+                    <div style="background: rgba(34, 211, 238, 0.1); border-radius: 12px; padding: 15px; margin-bottom: 20px;">
+                        <h4 style="color: #22d3ee; margin: 0 0 10px 0; font-size: 0.9rem;">💡 Try asking:</h4>
+                        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                            <button onclick="quickAskProfile('How do I reset my password?')" class="quickBtn">Reset Password</button>
+                            <button onclick="quickAskProfile('Where are my settings?')" class="quickBtn">Settings</button>
+                            <button onclick="quickAskProfile('How do I choose a companion?')" class="quickBtn">Choose Companion</button>
+                            <button onclick="quickAskProfile('Where is billing?')" class="quickBtn">Billing</button>
+                            <button onclick="quickAskProfile('What are the terms of service?')" class="quickBtn">Terms of Service</button>
+                            <button onclick="quickAskProfile('What is the privacy policy?')" class="quickBtn">Privacy Policy</button>
+                            <button onclick="quickAskProfile('What is the refund policy?')" class="quickBtn">Refund Policy</button>
+                            <button onclick="quickAskProfile('What are the community guidelines?')" class="quickBtn">Community Rules</button>
+                        </div>
+                    </div>
+                    
+                    <div id="sapphireHelpResponse" style="
+                        background: rgba(255, 255, 255, 0.05); border-radius: 12px; 
+                        padding: 15px; margin-bottom: 20px; display: none;
+                        border-left: 4px solid #22d3ee;
+                    ">
+                        <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                            <img src="/static/logos/Sapphire.png" alt="Sapphire" 
+                                 style="width: 24px; height: 24px; border-radius: 50%; margin-right: 10px;">
+                            <strong style="color: #22d3ee;">Sapphire:</strong>
+                        </div>
+                        <p id="sapphireHelpAnswer" style="color: #e2e8f0; margin: 0; line-height: 1.4;"></p>
+                    </div>
+                    
+                    <button onclick="closeSapphireHelp()" 
+                            style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.1);
+                                   border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 12px;
+                                   color: #94a3b8; cursor: pointer; transition: all 0.3s ease;">
+                        Close
+                    </button>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            setTimeout(() => {
+                const questionInput = document.getElementById('sapphireHelpQuestion');
+                if (questionInput) {
+                    questionInput.focus();
+                }
+            }, 100);
+        }
+        
+        async function askSapphireHelp() {
+            const questionInput = document.getElementById('sapphireHelpQuestion');
+            if (!questionInput) return;
+            
+            const question = questionInput.value.trim();
+            if (!question) return;
+            
+            const responseDiv = document.getElementById('sapphireHelpResponse');
+            const answerP = document.getElementById('sapphireHelpAnswer');
+            if (!responseDiv || !answerP) return;
+            
+            responseDiv.style.display = 'block';
+            answerP.textContent = '💎 Sapphire is thinking...';
+            
+            try {
+                const response = await fetch('/api/sapphire-chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({
+                        question: question,
+                        current_page: window.location.pathname
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    answerP.textContent = data.response;
+                } else {
+                    answerP.textContent = '💎 Sorry, I encountered an issue. Please try again or use the navigation buttons above to find what you need.';
+                }
+                
+            } catch (error) {
+                console.error('Sapphire API error:', error);
+                answerP.textContent = '💎 I\'m having connection issues. Please try refreshing the page or use the navigation buttons above to find what you need.';
+            }
+            
+            questionInput.value = '';
+        }
+        
+        // Removed placeholder getSapphireResponse - now using real OpenAI API
+        
+        function quickAskProfile(question) {
+            const questionInput = document.getElementById('sapphireHelpQuestion');
+            if (questionInput) {
+                questionInput.value = question;
+                askSapphireHelp();
+            }
+        }
+        
+        function closeSapphireHelp() {
+            const modal = document.getElementById('sapphireHelpModal');
+            if (modal) {
+                modal.style.animation = 'fadeOut 0.3s ease';
+                setTimeout(() => modal.remove(), 300);
+            }
+        }
+        
+        // Load user data and initialize profile page
+        async function loadUserData() {
+            console.log('🔄 Starting loadUserData...');
+            try {
+                console.log('📡 Making API call to /api/user/profile');
+                const response = await fetch('/api/user/profile', {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin'
+                });
+
+                console.log('📡 API Response status:', response.status);
+                
+                if (response.ok) {
+                    const responseData = await response.json();
+                    console.log('✅ Profile API Response:', responseData); // Debug log
+                    
+                    // Extract user data from the response
+                    const userData = responseData.user || responseData;
+                    console.log('👤 Extracted userData:', userData);
+                    
+                    // Update user ID
+                    const userIDEl = document.getElementById('userID');
+                    console.log('🆔 User ID element found:', !!userIDEl);
+                    console.log('🆔 User ID from API:', userData.uid || userData.userID);
+                    if (userIDEl) {
+                        userIDEl.textContent = userData.uid || userData.userID || 'N/A';
+                    }
+                    
+                    // Update email  
+                    const userEmailEl = document.getElementById('userEmail');
+                    if (userEmailEl) {
+                        userEmailEl.textContent = userData.email || 'No email found';
+                    }
+                    
+                    // Update profile image
+                    const profileImageEl = document.getElementById('userProfileImage');
+                    console.log('🖼️ Profile image element found:', !!profileImageEl);
+                    console.log('🖼️ Profile image URL from API:', userData.profileImage);
+                    
+                    if (profileImageEl) {
+                        console.log('🖼️ Setting profile media using new function');
+                        await setProfileMedia(userData.profileImage);
+                    } else {
+                        console.warn('❌ Profile image element not found in DOM');
+                    }
+                    
+                    // Update companion info with race condition prevention
+                    console.log('🤖 Companion data from API:', userData.companion);
+                    console.log('🤖 Full userData keys:', Object.keys(userData));
+                    
+                    // Get companion with fallback chain and race condition prevention
+                    let companionToDisplay = null;
+                    
+                    // Try multiple sources in order of preference
+                    if (userData.companion && userData.companion !== 'Blayzo') {
+                        companionToDisplay = userData.companion;
+                        console.log('🤖 Using companion from API primary:', companionToDisplay);
+                    } else if (localStorage.getItem('lastUsedCompanion')) {
+                        // Check localStorage for most recently used companion (persists across sessions)
+                        companionToDisplay = localStorage.getItem('lastUsedCompanion');
+                        console.log('🤖 Using companion from localStorage:', companionToDisplay);
+                    } else if (sessionStorage.getItem('currentCompanion')) {
+                        // Check sessionStorage for current session companion
+                        companionToDisplay = sessionStorage.getItem('currentCompanion');
+                        console.log('🤖 Using companion from sessionStorage:', companionToDisplay);
+                    } else {
+                        // Try to get from any other userData fields
+                        companionToDisplay = userData.last_companion || userData.current_companion || userData.selected_companion || userData.companion;
+                        console.log('🤖 Using companion from fallback fields:', companionToDisplay);
+                    }
+                    
+                    // Always have a fallback
+                    if (!companionToDisplay || companionToDisplay === 'undefined' || companionToDisplay === 'null') {
+                        companionToDisplay = 'Blayzo';
+                        console.warn('🤖 Using default fallback companion:', companionToDisplay);
+                    }
+                    
+                    // Add race condition delay to ensure DOM is ready and avoid flickering
+                    setTimeout(() => {
+                        updateCompanionDisplay(companionToDisplay);
+                        // Store in localStorage for future page loads
+                        localStorage.setItem('lastUsedCompanion', companionToDisplay);
+                        
+                        // Populate companion grids with current user data
+                        const userTier = (userData.user_plan || 'bronze').toLowerCase();
+                        // Use trial_live from access data for accurate trial status
+                        const trialActive = (responseData.access && responseData.access.trial_live) || false;
+                        populateCompanionGrids(userTier, companionToDisplay, trialActive);
+                    }, 150);
+                    
+                    // Update credits display and trial status
+                    updateCreditsDisplay(userData, responseData.access);
+                    
+                } else {
+                    console.error('❌ Failed to load user data. Status:', response.status);
+                    const errorText = await response.text();
+                    console.error('❌ Error response:', errorText);
+                    // Show friendly fallback data
+                    const userIDEl = document.getElementById('userID');
+                    const userEmailEl = document.getElementById('userEmail');
+                    if (userIDEl) userIDEl.textContent = 'Unable to load';
+                    if (userEmailEl) userEmailEl.textContent = 'Unable to load';
+                }
+            } catch (error) {
+                console.error('❌ Network/JS Error loading user data:', error);
+                // Show friendly fallback data
+                const userIDEl = document.getElementById('userID');
+                const userEmailEl = document.getElementById('userEmail');
+                if (userIDEl) userIDEl.textContent = 'Connection error';
+                if (userEmailEl) userEmailEl.textContent = 'Connection error';
+            }
+        }
+        
+        // Update companion display with last used companion
+        function updateCompanionDisplay(companionName) {
+            console.log('🤖 Updating companion display for:', companionName);
+            
+            const companionData = {
+                'Sapphire': { avatar: '💎', name: 'Sapphire', description: 'Your navigation assistant', image: '/static/logos/sapphire.png' },
+                'Blayzo': { avatar: 'B', name: 'Blayzo', description: 'Wise and calm mentor for thoughtful guidance', image: '/static/logos/blayzo.png' },
+                'Blayzion': { avatar: 'Bn', name: 'Blayzion', description: 'Creative and innovative problem solver', image: '/static/logos/blayzion.png' },
+                'Crimson': { avatar: 'C', name: 'Crimson', description: 'Passionate and energetic motivator', image: '/static/logos/crimson.png' },
+                'Blayzica': { avatar: 'Bc', name: 'Blayzica', description: 'Empathetic and supportive companion', image: '/static/logos/blayzica.png' },
+                'Blayzia': { avatar: 'Bz', name: 'Blayzia', description: 'Intuitive and mystical guide', image: '/static/logos/blayzia.png' },
+                'Violet': { avatar: 'V', name: 'Violet', description: 'Gentle and nurturing presence', image: '/static/logos/violet.png' },
+                'Claude': { avatar: 'CL', name: 'Claude', description: 'Advanced AI assistant for complex conversations', image: '/static/logos/claude.png' },
+                'Max': { avatar: 'M', name: 'Max', description: 'Energetic and fun companion', image: '/static/logos/max.png' },
+                'Luna': { avatar: 'L', name: 'Luna', description: 'Mystical and intuitive guide', image: '/static/logos/luna.png' }
+            };
+
+            // Handle tier-suffixed companion IDs (e.g., "claude_bronze", "blayzo_silver")
+            let cleanName = companionName;
+            if (companionName && companionName.includes('_')) {
+                cleanName = companionName.split('_')[0];
+                console.log('🤖 Extracted companion name from tier ID:', companionName, '->', cleanName);
+            }
+
+            // Try exact match first, then case-insensitive
+            let info = companionData[cleanName];
+            if (!info && cleanName) {
+                // Try case-insensitive match with clean name
+                const lowerName = cleanName.toLowerCase();
+                const foundKey = Object.keys(companionData).find(key => key.toLowerCase() === lowerName);
+                info = foundKey ? companionData[foundKey] : null;
+            }
+            
+            // Default fallback
+            if (!info) {
+                console.warn('🤖 Companion not found:', companionName, '(clean name:', cleanName + ') defaulting to Blayzo');
+                info = companionData['Blayzo'];
+            }
+            
+            // Current companion display elements were removed - companion selection is handled by Netflix-style grid
+            console.log(`🤖 Current companion: ${info.name} - ${info.description}`);
+        }
+
+        // Populate companion dropdown with community-style avatars
+        function populateCompanionGrids(userTier, currentCompanion, trialActive) {
+            const companionData = {
+                // Bronze tier companions - 8 companions
+                'bronze': [
+                    {
+                        id: 'gamerjay_bronze',
+                        name: 'GamerJay Bronze',
+                        avatar: 'GJ',
+                        bio: 'Your original companion for basic features',
+                        greeting: '🎮 Ready to level up your day!',
+                        image: '/static/logos/GamerJay_Free_companion.png',
+                        tier: 'bronze',
+                        status: 'Available'
+                    },
+                    {
+                        id: 'blayzo_bronze',
+                        name: 'Blayzo Bronze',
+                        avatar: 'B',
+                        bio: 'Wise and calm mentor for thoughtful guidance',
+                        greeting: '🧘 Wisdom flows to those who seek peace',
+                        image: '/static/logos/Blayzo.png',
+                        tier: 'bronze',
+                        status: 'Available'
+                    },
+                    {
+                        id: 'blayzica_bronze',
+                        name: 'Blayzica',
+                        avatar: 'Bc',
+                        bio: 'Empathetic and supportive companion',
+                        greeting: '💕 You are stronger than you know',
+                        image: '/static/logos/Blayzica.png',
+                        tier: 'bronze',
+                        status: 'Available'
+                    },
+                    {
+                        id: 'claude_bronze',
+                        name: 'Claude',
+                        avatar: 'CL',
+                        bio: 'Advanced AI assistant for complex conversations',
+                        greeting: '🧠 Every question opens a new door',
+                        image: '/static/logos/Claude_Free.png',
+                        tier: 'bronze',
+                        status: 'Available'
+                    },
+                    {
+                        id: 'blayzia_bronze',
+                        name: 'Blayzia',
+                        avatar: 'Bz',
+                        bio: 'Intuitive and mystical guide',
+                        greeting: '🔮 Trust your inner magic today',
+                        image: '/static/logos/Blayzia.png',
+                        tier: 'bronze',
+                        status: 'Available'
+                    },
+                    {
+                        id: 'blayzion_bronze',
+                        name: 'Blayzion',
+                        avatar: 'Bn',
+                        bio: 'Creative and innovative problem solver',
+                        greeting: '🚀 Innovation starts with imagination',
+                        image: '/static/logos/Blayzion.png',
+                        tier: 'bronze',
+                        status: 'Available'
+                    },
+                    {
+                        id: 'lumen_bronze',
+                        name: 'Lumen',
+                        avatar: 'L',
+                        bio: 'Bright and illuminating companion',
+                        greeting: '✨ Let your light shine bright today',
+                        image: '/static/logos/Lumen_Bronze.png',
+                        tier: 'bronze',
+                        status: 'Available'
+                    },
+                    {
+                        id: 'blayzo2_bronze',
+                        name: 'Blayzo.2',
+                        avatar: 'B2',
+                        bio: 'Enhanced version with deeper wisdom',
+                        greeting: '🌟 Evolved wisdom for your journey',
+                        image: '/static/logos/blayzo_free_tier.png',
+                        tier: 'bronze',
+                        status: 'Available'
+                    }
+                ],
+                // Silver tier companions - 8 companions
+                'silver': [
+                    {
+                        id: 'sky_silver',
+                        name: 'Sky Silver',
+                        avatar: 'S',
+                        bio: 'Elevated companion for premium experiences',
+                        greeting: '☁️ Rise above the ordinary today',
+                        image: '/static/logos/Sky_a_premium_companion.png',
+                        tier: 'silver',
+                        status: 'Premium'
+                    },
+                    {
+                        id: 'gamerjay_silver',
+                        name: 'GamerJay Silver',
+                        avatar: 'GJ+',
+                        bio: 'Premium version with enhanced capabilities',
+                        greeting: '🎮✨ Premium power-up activated!',
+                        image: '/static/logos/GamerJay_premium_companion.png',
+                        introLogo: '/static/logos/New IntroLogo.png',
+                        tier: 'silver',
+                        status: 'Premium'
+                    },
+                    {
+                        id: 'claude_silver',
+                        name: 'Claude',
+                        avatar: 'CL+',
+                        bio: 'Growth-tier Claude with expanded knowledge',
+                        greeting: '📚 Knowledge expands with every query',
+                        image: '/static/logos/Claude_Growth.png',
+                        tier: 'silver',
+                        status: 'Premium'
+                    },
+                    {
+                        id: 'blayzo_silver',
+                        name: 'Blayzo',
+                        avatar: 'B+',
+                        bio: 'Premium Blayzo with deeper insights',
+                        greeting: '🌱 Growth comes through reflection',
+                        image: '/static/logos/Blayzo_premium_companion.png',
+                        tier: 'silver',
+                        status: 'Premium'
+                    },
+                    {
+                        id: 'blayzica_silver',
+                        name: 'Blayzica',
+                        avatar: 'Bc+',
+                        bio: 'Pro-level supportive companion',
+                        greeting: '💖 Your journey matters, keep going',
+                        image: '/static/logos/Blayzica_Pro.png',
+                        tier: 'silver',
+                        status: 'Premium'
+                    },
+                    {
+                        id: 'watchdog_silver',
+                        name: 'WatchDog',
+                        avatar: 'WD',
+                        bio: 'Vigilant and protective companion',
+                        greeting: '🔒 Your guardian stands ready',
+                        image: '/static/logos/WatchDog_a_Premium_companion.png',
+                        tier: 'silver',
+                        status: 'Premium'
+                    },
+                    {
+                        id: 'rozia_silver',
+                        name: 'Rozia',
+                        avatar: 'R',
+                        bio: 'Elegant and refined companion',
+                        greeting: '🌹 Grace and beauty in every moment',
+                        image: '/static/logos/Rozia_Silver.png',
+                        tier: 'silver',
+                        status: 'Premium'
+                    },
+                    {
+                        id: 'lumen_silver',
+                        name: 'Lumen',
+                        avatar: 'L+',
+                        bio: 'Brilliant silver-tier illumination',
+                        greeting: '✨💫 Brilliance guides your path forward',
+                        image: '/static/logos/Lumen_Silver.png',
+                        tier: 'silver',
+                        status: 'Premium'
+                    }
+                ],
+                // Gold tier companions - 8 companions
+                'gold': [
+                    {
+                        id: 'crimson_gold',
+                        name: 'Crimson',
+                        avatar: 'C',
+                        bio: 'Passionate Max-tier motivator',
+                        greeting: '🔥 Ignite your passion, achieve greatness',
+                        image: '/static/logos/Crimson_a_Max_companion.png',
+                        tier: 'gold',
+                        status: 'Elite'
+                    },
+                    {
+                        id: 'violet_gold',
+                        name: 'Violet',
+                        avatar: 'V',
+                        bio: 'Gentle Max-tier nurturing presence',
+                        greeting: '💜 Gentleness is your superpower today',
+                        image: '/static/logos/Violet_a_Max_companion.png',
+                        tier: 'gold',
+                        status: 'Elite'
+                    },
+                    {
+                        id: 'claude_gold',
+                        name: 'Claude',
+                        avatar: 'CL★',
+                        bio: 'Ultimate Max-tier AI assistant',
+                        greeting: '🎆 Excellence unlocked, sky\'s the limit',
+                        image: '/static/logos/Claude_Max.png',
+                        tier: 'gold',
+                        status: 'Elite'
+                    },
+                    {
+                        id: 'royal_gold',
+                        name: 'Royal',
+                        avatar: 'R★',
+                        bio: 'Majestic Max-tier royal companion',
+                        greeting: '👑 Reign supreme over your dreams',
+                        image: '/static/logos/Royal_a_Max_companion.png',
+                        tier: 'gold',
+                        status: 'Elite'
+                    },
+                    {
+                        id: 'ven_blayzica_gold',
+                        name: 'Ven Blayzica',
+                        avatar: 'VB',
+                        bio: 'Venerated Max-tier supportive companion',
+                        greeting: '🙏 Honored to guide your soul\'s journey',
+                        image: '/static/logos/Ven_Blayzica_a_Max_companion.png',
+                        tier: 'gold',
+                        status: 'Elite'
+                    },
+                    {
+                        id: 'ven_sky_gold',
+                        name: 'Ven Sky',
+                        avatar: 'VS',
+                        bio: 'Venerated Max-tier sky companion',
+                        greeting: '☁️✨ Divine heights await your ascent',
+                        image: '/static/logos/Ven_Sky_a_Max_companion.png',
+                        tier: 'gold',
+                        status: 'Elite'
+                    },
+                    {
+                        id: 'watchdog_gold',
+                        name: 'WatchDog',
+                        avatar: 'WD★',
+                        bio: 'Ultimate Max-tier guardian',
+                        greeting: '🔒✨ Elite protection, unlimited potential',
+                        image: '/static/logos/WatchDog_a_Max_Companion.png',
+                        tier: 'gold',
+                        status: 'Elite'
+                    },
+                    {
+                        id: 'dr_madjay_gold',
+                        name: 'Dr. MadJay',
+                        avatar: 'DMJ',
+                        bio: 'Cutting-edge AI researcher and innovator',
+                        greeting: '🧪 Let\'s explore the cutting-edge possibilities of unlimited AI access',
+                        image: '/static/logos/Dr. MadJay.png',
+                        tier: 'gold',
+                        status: 'Elite'
+                    },
+                    {
+                        id: 'violet2_gold',
+                        name: 'Violet 2',
+                        avatar: 'V2',
+                        bio: 'Alternative Max-tier nurturing companion',
+                        greeting: '🌈 Double the care, infinite possibilities',
+                        image: '/static/logos/Violet_a_Max_companion.png',
+                        tier: 'gold',
+                        status: 'Elite'
+                    }
+                ],
+                // Referral tier companions - 5 special unlock companions
+                'referral': [
+                    {
+                        id: 'blayzike',
+                        name: 'Blayzike',
+                        avatar: 'BK',
+                        bio: 'Unlock with 2 referrals - Silver tier special',
+                        greeting: '🎆 Sharing is caring, growth is power',
+                        image: '/static/referral/blayzike.png',
+                        tier: 'silver',
+                        status: 'Referral',
+                        minReferrals: 2
+                    },
+                    {
+                        id: 'nyxara',
+                        name: 'Nyxara',
+                        avatar: 'N',
+                        bio: 'Unlock with 3 referrals - Mysterious companion',
+                        greeting: '🌙 Mysteries unfold for the worthy',
+                        image: '/static/logos/Nyxara.png',
+                        tier: 'silver',
+                        status: 'Referral',
+                        minReferrals: 3
+                    },
+                    {
+                        id: 'blazelian',
+                        name: 'Blazelian',
+                        avatar: 'BL',
+                        bio: 'Unlock with 5 referrals - Gold tier exclusive',
+                        greeting: '🔥✨ Elite unlocked, legends rise',
+                        image: '/static/referral/blazelian.png',
+                        tier: 'gold',
+                        status: 'Referral',
+                        minReferrals: 5
+                    },
+                    {
+                        id: 'claude_referral',
+                        name: 'Claude Referral',
+                        avatar: 'CR',
+                        bio: 'Unlock with 8 referrals - Special Claude variant',
+                        greeting: '🏆 Excellence earned through connection',
+                        image: '/static/referral/claude_referral.png',
+                        tier: 'gold',
+                        status: 'Referral',
+                        minReferrals: 8
+                    },
+                    {
+                        id: 'blayzo_referral',
+                        name: 'Blayzo Referral',
+                        avatar: 'BR',
+                        bio: 'Unlock with 10 referrals - Ultimate Blayzo',
+                        greeting: '🕊 Ultimate wisdom for the devoted',
+                        image: '/static/logos/Blayzo_Referral.png',
+                        tier: 'gold',
+                        status: 'Referral',
+                        minReferrals: 10
+                    }
+                ]
+            };
+
+            // Determine access levels - trial only gives Silver/Gold companion ACCESS, not tier benefits
+            const hasGoldAccess = userTier === 'gold' || (userTier === 'bronze' && trialActive);
+            const hasSilverAccess = userTier === 'silver' || userTier === 'gold' || (userTier === 'bronze' && trialActive);
+            
+            // Update tier status displays
+            const silverStatusEl = document.getElementById('silverTierStatusDropdown');
+            const goldStatusEl = document.getElementById('goldTierStatusDropdown');
+            if (silverStatusEl) silverStatusEl.textContent = hasSilverAccess ? 'Unlocked' : 'Requires Silver Plan';
+            if (goldStatusEl) goldStatusEl.textContent = hasGoldAccess ? 'Unlocked' : 'Requires Gold Plan';
+
+            // Populate each tier dropdown
+            populateTierDropdown('bronzeCompanionsDropdown', companionData.bronze, true, currentCompanion);
+            populateTierDropdown('silverCompanionsDropdown', companionData.silver, hasSilverAccess, currentCompanion);
+            populateTierDropdown('goldCompanionsDropdown', companionData.gold, hasGoldAccess, currentCompanion);
+            
+            // For now, all referral companions are locked (TODO: implement referral system)
+            populateTierDropdown('referralCompanionsDropdown', companionData.referral, false, currentCompanion);
+
+            // Update selected companion display
+            updateSelectedCompanionDisplay(currentCompanion);
+        }
+
+        function populateTierDropdown(containerId, companions, hasAccess, currentCompanion) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+
+            container.innerHTML = '';
+
+            companions.forEach(companion => {
+                const isSelected = currentCompanion && 
+                    (currentCompanion === companion.id || currentCompanion === companion.name.toLowerCase());
+                const isLocked = !hasAccess;
+
+                const item = document.createElement('div');
+                item.className = `companion-dropdown-item ${isSelected ? 'selected' : ''} ${isLocked ? 'locked' : ''}`;
+                item.style.cssText = `
+                    display: flex;
+                    align-items: center;
+                    padding: 12px 20px;
+                    cursor: ${isLocked ? 'not-allowed' : 'pointer'};
+                    transition: background 0.3s ease;
+                    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+                    opacity: ${isLocked ? '0.6' : '1'};
+                `;
+
+                if (!isLocked) {
+                    item.onmouseover = () => item.style.background = 'rgba(34, 211, 238, 0.1)';
+                    item.onmouseout = () => item.style.background = 'transparent';
+                    item.onclick = () => selectCompanionFromDropdown(companion.id, companion.name, companion);
+                } else {
+                    item.onclick = () => {
+                        if (confirm(`${companion.name} requires a premium plan. Would you like to upgrade?`)) {
+                            window.location.href = '/subscription';
+                        }
+                    };
+                }
+
+                item.innerHTML = `
+                    <div style="position: relative; margin-right: 15px;">
+                        <img src="${companion.image}" 
+                             alt="${companion.name}"
+                             style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid ${isLocked ? 'rgba(255,255,255,0.3)' : '#22d3ee'};"
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #22d3ee, #0891b2); display: none; align-items: center; justify-content: center; font-size: 1rem; font-weight: bold; color: #000;">
+                            ${companion.avatar}
+                        </div>
+                        ${isLocked ? '<div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 1.2rem;">🔒</div>' : ''}
+                    </div>
+                    
+                    <div style="flex: 1;">
+                        <div style="color: ${isLocked ? 'rgba(255,255,255,0.5)' : '#22d3ee'}; font-size: 1rem; font-weight: 600; margin-bottom: 2px;">
+                            ${companion.name}
+                        </div>
+                        <div style="color: ${isLocked ? 'rgba(255,255,255,0.3)' : 'rgba(255, 255, 255, 0.7)'}; font-size: 0.8rem;">
+                            ${companion.bio}
+                        </div>
+                    </div>
+                    
+                    ${isSelected ? '<div style="color: #22d3ee; font-size: 1.2rem; margin-left: 10px;">✓</div>' : ''}
+                `;
+
+                container.appendChild(item);
+            });
+        }
+
+        // Toggle dropdown visibility - DISABLED (auto-updates to last companion)
+        // function toggleCompanionDropdown() {
+        //     const dropdown = document.getElementById('companionDropdown');
+        //     const arrow = document.querySelector('.dropdown-arrow');
+        //     
+        //     if (dropdown.style.display === 'none' || dropdown.style.display === '') {
+        //         dropdown.style.display = 'block';
+        //         if (arrow) arrow.style.transform = 'rotate(180deg)';
+        //     } else {
+        //         dropdown.style.display = 'none';
+        //         if (arrow) arrow.style.transform = 'rotate(0deg)';
+        //     }
+        // }
+
+        // Handle companion selection from dropdown
+        function selectCompanionFromDropdown(companionId, companionName, companionData) {
+            // Update selected companion display
+            updateSelectedCompanionDisplay(companionName, companionData);
+            
+            // Update current companion display (for other parts of the app)
+            updateCompanionDisplay(companionName);
+            
+            // Close dropdown
+            const dropdown = document.getElementById('companionDropdown');
+            const arrow = document.querySelector('.dropdown-arrow');
+            dropdown.style.display = 'none';
+            if (arrow) arrow.style.transform = 'rotate(0deg)';
+            
+            // Save selection and show notification
+            localStorage.setItem('lastUsedCompanion', companionName);
+            console.log('🤖 Selected companion:', companionId, companionName);
+            showNotification(`Selected ${companionName} as your companion!`, 'success');
+        }
+
+        // Update the selected companion display in the dropdown header
+        function updateSelectedCompanionDisplay(companionName, companionData = null) {
+            // Get companion data if not provided - search through all the companion data we have
+            if (!companionData && companionName) {
+                // Search through the companion dropdown data that's already defined
+                const searchInTiers = ['bronze', 'silver', 'gold', 'referral'];
+                const allCompanionData = {
+                    // Bronze tier companions - 8 companions
+                    'bronze': [
+                        {id: 'gamerjay_bronze', name: 'GamerJay Bronze', avatar: 'GJ', bio: 'Your original companion for basic features', greeting: '🎮 Ready to level up your day!', image: '/static/logos/GamerJay_Free_companion.png'},
+                        {id: 'blayzo_bronze', name: 'Blayzo Bronze', avatar: 'B', bio: 'Wise and calm mentor for thoughtful guidance', greeting: '🧘 Wisdom flows to those who seek peace', image: '/static/logos/Blayzo.png'},
+                        {id: 'blayzica_bronze', name: 'Blayzica', avatar: 'Bc', bio: 'Empathetic and supportive companion', greeting: '💕 You are stronger than you know', image: '/static/logos/Blayzica.png'},
+                        {id: 'claude_bronze', name: 'Claude', avatar: 'CL', bio: 'Advanced AI assistant for complex conversations', greeting: '🧠 Every question opens a new door', image: '/static/logos/Claude_Free.png'},
+                        {id: 'blayzia_bronze', name: 'Blayzia', avatar: 'Bz', bio: 'Intuitive and mystical guide', greeting: '🔮 Trust your inner magic today', image: '/static/logos/Blayzia.png'},
+                        {id: 'blayzion_bronze', name: 'Blayzion', avatar: 'Bn', bio: 'Creative and innovative problem solver', greeting: '🚀 Innovation starts with imagination', image: '/static/logos/Blayzion.png'},
+                        {id: 'lumen_bronze', name: 'Lumen', avatar: 'L', bio: 'Bright and illuminating companion', greeting: '✨ Let your light shine bright today', image: '/static/logos/Lumen_Bronze.png'},
+                        {id: 'blayzo2_bronze', name: 'Blayzo.2', avatar: 'B2', bio: 'Enhanced version with deeper wisdom', greeting: '🌟 Evolved wisdom for your journey', image: '/static/logos/blayzo_free_tier.png'}
+                    ],
+                    'silver': [
+                        {id: 'sky_silver', name: 'Sky Silver', avatar: 'S', bio: 'Elevated companion for premium experiences', greeting: '☁️ Rise above the ordinary today', image: '/static/logos/Sky_a_premium_companion.png'},
+                        {id: 'gamerjay_silver', name: 'GamerJay Silver', avatar: 'GJ+', bio: 'Premium version with enhanced capabilities', greeting: '🎮✨ Premium power-up activated!', image: '/static/logos/GamerJay_premium_companion.png', introLogo: '/static/logos/New IntroLogo.png'},
+                        {id: 'claude_silver', name: 'Claude', avatar: 'CL+', bio: 'Growth-tier Claude with expanded knowledge', greeting: '📚 Knowledge expands with every query', image: '/static/logos/Claude_Growth.png'},
+                        {id: 'blayzo_silver', name: 'Blayzo', avatar: 'B+', bio: 'Premium Blayzo with deeper insights', greeting: '🌱 Growth comes through reflection', image: '/static/logos/Blayzo_premium_companion.png'},
+                        {id: 'blayzica_silver', name: 'Blayzica', avatar: 'Bc+', bio: 'Pro-level supportive companion', greeting: '💖 Your journey matters, keep going', image: '/static/logos/Blayzica_Pro.png'},
+                        {id: 'watchdog_silver', name: 'WatchDog', avatar: 'WD', bio: 'Vigilant and protective companion', greeting: '🔒 Your guardian stands ready', image: '/static/logos/WatchDog_a_Premium_companion.png'},
+                        {id: 'rozia_silver', name: 'Rozia', avatar: 'R', bio: 'Elegant and refined companion', greeting: '🌹 Grace and beauty in every moment', image: '/static/logos/Rozia_Silver.png'},
+                        {id: 'lumen_silver', name: 'Lumen', avatar: 'L+', bio: 'Brilliant silver-tier illumination', greeting: '✨💫 Brilliance guides your path forward', image: '/static/logos/Lumen_Silver.png'}
+                    ],
+                    'gold': [
+                        {id: 'crimson_gold', name: 'Crimson', avatar: 'C', bio: 'Passionate Max-tier motivator', greeting: '🔥 Ignite your passion, achieve greatness', image: '/static/logos/Crimson_a_Max_companion.png'},
+                        {id: 'violet_gold', name: 'Violet', avatar: 'V', bio: 'Gentle Max-tier nurturing presence', greeting: '💜 Gentleness is your superpower today', image: '/static/logos/Violet_a_Max_companion.png'},
+                        {id: 'claude_gold', name: 'Claude', avatar: 'CL★', bio: 'Ultimate Max-tier AI assistant', greeting: '🎆 Excellence unlocked, sky\'s the limit', image: '/static/logos/Claude_Max.png'},
+                        {id: 'royal_gold', name: 'Royal', avatar: 'R★', bio: 'Majestic Max-tier royal companion', greeting: '👑 Reign supreme over your dreams', image: '/static/logos/Royal_a_Max_companion.png'},
+                        {id: 'ven_blayzica_gold', name: 'Ven Blayzica', avatar: 'VB', bio: 'Venerated Max-tier supportive companion', greeting: '🙏 Honored to guide your soul\'s journey', image: '/static/logos/Ven_Blayzica_a_Max_companion.png'},
+                        {id: 'ven_sky_gold', name: 'Ven Sky', avatar: 'VS', bio: 'Venerated Max-tier sky companion', greeting: '☁️✨ Divine heights await your ascent', image: '/static/logos/Ven_Sky_a_Max_companion.png'},
+                        {id: 'watchdog_gold', name: 'WatchDog', avatar: 'WD★', bio: 'Ultimate Max-tier guardian', greeting: '🔒✨ Elite protection, unlimited potential', image: '/static/logos/WatchDog_a_Max_Companion.png'},
+                        {id: 'dr_madjay_gold', name: 'Dr. MadJay', avatar: 'DMJ', bio: 'Cutting-edge AI researcher and innovator', greeting: '🧪 Let\'s explore the cutting-edge possibilities of unlimited AI access', image: '/static/logos/Dr. MadJay.png'},
+                        {id: 'violet2_gold', name: 'Violet 2', avatar: 'V2', bio: 'Alternative Max-tier nurturing companion', greeting: '🌈 Double the care, infinite possibilities', image: '/static/logos/Violet_a_Max_companion.png'}
+                    ],
+                    'referral': [
+                        {id: 'blayzike', name: 'Blayzike', avatar: 'BK', bio: 'Unlock with 2 referrals - Silver tier special', greeting: '🎆 Sharing is caring, growth is power', image: '/static/referral/blayzike.png'},
+                        {id: 'nyxara', name: 'Nyxara', avatar: 'N', bio: 'Unlock with 3 referrals - Mysterious companion', greeting: '🌙 Mysteries unfold for the worthy', image: '/static/logos/Nyxara.png'},
+                        {id: 'blazelian', name: 'Blazelian', avatar: 'BL', bio: 'Unlock with 5 referrals - Gold tier exclusive', greeting: '🔥✨ Elite unlocked, legends rise', image: '/static/referral/blazelian.png'},
+                        {id: 'claude_referral', name: 'Claude Referral', avatar: 'CR', bio: 'Unlock with 8 referrals - Special Claude variant', greeting: '🏆 Excellence earned through connection', image: '/static/referral/claude_referral.png'},
+                        {id: 'blayzo_referral', name: 'Blayzo Referral', avatar: 'BR', bio: 'Unlock with 10 referrals - Ultimate Blayzo', greeting: '🕊 Ultimate wisdom for the devoted', image: '/static/logos/Blayzo_Referral.png'}
+                    ]
+                };
+                
+                // Search all tiers for matching companion
+                for (const tier of searchInTiers) {
+                    const tierCompanions = allCompanionData[tier] || [];
+                    const found = tierCompanions.find(c => 
+                        c.id === companionName || 
+                        c.name.toLowerCase() === companionName?.toLowerCase() ||
+                        c.name.toLowerCase().includes(companionName?.toLowerCase())
+                    );
+                    if (found) {
+                        companionData = found;
+                        break;
+                    }
+                }
+
+                // Legacy companion name fallbacks for backwards compatibility
+                if (!companionData) {
+                    const legacyNames = {
+                        'Blayzo': {avatar: 'B', name: 'Blayzo', bio: 'Wise and calm mentor for thoughtful guidance', greeting: '🧘 Wisdom flows to those who seek peace', image: '/static/logos/Blayzo.png'},
+                        'Claude': {avatar: 'CL', name: 'Claude', bio: 'Advanced AI assistant for complex conversations', greeting: '🧠 Every question opens a new door', image: '/static/logos/Claude_Free.png'},
+                        'GamerJay': {avatar: 'GJ', name: 'GamerJay', bio: 'Your original companion', greeting: '🎮 Ready to level up your day!', image: '/static/logos/GamerJay_Free_companion.png'}
+                    };
+                    companionData = legacyNames[companionName];
+                }
+            }
+
+            // Fallback data
+            if (!companionData) {
+                companionData = {
+                    name: 'Blayzo',
+                    avatar: 'B',
+                    bio: 'Wise and calm mentor for thoughtful guidance',
+                    greeting: '🧘 Wisdom flows to those who seek peace',
+                    image: '/static/logos/blayzo.png'
+                };
+            }
+
+            // Update display elements
+            const nameEl = document.getElementById('selectedCompanionName');
+            const descEl = document.getElementById('selectedCompanionDescription');
+            const greetingEl = document.getElementById('selectedCompanionGreeting');
+            const imageEl = document.getElementById('selectedCompanionImage');
+            const avatarEl = document.getElementById('selectedCompanionAvatar');
+
+            if (nameEl) nameEl.textContent = companionData.name;
+            if (descEl) descEl.textContent = companionData.bio;
+            if (greetingEl) {
+                if (companionData.greeting) {
+                    greetingEl.textContent = companionData.greeting;
+                    greetingEl.style.display = 'block';
+                } else {
+                    greetingEl.style.display = 'none';
+                }
+            }
+            
+            if (imageEl && companionData.image) {
+                imageEl.src = companionData.image;
+                imageEl.style.display = 'block';
+                if (avatarEl) avatarEl.style.display = 'none';
+            } else if (avatarEl) {
+                avatarEl.style.display = 'flex';
+                avatarEl.textContent = companionData.avatar;
+                if (imageEl) imageEl.style.display = 'none';
+            }
+
+            // Show intro logo if available (for GamerJay Silver)
+            const introLogoEl = document.getElementById('introLogo');
+            if (introLogoEl && companionData.introLogo) {
+                introLogoEl.src = companionData.introLogo;
+                introLogoEl.style.display = 'block';
+            } else if (introLogoEl) {
+                introLogoEl.style.display = 'none';
+            }
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('companionDropdown');
+            const selector = document.getElementById('selectedCompanionDisplay');
+            
+            if (dropdown && selector && !selector.contains(event.target) && !dropdown.contains(event.target)) {
+                dropdown.style.display = 'none';
+                const arrow = document.querySelector('.dropdown-arrow');
+                if (arrow) arrow.style.transform = 'rotate(0deg)';
+            }
+        });
+
+        // Simple notification system
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${type === 'success' ? 'rgba(16, 185, 129, 0.9)' : 'rgba(34, 211, 238, 0.9)'};
+                color: white;
+                padding: 15px 20px;
+                border-radius: 8px;
+                font-weight: 600;
+                z-index: 10000;
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+                animation: slideIn 0.3s ease;
+            `;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+        
+        // Update credits display and handle trial status  
+        function updateCreditsDisplay(userData, accessData) {
+            const creditsEl = document.getElementById('creditsDisplay');
+            const trialInfoEl = document.getElementById('trialInfo');
+            const trialBtnEl = document.getElementById('trialActivationBtn');
+            
+            if (creditsEl) {
+                // Try to get credits from access data or user data
+                const credits = (accessData && accessData.trial_credits) || userData.trainer_credits || 0;
+                creditsEl.innerHTML = `<div class="credits-info">💎 ${credits} Credits</div>`;
+            }
+            
+            // Handle trial status from access data
+            const trialActive = (accessData && accessData.trial_live) || userData.trial_active;
+            const trialExpires = userData.trial_expires_at;
+            
+            if (trialActive && trialExpires) {
+                // Show trial countdown
+                if (trialInfoEl) {
+                    showTrialCountdown(trialInfoEl, trialExpires);
+                }
+                // Hide trial activation button during active trial
+                if (trialBtnEl) trialBtnEl.style.display = 'none';
+            } else {
+                // Hide trial info when not active
+                if (trialInfoEl) trialInfoEl.style.display = 'none';
+                
+                // Show trial activation button for Bronze users only
+                if (userData.user_plan === 'bronze' && trialBtnEl) {
+                    trialBtnEl.style.display = 'block';
+                } else if (trialBtnEl) {
+                    trialBtnEl.style.display = 'none';
+                }
+            }
+        }
+        
+        // View Chat History - redirect to library page
+        function viewChatHistory() {
+            console.log('📚 Redirecting to chat history in library...');
+            console.log('📚 Current URL:', window.location.href);
+            console.log('📚 Target URL: /library');
+            
+            // Force redirect to library page
+            try {
+                window.location.href = '/library';
+                console.log('📚 Redirect initiated successfully');
+            } catch (error) {
+                console.error('❌ Redirect failed:', error);
+                // Fallback - try different redirect method
+                window.location.assign('/library');
+            }
+        }
+
+        // Show Companion Stats placeholder
+        function showCompanionStats() {
+            console.log('📊 Companion stats feature - coming soon!');
+            alert('📊 Companion stats feature coming soon! Check back for detailed analytics about your conversations.');
+        }
+
+        // Add Sapphire helper when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            loadUserData();
+            addSapphireHelper();
+        });
+        
+        // Theme customization functions
+        function selectTheme(themeName) {
+            console.log('🎨 Selecting theme:', themeName);
+            
+            // Remove selected class from all theme cards
+            document.querySelectorAll('.theme-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // Add selected class to clicked theme
+            const selectedCard = document.querySelector(`[data-theme="${themeName}"]`);
+            if (selectedCard) {
+                selectedCard.classList.add('selected');
+            }
+            
+            // Apply the theme
+            applyTheme(themeName);
+            
+            // Save theme preference
+            saveThemePreference(themeName);
+        }
+        
+        function applyTheme(themeName) {
+            console.log('🎨 Applying theme:', themeName);
+            
+            // Theme color mappings
+            const themes = {
+                ocean: {
+                    primary: '#0077be',
+                    secondary: '#00a8cc', 
+                    accent: '#1dd1a1'
+                },
+                forest: {
+                    primary: '#2d5a27',
+                    secondary: '#4a7c59',
+                    accent: '#55a3ff'
+                },
+                sunset: {
+                    primary: '#ff6b35',
+                    secondary: '#f7931e',
+                    accent: '#ffd93d'
+                },
+                purple: {
+                    primary: '#6c5ce7',
+                    secondary: '#a29bfe',
+                    accent: '#fd79a8'
+                },
+                gold: {
+                    primary: '#FFD700',
+                    secondary: '#FFA500',
+                    accent: '#FFDF00'
+                },
+                royal: {
+                    primary: '#4B0082',
+                    secondary: '#9370DB',
+                    accent: '#8A2BE2'
+                }
+            };
+            
+            const theme = themes[themeName];
+            if (theme) {
+                // Apply theme colors to CSS variables
+                document.documentElement.style.setProperty('--theme-primary', theme.primary);
+                document.documentElement.style.setProperty('--theme-secondary', theme.secondary);
+                document.documentElement.style.setProperty('--theme-accent', theme.accent);
+                
+                // Update specific elements with theme colors
+                const panels = document.querySelectorAll('.profile-panel');
+                panels.forEach(panel => {
+                    panel.style.borderColor = theme.primary + '40'; // Add transparency
+                });
+                
+                const titles = document.querySelectorAll('.panel-title');
+                titles.forEach(title => {
+                    title.style.color = theme.primary;
+                });
+                
+                const buttons = document.querySelectorAll('.profile-btn.primary');
+                buttons.forEach(btn => {
+                    btn.style.background = `linear-gradient(135deg, ${theme.primary}, ${theme.secondary})`;
+                });
+                
+                // Show success message
+                showThemeSuccess(themeName);
+            }
+        }
+        
+        function saveThemePreference(themeName) {
+            console.log('💾 Saving theme preference:', themeName);
+            
+            // Save to localStorage for immediate persistence  
+            localStorage.setItem('soulbridge_theme', themeName);
+            
+            // Save to backend (if user is logged in)
+            if (window.profileManager && window.profileManager.userData) {
+                fetch('/api/preferences/theme', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ theme: themeName })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        console.log('✅ Theme preference saved to backend');
+                    } else {
+                        console.log('⚠️ Failed to save theme to backend:', data.error);
+                    }
+                })
+                .catch(error => {
+                    console.log('⚠️ Error saving theme to backend:', error);
+                });
+            }
+        }
+        
+        function loadSavedTheme() {
+            console.log('🎨 Loading saved theme...');
+            
+            // Check localStorage first
+            const savedTheme = localStorage.getItem('soulbridge_theme');
+            if (savedTheme) {
+                console.log('✅ Found saved theme in localStorage:', savedTheme);
+                selectTheme(savedTheme);
+                return;
+            }
+            
+            // Fallback to backend (if implemented)
+            if (window.profileManager && window.profileManager.userData) {
+                fetch('/api/preferences/theme')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success && data.theme) {
+                            console.log('✅ Found saved theme in backend:', data.theme);
+                            selectTheme(data.theme);
+                        } else {
+                            console.log('🎨 No saved theme found, using default');
+                        }
+                    })
+                    .catch(error => {
+                        console.log('⚠️ Error loading theme from backend:', error);
+                    });
+            }
+        }
+        
+        function showThemeSuccess(themeName) {
+            // Create temporary success message
+            const message = document.createElement('div');
+            message.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: linear-gradient(135deg, #10b981, #059669);
+                color: white;
+                padding: 1rem 1.5rem;
+                border-radius: 12px;
+                z-index: 10000;
+                box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+                transform: translateX(100%);
+                transition: transform 0.3s ease;
+            `;
+            message.innerHTML = `🎨 ${themeName.charAt(0).toUpperCase() + themeName.slice(1)} theme applied!`;
+            
+            document.body.appendChild(message);
+            
+            // Animate in
+            setTimeout(() => {
+                message.style.transform = 'translateX(0)';
+            }, 100);
+            
+            // Remove after 3 seconds
+            setTimeout(() => {
+                message.style.transform = 'translateX(100%)';
+                setTimeout(() => message.remove(), 300);
+            }, 3000);
+        }
+        
+        function openAdvancedThemes() {
+            console.log('🎨 Opening advanced theme editor...');
+            
+            // For now, redirect to the full preferences dashboard
+            window.location.href = '/preferences';
+        }
+        
+        // Load saved theme when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                loadSavedTheme();
+            }, 1000); // Wait for user data to load
+        });
+        
+        // Profile page uses default styling - no theme switching
+        console.log('📄 Profile page loaded - using default styling');
+    </script>
+</body>
+</html>

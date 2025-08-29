@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tier Lock Demo - SoulBridge AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/tier-lock.css') }}">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0a0e1a 0%, #1a202c 50%, #0a0e1a 100%);
+            color: white;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        
+        .demo-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .demo-section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem 0;
+            backdrop-filter: blur(10px);
+        }
+        
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .demo-feature {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            position: relative;
+        }
+        
+        .demo-companion {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            position: relative;
+            cursor: pointer;
+        }
+        
+        .demo-companion img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin-bottom: 0.5rem;
+        }
+        
+        .current-tier {
+            background: rgba(34, 211, 238, 0.2);
+            border: 1px solid #22d3ee;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            text-align: center;
+        }
+        
+        .limits-display {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 1rem 0;
+        }
+        
+        .limit-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+        
+        .back-btn {
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            text-decoration: none;
+            backdrop-filter: blur(10px);
+        }
+    </style>
+</head>
+<body>
+    <a href="/intro" class="back-btn">← Back to Intro</a>
+    
+    <div class="demo-container">
+        <h1>🔒 Tier Lock System Demo</h1>
+        <p>This page demonstrates the tier-based access control system with Bronze/Silver/Gold tiers.</p>
+        
+        <div class="current-tier">
+            <h3>Current User Status</h3>
+            <p>Plan: <strong id="user-plan">Loading...</strong></p>
+            <p>Trial: <strong id="trial-status">Loading...</strong></p>
+        </div>
+        
+        <div class="demo-section">
+            <h2>🎯 Feature Limits</h2>
+            <p>Current limits based on your tier:</p>
+            <div class="limits-display">
+                <div class="limit-badge">
+                    🧠 Decoder: <span data-feature-limit="decoder">Loading...</span>
+                </div>
+                <div class="limit-badge">
+                    🔮 Fortune: <span data-feature-limit="fortune">Loading...</span>
+                </div>
+                <div class="limit-badge">
+                    ⭐ Horoscope: <span data-feature-limit="horoscope">Loading...</span>
+                </div>
+                <div class="limit-badge">
+                    ✍️ Creative Writer: <span data-feature-limit="creative_writer">Loading...</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h2>🔒 Tier-Locked Features</h2>
+            <p>Try clicking these features - they'll show upgrade prompts if you don't have access:</p>
+            <div class="demo-grid">
+                <div class="demo-feature" data-tier-required="silver">
+                    <h3>🎙️ Voice Journaling</h3>
+                    <p>Record your thoughts with AI-powered voice analysis</p>
+                    <small>Requires Silver Tier</small>
+                </div>
+                
+                <div class="demo-feature" data-tier-required="gold">
+                    <h3>🎶 Mini Studio</h3>
+                    <p>Create music and soundscapes with AI</p>
+                    <small>Requires Gold Tier</small>
+                </div>
+                
+                <div class="demo-feature" data-tier-required="silver">
+                    <h3>🤖 AI Image Generation</h3>
+                    <p>Generate custom images for your projects</p>
+                    <small>Requires Silver Tier</small>
+                </div>
+                
+                <div class="demo-feature" data-tier-required="gold">
+                    <h3>🧘 Advanced Meditations</h3>
+                    <p>Personalized meditation experiences</p>
+                    <small>Requires Gold Tier</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h2>👥 Companion Tier Locks</h2>
+            <p>Companions are locked based on your tier. Click to see access status:</p>
+            <div class="demo-grid">
+                <div class="demo-companion" data-companion-tier="bronze">
+                    <img src="/static/logos/Blayzo.png" alt="Blayzo" onerror="this.src='/static/logos/The IntroLogo.png'">
+                    <h4>Blayzo</h4>
+                    <small>Bronze Tier</small>
+                </div>
+                
+                <div class="demo-companion" data-companion-tier="silver">
+                    <img src="/static/logos/Sky.png" alt="Sky" onerror="this.src='/static/logos/The IntroLogo.png'">
+                    <h4>Sky</h4>
+                    <small>Silver Tier</small>
+                </div>
+                
+                <div class="demo-companion" data-companion-tier="gold">
+                    <img src="/static/logos/Companion Crimson.png" alt="Crimson" onerror="this.src='/static/logos/The IntroLogo.png'">
+                    <h4>Companion Crimson</h4>
+                    <small>Gold Tier</small>
+                </div>
+                
+                <div class="demo-companion" data-companion-tier="gold">
+                    <img src="/static/logos/Companion Violet.png" alt="Violet" onerror="this.src='/static/logos/The IntroLogo.png'">
+                    <h4>Companion Violet</h4>
+                    <small>Gold Tier</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h2>🎮 Test Upgrade Modal</h2>
+            <p>Click the buttons below to test the upgrade modal for different tiers:</p>
+            <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                <button onclick="TierLock.showUpgradeModal('silver')" 
+                        style="background: linear-gradient(135deg, #c0c0c0, #a8a8a8); color: #1f2937; border: none; padding: 1rem 2rem; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                    🥈 Test Silver Upgrade
+                </button>
+                <button onclick="TierLock.showUpgradeModal('gold')" 
+                        style="background: linear-gradient(135deg, #ffd700, #ffb700); color: #1f2937; border: none; padding: 1rem 2rem; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                    🥇 Test Gold Upgrade
+                </button>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h2>📊 System Status</h2>
+            <div id="system-status">
+                <p>Tier Lock Manager: <span id="manager-status">Initializing...</span></p>
+                <p>User Access Data: <span id="access-status">Loading...</span></p>
+                <p>Accessible Tiers: <span id="accessible-tiers">Loading...</span></p>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/tier-lock.js') }}"></script>
+    <script>
+        // Demo page specific functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            // Update status displays when tier lock manager is ready
+            function updateStatusDisplays() {
+                if (window.TierLock && window.TierLock.initialized) {
+                    // Update user plan display
+                    const userPlan = window.TierLock.getCurrentPlan();
+                    document.getElementById('user-plan').textContent = userPlan.toUpperCase();
+                    
+                    // Update trial status
+                    const trialActive = window.TierLock.userAccess?.trial_live || false;
+                    document.getElementById('trial-status').textContent = trialActive ? 'ACTIVE' : 'INACTIVE';
+                    
+                    // Update manager status
+                    document.getElementById('manager-status').textContent = 'Ready ✅';
+                    document.getElementById('access-status').textContent = 'Loaded ✅';
+                    
+                    // Update accessible tiers
+                    const accessibleTiers = window.TierLock.userAccess?.unlocked_tiers || [];
+                    document.getElementById('accessible-tiers').textContent = accessibleTiers.join(', ').toUpperCase();
+                } else {
+                    // Still loading
+                    setTimeout(updateStatusDisplays, 500);
+                }
+            }
+            
+            // Start monitoring
+            updateStatusDisplays();
+            
+            // Update displays every 5 seconds
+            setInterval(updateStatusDisplays, 5000);
+        });
+    </script>
+</body>
+</html>

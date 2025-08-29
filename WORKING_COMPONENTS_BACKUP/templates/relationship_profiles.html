@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Relationship Profiles - SoulBridge AI</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: linear-gradient(135deg, #000000 0%, #0f172a 50%, #1e293b 100%);
+      color: #e2e8f0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: auto;
+      background: rgba(15, 23, 42, 0.8);
+      border: 2px solid rgba(34, 211, 238, 0.2);
+      border-radius: 20px;
+      padding: 40px;
+      backdrop-filter: blur(20px);
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .header h1 {
+      color: #22d3ee;
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+      text-shadow: 0 0 20px rgba(34, 211, 238, 0.5);
+    }
+
+    .header p {
+      color: #94a3b8;
+      font-size: 1.1rem;
+    }
+
+    .credit-display {
+      margin-top: 20px;
+      padding: 15px;
+      background: rgba(34, 211, 238, 0.1);
+      border: 1px solid rgba(34, 211, 238, 0.3);
+      border-radius: 12px;
+      display: inline-block;
+    }
+
+    .credit-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #22d3ee;
+      font-weight: 600;
+    }
+
+    .credit-info i {
+      color: #fbbf24;
+    }
+
+    .credit-cost {
+      color: #94a3b8;
+      font-weight: normal;
+    }
+
+    .add-profile-section {
+      background: rgba(34, 211, 238, 0.1);
+      border: 2px solid rgba(34, 211, 238, 0.3);
+      border-radius: 15px;
+      padding: 30px;
+      margin-bottom: 40px;
+    }
+
+    .add-profile-section h2 {
+      color: #22d3ee;
+      margin-bottom: 20px;
+      font-size: 1.5rem;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      color: #e2e8f0;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid rgba(34, 211, 238, 0.3);
+      border-radius: 8px;
+      background: rgba(15, 23, 42, 0.6);
+      color: #e2e8f0;
+      font-size: 1rem;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: #22d3ee;
+      box-shadow: 0 0 10px rgba(34, 211, 238, 0.3);
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .relationship-type-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .type-option {
+      padding: 10px;
+      border: 2px solid rgba(34, 211, 238, 0.3);
+      border-radius: 8px;
+      background: rgba(15, 23, 42, 0.4);
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .type-option:hover {
+      border-color: #22d3ee;
+      background: rgba(34, 211, 238, 0.1);
+    }
+
+    .type-option.selected {
+      border-color: #22d3ee;
+      background: rgba(34, 211, 238, 0.2);
+      color: #22d3ee;
+    }
+
+    .add-btn {
+      background: linear-gradient(135deg, #22d3ee, #0891b2);
+      color: #000;
+      border: none;
+      padding: 12px 30px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 1rem;
+    }
+
+    .add-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(34, 211, 238, 0.4);
+    }
+
+    .profiles-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 20px;
+      margin-top: 30px;
+    }
+
+    .profile-card {
+      background: rgba(15, 23, 42, 0.6);
+      border: 2px solid rgba(34, 211, 238, 0.2);
+      border-radius: 15px;
+      padding: 25px;
+      transition: all 0.3s ease;
+    }
+
+    .profile-card:hover {
+      border-color: #22d3ee;
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(34, 211, 238, 0.2);
+    }
+
+    .profile-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .profile-name {
+      color: #22d3ee;
+      font-size: 1.3rem;
+      font-weight: 600;
+    }
+
+    .relationship-type {
+      background: rgba(34, 211, 238, 0.2);
+      color: #22d3ee;
+      padding: 4px 12px;
+      border-radius: 15px;
+      font-size: 0.9rem;
+    }
+
+    .profile-info {
+      margin-bottom: 15px;
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      color: #94a3b8;
+    }
+
+    .info-label {
+      font-weight: 600;
+    }
+
+    .health-score {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 15px 0;
+    }
+
+    .score-bar {
+      flex: 1;
+      height: 8px;
+      background: rgba(34, 211, 238, 0.2);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .score-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #ef4444, #fbbf24, #10b981);
+      border-radius: 4px;
+      transition: width 0.3s ease;
+    }
+
+    .score-value {
+      color: #22d3ee;
+      font-weight: 600;
+    }
+
+    .profile-notes {
+      background: rgba(34, 211, 238, 0.05);
+      border: 1px solid rgba(34, 211, 238, 0.2);
+      border-radius: 8px;
+      padding: 12px;
+      margin-top: 15px;
+      color: #e2e8f0;
+      font-size: 0.9rem;
+      line-height: 1.4;
+    }
+
+    .profile-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .action-btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: all 0.3s ease;
+    }
+
+    .edit-btn {
+      background: rgba(34, 211, 238, 0.2);
+      color: #22d3ee;
+      border: 1px solid rgba(34, 211, 238, 0.3);
+    }
+
+    .delete-btn {
+      background: rgba(239, 68, 68, 0.2);
+      color: #ef4444;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .action-btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .back-btn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: rgba(34, 211, 238, 0.8);
+      color: #000;
+      padding: 10px 16px;
+      border-radius: 20px;
+      text-decoration: none;
+      font-weight: bold;
+      transition: all 0.3s ease;
+    }
+
+    .back-btn:hover {
+      background: rgba(34, 211, 238, 1);
+      transform: translateY(-2px);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #94a3b8;
+    }
+
+    .empty-state h3 {
+      color: #22d3ee;
+      margin-bottom: 15px;
+      font-size: 1.5rem;
+    }
+
+    .stats-overview {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .stat-card {
+      background: rgba(34, 211, 238, 0.1);
+      border: 1px solid rgba(34, 211, 238, 0.2);
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .stat-number {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #22d3ee;
+      margin-bottom: 5px;
+    }
+
+    .stat-label {
+      color: #94a3b8;
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 768px) {
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+      
+      .profiles-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .stats-overview {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a href="/chat" class="back-btn">← Back to Chat</a>
+
+  <div class="container">
+    <div class="header">
+      <h1>👤 Relationship Profiles</h1>
+      <p>Track and improve your relationships with personalized insights</p>
+      
+      <!-- Credit Display -->
+      <div class="credit-display" id="creditDisplay">
+        <div class="credit-info">
+          <i class="fas fa-coins"></i>
+          <span>Artistic Time: <span id="currentCredits">Loading...</span></span>
+          <span class="credit-cost">• 15 artistic time per analysis</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats Overview -->
+    <div class="stats-overview" id="statsOverview">
+      <div class="stat-card">
+        <div class="stat-number" id="totalProfiles">0</div>
+        <div class="stat-label">Total Profiles</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="avgHealthScore">0%</div>
+        <div class="stat-label">Average Health Score</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="strongRelationships">0</div>
+        <div class="stat-label">Strong Relationships</div>
+      </div>
+    </div>
+
+    <!-- Add New Profile -->
+    <div class="add-profile-section">
+      <h2>➕ Add New Relationship Profile</h2>
+      <form id="profileForm">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="personName">Person's Name</label>
+            <input type="text" id="personName" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label for="connectionStrength">Connection Strength (1-10)</label>
+            <input type="number" id="connectionStrength" class="form-input" min="1" max="10" required>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label>Relationship Type</label>
+          <div class="relationship-type-grid">
+            <div class="type-option" data-type="family">👨‍👩‍👧‍👦 Family</div>
+            <div class="type-option" data-type="friend">👫 Friend</div>
+            <div class="type-option" data-type="romantic">💕 Romantic</div>
+            <div class="type-option" data-type="colleague">💼 Colleague</div>
+            <div class="type-option" data-type="mentor">🎓 Mentor</div>
+            <div class="type-option" data-type="other">🤝 Other</div>
+          </div>
+          <input type="hidden" id="relationshipType" required>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="meetingFrequency">Meeting Frequency</label>
+            <select id="meetingFrequency" class="form-input" required>
+              <option value="">Select frequency...</option>
+              <option value="daily">Daily</option>
+              <option value="weekly">Weekly</option>
+              <option value="monthly">Monthly</option>
+              <option value="rarely">Rarely</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="lastContact">Last Contact</label>
+            <input type="date" id="lastContact" class="form-input" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="notes">Notes & Observations</label>
+          <textarea id="notes" class="form-input" rows="3" placeholder="Any observations about this relationship..."></textarea>
+        </div>
+
+        <button type="submit" class="add-btn">Add Profile</button>
+      </form>
+    </div>
+
+    <!-- Relationship Profiles -->
+    <div id="profilesContainer">
+      <div class="empty-state" id="emptyState">
+        <h3>No Relationship Profiles Yet</h3>
+        <p>Start tracking your relationships by adding your first profile above.</p>
+      </div>
+      <div class="profiles-grid" id="profilesGrid" style="display: none;"></div>
+    </div>
+  </div>
+
+  <script>
+    let profiles = [];
+    let selectedType = '';
+
+    document.addEventListener('DOMContentLoaded', function() {
+      loadProfiles();
+      setupEventListeners();
+      loadCredits();
+    });
+
+    function setupEventListeners() {
+      // Relationship type selection
+      document.querySelectorAll('.type-option').forEach(option => {
+        option.addEventListener('click', function() {
+          document.querySelectorAll('.type-option').forEach(opt => opt.classList.remove('selected'));
+          this.classList.add('selected');
+          selectedType = this.dataset.type;
+          document.getElementById('relationshipType').value = selectedType;
+        });
+      });
+
+      // Form submission
+      document.getElementById('profileForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        addProfile();
+      });
+    }
+
+    async function addProfile() {
+      const formData = {
+        name: document.getElementById('personName').value,
+        type: document.getElementById('relationshipType').value,
+        connectionStrength: parseInt(document.getElementById('connectionStrength').value),
+        meetingFrequency: document.getElementById('meetingFrequency').value,
+        lastContact: document.getElementById('lastContact').value,
+        notes: document.getElementById('notes').value,
+        timestamp: new Date().toISOString()
+      };
+
+      try {
+        const response = await fetch('/api/relationship-profiles/add', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          credentials: 'include',
+          body: JSON.stringify(formData)
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          alert('Relationship profile added successfully!');
+          document.getElementById('profileForm').reset();
+          document.querySelectorAll('.type-option').forEach(opt => opt.classList.remove('selected'));
+          selectedType = '';
+          loadProfiles();
+        } else {
+          alert('Error adding profile: ' + result.error);
+        }
+
+      } catch (error) {
+        console.error('Error adding profile:', error);
+        alert('Error adding relationship profile');
+      }
+    }
+
+    async function loadProfiles() {
+      try {
+        const response = await fetch('/api/relationship-profiles/list', {
+          credentials: 'include'
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          profiles = result.profiles || [];
+          renderProfiles();
+          updateStats();
+        }
+
+      } catch (error) {
+        console.error('Error loading profiles:', error);
+      }
+    }
+
+    function renderProfiles() {
+      const emptyState = document.getElementById('emptyState');
+      const profilesGrid = document.getElementById('profilesGrid');
+
+      if (profiles.length === 0) {
+        emptyState.style.display = 'block';
+        profilesGrid.style.display = 'none';
+        return;
+      }
+
+      emptyState.style.display = 'none';
+      profilesGrid.style.display = 'grid';
+      profilesGrid.innerHTML = '';
+
+      profiles.forEach(profile => {
+        const healthScore = calculateHealthScore(profile);
+        const card = document.createElement('div');
+        card.className = 'profile-card';
+        card.innerHTML = `
+          <div class="profile-header">
+            <div class="profile-name">${profile.name}</div>
+            <div class="relationship-type">${getTypeIcon(profile.type)} ${profile.type}</div>
+          </div>
+          
+          <div class="profile-info">
+            <div class="info-row">
+              <span class="info-label">Connection Strength:</span>
+              <span>${profile.connectionStrength}/10</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Meeting Frequency:</span>
+              <span>${profile.meetingFrequency}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Last Contact:</span>
+              <span>${new Date(profile.lastContact).toLocaleDateString()}</span>
+            </div>
+          </div>
+
+          <div class="health-score">
+            <span class="info-label">Relationship Health:</span>
+            <div class="score-bar">
+              <div class="score-fill" style="width: ${healthScore}%"></div>
+            </div>
+            <span class="score-value">${healthScore}%</span>
+          </div>
+
+          ${profile.notes ? `<div class="profile-notes">${profile.notes}</div>` : ''}
+
+          <div class="profile-actions">
+            <button class="action-btn edit-btn" onclick="editProfile('${profile.id}')">✏️ Edit</button>
+            <button class="action-btn delete-btn" onclick="deleteProfile('${profile.id}')">🗑️ Delete</button>
+          </div>
+        `;
+        profilesGrid.appendChild(card);
+      });
+    }
+
+    function calculateHealthScore(profile) {
+      let score = 0;
+      
+      // Connection strength (40% weight)
+      score += (profile.connectionStrength / 10) * 40;
+      
+      // Meeting frequency (30% weight)
+      const frequencyScores = {
+        'daily': 30,
+        'weekly': 25,
+        'monthly': 15,
+        'rarely': 5
+      };
+      score += frequencyScores[profile.meetingFrequency] || 0;
+      
+      // Recency of contact (30% weight)
+      const daysSinceContact = Math.floor((new Date() - new Date(profile.lastContact)) / (1000 * 60 * 60 * 24));
+      if (daysSinceContact <= 7) score += 30;
+      else if (daysSinceContact <= 30) score += 20;
+      else if (daysSinceContact <= 90) score += 10;
+      else score += 5;
+      
+      return Math.round(Math.min(score, 100));
+    }
+
+    function getTypeIcon(type) {
+      const icons = {
+        'family': '👨‍👩‍👧‍👦',
+        'friend': '👫',
+        'romantic': '💕',
+        'colleague': '💼',
+        'mentor': '🎓',
+        'other': '🤝'
+      };
+      return icons[type] || '🤝';
+    }
+
+    function updateStats() {
+      const totalProfiles = profiles.length;
+      const avgHealthScore = profiles.length > 0 
+        ? Math.round(profiles.reduce((sum, p) => sum + calculateHealthScore(p), 0) / profiles.length)
+        : 0;
+      const strongRelationships = profiles.filter(p => calculateHealthScore(p) >= 80).length;
+
+      document.getElementById('totalProfiles').textContent = totalProfiles;
+      document.getElementById('avgHealthScore').textContent = avgHealthScore + '%';
+      document.getElementById('strongRelationships').textContent = strongRelationships;
+    }
+
+    async function deleteProfile(profileId) {
+      if (!confirm('Are you sure you want to delete this relationship profile?')) {
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/relationship-profiles/delete/${profileId}`, {
+          method: 'DELETE',
+          credentials: 'include'
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          alert('Profile deleted successfully!');
+          loadProfiles();
+        } else {
+          alert('Error deleting profile: ' + result.error);
+        }
+
+      } catch (error) {
+        console.error('Error deleting profile:', error);
+        alert('Error deleting profile');
+      }
+    }
+
+    function editProfile(profileId) {
+      // For now, just show an alert. In a full implementation, you'd open an edit form
+      alert('Edit functionality coming soon! For now, you can delete and re-add the profile.');
+    }
+
+    async function loadCredits() {
+      try {
+        const response = await fetch('/api/user-credits', {
+          method: 'GET',
+          credentials: 'include'
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          document.getElementById('currentCredits').textContent = result.credits || 0;
+        } else {
+          document.getElementById('currentCredits').textContent = '0';
+        }
+
+      } catch (error) {
+        console.error('Error loading artistic time:', error);
+        document.getElementById('currentCredits').textContent = 'Error';
+      }
+    }
+  </script>
+</body>
+</html>

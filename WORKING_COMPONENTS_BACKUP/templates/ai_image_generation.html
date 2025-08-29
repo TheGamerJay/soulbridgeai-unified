@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Image Generation - SoulBridge AI</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: linear-gradient(135deg, #000000 0%, #0f172a 50%, #1e293b 100%);
+      color: #e2e8f0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: auto;
+      background: rgba(15, 23, 42, 0.8);
+      border: 2px solid rgba(34, 211, 238, 0.2);
+      border-radius: 20px;
+      padding: 40px;
+      backdrop-filter: blur(20px);
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .header h1 {
+      color: #22d3ee;
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+      text-shadow: 0 0 20px rgba(34, 211, 238, 0.5);
+    }
+
+    .header p {
+      color: #94a3b8;
+      font-size: 1.1rem;
+    }
+
+    .credit-display {
+      margin-top: 20px;
+      padding: 15px;
+      background: rgba(34, 211, 238, 0.1);
+      border: 1px solid rgba(34, 211, 238, 0.3);
+      border-radius: 12px;
+      display: inline-block;
+    }
+
+    .credit-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #22d3ee;
+      font-weight: 600;
+    }
+
+    .credit-info i {
+      color: #fbbf24;
+    }
+
+    .credit-cost {
+      color: #94a3b8;
+      font-weight: normal;
+    }
+
+    .generation-form {
+      background: rgba(34, 211, 238, 0.1);
+      border: 2px solid rgba(34, 211, 238, 0.3);
+      border-radius: 15px;
+      padding: 30px;
+      margin-bottom: 40px;
+    }
+
+    .form-group {
+      margin-bottom: 25px;
+    }
+
+    .form-group label {
+      display: block;
+      color: #e2e8f0;
+      margin-bottom: 8px;
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+
+    .prompt-input {
+      width: 100%;
+      padding: 15px;
+      border: 2px solid rgba(34, 211, 238, 0.3);
+      border-radius: 12px;
+      background: rgba(15, 23, 42, 0.6);
+      color: #e2e8f0;
+      font-size: 1rem;
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    .prompt-input:focus {
+      outline: none;
+      border-color: #22d3ee;
+      box-shadow: 0 0 15px rgba(34, 211, 238, 0.3);
+    }
+
+    .style-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+      margin-top: 15px;
+    }
+
+    .style-option {
+      padding: 15px;
+      border: 2px solid rgba(34, 211, 238, 0.3);
+      border-radius: 12px;
+      background: rgba(15, 23, 42, 0.4);
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .style-option:hover {
+      border-color: #22d3ee;
+      background: rgba(34, 211, 238, 0.1);
+    }
+
+    .style-option.selected {
+      border-color: #22d3ee;
+      background: rgba(34, 211, 238, 0.2);
+      color: #22d3ee;
+    }
+
+    .style-icon {
+      font-size: 1.5rem;
+      margin-bottom: 8px;
+    }
+
+    .generate-btn {
+      background: linear-gradient(135deg, #22d3ee, #0891b2);
+      color: #000;
+      border: none;
+      padding: 15px 40px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      width: 100%;
+      margin-top: 20px;
+    }
+
+    .generate-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(34, 211, 238, 0.4);
+    }
+
+    .generate-btn:disabled {
+      background: rgba(34, 211, 238, 0.3);
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 40px;
+      color: #22d3ee;
+    }
+
+    .spinner {
+      width: 60px;
+      height: 60px;
+      border: 4px solid rgba(34, 211, 238, 0.3);
+      border-top: 4px solid #22d3ee;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .result-container {
+      display: none;
+      background: rgba(15, 23, 42, 0.6);
+      border: 2px solid rgba(34, 211, 238, 0.3);
+      border-radius: 15px;
+      padding: 30px;
+      margin-bottom: 30px;
+    }
+
+    .generated-image {
+      width: 100%;
+      max-width: 512px;
+      height: 512px;
+      border-radius: 12px;
+      margin: 0 auto 20px;
+      display: block;
+      object-fit: cover;
+      border: 3px solid rgba(34, 211, 238, 0.3);
+    }
+
+    .image-info {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .image-prompt {
+      color: #22d3ee;
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    .image-style {
+      color: #94a3b8;
+      font-size: 0.9rem;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .action-btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .download-btn {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+    }
+
+    .save-btn {
+      background: rgba(34, 211, 238, 0.2);
+      color: #22d3ee;
+      border: 2px solid rgba(34, 211, 238, 0.3);
+    }
+
+    .regenerate-btn {
+      background: rgba(168, 85, 247, 0.2);
+      color: #a855f7;
+      border: 2px solid rgba(168, 85, 247, 0.3);
+    }
+
+    .action-btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .gallery {
+      margin-top: 40px;
+    }
+
+    .gallery h3 {
+      color: #22d3ee;
+      font-size: 1.8rem;
+      margin-bottom: 25px;
+      text-align: center;
+    }
+
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 20px;
+    }
+
+    .gallery-item {
+      background: rgba(15, 23, 42, 0.4);
+      border: 1px solid rgba(34, 211, 238, 0.2);
+      border-radius: 12px;
+      padding: 15px;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .gallery-item:hover {
+      border-color: #22d3ee;
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px rgba(34, 211, 238, 0.2);
+    }
+
+    .gallery-image {
+      width: 100%;
+      height: 150px;
+      border-radius: 8px;
+      object-fit: cover;
+      margin-bottom: 10px;
+    }
+
+    .gallery-prompt {
+      color: #e2e8f0;
+      font-size: 0.9rem;
+      line-height: 1.3;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+
+    .gallery-date {
+      color: #94a3b8;
+      font-size: 0.8rem;
+      margin-top: 8px;
+    }
+
+    .back-btn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: rgba(34, 211, 238, 0.8);
+      color: #000;
+      padding: 10px 16px;
+      border-radius: 20px;
+      text-decoration: none;
+      font-weight: bold;
+      transition: all 0.3s ease;
+    }
+
+    .back-btn:hover {
+      background: rgba(34, 211, 238, 1);
+      transform: translateY(-2px);
+    }
+
+    .usage-info {
+      background: rgba(168, 85, 247, 0.1);
+      border: 1px solid rgba(168, 85, 247, 0.3);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+
+    .usage-count {
+      color: #a855f7;
+      font-size: 1.5rem;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .usage-limit {
+      color: #94a3b8;
+      font-size: 0.9rem;
+    }
+
+    .disclaimer-box {
+      background: rgba(251, 191, 36, 0.1);
+      border: 2px solid rgba(251, 191, 36, 0.3);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 30px;
+      box-shadow: 0 2px 10px rgba(251, 191, 36, 0.1);
+    }
+
+    .disclaimer-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #fbbf24;
+      font-size: 1.1rem;
+      margin-bottom: 15px;
+    }
+
+    .disclaimer-header i {
+      font-size: 1.2rem;
+    }
+
+    .disclaimer-content {
+      color: #e2e8f0;
+      line-height: 1.6;
+    }
+
+    .disclaimer-content ul {
+      margin: 15px 0;
+      padding-left: 20px;
+    }
+
+    .disclaimer-content li {
+      margin: 8px 0;
+      color: #cbd5e1;
+    }
+
+    .disclaimer-content strong {
+      color: #fbbf24;
+    }
+
+    .reference-upload-area {
+      border: 2px dashed rgba(34, 211, 238, 0.3);
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: rgba(34, 211, 238, 0.05);
+    }
+
+    .reference-upload-area:hover {
+      border-color: rgba(34, 211, 238, 0.5);
+      background: rgba(34, 211, 238, 0.1);
+    }
+
+    .upload-placeholder i {
+      font-size: 2rem;
+      color: #22d3ee;
+      margin-bottom: 10px;
+    }
+
+    .upload-placeholder p {
+      margin: 5px 0;
+      color: #e2e8f0;
+    }
+
+    .reference-preview {
+      position: relative;
+      display: inline-block;
+    }
+
+    .reference-preview img {
+      max-width: 200px;
+      max-height: 150px;
+      border-radius: 8px;
+      box-shadow: 0 4px 15px rgba(34, 211, 238, 0.3);
+    }
+
+    .remove-reference {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background: #ef4444;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+    }
+
+    .remove-reference:hover {
+      background: #dc2626;
+    }
+
+    @media (max-width: 768px) {
+      .style-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      
+      .action-buttons {
+        flex-direction: column;
+      }
+      
+      .gallery-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+  </style>
+</head>
+<body>
+  <a href="/chat" class="back-btn">← Back to Chat</a>
+
+  <div class="container">
+    <div class="header">
+      <h1>🤖 AI Image Generation</h1>
+      <p>Create stunning images from your imagination with AI</p>
+      
+      <!-- Credit Display -->
+      <div class="credit-display" id="creditDisplay">
+        <div class="credit-info">
+          <i class="fas fa-coins"></i>
+          <span>Artistic Time: <span id="currentCredits">Loading...</span></span>
+          <button id="refreshCreditsBtn" onclick="refreshCredits()" style="background: none; border: none; color: #22d3ee; cursor: pointer; margin-left: 10px; font-size: 0.8rem;" title="Refresh credits">🔄</button>
+          <span class="credit-cost">• 5 artistic time per image</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Copyright Disclaimer -->
+    <div class="disclaimer-box">
+      <div class="disclaimer-header">
+        <i class="fas fa-shield-alt"></i>
+        <strong>Important: Copyright & Usage Responsibility</strong>
+      </div>
+      <div class="disclaimer-content">
+        <p>By using this AI image generation service, you acknowledge and agree that:</p>
+        <ul>
+          <li><strong>You are solely responsible</strong> for ensuring any generated images comply with copyright, trademark, and intellectual property laws</li>
+          <li><strong>SoulBridge AI is not liable</strong> for any copyright infringement or legal issues arising from your use of generated images</li>
+          <li><strong>Generated images may contain</strong> copyrighted characters, brands, or intellectual property - use at your own risk</li>
+          <li><strong>Commercial use</strong> of generated images is your responsibility to clear legally</li>
+        </ul>
+        <p style="font-style: italic; margin-top: 10px;">
+          ⚖️ You assume all legal responsibility for how you use, share, or distribute any generated images.
+        </p>
+      </div>
+    </div>
+
+    <!-- Usage Info -->
+    <div class="usage-info">
+      <div class="usage-count" id="usageCount">0 / ∞</div>
+      <div class="usage-limit">Images generated this month</div>
+    </div>
+
+    <!-- Generation Form -->
+    <div class="generation-form">
+      <!-- Reference Image Upload -->
+      <div class="form-group">
+        <label for="referenceImage">
+          <i class="fas fa-image"></i>
+          Upload Reference Image (Optional)
+        </label>
+        <div class="reference-upload-area" id="referenceUploadArea">
+          <input type="file" id="referenceImage" accept="image/*" style="display: none;">
+          <div class="upload-placeholder" id="uploadPlaceholder">
+            <i class="fas fa-cloud-upload-alt"></i>
+            <p>Click to upload a reference image</p>
+            <p style="font-size: 0.8rem; color: #94a3b8;">AI will analyze your image and create a similar one</p>
+          </div>
+          <div class="reference-preview" id="referencePreview" style="display: none;">
+            <img id="referenceImg" alt="Reference">
+            <button type="button" class="remove-reference" onclick="removeReference()">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="imagePrompt">Describe your image</label>
+        <textarea 
+          id="imagePrompt" 
+          class="prompt-input"
+          placeholder="Describe the image you want to create... Or upload a reference image above for AI analysis!"
+          maxlength="800"
+        ></textarea>
+        <div style="text-align: right; color: #94a3b8; font-size: 0.9rem; margin-top: 5px;">
+          <span id="charCount">0</span>/800 characters
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Art Style</label>
+        <div class="style-grid">
+          <div class="style-option selected" data-style="realistic">
+            <div class="style-icon">📸</div>
+            <div>Realistic</div>
+          </div>
+          <div class="style-option" data-style="artistic">
+            <div class="style-icon">🎨</div>
+            <div>Artistic</div>
+          </div>
+          <div class="style-option" data-style="cartoon">
+            <div class="style-icon">🎭</div>
+            <div>Cartoon</div>
+          </div>
+          <div class="style-option" data-style="fantasy">
+            <div class="style-icon">🧙‍♂️</div>
+            <div>Fantasy</div>
+          </div>
+          <div class="style-option" data-style="abstract">
+            <div class="style-icon">🌀</div>
+            <div>Abstract</div>
+          </div>
+          <div class="style-option" data-style="minimalist">
+            <div class="style-icon">⭕</div>
+            <div>Minimalist</div>
+          </div>
+        </div>
+      </div>
+
+      <button class="generate-btn" id="generateBtn" onclick="generateImage()">
+        ✨ Generate Image
+      </button>
+    </div>
+
+    <!-- Loading State -->
+    <div class="loading" id="loadingState">
+      <div class="spinner"></div>
+      <p>Creating your image...</p>
+      <p style="font-size: 0.9rem; color: #94a3b8; margin-top: 10px;">This usually takes 10-30 seconds</p>
+    </div>
+
+    <!-- Result Container -->
+    <div class="result-container" id="resultContainer">
+      <img id="generatedImage" class="generated-image" alt="Generated image">
+      
+      <div class="image-info">
+        <div class="image-prompt" id="resultPrompt"></div>
+        <div class="image-style" id="resultStyle"></div>
+      </div>
+
+      <div class="action-buttons">
+        <button class="action-btn download-btn" onclick="downloadImage()">
+          📥 Download
+        </button>
+        <button class="action-btn save-btn" onclick="saveToGallery()">
+          💾 Save to Gallery
+        </button>
+        <button class="action-btn regenerate-btn" onclick="regenerateImage()">
+          🔄 Regenerate
+        </button>
+      </div>
+    </div>
+
+    <!-- Gallery -->
+    <div class="gallery">
+      <h3>🖼️ Your Image Gallery</h3>
+      <div class="gallery-grid" id="galleryGrid">
+        <!-- Gallery items will be populated here -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentPrompt = '';
+    let currentStyle = 'realistic';
+    let currentImageData = null;
+    let generatedImages = [];
+
+    document.addEventListener('DOMContentLoaded', function() {
+      setupEventListeners();
+      loadGallery();
+      loadUsageCount();
+      loadCredits();
+    });
+
+    function setupEventListeners() {
+      // Character counter
+      const promptInput = document.getElementById('imagePrompt');
+      const charCount = document.getElementById('charCount');
+      
+      promptInput.addEventListener('input', function() {
+        // Enforce 800 character limit
+        if (this.value.length > 800) {
+          this.value = this.value.substring(0, 800);
+        }
+        charCount.textContent = this.value.length;
+      });
+
+      // Style selection
+      document.querySelectorAll('.style-option').forEach(option => {
+        option.addEventListener('click', function() {
+          document.querySelectorAll('.style-option').forEach(opt => opt.classList.remove('selected'));
+          this.classList.add('selected');
+          currentStyle = this.dataset.style;
+        });
+      });
+    }
+
+    async function generateImage() {
+      const promptInput = document.getElementById('imagePrompt');
+      let prompt = promptInput.value.trim();
+
+      // If reference image is provided, analyze it first
+      if (referenceImageData) {
+        document.getElementById('loadingState').style.display = 'block';
+        document.getElementById('generateBtn').disabled = true;
+        
+        try {
+          // Analyze reference image with GPT-4 Vision
+          const analysisResponse = await fetch('/api/ai-image-generation/analyze-reference', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+              image: referenceImageData
+            })
+          });
+          
+          const analysisResult = await analysisResponse.json();
+          
+          if (analysisResult.success) {
+            if (prompt) {
+              // Combine user prompt with reference analysis
+              prompt = `Create an image with this style and composition: "${analysisResult.description}". But modify it to: ${prompt}`;
+            } else {
+              // Use only reference analysis
+              prompt = analysisResult.description;
+            }
+            // Enforce 800 character limit for AI-generated prompts
+            if (prompt.length > 800) {
+              prompt = prompt.substring(0, 800);
+              console.log('🔄 AI prompt truncated to 800 characters');
+            }
+            document.getElementById('imagePrompt').value = prompt;
+            
+            // Update character counter
+            document.getElementById('charCount').textContent = prompt.length;
+          } else {
+            // Error analyzing reference image (alert removed for production)
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('generateBtn').disabled = false;
+            return;
+          }
+        } catch (error) {
+          // Error analyzing reference image (alert removed for production)
+          document.getElementById('loadingState').style.display = 'none';
+          document.getElementById('generateBtn').disabled = false;
+          return;
+        }
+      }
+
+      if (!prompt) {
+  // No prompt provided (alert removed for production)
+        return;
+      }
+
+      if (prompt.length < 10) {
+  // Prompt too short (alert removed for production)
+        return;
+      }
+
+      currentPrompt = prompt;
+
+      // Show loading state
+      document.getElementById('generateBtn').disabled = true;
+      document.getElementById('loadingState').style.display = 'block';
+      document.getElementById('resultContainer').style.display = 'none';
+
+      try {
+        const response = await fetch('/api/ai-image-generation/generate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            prompt: prompt,
+            style: currentStyle
+          })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          displayGeneratedImage(result.imageUrl, prompt, currentStyle);
+          currentImageData = result;
+          loadUsageCount(); // Update usage count
+          loadCredits(); // Update credits display
+        } else {
+          alert(`Error: ${result.error || 'Failed to generate image. Please try again.'}`);
+          console.error('AI Image Generation Error:', result);
+        }
+
+      } catch (error) {
+        alert('Network error. Please check your connection and try again.');
+        console.error('Network Error:', error);
+      } finally {
+        document.getElementById('generateBtn').disabled = false;
+        document.getElementById('loadingState').style.display = 'none';
+      }
+    }
+
+    function displayGeneratedImage(imageUrl, prompt, style) {
+      const resultContainer = document.getElementById('resultContainer');
+      const generatedImage = document.getElementById('generatedImage');
+      const resultPrompt = document.getElementById('resultPrompt');
+      const resultStyle = document.getElementById('resultStyle');
+
+      generatedImage.src = imageUrl;
+      resultPrompt.textContent = prompt;
+      resultStyle.textContent = `Style: ${style.charAt(0).toUpperCase() + style.slice(1)}`;
+
+      resultContainer.style.display = 'block';
+      resultContainer.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    async function saveToGallery() {
+      if (!currentImageData) {
+        alert('No image to save. Please generate an image first.');
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/ai-image-generation/save', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            imageUrl: currentImageData.imageUrl,
+            prompt: currentPrompt,
+            style: currentStyle,
+            timestamp: new Date().toISOString()
+          })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          loadGallery();
+          alert('Image saved to gallery!');
+        } else {
+          alert(`Error saving image: ${result.error || 'Please try again.'}`);
+          console.error('Save Error:', result);
+        }
+
+      } catch (error) {
+        alert('Network error while saving. Please try again.');
+        console.error('Save Network Error:', error);
+      }
+    }
+
+    function downloadImage() {
+      if (!currentImageData) {
+  // No image to download (alert removed for production)
+        return;
+      }
+
+      const link = document.createElement('a');
+      link.href = currentImageData.imageUrl;
+      link.download = `soulbridge-ai-generated-${Date.now()}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    function regenerateImage() {
+      if (currentPrompt) {
+        generateImage();
+      } else {
+        alert('Please enter a prompt first!');
+      }
+    }
+
+    async function loadGallery() {
+      try {
+        const response = await fetch('/api/ai-image-generation/gallery', {
+          credentials: 'include'
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          generatedImages = result.images || [];
+          renderGallery();
+        }
+
+      } catch (error) {
+        console.error('Error loading gallery:', error);
+      }
+    }
+
+    function renderGallery() {
+      const galleryGrid = document.getElementById('galleryGrid');
+      galleryGrid.innerHTML = '';
+
+      if (generatedImages.length === 0) {
+        galleryGrid.innerHTML = `
+          <div style="grid-column: 1 / -1; text-align: center; color: #94a3b8; padding: 40px;">
+            <p>No images generated yet. Create your first AI image above!</p>
+          </div>
+        `;
+        return;
+      }
+
+      generatedImages.forEach(image => {
+        const item = document.createElement('div');
+        item.className = 'gallery-item';
+        item.onclick = () => displayGeneratedImage(image.imageUrl, image.prompt, image.style);
+
+        // SECURITY: Safe DOM creation instead of innerHTML to prevent XSS
+        const img = document.createElement('img');
+        img.src = image.imageUrl;
+        img.alt = image.prompt;
+        img.className = 'gallery-image';
+        
+        const promptDiv = document.createElement('div');
+        promptDiv.className = 'gallery-prompt';
+        promptDiv.textContent = image.prompt;
+        
+        const dateDiv = document.createElement('div');
+        dateDiv.className = 'gallery-date';
+        dateDiv.textContent = new Date(image.timestamp).toLocaleDateString();
+        
+        item.appendChild(img);
+        item.appendChild(promptDiv);
+        item.appendChild(dateDiv);
+
+        galleryGrid.appendChild(item);
+      });
+    }
+
+    async function loadUsageCount() {
+      try {
+        // Show loading state
+        const usageElement = document.getElementById('usageCount');
+        usageElement.textContent = '... / ...';
+        
+        // Detect current tier from URL path
+        const currentPath = window.location.pathname;
+        let tierParam = '';
+        if (currentPath.includes('/silver')) {
+          tierParam = '?tier=silver';
+        } else if (currentPath.includes('/gold')) {
+          tierParam = '?tier=gold';
+        }
+        
+        const response = await fetch(`/api/ai-image-generation/usage${tierParam}`, {
+          credentials: 'include'
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          // Ensure we display the correct limit format
+          const displayLimit = result.limit >= 999 ? '999' : (result.limit || '?');
+          usageElement.textContent = `${result.used || 0} / ${displayLimit}`;
+          console.log(`AI Usage loaded: ${result.used || 0} / ${displayLimit} (raw limit: ${result.limit})`);
+        } else {
+          usageElement.textContent = '? / ?';
+        }
+
+      } catch (error) {
+        console.error('Error loading usage count:', error);
+        document.getElementById('usageCount').textContent = '? / ?';
+      }
+    }
+
+    async function loadCredits() {
+      try {
+        const response = await fetch('/api/user-credits', {
+          method: 'GET',
+          credentials: 'include'
+        });
+
+        const result = await response.json();
+        
+        // Debug logging
+        console.log('🔍 Credits API Response:', result);
+
+        if (result.success) {
+          const credits = result.credits || 0;
+          console.log('🔍 Setting credits to:', credits);
+          document.getElementById('currentCredits').textContent = credits;
+        } else {
+          console.log('🔍 API returned error:', result.error);
+          document.getElementById('currentCredits').textContent = '0';
+        }
+
+      } catch (error) {
+        console.error('Error loading credits:', error);
+        document.getElementById('currentCredits').textContent = 'Error';
+      }
+    }
+
+    async function refreshCredits() {
+      try {
+        const refreshBtn = document.getElementById('refreshCreditsBtn');
+        refreshBtn.textContent = '⏳'; // Hourglass while loading
+        
+        const response = await fetch('/api/refresh-user-credits', {
+          method: 'POST',
+          credentials: 'include'
+        });
+
+        const result = await response.json();
+        console.log('🔄 Credits refresh response:', result);
+        
+        if (result.success) {
+          document.getElementById('currentCredits').textContent = result.credits || 0;
+          refreshBtn.textContent = '✓'; // Checkmark for success
+          setTimeout(() => {
+            refreshBtn.textContent = '🔄'; // Back to refresh icon
+          }, 2000);
+        } else {
+          console.error('Failed to refresh credits:', result.error);
+          refreshBtn.textContent = '❌'; // X for error
+          setTimeout(() => {
+            refreshBtn.textContent = '🔄';
+          }, 2000);
+        }
+
+      } catch (error) {
+        console.error('Error refreshing credits:', error);
+        const refreshBtn = document.getElementById('refreshCreditsBtn');
+        refreshBtn.textContent = '❌';
+        setTimeout(() => {
+          refreshBtn.textContent = '🔄';
+        }, 2000);
+      }
+    }
+
+    // Reference image handling
+    let referenceImageData = null;
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const uploadArea = document.getElementById('referenceUploadArea');
+      const fileInput = document.getElementById('referenceImage');
+      
+      uploadArea.addEventListener('click', () => {
+        fileInput.click();
+      });
+      
+      fileInput.addEventListener('change', handleReferenceUpload);
+    });
+
+    async function handleReferenceUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      if (!file.type.startsWith('image/')) {
+        alert('Please upload an image file');
+        return;
+      }
+
+      if (file.size > 10 * 1024 * 1024) { // 10MB limit
+        alert('Image too large. Please upload an image under 10MB');
+        return;
+      }
+
+      // Show preview
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const placeholder = document.getElementById('uploadPlaceholder');
+        const preview = document.getElementById('referencePreview');
+        const img = document.getElementById('referenceImg');
+        
+        img.src = e.target.result;
+        placeholder.style.display = 'none';
+        preview.style.display = 'block';
+        
+        referenceImageData = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function removeReference() {
+      const placeholder = document.getElementById('uploadPlaceholder');
+      const preview = document.getElementById('referencePreview');
+      const fileInput = document.getElementById('referenceImage');
+      
+      placeholder.style.display = 'block';
+      preview.style.display = 'none';
+      fileInput.value = '';
+      referenceImageData = null;
+    }
+  </script>
+</body>
+</html>

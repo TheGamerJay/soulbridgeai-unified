@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Choose Companion</title>
+    <style>
+        body { background: #0a0a0a; color: #00ffff; font-family: Arial; padding: 20px; }
+        h1 { text-align: center; }
+        .companions { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; }
+        .companion { border: 1px solid #00ffff; padding: 20px; border-radius: 8px; cursor: pointer; text-align: center; }
+        .companion:hover { background: rgba(0,255,255,0.1); }
+    </style>
+</head>
+<body>
+    <h1>Choose Your Companion</h1>
+    <div class="companions">
+        <div class="companion" onclick="selectCompanion('blayzo_free')">
+            <h3>Blayzo</h3>
+            <p>Free companion</p>
+        </div>
+        <div class="companion" onclick="selectCompanion('blayzica_free')">
+            <h3>Blayzica</h3>
+            <p>Free companion</p>
+        </div>
+        <div class="companion" onclick="selectCompanion('companion_gamerjay')">
+            <h3>GamerJay</h3>
+            <p>Free companion</p>
+        </div>
+    </div>
+    <script>
+        let isSelecting = false;
+        let lastSelectedId = null;
+        
+        function selectCompanion(id) {
+            // Prevent double-clicks and race conditions
+            if (isSelecting) {
+                return;
+            }
+            // Prevent selecting same companion multiple times rapidly
+            if (lastSelectedId === id) {
+                return;
+            }
+            isSelecting = true;
+            lastSelectedId = id;
+            
+            // Visual feedback
+            const companionElement = event.target.closest('.companion');
+            if (companionElement) {
+                companionElement.style.opacity = '0.5';
+                companionElement.style.pointerEvents = 'none';
+            }
+            
+            // Redirect to chat immediately to prevent additional clicks
+            window.location.href = '/chat/' + id;
+        }
+    </script>
+</body>
+</html>

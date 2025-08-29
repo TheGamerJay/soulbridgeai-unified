@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Voice Journaling - SoulBridge AI</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: linear-gradient(135deg, #000000 0%, #0f172a 50%, #1e293b 100%);
+      color: #e2e8f0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: auto;
+      background: rgba(15, 23, 42, 0.8);
+      border: 2px solid rgba(34, 211, 238, 0.2);
+      border-radius: 20px;
+      padding: 40px;
+      backdrop-filter: blur(20px);
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .header h1 {
+      color: #22d3ee;
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+      text-shadow: 0 0 20px rgba(34, 211, 238, 0.5);
+    }
+
+    .header p {
+      color: #94a3b8;
+      font-size: 1.1rem;
+    }
+
+    .credit-display {
+      margin-top: 20px;
+      padding: 15px;
+      background: rgba(34, 211, 238, 0.1);
+      border: 1px solid rgba(34, 211, 238, 0.3);
+      border-radius: 12px;
+      display: inline-block;
+    }
+
+    .credit-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #22d3ee;
+      font-weight: 600;
+    }
+
+    .credit-info i {
+      color: #fbbf24;
+    }
+
+    .credit-cost {
+      color: #94a3b8;
+      font-weight: normal;
+    }
+
+    .voice-recorder {
+      background: rgba(34, 211, 238, 0.1);
+      border: 2px solid rgba(34, 211, 238, 0.3);
+      border-radius: 15px;
+      padding: 30px;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .record-button {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      border: none;
+      background: linear-gradient(135deg, #22d3ee, #0891b2);
+      color: #000;
+      font-size: 2rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+    }
+
+    .record-button:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 30px rgba(34, 211, 238, 0.6);
+    }
+
+    .record-button.recording {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+
+    .recording-status {
+      font-size: 1.2rem;
+      margin: 10px 0;
+      color: #22d3ee;
+    }
+
+    .recording-timer {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #fbbf24;
+    }
+
+    .transcription-area {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(34, 211, 238, 0.3);
+      border-radius: 12px;
+      padding: 20px;
+      margin: 20px 0;
+      min-height: 150px;
+    }
+
+    .transcription-area h3 {
+      color: #22d3ee;
+      margin-bottom: 15px;
+      font-size: 1.3rem;
+    }
+
+    .transcription-text {
+      color: #e2e8f0;
+      line-height: 1.6;
+      font-size: 1.1rem;
+    }
+
+    .ai-analysis {
+      background: rgba(34, 211, 238, 0.05);
+      border: 1px solid rgba(34, 211, 238, 0.2);
+      border-radius: 12px;
+      padding: 20px;
+      margin: 20px 0;
+    }
+
+    .ai-analysis h3 {
+      color: #22d3ee;
+      margin-bottom: 15px;
+      font-size: 1.3rem;
+    }
+
+    .emotion-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 15px 0;
+    }
+
+    .emotion-tag {
+      background: rgba(34, 211, 238, 0.2);
+      color: #22d3ee;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      border: 1px solid rgba(34, 211, 238, 0.3);
+    }
+
+    .save-button {
+      background: linear-gradient(135deg, #22d3ee, #0891b2);
+      color: #000;
+      border: none;
+      padding: 12px 30px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin: 20px 0;
+    }
+
+    .save-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(34, 211, 238, 0.4);
+    }
+
+    .journal-entries {
+      margin-top: 40px;
+    }
+
+    .entry-card {
+      background: rgba(15, 23, 42, 0.4);
+      border: 1px solid rgba(34, 211, 238, 0.2);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .entry-date {
+      color: #94a3b8;
+      font-size: 0.9rem;
+      margin-bottom: 10px;
+    }
+
+    .back-btn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: rgba(34, 211, 238, 0.8);
+      color: #000;
+      padding: 10px 16px;
+      border-radius: 20px;
+      text-decoration: none;
+      font-weight: bold;
+      transition: all 0.3s ease;
+    }
+
+    .back-btn:hover {
+      background: rgba(34, 211, 238, 1);
+      transform: translateY(-2px);
+    }
+
+    .loading {
+      display: none;
+      text-align: center;
+      color: #22d3ee;
+      margin: 20px 0;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid rgba(34, 211, 238, 0.3);
+      border-top: 4px solid #22d3ee;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 10px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <a href="/chat" class="back-btn">← Back to Chat</a>
+
+  <div class="container">
+    <div class="header">
+      <h1>🔊 Voice Journaling</h1>
+      <p>Record your thoughts and emotions for AI-powered emotional analysis</p>
+      
+      <!-- Credit Display -->
+      <div class="credit-display" id="creditDisplay">
+        <div class="credit-info">
+          <i class="fas fa-coins"></i>
+          <span>Artistic Time: <span id="currentCredits">Loading...</span></span>
+          <span class="credit-cost">• 10 artistic time per session</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Tool Disclaimer -->
+    <div style="background: linear-gradient(135deg, rgba(255, 107, 107, 0.15) 0%, rgba(255, 142, 83, 0.15) 100%); border: 2px solid rgba(255, 107, 107, 0.3); border-radius: 12px; padding: 20px; margin: 20px 0; backdrop-filter: blur(10px);">
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+            <span style="font-size: 1.5em;">🤖</span>
+            <strong style="color: #FF6B6B;">AI-Powered Voice Analysis Tool</strong>
+        </div>
+        <p style="margin: 10px 0; font-size: 0.9rem; color: #cbd5e1;">
+            Voice Journaling uses AI to analyze your recorded thoughts and emotions. Transcription and analysis may contain errors. 
+            <strong>This is not professional therapy or medical advice.</strong> Your voice data is processed securely.
+        </p>
+        <div style="display: flex; align-items: center; gap: 10px; margin-top: 15px;">
+            <input type="checkbox" id="voice-disclaimer" style="accent-color: #00ffff;">
+            <label for="voice-disclaimer" style="font-size: 0.9rem; color: #e2e8f0;">
+                I understand this is an AI tool for self-reflection and not professional guidance
+            </label>
+        </div>
+    </div>
+
+    <div class="voice-recorder">
+      <button id="recordButton" class="record-button">🎤</button>
+      <div class="recording-status" id="status">Click to start recording</div>
+      <div class="recording-timer" id="timer">00:00</div>
+    </div>
+
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      <p>Processing your voice recording...</p>
+    </div>
+
+    <div class="transcription-area" id="transcriptionArea" style="display: none;">
+      <h3>📝 Transcription</h3>
+      <div class="transcription-text" id="transcriptionText"></div>
+    </div>
+
+    <div class="ai-analysis" id="aiAnalysis" style="display: none;">
+      <h3>🤖 AI Emotional Analysis</h3>
+      <div id="analysisText"></div>
+      <div class="emotion-tags" id="emotionTags"></div>
+    </div>
+
+    <button class="save-button" id="saveButton" style="display: none;" onclick="saveJournalEntry()">
+      💾 Save Journal Entry
+    </button>
+
+    <div class="journal-entries" id="journalEntries">
+      <h3 style="color: #22d3ee; margin-bottom: 20px;">📚 Recent Journal Entries</h3>
+      <div id="entriesList"></div>
+    </div>
+  </div>
+
+  <script>
+    let mediaRecorder;
+    let audioChunks = [];
+    let recording = false;
+    let recordingStartTime;
+    let timerInterval;
+    let currentTranscription = '';
+    let currentAnalysis = '';
+
+    const recordButton = document.getElementById('recordButton');
+    const status = document.getElementById('status');
+    const timer = document.getElementById('timer');
+    const loading = document.getElementById('loading');
+    const transcriptionArea = document.getElementById('transcriptionArea');
+    const transcriptionText = document.getElementById('transcriptionText');
+    const aiAnalysis = document.getElementById('aiAnalysis');
+    const analysisText = document.getElementById('analysisText');
+    const emotionTags = document.getElementById('emotionTags');
+    const saveButton = document.getElementById('saveButton');
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', function() {
+      loadJournalEntries();
+      checkMicrophonePermission();
+      loadCredits();
+    });
+
+    async function checkMicrophonePermission() {
+      try {
+        await navigator.mediaDevices.getUserMedia({ audio: true });
+        status.textContent = 'Click to start recording';
+      } catch (error) {
+        status.textContent = 'Microphone permission required';
+        status.style.color = '#ef4444';
+      }
+    }
+
+    recordButton.addEventListener('click', toggleRecording);
+
+    async function toggleRecording() {
+      if (!recording) {
+        await startRecording();
+      } else {
+        stopRecording();
+      }
+    }
+
+    async function startRecording() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        
+        mediaRecorder = new MediaRecorder(stream);
+        audioChunks = [];
+        
+        mediaRecorder.ondataavailable = event => {
+          audioChunks.push(event.data);
+        };
+        
+        mediaRecorder.onstop = async () => {
+          const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+          await processAudioRecording(audioBlob);
+        };
+        
+        mediaRecorder.start();
+        recording = true;
+        recordingStartTime = Date.now();
+        
+        recordButton.textContent = '⏹️';
+        recordButton.classList.add('recording');
+        status.textContent = 'Recording... Click to stop';
+        
+        startTimer();
+        
+      } catch (error) {
+        console.error('Error starting recording:', error);
+        status.textContent = 'Error: Could not access microphone';
+        status.style.color = '#ef4444';
+      }
+    }
+
+    function stopRecording() {
+      if (mediaRecorder && recording) {
+        mediaRecorder.stop();
+        mediaRecorder.stream.getTracks().forEach(track => track.stop());
+        
+        recording = false;
+        recordButton.textContent = '🎤';
+        recordButton.classList.remove('recording');
+        status.textContent = 'Processing recording...';
+        
+        clearInterval(timerInterval);
+        loading.style.display = 'block';
+      }
+    }
+
+    function startTimer() {
+      timerInterval = setInterval(() => {
+        const elapsed = Date.now() - recordingStartTime;
+        const minutes = Math.floor(elapsed / 60000);
+        const seconds = Math.floor((elapsed % 60000) / 1000);
+        timer.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+      }, 1000);
+    }
+
+    async function processAudioRecording(audioBlob) {
+      try {
+        const formData = new FormData();
+        formData.append('audio', audioBlob, 'recording.wav');
+        
+        const response = await fetch('/api/voice-journaling/transcribe', {
+          method: 'POST',
+          body: formData,
+          credentials: 'include'
+        });
+        
+        const result = await response.json();
+        
+        loading.style.display = 'none';
+        
+        if (result.success) {
+          currentTranscription = result.transcription;
+          currentAnalysis = result.analysis;
+          
+          // Show transcription
+          transcriptionText.textContent = result.transcription;
+          transcriptionArea.style.display = 'block';
+          
+          // Show AI analysis
+          analysisText.textContent = result.analysis.summary;
+          
+          // Show emotion tags
+          emotionTags.innerHTML = '';
+          if (result.analysis.emotions) {
+            result.analysis.emotions.forEach(emotion => {
+              const tag = document.createElement('span');
+              tag.className = 'emotion-tag';
+              tag.textContent = emotion;
+              emotionTags.appendChild(tag);
+            });
+          }
+          
+          aiAnalysis.style.display = 'block';
+          saveButton.style.display = 'block';
+          
+          status.textContent = 'Recording processed successfully!';
+          status.style.color = '#10b981';
+          
+        } else {
+          status.textContent = 'Error processing recording: ' + result.error;
+          status.style.color = '#ef4444';
+        }
+        
+      } catch (error) {
+        console.error('Error processing recording:', error);
+        loading.style.display = 'none';
+        status.textContent = 'Error processing recording';
+        status.style.color = '#ef4444';
+      }
+    }
+
+    async function saveJournalEntry() {
+      try {
+        const response = await fetch('/api/voice-journaling/save', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            transcription: currentTranscription,
+            analysis: currentAnalysis,
+            timestamp: new Date().toISOString()
+          })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          alert('Journal entry saved successfully!');
+          loadJournalEntries();
+          resetRecording();
+        } else {
+          alert('Error saving entry: ' + result.error);
+        }
+        
+      } catch (error) {
+        console.error('Error saving entry:', error);
+        alert('Error saving journal entry');
+      }
+    }
+
+    function resetRecording() {
+      transcriptionArea.style.display = 'none';
+      aiAnalysis.style.display = 'none';
+      saveButton.style.display = 'none';
+      status.textContent = 'Click to start recording';
+      status.style.color = '#22d3ee';
+      timer.textContent = '00:00';
+      currentTranscription = '';
+      currentAnalysis = '';
+    }
+
+    async function loadJournalEntries() {
+      try {
+        const response = await fetch('/api/voice-journaling/entries', {
+          credentials: 'include'
+        });
+        
+        const result = await response.json();
+        
+        if (result.success && result.entries) {
+          const entriesList = document.getElementById('entriesList');
+          entriesList.innerHTML = '';
+          
+          result.entries.forEach(entry => {
+            const entryCard = document.createElement('div');
+            entryCard.className = 'entry-card';
+            entryCard.innerHTML = `
+              <div class="entry-date">${new Date(entry.timestamp).toLocaleString()}</div>
+              <div class="transcription-text">${entry.transcription}</div>
+              <div style="margin-top: 10px; color: #94a3b8; font-style: italic;">${entry.analysis}</div>
+            `;
+            entriesList.appendChild(entryCard);
+          });
+        }
+        
+      } catch (error) {
+        console.error('Error loading entries:', error);
+      }
+    }
+
+    async function loadCredits() {
+      try {
+        const response = await fetch('/api/user-credits', {
+          method: 'GET',
+          credentials: 'include'
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          document.getElementById('currentCredits').textContent = result.credits || 0;
+        } else {
+          document.getElementById('currentCredits').textContent = '0';
+        }
+
+      } catch (error) {
+        console.error('Error loading artistic time:', error);
+        document.getElementById('currentCredits').textContent = 'Error';
+      }
+    }
+  </script>
+</body>
+</html>

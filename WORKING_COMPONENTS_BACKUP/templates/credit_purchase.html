@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Purchase Trainer Credits - SoulBridge AI</title>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='logos/favicon.ico') }}">
+    <script src="https://js.stripe.com/v3/"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            min-height: 100vh;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        .credit-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 1rem;
+        }
+
+        .current-balance {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .balance-amount {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #fbbf24;
+            margin-bottom: 0.5rem;
+        }
+
+        .balance-label {
+            opacity: 0.8;
+            font-size: 1.1rem;
+        }
+
+        .warning-box {
+            background: rgba(239, 68, 68, 0.2);
+            border: 2px solid #ef4444;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .warning-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .warning-icon {
+            font-size: 1.5rem;
+            margin-right: 0.75rem;
+        }
+
+        .warning-title {
+            color: #ef4444;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .warning-text {
+            color: #fca5a5;
+            line-height: 1.6;
+        }
+
+        .packages-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .package-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .package-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            border-color: #fbbf24;
+        }
+
+        .package-badge {
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #10b981;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .package-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .package-credits {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #fbbf24;
+            margin-bottom: 0.5rem;
+        }
+
+        .package-price {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+        }
+
+        .package-value {
+            font-size: 0.9rem;
+            opacity: 0.7;
+            margin-bottom: 1.5rem;
+        }
+
+        .package-features {
+            list-style: none;
+            margin-bottom: 2rem;
+            text-align: left;
+        }
+
+        .package-features li {
+            padding: 0.5rem 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .feature-icon {
+            color: #10b981;
+            margin-right: 0.5rem;
+        }
+
+        .purchase-btn {
+            width: 100%;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: #1f2937;
+        }
+
+        .purchase-btn:hover {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(251, 191, 36, 0.4);
+        }
+
+        .purchase-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .access-locked {
+            text-align: center;
+            background: rgba(239, 68, 68, 0.2);
+            border: 2px solid #ef4444;
+            border-radius: 20px;
+            padding: 3rem;
+            margin: 2rem 0;
+        }
+
+        .lock-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .lock-title {
+            font-size: 1.8rem;
+            color: #ef4444;
+            margin-bottom: 1rem;
+        }
+
+        .lock-text {
+            font-size: 1.1rem;
+            opacity: 0.8;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .upgrade-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .upgrade-btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .upgrade-btn.silver {
+            background: linear-gradient(135deg, #c0c0c0, #a8a8a8);
+            color: #1f2937;
+        }
+
+        .upgrade-btn.gold {
+            background: linear-gradient(135deg, #ffd700, #ffb700);
+            color: #1f2937;
+        }
+
+        .upgrade-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .back-button {
+            position: fixed;
+            top: 2rem;
+            left: 2rem;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50px;
+            padding: 1rem 1.5rem;
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            opacity: 0.7;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .packages-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .back-button {
+                position: static;
+                margin-bottom: 2rem;
+                align-self: flex-start;
+            }
+            
+            .upgrade-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+
+        /* Animations */
+        @keyframes creditPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .balance-amount {
+            animation: creditPulse 3s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+    <a href="/profile" class="back-button">
+        ← Back to Profile
+    </a>
+
+    <div class="credit-container">
+        <div class="header">
+            <h1>💎 Purchase Trainer Credits</h1>
+            <p>Get additional artistic time for premium AI features</p>
+        </div>
+
+        <div id="loadingIndicator" class="loading">
+            <div>🔄 Loading credit packages...</div>
+        </div>
+
+        <div id="creditContent" style="display: none;">
+            <!-- Current Balance Display -->
+            <div class="current-balance">
+                <div class="balance-amount" id="currentBalance">0</div>
+                <div class="balance-label">Current Trainer Credits</div>
+            </div>
+
+            <!-- Warning about rollover policy -->
+            <div class="warning-box">
+                <div class="warning-header">
+                    <span class="warning-icon">⚠️</span>
+                    <h3 class="warning-title">Important: No Rollover Policy</h3>
+                </div>
+                <p class="warning-text">
+                    <strong>All trainer credits reset on your billing cycle and unused credits do NOT carry over.</strong> 
+                    Purchase additional credits only when you're sure you'll use them within your current billing period. 
+                    Any credits not used before your next monthly reset will be lost.
+                </p>
+            </div>
+
+            <!-- Credit Packages -->
+            <div class="packages-grid" id="packagesGrid">
+                <!-- Basic Package -->
+                <div class="package-card">
+                    <div class="package-icon">⏰</div>
+                    <div class="package-credits">350 Credits</div>
+                    <div class="package-price">$4.99</div>
+                    <div class="package-value">$0.014 per credit</div>
+                    <ul class="package-features">
+                        <li><span class="feature-icon">✅</span> Instant delivery</li>
+                        <li><span class="feature-icon">✅</span> Use on any premium feature</li>
+                        <li><span class="feature-icon">✅</span> Valid until billing reset</li>
+                    </ul>
+                    <button class="purchase-btn" onclick="purchaseCredits(350, 4.99, 'basic')">
+                        Purchase Now
+                    </button>
+                </div>
+
+                <!-- Popular Package -->
+                <div class="package-card">
+                    <div class="package-badge">Most Popular</div>
+                    <div class="package-icon">⭐</div>
+                    <div class="package-credits">750 Credits</div>
+                    <div class="package-price">$9.99</div>
+                    <div class="package-value">$0.013 per credit</div>
+                    <ul class="package-features">
+                        <li><span class="feature-icon">✅</span> Instant delivery</li>
+                        <li><span class="feature-icon">✅</span> Better value per credit</li>
+                        <li><span class="feature-icon">✅</span> Use on any premium feature</li>
+                        <li><span class="feature-icon">✅</span> Valid until billing reset</li>
+                    </ul>
+                    <button class="purchase-btn" onclick="purchaseCredits(750, 9.99, 'popular')">
+                        Purchase Now
+                    </button>
+                </div>
+
+                <!-- Best Value Package -->
+                <div class="package-card">
+                    <div class="package-badge">Best Value</div>
+                    <div class="package-icon">💎</div>
+                    <div class="package-credits">1200 Credits</div>
+                    <div class="package-price">$14.99</div>
+                    <div class="package-value">$0.012 per credit</div>
+                    <ul class="package-features">
+                        <li><span class="feature-icon">✅</span> Instant delivery</li>
+                        <li><span class="feature-icon">✅</span> Best value per credit</li>
+                        <li><span class="feature-icon">✅</span> Use on any premium feature</li>
+                        <li><span class="feature-icon">✅</span> Valid until billing reset</li>
+                    </ul>
+                    <button class="purchase-btn" onclick="purchaseCredits(1200, 14.99, 'value')">
+                        Purchase Now
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Access Locked for Bronze Users -->
+        <div id="accessLocked" class="access-locked" style="display: none;">
+            <div class="lock-icon">🔒</div>
+            <h2 class="lock-title">Silver or Gold Plan Required</h2>
+            <p class="lock-text">
+                Credit purchases are only available for Silver and Gold plan subscribers. 
+                Upgrade your plan to unlock the ability to purchase additional trainer credits when you run out of your monthly allocation.
+            </p>
+            <div class="upgrade-buttons">
+                <a href="/subscription" class="upgrade-btn silver">
+                    🥈 Upgrade to Silver
+                </a>
+                <a href="/subscription" class="upgrade-btn gold">
+                    🥇 Upgrade to Gold
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class CreditPurchaseManager {
+            constructor() {
+                this.userData = null;
+                this.userAccess = null;
+                this.loadUserData();
+            }
+
+            async loadUserData() {
+                try {
+                    console.log('🔄 Loading user data for credit purchase...');
+                    
+                    const response = await fetch('/api/me', {
+                        method: 'GET',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'same-origin'
+                    });
+
+                    if (response.ok) {
+                        const result = await response.json();
+                        if (result.success) {
+                            this.userData = result.user;
+                            this.userAccess = result.access;
+                            
+                            this.checkAccess();
+                            this.updateDisplay();
+                            this.showContent();
+                        } else {
+                            throw new Error(result.error || 'Failed to load user data');
+                        }
+                    } else {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                } catch (error) {
+                    console.error('❌ User data loading failed:', error);
+                    // Show Bronze user screen as fallback
+                    this.showAccessLocked();
+                }
+            }
+
+            checkAccess() {
+                const plan = this.userData.plan || 'bronze';
+                
+                if (plan === 'bronze') {
+                    this.showAccessLocked();
+                    return false;
+                }
+                
+                return true;
+            }
+
+            updateDisplay() {
+                // Update current balance
+                const currentBalance = this.userData.trainer_credits || 0;
+                document.getElementById('currentBalance').textContent = currentBalance;
+            }
+
+            showContent() {
+                document.getElementById('loadingIndicator').style.display = 'none';
+                document.getElementById('creditContent').style.display = 'block';
+            }
+
+            showAccessLocked() {
+                document.getElementById('loadingIndicator').style.display = 'none';
+                document.getElementById('accessLocked').style.display = 'block';
+            }
+        }
+
+        // Global purchase function
+        async function purchaseCredits(credits, price, packageType) {
+            try {
+                // Confirmation dialog
+                const confirmed = confirm(`Purchase ${credits} trainer credits for $${price.toFixed(2)}?\n\n⚠️ IMPORTANT: Credits will be added instantly but reset at your monthly billing cycle with NO ROLLOVER. Only purchase if you'll use them before your next reset.\n\nContinue with purchase?`);
+                
+                if (!confirmed) {
+                    return;
+                }
+
+                // Disable button during purchase
+                const buttons = document.querySelectorAll('.purchase-btn');
+                buttons.forEach(btn => {
+                    btn.disabled = true;
+                    btn.textContent = 'Processing...';
+                });
+
+                // Create Stripe checkout session
+                const response = await fetch('/api/credits/purchase', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({
+                        credits: credits,
+                        price: price,
+                        package_type: packageType
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    // Redirect to Stripe Checkout
+                    window.location.href = result.checkout_url;
+                } else {
+                    throw new Error(result.error || 'Failed to create checkout session');
+                }
+            } catch (error) {
+                console.error('Credit purchase error:', error);
+                alert('❌ Failed to start credit purchase: ' + error.message);
+                
+                // Re-enable buttons
+                const buttons = document.querySelectorAll('.purchase-btn');
+                buttons.forEach(btn => {
+                    btn.disabled = false;
+                    btn.textContent = 'Purchase Now';
+                });
+            }
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            new CreditPurchaseManager();
+        });
+    </script>
+</body>
+</html>

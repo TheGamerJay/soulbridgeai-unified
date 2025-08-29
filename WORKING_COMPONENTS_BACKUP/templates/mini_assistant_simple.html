@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mini Assistant - SoulBridge AI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #1a1a1a;
+            color: #e1e1e1;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            background: #2d2d2d;
+            padding: 15px 20px;
+            border-bottom: 1px solid #404040;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .header h1 {
+            color: #00d4aa;
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .back-link {
+            color: #8e8e8e;
+            text-decoration: none;
+            font-size: 14px;
+            padding: 8px 12px;
+            border: 1px solid #404040;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        
+        .back-link:hover {
+            color: #00d4aa;
+            border-color: #00d4aa;
+        }
+        
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+            padding: 20px;
+        }
+        
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        
+        .message {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid #404040;
+        }
+        
+        .user-message {
+            background: #262626;
+            border-color: #505050;
+        }
+        
+        .assistant-message {
+            background: #1e2b26;
+            border-color: #2d4a37;
+        }
+        
+        .message-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 600;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+        
+        .user-avatar {
+            background: #3366cc;
+            color: white;
+        }
+        
+        .assistant-avatar {
+            background: #00d4aa;
+            color: #1a1a1a;
+        }
+        
+        .message-content {
+            flex: 1;
+            line-height: 1.6;
+            font-size: 15px;
+            word-wrap: break-word;
+        }
+        
+        .input-area {
+            border-top: 1px solid #404040;
+            padding: 20px 0 0 0;
+        }
+        
+        .input-container {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+        }
+        
+        .input-wrapper {
+            flex: 1;
+            position: relative;
+        }
+        
+        .message-input {
+            width: 100%;
+            background: #262626;
+            border: 1px solid #404040;
+            border-radius: 8px;
+            padding: 12px 50px 12px 16px;
+            color: #e1e1e1;
+            font-size: 15px;
+            line-height: 1.4;
+            resize: none;
+            min-height: 46px;
+            max-height: 120px;
+            font-family: inherit;
+        }
+        
+        .message-input:focus {
+            outline: none;
+            border-color: #00d4aa;
+        }
+        
+        .message-input::placeholder {
+            color: #8e8e8e;
+        }
+        
+        .send-button {
+            background: #00d4aa;
+            border: none;
+            border-radius: 6px;
+            padding: 12px 16px;
+            color: #1a1a1a;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+        
+        .send-button:hover:not(:disabled) {
+            background: #00b896;
+        }
+        
+        .send-button:disabled {
+            background: #404040;
+            color: #8e8e8e;
+            cursor: not-allowed;
+        }
+        
+        .quick-actions {
+            margin-bottom: 16px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .quick-action {
+            background: none;
+            border: 1px solid #404040;
+            color: #e1e1e1;
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        
+        .quick-action:hover {
+            border-color: #00d4aa;
+            color: #00d4aa;
+        }
+        
+        .loading {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            color: #8e8e8e;
+            font-size: 14px;
+            margin: 16px 0;
+        }
+        
+        .loading.show {
+            display: flex;
+        }
+        
+        .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid #404040;
+            border-top: 2px solid #00d4aa;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .status-badge {
+            background: #2d4a37;
+            color: #00d4aa;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .welcome-message {
+            text-align: center;
+            color: #8e8e8e;
+            margin: 40px 0;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+        
+        .welcome-message strong {
+            color: #00d4aa;
+        }
+        
+        /* Scrollbar styling */
+        .messages::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .messages::-webkit-scrollbar-track {
+            background: #1a1a1a;
+        }
+        
+        .messages::-webkit-scrollbar-thumb {
+            background: #404040;
+            border-radius: 4px;
+        }
+        
+        .messages::-webkit-scrollbar-thumb:hover {
+            background: #505050;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>
+            <img src="{{ url_for('static', filename='logos/The IntroLogo.png') }}" alt="SoulBridge AI" style="height: 24px; width: auto; margin-right: 8px; filter: brightness(1.2);">
+            Mini Assistant
+        </h1>
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <span class="status-badge" id="statusBadge">Ready</span>
+            <a href="/admin" class="back-link">← Back to Admin</a>
+        </div>
+    </div>
+
+    <div class="chat-container">
+        <div class="messages" id="messages">
+            <div class="welcome-message">
+                <img src="{{ url_for('static', filename='logos/The IntroLogo.png') }}" alt="SoulBridge AI" style="height: 40px; width: auto; margin-bottom: 16px; filter: brightness(1.2);"><br>
+                <strong>Welcome to your SoulBridge AI Mini Assistant!</strong><br>
+                I understand your project and can help with:<br>
+                • Code debugging and analysis<br>
+                • Git commits and project management<br>
+                • Tier isolation system questions<br>
+                • General development assistance<br><br>
+                Just ask me anything!
+            </div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <span>Mini Assistant is thinking...</span>
+        </div>
+
+        <div class="input-area">
+            <div class="quick-actions">
+                <button class="quick-action" onclick="quickCommand('What is the current status of the tier isolation system?')">
+                    Tier Status
+                </button>
+                <button class="quick-action" onclick="quickCommand('Show me recent git commits')">
+                    Recent Commits
+                </button>
+                <button class="quick-action" onclick="quickCommand('Help me debug a function')">
+                    Debug Help
+                </button>
+                <button class="quick-action" onclick="quickCommand('What should I work on next?')">
+                    Next Tasks
+                </button>
+                <button class="quick-action" onclick="quickCommand('Review my recent changes')">
+                    Code Review
+                </button>
+            </div>
+            
+            <div class="input-container">
+                <div class="input-wrapper">
+                    <textarea 
+                        id="messageInput" 
+                        class="message-input" 
+                        placeholder="Ask me anything about your SoulBridge AI project..."
+                        rows="1"
+                    ></textarea>
+                </div>
+                <button id="sendButton" class="send-button" onclick="sendMessage()">
+                    Send
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const messagesContainer = document.getElementById('messages');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+        const loading = document.getElementById('loading');
+        const statusBadge = document.getElementById('statusBadge');
+
+        // Auto-resize textarea
+        messageInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+        });
+
+        // Send on Enter (but not Shift+Enter)
+        messageInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        function quickCommand(command) {
+            messageInput.value = command;
+            sendMessage();
+        }
+
+        async function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message) return;
+
+            // Add user message
+            addMessage('user', message);
+            messageInput.value = '';
+            messageInput.style.height = 'auto';
+
+            // Show loading
+            showLoading(true);
+
+            try {
+                // Use main Flask server only
+                const response = await fetch('/api/mini-assistant', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        context: 'soulbridge-development'
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    addMessage('assistant', data.response);
+                } else {
+                    addMessage('assistant', 'Sorry, I encountered an error: ' + (data.error || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                addMessage('assistant', 'Sorry, I could not connect to the Mini Assistant service. Please check your connection and try again.');
+            }
+
+            showLoading(false);
+        }
+
+        function addMessage(type, content) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}-message`;
+            
+            const avatarDiv = document.createElement('div');
+            avatarDiv.className = `message-avatar ${type}-avatar`;
+            avatarDiv.textContent = type === 'user' ? 'U' : 'AI';
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.textContent = content;
+            
+            messageDiv.appendChild(avatarDiv);
+            messageDiv.appendChild(contentDiv);
+            messagesContainer.appendChild(messageDiv);
+            
+            // Scroll to bottom
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function showLoading(show) {
+            loading.classList.toggle('show', show);
+            sendButton.disabled = show;
+        }
+
+        // Check backend status on load
+        async function checkStatus() {
+            try {
+                // Only try the main Flask server (no localhost:8080 fallback)
+                const response = await fetch('/api/mini-assistant-status');
+                if (!response.ok) {
+                    throw new Error(`Status check failed: ${response.status}`);
+                }
+                const data = await response.json();
+                
+                if (data.success) {
+                    statusBadge.textContent = data.claude_available ? '🧠 Claude Ready' : '🤖 Ready';
+                    statusBadge.style.background = data.claude_available ? '#2d4a37' : '#404040';
+                } else {
+                    statusBadge.textContent = 'Offline';
+                    statusBadge.style.background = '#4a2d2d';
+                }
+            } catch (error) {
+                statusBadge.textContent = 'Connection Error';
+                statusBadge.style.background = '#4a2d2d';
+            }
+        }
+
+        // Initialize
+        window.onload = function() {
+            messageInput.focus();
+            checkStatus();
+        };
+    </script>
+</body>
+</html>

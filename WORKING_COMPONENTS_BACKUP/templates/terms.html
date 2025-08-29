@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terms & Privacy - SoulBridge AI</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <meta name="theme-color" content="#00ffff">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}?v={{ range(1000000) | random }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        /* Terms Page Styling */
+        html, body {
+            background: #000000 !important;
+            color: #e2e8f0 !important;
+            font-family: system-ui, -apple-system, sans-serif !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            line-height: 1.6;
+        }
+
+        /* Stunning cyan animated background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 15% 25%, rgba(0, 255, 255, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 85% 75%, rgba(0, 255, 255, 0.06) 0%, transparent 45%),
+                radial-gradient(circle at 45% 85%, rgba(0, 255, 255, 0.04) 0%, transparent 35%);
+            pointer-events: none;
+            z-index: -1;
+            animation: breathe 4s ease-in-out infinite alternate;
+        }
+
+        @keyframes breathe {
+            0% { opacity: 0.6; }
+            100% { opacity: 1; }
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            margin-top: 20px;
+            margin-bottom: 40px;
+            box-shadow: 0 20px 60px rgba(0, 255, 255, 0.1);
+        }
+
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            background: linear-gradient(135deg, #00ffff 0%, #0891b2 100%);
+            color: #000000;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 255, 255, 0.3);
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .back-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 255, 255, 0.4);
+            background: linear-gradient(135deg, #22d3ee 0%, #0891b2 100%);
+        }
+
+        h1 {
+            color: #00ffff !important;
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 30px;
+            text-shadow: 0 4px 20px rgba(0, 255, 255, 0.6);
+        }
+
+        h2 {
+            color: #22d3ee !important;
+            font-size: 1.8rem;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        h3 {
+            color: #00ffff !important;
+            font-size: 1.4rem;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+
+        .ai-disclaimer {
+            background: linear-gradient(135deg, rgba(255, 107, 107, 0.15) 0%, rgba(255, 142, 83, 0.15) 100%);
+            border: 2px solid rgba(255, 107, 107, 0.3);
+            border-radius: 16px;
+            padding: 25px;
+            margin: 30px 0;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 30px rgba(255, 107, 107, 0.2);
+        }
+
+        .ai-disclaimer h2 {
+            color: #FF6B6B !important;
+            margin-top: 0;
+        }
+
+        .important-box {
+            background: rgba(255, 193, 7, 0.1);
+            border-left: 5px solid #FFD700;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+
+        .important-box h3 {
+            color: #FFD700 !important;
+            margin-top: 0;
+        }
+
+        .checkbox-container {
+            background: rgba(0, 255, 255, 0.1);
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 25px 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+        }
+
+        .checkbox-container input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-top: 5px;
+            accent-color: #00ffff;
+        }
+
+        .checkbox-container label {
+            color: #e2e8f0;
+            font-weight: 500;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        ul {
+            padding-left: 20px;
+            margin: 15px 0;
+        }
+
+        li {
+            margin: 10px 0;
+            color: #cbd5e1;
+        }
+
+        strong {
+            color: #00ffff;
+        }
+
+        .warning-icon {
+            color: #FF6B6B;
+            font-size: 1.2em;
+        }
+
+        .shield-icon {
+            color: #00ffff;
+            font-size: 1.2em;
+        }
+
+        .brain-icon {
+            color: #22d3ee;
+            font-size: 1.2em;
+        }
+
+        a {
+            color: #22d3ee;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        a:hover {
+            color: #00ffff;
+            text-decoration: underline;
+        }
+
+        .section {
+            margin: 40px 0;
+            padding: 20px 0;
+        }
+
+        .last-updated {
+            color: #94a3b8;
+            font-size: 0.9rem;
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            h2 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Back Button -->
+    <a href="javascript:history.back()" class="back-button" title="Go Back">
+        ← Go Back
+    </a>
+
+    <div class="container">
+        <h1><i class="fas fa-shield-alt"></i> Terms of Service & Privacy Policy</h1>
+
+        <!-- AI Tool Disclaimer -->
+        <div class="ai-disclaimer">
+            <h2><i class="fas fa-brain brain-icon"></i> SoulBridgeAI is an AI-Powered Emotional Support Tool</h2>
+            
+            <p>SoulBridgeAI uses artificial intelligence to help you express thoughts, process emotions, and explore your inner world. While it may feel personal and insightful, all responses are generated by an AI model and may include errors, incomplete information, or unexpected behavior.</p>
+
+            <div class="important-box">
+                <h3><i class="fas fa-exclamation-triangle warning-icon"></i> Important:</h3>
+                <ul>
+                    <li><strong>SoulBridgeAI is not a licensed therapist, counselor, or medical professional</strong></li>
+                    <li><strong>It is not a substitute for professional help in mental health, legal, financial, or medical matters</strong></li>
+                    <li><strong>Always consult a qualified professional for serious or urgent concerns</strong></li>
+                </ul>
+            </div>
+
+            <p><strong>By using SoulBridgeAI, you agree to:</strong></p>
+            <ul>
+                <li>Use it for self-expression, creativity, or entertainment</li>
+                <li>Avoid sharing highly sensitive personal data (e.g., legal cases, medical issues, account credentials)</li>
+                <li>Accept that your interactions may be used to improve the service, always respecting our Privacy Policy and Terms of Use</li>
+            </ul>
+
+            <!-- Acknowledgment Checkbox -->
+            <div class="checkbox-container">
+                <input type="checkbox" id="ai-disclaimer-checkbox" required>
+                <label for="ai-disclaimer-checkbox">
+                    <strong>💡 I understand this is an AI tool and not professional advice</strong>
+                </label>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2><i class="fas fa-file-contract"></i> Terms of Service</h2>
+            
+            <h3>Acceptance of Terms</h3>
+            <p>By accessing or using SoulBridge AI, you agree to be bound by these Terms of Service and our Privacy Policy. If you disagree with any part of these terms, you may not access the service.</p>
+
+            <h3>Description of Service</h3>
+            <p>SoulBridge AI is an AI-powered platform that provides:</p>
+            <ul>
+                <li>AI companion conversations with tier-based access (Free: GamerJay | Growth: Sky, GamerJay Premium | Max: Crimson, Violet | Referral Rewards: Blayzo, Nyxara)</li>
+                <li>Emotional processing tools (Decoder, Voice Journaling)</li>
+                <li>Wellness features (Fortune, Horoscope, Meditations)</li>
+                <li>Creative and productivity assistance (Creative Writer, Mini Studio for Max tier)</li>
+                <li>Anonymous community sharing with companion avatars</li>
+            </ul>
+
+            <h3>User Responsibilities</h3>
+            <p>You agree to:</p>
+            <ul>
+                <li>Use the service responsibly and in accordance with applicable laws</li>
+                <li>Not use the service for harmful, illegal, or malicious purposes</li>
+                <li>Respect the intellectual property rights of SoulBridge AI</li>
+                <li>Not attempt to reverse engineer or exploit the service</li>
+                <li>Understand that AI responses are generated content, not professional advice</li>
+            </ul>
+
+            <h3>Account Security</h3>
+            <p>You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account.</p>
+
+            <h3>Service Availability</h3>
+            <p>We strive to keep SoulBridge AI available 24/7, but we do not guarantee uninterrupted service. We reserve the right to modify, suspend, or discontinue the service at any time.</p>
+
+            <h3>Subscription and Billing</h3>
+            <p>SoulBridge AI offers multiple subscription tiers:</p>
+            <ul>
+                <li><strong>Bronze Tier:</strong> Basic features with advertising, limited daily usage (Decoder: 3 uses, Fortune: 3 uses, Horoscope: 3 uses, Creative Writer: 2 uses), and 0 monthly artistic time credits</li>
+                <li><strong>5-Hour Trial:</strong> Available to Bronze users only - Unlocks Silver/Gold tier access temporarily with 60 trial artistic time credits</li>
+                <li><strong>Ad-Free Upgrade:</strong> $5/month - Removes advertisements only (keeps Bronze tier limits)</li>
+                <li><strong>Silver Tier:</strong> $12.99/month or $117/year (25% savings) - Enhanced limits (Decoder: 15, Fortune: 8, Horoscope: 10, Creative Writer: 15) and 200 monthly artistic time credits with premium features unlocked</li>
+                <li><strong>Gold Tier:</strong> $19.99/month or $180/year (25% savings) - Unlimited daily usage and 500 monthly artistic time credits with all features including Mini Studio</li>
+            </ul>
+            <p>By subscribing, you agree to:</p>
+            <ul>
+                <li>Pay the fees associated with your chosen plan</li>
+                <li>Automatic renewal unless cancelled before the billing cycle ends</li>
+                <li>No refunds policy - you retain access for the full paid period</li>
+                <li>Credits reset monthly and do not roll over between billing cycles</li>
+                <li>Additional credits can be purchased by active subscribers</li>
+            </ul>
+
+            <h3>Referral Program</h3>
+            <p>SoulBridge AI offers a referral program that allows users to earn exclusive companion rewards by referring friends:</p>
+            <ul>
+                <li>Each user receives a unique referral code that can be shared</li>
+                <li>Referral rewards are unlocked at specific thresholds (Blayzo requires 1000 referral points, Nyxara requires 6 referral points)</li>
+                <li>Referred users must verify their account (email/phone) and maintain account activity for 24+ hours</li>
+                <li>Anti-abuse measures are in place to prevent fraudulent referrals</li>
+                <li>Referral rewards include exclusive companions: Blayzo - The Community Champion and Nyxara - The Mystical Guardian</li>
+                <li>Referral companions provide unique personalities and special features not available through subscriptions</li>
+                <li>We reserve the right to revoke referral rewards obtained through fraudulent means</li>
+            </ul>
+
+            <h3>Companion System</h3>
+            <p>Users can access different companions based on their subscription tier and referral achievements:</p>
+            <ul>
+                <li>Companions provide unique AI personalities and conversation experiences</li>
+                <li>Each companion has distinct themes, personalities, and special features</li>
+                <li>Subscription-based companions are available as long as your subscription is active</li>
+                <li>Referral-earned companions remain permanently unlocked in your account</li>
+                <li>We may add new companions or modify existing ones to improve the experience</li>
+            </ul>
+
+            <h3>Anonymous Community System</h3>
+            <p>SoulBridge AI provides an anonymous community feature where users can share thoughts and connect with others:</p>
+            <ul>
+                <li><strong>Anonymous-Only Posting:</strong> All community posts are anonymous - usernames are never displayed</li>
+                <li><strong>Companion Avatars:</strong> Posts are displayed with your selected companion avatar for visual representation</li>
+                <li><strong>Content Categories:</strong> Posts are organized by categories (Gratitude, Peace, Growth, Healing, Dreams, Mood, Stress Relief)</li>
+                <li><strong>Emoji Reactions:</strong> Users can react to posts with approved emojis only - no comments or replies</li>
+                <li><strong>Content Moderation:</strong> All posts are subject to automated safety filtering and manual review</li>
+                <li><strong>Reporting and Muting:</strong> Users can report inappropriate content and mute specific authors, companions, or categories</li>
+                <li><strong>No Personal Information:</strong> Users must not share personal information, contact details, or attempts to de-anonymize others</li>
+                <li><strong>Community Guidelines:</strong> Content must be respectful, supportive, and focused on wellness and personal growth</li>
+            </ul>
+            
+            <p><strong>Community Content Rules:</strong></p>
+            <ul>
+                <li>Posts must be original thoughts, not copied content</li>
+                <li>No spam, repetitive content, or promotional material</li>
+                <li>No harassment, hate speech, or discriminatory content</li>
+                <li>No self-harm content or crisis situations (please contact professional help)</li>
+                <li>No attempts to share contact information or meet offline</li>
+                <li>Content should promote positive mental health and wellness</li>
+            </ul>
+            
+            <p><strong>Enforcement:</strong> Violation of community guidelines may result in content removal, temporary muting, or account restrictions. We reserve the right to moderate content at our discretion to maintain a safe, supportive environment.</p>
+
+            <h3>Limitation of Liability</h3>
+            <p>SoulBridge AI is provided "as is" without warranties. We are not liable for any damages arising from your use of the service. Your use of AI-generated content is at your own risk.</p>
+        </div>
+
+        <div class="section">
+            <h2><i class="fas fa-user-shield shield-icon"></i> Privacy Policy</h2>
+            
+            <h3>Information We Collect</h3>
+            <p>We collect information you provide directly to us, including:</p>
+            <ul>
+                <li>Account information (email, username, phone number for verification)</li>
+                <li>Conversation history with AI companions</li>
+                <li>Usage data and preferences</li>
+                <li>Payment information (processed securely by third-party providers)</li>
+                <li>Referral activity and tracking data</li>
+                <li>Subscription history and billing information</li>
+                <li>Cosmetic collection and equipment preferences</li>
+                <li>Anonymous community posts and reactions (content only, not linked to your identity)</li>
+                <li>Community interaction data (reactions given, content reported, muting preferences)</li>
+            </ul>
+
+            <h3>How We Use Your Information</h3>
+            <p>We use your information to:</p>
+            <ul>
+                <li>Provide and improve our AI services</li>
+                <li>Personalize your experience and manage cosmetic collections</li>
+                <li>Process payments and manage subscriptions</li>
+                <li>Track referral activity and distribute rewards</li>
+                <li>Verify account authenticity and prevent referral fraud</li>
+                <li>Send important service updates and promotional communications</li>
+                <li>Ensure platform security and prevent abuse</li>
+                <li>Moderate anonymous community content for safety and appropriateness</li>
+                <li>Provide community features while maintaining user anonymity</li>
+                <li>Generate anonymous usage analytics to improve the community experience</li>
+            </ul>
+
+            <h3>Data Security</h3>
+            <p>We implement appropriate security measures to protect your personal information. Your conversations are encrypted and stored securely. However, no method of transmission over the internet is 100% secure.</p>
+
+            <h3>Anonymous Community Privacy</h3>
+            <p>Our anonymous community system is designed with privacy-first principles:</p>
+            <ul>
+                <li><strong>True Anonymity:</strong> Community posts are never linked to your username or profile information</li>
+                <li><strong>Hash-Based System:</strong> We use one-way cryptographic hashes to enable features like muting while preserving anonymity</li>
+                <li><strong>Content-Only Storage:</strong> We store only the content of posts, selected category, and associated companion avatar</li>
+                <li><strong>No Direct Messaging:</strong> Users cannot contact each other directly through the community system</li>
+                <li><strong>Viewer-Scoped Muting:</strong> Muting preferences are stored locally to your account and don't reveal information about other users</li>
+                <li><strong>Automatic Content Filtering:</strong> Posts are automatically scanned for personal information and blocked before publication</li>
+                <li><strong>Limited Metadata:</strong> We only store necessary data for moderation and service improvement, not user behavior tracking</li>
+            </ul>
+            
+            <p><strong>What We Don't Store:</strong> We do not store IP addresses, device fingerprints, or any other data that could be used to de-anonymize community posts. All identifying information is separated from community content.</p>
+
+            <h3>Data Sharing</h3>
+            <p>We do not sell your personal data to third parties. We may share data only:</p>
+            <ul>
+                <li>With your explicit consent</li>
+                <li>To comply with legal obligations</li>
+                <li>With service providers who assist in our operations (under strict confidentiality agreements)</li>
+                <li>To protect our rights and prevent fraud or abuse</li>
+            </ul>
+
+            <h3>Advertising and Third-Party Services</h3>
+            <p><strong>Google AdSense:</strong> We display advertisements through Google AdSense on our platform for free users. Google may collect and use information about your visits to our site and other websites to provide targeted advertisements. This includes:</p>
+            <ul>
+                <li>Cookies and web beacons to track your browsing behavior</li>
+                <li>IP address and device information</li>
+                <li>Pages visited and time spent on our site</li>
+                <li>General demographic and interest data</li>
+            </ul>
+            
+            <p><strong>Ad-Free Option:</strong> Users can opt out of advertisements by subscribing to our Ad-Free plan ($5/month), which removes all advertising from the platform.</p>
+            
+            <p><strong>Ad Personalization:</strong> You can control ad personalization through:</p>
+            <ul>
+                <li><a href="https://www.google.com/settings/ads" target="_blank" rel="noopener">Google Ads Settings</a></li>
+                <li><a href="https://www.aboutads.info/choices/" target="_blank" rel="noopener">Digital Advertising Alliance opt-out</a></li>
+                <li>Your browser's privacy settings and ad blockers</li>
+            </ul>
+
+            <p><strong>Third-Party Advertisers:</strong> Our advertising partners may use cookies and similar technologies to collect information about your activities on our site and other sites to provide you with relevant advertising.</p>
+
+            <h3>Your Rights</h3>
+            <p>You have the right to:</p>
+            <ul>
+                <li>Access, update, or delete your personal information</li>
+                <li>Export your conversation history</li>
+                <li>Opt out of non-essential communications</li>
+                <li>Request clarification about our data practices</li>
+            </ul>
+
+            <h3>Data Retention</h3>
+            <p>We retain your data as long as your account is active or as needed to provide services. You can request deletion of your data at any time.</p>
+
+            <h3>Cookies and Tracking</h3>
+            <p>We use cookies and similar technologies to enhance your experience, remember your preferences, and analyze usage patterns. This includes:</p>
+            <ul>
+                <li><strong>Essential Cookies:</strong> Required for basic site functionality and user authentication</li>
+                <li><strong>Analytics Cookies:</strong> Help us understand how users interact with our platform</li>
+                <li><strong>Advertising Cookies:</strong> Used by Google AdSense and other advertising partners to display relevant ads</li>
+                <li><strong>Preference Cookies:</strong> Remember your settings and personalization choices</li>
+            </ul>
+            <p>You can control cookies through your browser settings, but disabling certain cookies may affect site functionality.</p>
+
+            <h3>International Users</h3>
+            <p>If you are accessing SoulBridge AI from outside the United States, please be aware that your information may be transferred to, stored, and processed in the United States.</p>
+        </div>
+
+        <div class="section">
+            <h2><i class="fas fa-exclamation-triangle warning-icon"></i> Special Warnings for Emotional Features</h2>
+            
+            <p><strong>🚨 Important Notice for Decoder, Voice Journal, and Companion Chat:</strong></p>
+            <ul>
+                <li>These features are designed for self-reflection and entertainment only</li>
+                <li>AI responses may not accurately reflect your true emotional state</li>
+                <li>Do not use these tools as a replacement for professional mental health support</li>
+                <li>If you're experiencing a mental health crisis, contact a qualified professional immediately</li>
+                <li>Emergency resources: National Suicide Prevention Lifeline (988), Crisis Text Line (text HOME to 741741)</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2><i class="fas fa-phone"></i> Contact Information</h2>
+            <p>For questions about these terms or our privacy practices, please contact us:</p>
+            <ul>
+                <li>Email: soulbridgeai.contact@gmail.com</li>
+                <li>Help Center: <a href="/help">SoulBridge AI Help</a></li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2><i class="fas fa-edit"></i> Changes to Terms</h2>
+            <p>We may update these terms from time to time. We will notify users of any material changes by posting the new terms on this page and updating the "Last Updated" date below.</p>
+        </div>
+
+        <div class="last-updated">
+            <p><i class="fas fa-calendar-alt"></i> Last Updated: January 18, 2025 (Updated: Subscription tiers, companion system, referral program, and contact information)</p>
+        </div>
+    </div>
+
+    <script>
+        // Add interactive checkbox validation
+        const checkbox = document.getElementById('ai-disclaimer-checkbox');
+        if (checkbox) {
+            checkbox.addEventListener('change', function() {
+                if (this.checked) {
+                    // Store acknowledgment in localStorage
+                    localStorage.setItem('ai-disclaimer-acknowledged', 'true');
+                    localStorage.setItem('ai-disclaimer-date', new Date().toISOString());
+                }
+            });
+
+            // Check if previously acknowledged
+            if (localStorage.getItem('ai-disclaimer-acknowledged') === 'true') {
+                checkbox.checked = true;
+            }
+        }
+
+        // Smooth scrolling for any internal links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
+</body>
+</html>

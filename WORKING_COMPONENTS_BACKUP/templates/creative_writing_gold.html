@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Creative Writing - SoulBridge AI - Gold Tier</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    
+    <!-- No ads for Gold tier -->
+    <script>
+        console.log('🚫 AdSense blocked - Gold tier has premium ad-free subscription');
+    </script>
+    
+    <style>
+        :root {
+            /* Gold tier colors - Fixed to gold */
+            --primary-color: #FFD700;
+            --primary-rgb: 255, 215, 0;
+            --accent-color: #FFC107;
+            --background-primary: #000000;
+            --background-secondary: #1a1a1a;
+            --text-primary: #ffffff;
+            --text-secondary: #e5e5e5;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--background-primary);
+            color: var(--text-primary);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            color: var(--primary-color);
+            margin-bottom: 16px;
+            text-shadow: 0 0 20px rgba(var(--primary-rgb), 0.5);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .usage-info {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--background-secondary);
+            padding: 6px 12px;
+            border-radius: 15px;
+            border: 1px solid var(--primary-color);
+            font-size: 0.75rem;
+            z-index: 999;
+        }
+
+        .usage-count {
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        .creative-interface {
+            background: var(--background-secondary);
+            border: 2px solid var(--primary-color);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 40px;
+            position: relative;
+        }
+
+        .creative-interface::before {
+            content: '✍️';
+            position: absolute;
+            top: -35px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 70px;
+            height: 70px;
+            background: var(--background-primary);
+            border-radius: 50%;
+            border: 2px solid var(--primary-color);
+            box-shadow: 0 0 15px rgba(var(--primary-rgb), 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 15px;
+            background: var(--background-secondary);
+            border: 2px solid var(--primary-color);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
+        }
+
+        textarea.form-control {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
+            color: black;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, var(--accent-color) 0%, var(--accent-color) 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(var(--primary-rgb), 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .back-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(30, 41, 59, 0.9);
+            color: var(--primary-color);
+            text-decoration: none;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            border: 1px solid var(--primary-color);
+        }
+
+        .back-btn:hover {
+            background: rgba(30, 41, 59, 1);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(var(--primary-rgb), 0.3);
+        }
+
+        .result-container {
+            background: var(--background-secondary);
+            border: 2px solid var(--primary-color);
+            border-radius: 12px;
+            padding: 25px;
+            margin-top: 25px;
+            display: none;
+        }
+
+        .result-content {
+            color: var(--text-primary);
+            line-height: 1.7;
+            white-space: pre-wrap;
+        }
+
+        .loading {
+            text-align: center;
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .creative-interface {
+                padding: 20px;
+            }
+            
+            .back-btn {
+                position: static;
+                margin-bottom: 20px;
+                display: inline-block;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="#" class="back-btn" onclick="history.back(); return false;">← Back to AI Chat</a>
+    
+    <div class="container">
+        <div class="usage-info">
+            <p>Daily Usage: <span class="usage-count">{{ current_usage }}/{{ daily_limit }}</span></p>
+        </div>
+
+        <div class="header">
+            <h1>✍️ Creative Writing</h1>
+            <p>Your AI-powered creative writing assistant for stories, poems, and more</p>
+            
+            <!-- Gold tier image -->
+            <div style="text-align: center; margin: 20px 0;">
+                <img src="/static/logos/Gold Creative Writing.png" alt="Gold Creative Writing" style="max-width: 300px; height: auto; border-radius: 10px;">
+            </div>
+        </div>
+
+        <div class="creative-interface">
+            <form id="creativeForm">
+                <div class="form-group">
+                    <label for="mode">Writing Mode</label>
+                    <select id="mode" class="form-control" required>
+                        <option value="">Choose writing style...</option>
+                        <option value="story">Short Story</option>
+                        <option value="poem">Poetry</option>
+                        <option value="lyrics">Song Lyrics</option>
+                        <option value="script">Script/Dialogue</option>
+                        <option value="essay">Essay/Article</option>
+                        <option value="letter">Letter/Email</option>
+                        <option value="creative">Creative Fiction</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="prompt">Writing Prompt</label>
+                    <textarea id="prompt" class="form-control" placeholder="Describe what you'd like me to write about..." required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="mood">Tone/Mood (Optional)</label>
+                    <select id="mood" class="form-control">
+                        <option value="">Any mood...</option>
+                        <option value="happy">Happy/Upbeat</option>
+                        <option value="dramatic">Dramatic</option>
+                        <option value="mysterious">Mysterious</option>
+                        <option value="romantic">Romantic</option>
+                        <option value="humorous">Humorous</option>
+                        <option value="serious">Serious</option>
+                        <option value="inspirational">Inspirational</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn" id="generateBtn">Generate Creative Writing</button>
+            </form>
+
+            <div id="resultContainer" class="result-container">
+                <div id="resultContent" class="result-content"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('creativeForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const mode = document.getElementById('mode').value;
+            const prompt = document.getElementById('prompt').value;
+            const mood = document.getElementById('mood').value;
+            
+            if (!mode || !prompt) {
+                alert('Please select a writing mode and provide a prompt.');
+                return;
+            }
+
+            const generateBtn = document.getElementById('generateBtn');
+            const resultContainer = document.getElementById('resultContainer');
+            const resultContent = document.getElementById('resultContent');
+
+            generateBtn.disabled = true;
+            generateBtn.textContent = 'Generating...';
+            resultContainer.style.display = 'block';
+            resultContent.innerHTML = '<div class="loading">✨ Creating your creative writing...</div>';
+
+            try {
+                const response = await fetch('/api/creative-writing', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        mode: mode,
+                        prompt: prompt,
+                        mood: mood
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    resultContent.textContent = result.response;
+                    
+                    // Update usage counter
+                    const usageElement = document.querySelector('.usage-count');
+                    if (usageElement) {
+                        const currentUsage = parseInt(usageElement.textContent.split('/')[0]) + 1;
+                        const limit = usageElement.textContent.split('/')[1];
+                        usageElement.textContent = `${currentUsage}/${limit}`;
+                    }
+                } else {
+                    resultContent.innerHTML = `<div style="color: #ef4444;">${result.error || 'Failed to generate creative writing'}</div>`;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                resultContent.innerHTML = `<div style="color: #ef4444;">An error occurred while generating creative writing.</div>`;
+            } finally {
+                generateBtn.disabled = false;
+                generateBtn.textContent = 'Generate Creative Writing';
+            }
+        });
+    </script>
+</body>
+</html>

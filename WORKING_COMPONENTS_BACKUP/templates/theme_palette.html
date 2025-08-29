@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Theme Palette - SoulBridge AI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #000000 0%, #0f172a 50%, #1e293b 100%);
+            color: #e2e8f0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            background: linear-gradient(135deg, #22d3ee 0%, #0891b2 100%);
+            color: #000000;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.95rem;
+            box-shadow: 0 4px 15px rgba(34, 211, 238, 0.3);
+        }
+
+        .back-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(34, 211, 238, 0.4);
+            color: #000000;
+            text-decoration: none;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            background: rgba(15, 23, 42, 0.8);
+            border: 2px solid rgba(34, 211, 238, 0.2);
+            border-radius: 20px;
+            padding: 40px;
+            backdrop-filter: blur(20px);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            color: #22d3ee;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px rgba(34, 211, 238, 0.5);
+        }
+
+        .header p {
+            color: #94a3b8;
+            font-size: 1.1rem;
+        }
+
+        .tier-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #22d3ee, #0891b2);
+            color: #000;
+            border-radius: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .theme-sections {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .theme-sections {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .theme-section {
+            background: rgba(15, 23, 42, 0.9);
+            border: 2px solid rgba(34, 211, 238, 0.3);
+            border-radius: 16px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .theme-section:hover {
+            border-color: rgba(34, 211, 238, 0.6);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(34, 211, 238, 0.2);
+        }
+
+        .theme-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #22d3ee, #0891b2, #22d3ee);
+        }
+
+        .section-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        .section-title {
+            color: #22d3ee;
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .section-description {
+            color: #94a3b8;
+            font-size: 0.9rem;
+            margin-bottom: 25px;
+            line-height: 1.4;
+        }
+
+        .theme-btn {
+            background: linear-gradient(135deg, #22d3ee, #0891b2);
+            color: #000;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .theme-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(34, 211, 238, 0.4);
+        }
+
+        .color-picker-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .color-picker-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(15, 23, 42, 0.95);
+            border: 2px solid rgba(34, 211, 238, 0.4);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 550px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+
+        /* Custom Color Picker Styling */
+        .custom-color-section {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(34, 211, 238, 0.2);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+
+        .hex-input {
+            background: rgba(0,0,0,0.6) !important;
+            border: 2px solid rgba(34, 211, 238, 0.3) !important;
+            color: #e2e8f0 !important;
+            padding: 10px 15px !important;
+            border-radius: 8px !important;
+            width: 120px !important;
+            text-align: center !important;
+            font-family: monospace !important;
+            font-size: 14px !important;
+            transition: all 0.3s ease !important;
+        }
+
+        .color-picker-input {
+            width: 80px !important;
+            height: 40px !important;
+            border: 2px solid rgba(34, 211, 238, 0.3) !important;
+            border-radius: 8px !important;
+            cursor: pointer !important;
+            transition: all 0.3s ease !important;
+        }
+
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .color-option {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 3px solid transparent;
+        }
+
+        .color-option:hover {
+            transform: scale(1.1);
+            border-color: #22d3ee;
+        }
+
+        .preset-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .preset-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(15, 23, 42, 0.95);
+            border: 2px solid rgba(34, 211, 238, 0.4);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 700px;
+            width: 90%;
+        }
+
+        .preset-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .preset-option {
+            padding: 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            text-align: center;
+        }
+
+        .preset-option:hover {
+            transform: scale(1.05);
+            border-color: #22d3ee;
+        }
+
+        .preset-name {
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .preset-description {
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: #22d3ee;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        .current-theme-preview {
+            background: rgba(15, 23, 42, 0.6);
+            border: 2px solid rgba(34, 211, 238, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .save-btn {
+            background: linear-gradient(135deg, #22d3ee, #0891b2);
+            color: #000;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .save-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(34, 211, 238, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <!-- Back Button -->
+    <a href="/{{ tier }}" class="back-button">
+        ← Back to Chat
+    </a>
+    
+    <div class="container">
+        <div class="header">
+            <div class="tier-badge">🎨 Theme Palette - {{ tier.title() }} Tier</div>
+            <h1>Customize Your Experience</h1>
+            <p>Personalize SoulBridge AI with your perfect color combination</p>
+        </div>
+
+        <div class="current-theme-preview" id="themePreview">
+            <h3>Current Theme Preview</h3>
+            <p>This is how your theme looks with your current settings</p>
+        </div>
+
+        <div class="theme-sections">
+            <!-- Background Color Section -->
+            <div class="theme-section">
+                <span class="section-icon">🌈</span>
+                <h3 class="section-title">Background Color</h3>
+                <p class="section-description">Choose the perfect background color that matches your mood and style</p>
+                <button class="theme-btn" onclick="openColorPicker('background')">
+                    Select Background
+                </button>
+            </div>
+
+            <!-- Text Color Section -->
+            <div class="theme-section">
+                <span class="section-icon">✍️</span>
+                <h3 class="section-title">Text Color</h3>
+                <p class="section-description">Pick a text color that's comfortable for your eyes and easy to read</p>
+                <button class="theme-btn" onclick="openColorPicker('text')">
+                    Select Text Color
+                </button>
+            </div>
+
+            <!-- Preset Themes Section -->
+            <div class="theme-section">
+                <span class="section-icon">🎭</span>
+                <h3 class="section-title">Preset Themes</h3>
+                <p class="section-description">Choose from beautifully crafted theme combinations designed by professionals</p>
+                <button class="theme-btn" onclick="openPresetModal()">
+                    Browse Presets
+                </button>
+            </div>
+        </div>
+
+        <div style="text-align: center;">
+            <button class="save-btn" onclick="saveTheme()">
+                💾 Save Theme Settings
+            </button>
+        </div>
+    </div>
+
+    <!-- Background Color Picker Modal -->
+    <div class="color-picker-modal" id="backgroundModal">
+        <div class="color-picker-content">
+            <button class="close-btn" onclick="closeModal('backgroundModal')">&times;</button>
+            <h3 style="color: #22d3ee; margin-bottom: 20px; text-align: center;">Choose Background Color</h3>
+            
+            <!-- Custom Color Picker -->
+            <div class="custom-color-section">
+                <label style="color: #22d3ee; display: block; margin-bottom: 15px; font-weight: 600; text-align: center;">🎨 Custom Color Picker</label>
+                <div style="display: flex; justify-content: center; align-items: center; gap: 15px; flex-wrap: wrap;">
+                    <div>
+                        <label style="color: #94a3b8; font-size: 12px; display: block; margin-bottom: 5px; text-align: center;">Visual Picker</label>
+                        <input type="color" id="backgroundColorPicker" class="color-picker-input"
+                               onchange="selectCustomColor('background', this.value)">
+                    </div>
+                    <div>
+                        <label style="color: #94a3b8; font-size: 12px; display: block; margin-bottom: 5px; text-align: center;">Hex Code</label>
+                        <input type="text" id="backgroundHexInput" placeholder="#1a1a1a" class="hex-input"
+                               onchange="selectCustomColor('background', this.value)"
+                               oninput="validateHex(this)">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Preset Colors -->
+            <div style="margin-bottom: 15px;">
+                <label style="color: #94a3b8; display: block; margin-bottom: 10px; font-weight: 500;">Preset Colors</label>
+                <div class="color-grid" id="backgroundColors"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Text Color Picker Modal -->
+    <div class="color-picker-modal" id="textModal">
+        <div class="color-picker-content">
+            <button class="close-btn" onclick="closeModal('textModal')">&times;</button>
+            <h3 style="color: #22d3ee; margin-bottom: 20px; text-align: center;">Choose Text Color</h3>
+            
+            <!-- Custom Color Picker -->
+            <div class="custom-color-section">
+                <label style="color: #22d3ee; display: block; margin-bottom: 15px; font-weight: 600; text-align: center;">🎨 Custom Color Picker</label>
+                <div style="display: flex; justify-content: center; align-items: center; gap: 15px; flex-wrap: wrap;">
+                    <div>
+                        <label style="color: #94a3b8; font-size: 12px; display: block; margin-bottom: 5px; text-align: center;">Visual Picker</label>
+                        <input type="color" id="textColorPicker" class="color-picker-input"
+                               onchange="selectCustomColor('text', this.value)">
+                    </div>
+                    <div>
+                        <label style="color: #94a3b8; font-size: 12px; display: block; margin-bottom: 5px; text-align: center;">Hex Code</label>
+                        <input type="text" id="textHexInput" placeholder="#e2e8f0" class="hex-input"
+                               onchange="selectCustomColor('text', this.value)"
+                               oninput="validateHex(this)">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Preset Colors -->
+            <div style="margin-bottom: 15px;">
+                <label style="color: #94a3b8; display: block; margin-bottom: 10px; font-weight: 500;">Preset Colors</label>
+                <div class="color-grid" id="textColors"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Preset Themes Modal -->
+    <div class="preset-modal" id="presetModal">
+        <div class="preset-content">
+            <button class="close-btn" onclick="closeModal('presetModal')">&times;</button>
+            <h3 style="color: #22d3ee; margin-bottom: 20px; text-align: center;">Beautiful Preset Themes</h3>
+            <div class="preset-grid" id="presetGrid"></div>
+        </div>
+    </div>
+
+    <script>
+        // Color palettes
+        const backgroundColors = [
+            '#000000', '#0f172a', '#1e293b', '#374151', '#4b5563', '#6b7280',
+            '#1a1a2e', '#16213e', '#0f3460', '#533483', '#7209b7', '#a663cc',
+            '#2d1b69', '#11009e', '#4e00ff', '#7209b7', '#a663cc', '#c77dff',
+            '#050a0e', '#003049', '#0077be', '#00a8cc', '#4cc9f0', '#7209b7'
+        ];
+
+        const textColors = [
+            '#ffffff', '#e2e8f0', '#cbd5e1', '#94a3b8', '#64748b', '#475569',
+            '#22d3ee', '#06b6d4', '#0891b2', '#0e7490', '#155e75', '#164e63',
+            '#fbbf24', '#f59e0b', '#d97706', '#b45309', '#92400e', '#78350f',
+            '#fb7185', '#f43f5e', '#e11d48', '#be123c', '#9f1239', '#881337'
+        ];
+
+        const presets = [
+            {
+                name: 'Ocean Breeze',
+                description: 'Cool blues and whites for a calming experience',
+                background: '#0f172a',
+                text: '#22d3ee',
+                accent: '#06b6d4'
+            },
+            {
+                name: 'Midnight Gold',
+                description: 'Dark elegance with golden highlights',
+                background: '#000000',
+                text: '#fbbf24',
+                accent: '#d97706'
+            },
+            {
+                name: 'Rose Garden',
+                description: 'Soft pinks and warm tones',
+                background: '#1e1b2e',
+                text: '#fb7185',
+                accent: '#f43f5e'
+            },
+            {
+                name: 'Forest Night',
+                description: 'Deep greens with natural vibes',
+                background: '#0c1f0c',
+                text: '#4ade80',
+                accent: '#22c55e'
+            },
+            {
+                name: 'Purple Dreams',
+                description: 'Royal purples for creativity',
+                background: '#1a1a2e',
+                text: '#c77dff',
+                accent: '#7209b7'
+            },
+            {
+                name: 'Classic Light',
+                description: 'Clean whites and grays',
+                background: '#f8fafc',
+                text: '#1e293b',
+                accent: '#3b82f6'
+            }
+        ];
+
+        let currentTheme = {
+            background: '#0f172a',
+            text: '#22d3ee',
+            accent: '#06b6d4'
+        };
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSavedTheme();
+            populateColors();
+            populatePresets();
+            updatePreview();
+        });
+
+        function loadSavedTheme() {
+            // First try to load from server session (most reliable)
+            fetch('/api/user/get-theme?tier={{ tier }}', { credentials: 'include' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.theme) {
+                        currentTheme = data.theme;
+                        updatePreview();
+                        return;
+                    }
+                    
+                    // Fallback to localStorage
+                    const saved = localStorage.getItem('soulbridge_theme');
+                    if (saved) {
+                        currentTheme = JSON.parse(saved);
+                        updatePreview();
+                    }
+                })
+                .catch(() => {
+                    // Final fallback to localStorage
+                    const saved = localStorage.getItem('soulbridge_theme');
+                    if (saved) {
+                        currentTheme = JSON.parse(saved);
+                        updatePreview();
+                    }
+                });
+        }
+
+        function populateColors() {
+            const backgroundGrid = document.getElementById('backgroundColors');
+            const textGrid = document.getElementById('textColors');
+
+            backgroundColors.forEach(color => {
+                const div = document.createElement('div');
+                div.className = 'color-option';
+                div.style.backgroundColor = color;
+                div.onclick = () => selectColor('background', color);
+                backgroundGrid.appendChild(div);
+            });
+
+            textColors.forEach(color => {
+                const div = document.createElement('div');
+                div.className = 'color-option';
+                div.style.backgroundColor = color;
+                div.onclick = () => selectColor('text', color);
+                textGrid.appendChild(div);
+            });
+        }
+
+        function populatePresets() {
+            const presetGrid = document.getElementById('presetGrid');
+            
+            presets.forEach(preset => {
+                const div = document.createElement('div');
+                div.className = 'preset-option';
+                div.style.background = `linear-gradient(135deg, ${preset.background}, ${preset.accent}20)`;
+                div.style.color = preset.text;
+                div.innerHTML = `
+                    <div class="preset-name">${preset.name}</div>
+                    <div class="preset-description">${preset.description}</div>
+                `;
+                div.onclick = () => selectPreset(preset);
+                presetGrid.appendChild(div);
+            });
+        }
+
+        function openColorPicker(type) {
+            const modalId = type + 'Modal';
+            
+            // Initialize color picker and hex input with current theme value
+            const currentColor = currentTheme[type] || (type === 'background' ? '#1a1a1a' : '#e2e8f0');
+            const colorPicker = document.getElementById(type + 'ColorPicker');
+            const hexInput = document.getElementById(type + 'HexInput');
+            
+            if (colorPicker) colorPicker.value = currentColor;
+            if (hexInput) hexInput.value = currentColor;
+            
+            document.getElementById(modalId).style.display = 'block';
+        }
+
+        function openPresetModal() {
+            document.getElementById('presetModal').style.display = 'block';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        function selectColor(type, color) {
+            currentTheme[type] = color;
+            updatePreview();
+            closeModal(type + 'Modal');
+        }
+
+        function selectCustomColor(type, color) {
+            // Validate hex color format
+            if (!/^#[0-9A-F]{6}$/i.test(color)) {
+                console.warn('Invalid hex color:', color);
+                return;
+            }
+            
+            // Update both the color picker and hex input
+            const colorPicker = document.getElementById(type + 'ColorPicker');
+            const hexInput = document.getElementById(type + 'HexInput');
+            
+            if (colorPicker) colorPicker.value = color;
+            if (hexInput) hexInput.value = color;
+            
+            // Apply the color
+            currentTheme[type] = color;
+            updatePreview();
+        }
+
+        function validateHex(input) {
+            let value = input.value.trim();
+            
+            // Add # if missing
+            if (value && !value.startsWith('#')) {
+                value = '#' + value;
+                input.value = value;
+            }
+            
+            // Validate format
+            if (value.length === 7 && /^#[0-9A-F]{6}$/i.test(value)) {
+                input.style.borderColor = 'rgba(34, 211, 238, 0.6)';
+                input.style.boxShadow = '0 0 10px rgba(34, 211, 238, 0.3)';
+                
+                // Update the color picker to match
+                const type = input.id.includes('background') ? 'background' : 'text';
+                const colorPicker = document.getElementById(type + 'ColorPicker');
+                if (colorPicker) colorPicker.value = value;
+                
+            } else if (value.length > 1) {
+                input.style.borderColor = 'rgba(255, 107, 107, 0.6)';
+                input.style.boxShadow = '0 0 10px rgba(255, 107, 107, 0.3)';
+            } else {
+                input.style.borderColor = 'rgba(34, 211, 238, 0.3)';
+                input.style.boxShadow = 'none';
+            }
+        }
+
+        function selectPreset(preset) {
+            currentTheme.background = preset.background;
+            currentTheme.text = preset.text;
+            currentTheme.accent = preset.accent;
+            updatePreview();
+            closeModal('presetModal');
+        }
+
+        function updatePreview() {
+            const preview = document.getElementById('themePreview');
+            preview.style.background = `linear-gradient(135deg, ${currentTheme.background}, ${currentTheme.accent}20)`;
+            preview.style.color = currentTheme.text;
+            preview.style.borderColor = currentTheme.accent + '60';
+        }
+
+        async function saveTheme() {
+            // Show saving indicator
+            const originalText = document.querySelector('.save-btn').textContent;
+            document.querySelector('.save-btn').textContent = '💾 Saving...';
+            document.querySelector('.save-btn').disabled = true;
+            
+            try {
+                // Apply theme to current page immediately
+                document.body.style.background = `linear-gradient(135deg, ${currentTheme.background} 0%, ${currentTheme.accent}40 50%, ${currentTheme.background} 100%)`;
+                document.body.style.color = currentTheme.text;
+                
+                // Save to localStorage as backup
+                localStorage.setItem('soulbridge_theme', JSON.stringify(currentTheme));
+                
+                // Save to server database
+                const response = await fetch('/api/user/save-theme', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        ...currentTheme,
+                        tier: '{{ tier }}'
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('🎨 Theme saved successfully! Your new colors are now applied to {{ tier.title() }} chat pages only.');
+                } else {
+                    throw new Error(result.error || 'Failed to save theme');
+                }
+                
+            } catch (error) {
+                console.error('Theme save error:', error);
+                alert('❌ Failed to save theme to server. Your theme is saved locally but may not persist across sessions. Please try again.');
+            } finally {
+                // Reset button
+                document.querySelector('.save-btn').textContent = originalText;
+                document.querySelector('.save-btn').disabled = false;
+            }
+        }
+
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            const modals = ['backgroundModal', 'textModal', 'presetModal'];
+            modals.forEach(modalId => {
+                const modal = document.getElementById(modalId);
+                if (event.target === modal) {
+                    closeModal(modalId);
+                }
+            });
+        }
+    </script>
+</body>
+</html>

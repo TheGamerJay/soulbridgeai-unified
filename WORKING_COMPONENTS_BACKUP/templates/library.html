@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conversation Library - SoulBridge AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/animations.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/themes.css') }}">
+    <style>
+        .library-container {
+            min-height: 100vh;
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .library-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-top: 2rem;
+        }
+        
+        .library-title {
+            font-size: 2.5rem;
+            color: #22d3ee;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+        
+        .library-subtitle {
+            font-size: 1.2rem;
+            color: #fff;
+            opacity: 0.8;
+        }
+        
+        .conversations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .conversation-card {
+            background: rgba(0,0,0,0.8);
+            border: 2px solid #22d3ee;
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .conversation-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(34, 211, 238, 0.3);
+            border-color: #0891b2;
+        }
+        
+        .conversation-card.favorite {
+            border-color: #ffd700;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+        }
+        
+        .conversation-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+        
+        .conversation-title {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #22d3ee;
+            margin: 0;
+            flex: 1;
+            margin-right: 1rem;
+        }
+        
+        .favorite-icon {
+            color: #ffd700;
+            font-size: 1.2rem;
+            opacity: 0.3;
+            transition: opacity 0.3s ease;
+        }
+        
+        .favorite-icon.active {
+            opacity: 1;
+        }
+        
+        .conversation-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .conversation-character {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #22d3ee;
+            font-weight: 600;
+        }
+        
+        .conversation-date {
+            color: #9ca3af;
+            font-size: 0.9rem;
+        }
+        
+        .conversation-preview {
+            color: #fff;
+            opacity: 0.8;
+            font-size: 0.95rem;
+            line-height: 1.4;
+            margin-bottom: 1rem;
+            max-height: 60px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .conversation-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .action-btn {
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: none;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .action-btn:hover {
+            transform: translateY(-1px);
+        }
+        
+        .btn-load {
+            background: rgba(34, 211, 238, 0.8);
+            color: #000;
+        }
+        
+        .btn-load:hover {
+            background: rgba(34, 211, 238, 1);
+        }
+        
+        .btn-favorite {
+            background: rgba(255, 215, 0, 0.8);
+            color: #000;
+        }
+        
+        .btn-favorite:hover {
+            background: rgba(255, 215, 0, 1);
+        }
+        
+        .btn-copy {
+            background: rgba(34, 197, 94, 0.8);
+            color: #000;
+        }
+        
+        .btn-copy:hover {
+            background: rgba(34, 197, 94, 1);
+        }
+        
+        .btn-export {
+            background: rgba(168, 85, 247, 0.8);
+            color: #000;
+        }
+        
+        .btn-export:hover {
+            background: rgba(168, 85, 247, 1);
+        }
+        
+        .btn-delete {
+            background: rgba(220, 38, 38, 0.8);
+            color: #fff;
+        }
+        
+        .btn-delete:hover {
+            background: rgba(220, 38, 38, 1);
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #9ca3af;
+        }
+        
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+        
+        .search-bar {
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto 2rem auto;
+            display: block;
+        }
+        
+        .filter-options {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .filter-btn {
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 2px solid #22d3ee;
+            background: rgba(0,0,0,0.8);
+            color: #22d3ee;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+        
+        .filter-btn.active {
+            background: rgba(34, 211, 238, 0.8);
+            color: #000;
+        }
+        
+        .filter-btn:hover {
+            background: rgba(34, 211, 238, 0.2);
+        }
+        
+        /* Netflix-style Companion Dropdown */
+        .companion-dropdown {
+            position: relative;
+        }
+        
+        .companion-selector {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            min-width: 180px;
+            position: relative;
+        }
+        
+        .dropdown-arrow {
+            margin-left: 8px;
+            transition: transform 0.3s ease;
+        }
+        
+        .companion-selector.active .dropdown-arrow {
+            transform: rotate(180deg);
+        }
+        
+        .companion-dropdown-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.95);
+            border: 2px solid #22d3ee;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            max-height: 400px;
+            overflow-y: auto;
+            display: none;
+            margin-top: 5px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .companion-dropdown-menu.show {
+            display: block;
+            animation: dropdownSlide 0.3s ease;
+        }
+        
+        @keyframes dropdownSlide {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .companion-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-bottom: 1px solid rgba(34, 211, 238, 0.1);
+        }
+        
+        .companion-item:last-child {
+            border-bottom: none;
+        }
+        
+        .companion-item:hover {
+            background: rgba(34, 211, 238, 0.1);
+        }
+        
+        .companion-item.locked {
+            opacity: 0.5;
+            cursor: not-allowed;
+            position: relative;
+        }
+        
+        .companion-item.locked:hover {
+            background: rgba(255, 0, 0, 0.1);
+        }
+        
+        .companion-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            object-fit: cover;
+            margin-right: 12px;
+            border: 2px solid #22d3ee;
+        }
+        
+        .companion-info {
+            flex: 1;
+        }
+        
+        .companion-name {
+            font-weight: 600;
+            color: #22d3ee;
+            margin-bottom: 4px;
+        }
+        
+        .companion-description {
+            font-size: 0.85rem;
+            color: #9ca3af;
+            line-height: 1.3;
+        }
+        
+        .companion-tier-badge {
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+        
+        .tier-bronze {
+            background: rgba(205, 127, 50, 0.2);
+            color: #cd7f32;
+            border: 1px solid #cd7f32;
+        }
+        
+        .tier-silver {
+            background: rgba(192, 192, 192, 0.2);
+            color: #c0c0c0;
+            border: 1px solid #c0c0c0;
+        }
+        
+        .tier-gold {
+            background: rgba(255, 215, 0, 0.2);
+            color: #ffd700;
+            border: 1px solid #ffd700;
+        }
+        
+        .tier-locked {
+            background: rgba(255, 0, 0, 0.2);
+            color: #ff4444;
+            border: 1px solid #ff4444;
+        }
+        
+        .lock-icon {
+            margin-left: 8px;
+            color: #ff4444;
+        }
+        
+        /* Day mode styles */
+        body.day-mode .library-title {
+            color: #000;
+        }
+        
+        body.day-mode .library-subtitle {
+            color: #333;
+        }
+        
+        body.day-mode .conversation-card {
+            background: rgba(220, 38, 38, 0.8) !important;
+            border-color: #dc2626 !important;
+        }
+        
+        body.day-mode .conversation-title {
+            color: #22d3ee !important;
+        }
+        
+        body.day-mode .conversation-character {
+            color: #22d3ee !important;
+        }
+        
+        body.day-mode .conversation-preview {
+            color: #22d3ee !important;
+        }
+        
+        body.day-mode .conversation-date {
+            color: #22d3ee !important;
+        }
+        
+        body.day-mode .filter-btn {
+            border-color: #dc2626;
+            color: #22d3ee;
+            background: rgba(220, 38, 38, 0.8);
+            box-shadow: 0 0 0 2px #22d3ee;
+        }
+        
+        body.day-mode .filter-btn.active {
+            background: rgba(220, 38, 38, 0.9);
+            color: #22d3ee;
+            box-shadow: 0 0 0 3px #22d3ee;
+        }
+        
+        
+        /* Day mode search bar - cyan background, black text */
+        body.day-mode .search-bar {
+            background: rgba(34, 211, 238, 0.8) !important;
+            color: #000 !important;
+            border-color: #000 !important;
+        }
+        
+        body.day-mode .search-bar::placeholder {
+            color: #000 !important;
+            opacity: 0.7;
+        }
+        
+        /* Day mode filter buttons - all have red background with cyan text and cyan ring */
+        body.day-mode .filter-btn[data-filter="all"] {
+            background: rgba(220, 38, 38, 0.8) !important;
+            color: #22d3ee !important;
+            border-color: #dc2626 !important;
+            box-shadow: 0 0 0 2px #22d3ee !important;
+        }
+        
+        
+        body.day-mode .filter-btn[data-filter="favorites"] {
+            background: rgba(220, 38, 38, 0.8) !important;
+            color: #22d3ee !important;
+            border-color: #dc2626 !important;
+            box-shadow: 0 0 0 2px #22d3ee !important;
+        }
+        
+        /* Dark mode All Conversations filter button - black background with cyan text */
+        .filter-btn[data-filter="all"] {
+            background: rgba(0, 0, 0, 0.8) !important;
+            color: #22d3ee !important;
+            border-color: #22d3ee !important;
+        }
+        
+        .filter-btn[data-filter="all"]:hover {
+            background: rgba(0, 0, 0, 0.9) !important;
+        }
+        
+        /* Dark mode Start New Conversation button - same as favorites button styling */
+        .btn-primary {
+            background: rgba(0, 0, 0, 0.8) !important;
+            color: #22d3ee !important;
+            border: 2px solid #22d3ee !important;
+        }
+        
+        .btn-primary:hover {
+            background: rgba(0, 0, 0, 0.9) !important;
+            color: #22d3ee !important;
+        }
+        
+        /* Day mode Start New Conversation button - red background with cyan text and cyan ring */
+        body.day-mode .btn-primary {
+            background: rgba(220, 38, 38, 0.8) !important;
+            color: #22d3ee !important;
+            border: 2px solid #dc2626 !important;
+            box-shadow: 0 0 0 2px #22d3ee !important;
+        }
+        
+        body.day-mode .btn-primary:hover {
+            background: rgba(220, 38, 38, 0.9) !important;
+            color: #22d3ee !important;
+            box-shadow: 0 0 0 3px #22d3ee !important;
+        }
+        
+        /* Sign out button styling - dark mode (default) */
+        #signOutBtn {
+            background: rgba(0, 0, 0, 0.8);
+            color: #22d3ee;
+            box-shadow: 0 0 0 2px #22d3ee;
+        }
+        
+        #signOutBtn:hover {
+            background: rgba(0, 0, 0, 0.9);
+            box-shadow: 0 0 0 3px #22d3ee;
+        }
+        
+        #signOutBtn span {
+            color: #22d3ee !important;
+        }
+        
+        /* Day mode sign out button */
+        body.day-mode #signOutBtn {
+            background: rgba(220, 38, 38, 0.8) !important;
+            color: #22d3ee !important;
+            box-shadow: 0 0 0 2px #22d3ee !important;
+        }
+        
+        body.day-mode #signOutBtn:hover {
+            background: rgba(220, 38, 38, 1) !important;
+            box-shadow: 0 0 0 3px #22d3ee !important;
+        }
+        
+        body.day-mode #signOutBtn span {
+            color: #22d3ee !important;
+        }
+        
+        /* Theme toggle button styling - dark mode (default) */
+        #themeToggle {
+            background: rgba(0, 0, 0, 0.8);
+            color: #22d3ee;
+            box-shadow: 0 0 0 2px #22d3ee;
+        }
+        
+        #themeToggle:hover {
+            background: rgba(0, 0, 0, 0.9);
+            box-shadow: 0 0 0 3px #22d3ee;
+        }
+        
+        #themeToggle span {
+            color: #22d3ee !important;
+        }
+        
+        /* Day mode theme toggle button */
+        body.day-mode #themeToggle {
+            background: rgba(220, 38, 38, 0.8) !important;
+            color: #22d3ee !important;
+            box-shadow: 0 0 0 2px #22d3ee !important;
+        }
+        
+        body.day-mode #themeToggle:hover {
+            background: rgba(220, 38, 38, 1) !important;
+            box-shadow: 0 0 0 3px #22d3ee !important;
+        }
+        
+        body.day-mode #themeToggle span {
+            color: #22d3ee !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sign Out Button -->
+    <div style="position: fixed; top: 20px; right: 20px; z-index: 100; display: flex; gap: 10px;">
+        <div id="signOutBtn" style="
+            background: rgba(0, 0, 0, 0.8);
+            color: #22d3ee;
+            padding: 10px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 0 0 2px #22d3ee;
+        " onclick="signOut()">
+            <span style="color: #22d3ee !important;">Sign Out</span>
+            <span>🚪</span>
+        </div>
+    </div>
+    
+
+    <div class="library-container">
+        <!-- Header -->
+        <div class="library-header">
+            <h1 class="library-title">📚 Conversation Library</h1>
+            <p class="library-subtitle">Manage and organize your saved conversations</p>
+        </div>
+
+        <!-- Search and Filters -->
+        <input type="text" id="searchInput" class="input-field search-bar" placeholder="Search conversations..." onkeyup="filterConversations()">
+        
+        <div class="filter-options">
+            <div class="filter-btn active" onclick="filterByType('all')" data-filter="all">All Conversations</div>
+            
+            <!-- Netflix-style Companion Selector Dropdown -->
+            <div class="companion-dropdown">
+                <div class="filter-btn companion-selector" onclick="toggleCompanionDropdown()" data-filter="companions">
+                    <span id="companion-selector-text">🤖 AI Companions</span>
+                    <span class="dropdown-arrow">▼</span>
+                </div>
+                <div class="companion-dropdown-menu" id="companionDropdown">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+            
+            <div class="filter-btn" onclick="filterByType('horoscope')" data-filter="horoscope">⭐ Horoscope</div>
+            <div class="filter-btn" onclick="filterByType('fortune')" data-filter="fortune">🔮 Fortune</div>
+            <div class="filter-btn" onclick="filterByType('decoder')" data-filter="decoder">🔍 Decoder</div>
+            <div class="filter-btn" onclick="filterByType('favorites')" data-filter="favorites">⭐ Favorites</div>
+        </div>
+
+        <!-- Conversations Grid -->
+        <div id="conversationsGrid" class="conversations-grid">
+            <!-- Conversations will be loaded here -->
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="empty-state" style="display: none;">
+            <div class="empty-state-icon">📭</div>
+            <h3>No conversations found</h3>
+            <p>Start a conversation with your AI companion to see it here.</p>
+            <div class="btn btn-primary" onclick="goBackToChat()" style="margin-top: 1rem;">
+                Start New Conversation
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allConversations = [];
+        let currentFilter = 'all';
+
+        // Load custom colors if premium user
+        function loadCustomColors() {
+            const savedBgColor = localStorage.getItem('customBgColor');
+            const savedTextColor = localStorage.getItem('customTextColor');
+            const isPremium = localStorage.getItem('isPremium');
+            
+            if (isPremium === 'true') {
+                if (savedBgColor) {
+                    document.body.style.backgroundColor = savedBgColor;
+                }
+                if (savedTextColor) {
+                    document.body.style.color = savedTextColor;
+                }
+            }
+        }
+
+        // Load conversations on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadConversations();
+            loadSavedTheme();
+            loadCustomColors();
+            populateCompanionDropdown();
+        });
+
+        async function loadConversations() {
+            try {
+                // Load from server-side data (unified library)
+                const libraryData = {{ content_data|tojson|safe }};
+                
+                allConversations = [];
+                
+                // Add chat conversations
+                if (libraryData.chat_conversations) {
+                    libraryData.chat_conversations.forEach(conv => {
+                        allConversations.push({
+                            ...conv,
+                            contentType: 'chat',
+                            character: conv.character || 'Blayzo',
+                            isFavorite: false // TODO: Implement favorites from server
+                        });
+                    });
+                }
+                
+                // Add horoscope readings
+                if (libraryData.horoscope_readings) {
+                    libraryData.horoscope_readings.forEach(reading => {
+                        allConversations.push({
+                            ...reading,
+                            contentType: 'horoscope',
+                            character: 'Sky', // Horoscopes use Sky character
+                            isFavorite: false
+                        });
+                    });
+                }
+                
+                // Add fortune readings
+                if (libraryData.fortune_readings) {
+                    libraryData.fortune_readings.forEach(reading => {
+                        allConversations.push({
+                            ...reading,
+                            contentType: 'fortune',
+                            character: 'Fortune Teller', // Fortune readings use Fortune Teller
+                            isFavorite: false
+                        });
+                    });
+                }
+                
+                // Add decoder readings
+                if (libraryData.decoder_readings) {
+                    libraryData.decoder_readings.forEach(reading => {
+                        allConversations.push({
+                            ...reading,
+                            contentType: 'decoder',
+                            character: 'Agent', // Decoder readings use Agent character
+                            isFavorite: false
+                        });
+                    });
+                }
+                
+                // Add creative content
+                if (libraryData.creative_content) {
+                    libraryData.creative_content.forEach(creative => {
+                        allConversations.push({
+                            ...creative,
+                            contentType: 'creative',
+                            character: 'Creative AI',
+                            isFavorite: false
+                        });
+                    });
+                }
+                
+                displayConversations(allConversations);
+            } catch (error) {
+                console.error('Error loading library data:', error);
+                // Fallback to localStorage for backwards compatibility
+                const savedConversations = JSON.parse(localStorage.getItem('savedConversations') || '[]');
+                const favorites = JSON.parse(localStorage.getItem('favoriteConversations') || '[]');
+                
+                allConversations = savedConversations.map((conv, index) => ({
+                    ...conv,
+                    id: index,
+                    contentType: 'chat',
+                    isFavorite: favorites.includes(index)
+                }));
+
+                displayConversations(allConversations);
+            }
+        }
+
+        function displayConversations(conversations) {
+            const grid = document.getElementById('conversationsGrid');
+            const emptyState = document.getElementById('emptyState');
+
+            if (conversations.length === 0) {
+                grid.style.display = 'none';
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            grid.style.display = 'grid';
+            emptyState.style.display = 'none';
+
+            grid.innerHTML = conversations.map(conv => createConversationCard(conv)).join('');
+        }
+
+        function createConversationCard(conv) {
+            const preview = extractPreview(conv.content);
+            let characterIcon;
+            if (conv.character === 'Blayzo') {
+                characterIcon = '<img src="/static/logos/Blayzo.png" alt="Blayzo" style="width: 16px; height: 16px; border-radius: 4px; object-fit: contain; margin-right: 4px;">';
+            } else if (conv.character === 'Sky') {
+                characterIcon = '<img src="/static/logos/horoscope sky.png" alt="Sky" style="width: 16px; height: 16px; border-radius: 4px; object-fit: contain; margin-right: 4px;">';
+            } else if (conv.character === 'Fortune Teller') {
+                characterIcon = '<img src="/static/logos/Fortune Teller Sky.png" alt="Fortune Teller" style="width: 16px; height: 16px; border-radius: 4px; object-fit: contain; margin-right: 4px;">';
+            } else if (conv.character === 'Agent') {
+                characterIcon = '<img src="/static/logos/Agent The decoder.png" alt="Agent" style="width: 16px; height: 16px; border-radius: 4px; object-fit: contain; margin-right: 4px;">';
+            } else if (conv.contentType === 'horoscope') {
+                characterIcon = '⭐'; // Fallback for horoscope readings
+            } else if (conv.contentType === 'fortune') {
+                characterIcon = '🔮'; // Fallback for fortune readings
+            } else if (conv.contentType === 'decoder') {
+                characterIcon = '🔍'; // Fallback for decoder readings
+            } else {
+                characterIcon = '<img src="/static/logos/Blayzica.png" alt="Blayzica" style="width: 16px; height: 16px; border-radius: 4px; object-fit: contain; margin-right: 4px;">';
+            }
+            
+            return `
+                <div class="conversation-card ${conv.isFavorite ? 'favorite' : ''}" data-id="${conv.id}">
+                    <div class="conversation-header">
+                        <h3 class="conversation-title">${conv.title}</h3>
+                        <span class="favorite-icon ${conv.isFavorite ? 'active' : ''}">⭐</span>
+                    </div>
+                    
+                    <div class="conversation-meta">
+                        <div class="conversation-character">
+                            ${characterIcon} ${conv.character}
+                        </div>
+                        <div class="conversation-date">${conv.created_at || conv.date || 'Unknown date'}</div>
+                    </div>
+                    
+                    <div class="conversation-preview">${preview}</div>
+                    
+                    <div class="conversation-actions">
+                        <button class="action-btn btn-load" onclick="loadConversation(${conv.id})">
+                            📖 Load
+                        </button>
+                        <button class="action-btn btn-favorite" onclick="toggleFavorite(${conv.id})">
+                            ${conv.isFavorite ? '⭐ Unfavorite' : '⭐ Favorite'}
+                        </button>
+                        <button class="action-btn btn-copy" onclick="copyConversation(${conv.id})">
+                            📋 Copy
+                        </button>
+                        <button class="action-btn btn-export" onclick="exportConversation(${conv.id})">
+                            💾 Export
+                        </button>
+                        <button class="action-btn btn-delete" onclick="deleteConversation(${conv.id})">
+                            🗑️ Delete
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function extractPreview(content) {
+            // Extract text content from HTML and get first 100 characters
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = content;
+            const textContent = tempDiv.textContent || tempDiv.innerText || '';
+            return textContent.substring(0, 100) + (textContent.length > 100 ? '...' : '');
+        }
+
+        function filterConversations() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            let filtered = allConversations;
+
+            // Apply type filter
+            if (currentFilter === 'horoscope') {
+                filtered = filtered.filter(conv => conv.contentType === 'horoscope');
+            } else if (currentFilter === 'fortune') {
+                filtered = filtered.filter(conv => conv.contentType === 'fortune');
+            } else if (currentFilter === 'decoder') {
+                filtered = filtered.filter(conv => conv.contentType === 'decoder');
+            } else if (currentFilter === 'favorites') {
+                filtered = filtered.filter(conv => conv.isFavorite);
+            } else if (currentFilter !== 'all') {
+                // Handle companion-specific filtering
+                filtered = filtered.filter(conv => conv.character === currentFilter);
+            }
+
+            // Apply search filter
+            if (searchTerm) {
+                filtered = filtered.filter(conv => 
+                    conv.title.toLowerCase().includes(searchTerm) ||
+                    conv.character.toLowerCase().includes(searchTerm) ||
+                    extractPreview(conv.content).toLowerCase().includes(searchTerm)
+                );
+            }
+
+            displayConversations(filtered);
+        }
+
+        function filterByType(type) {
+            currentFilter = type;
+            
+            // Update filter buttons
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-filter="${type}"]`).classList.add('active');
+
+            filterConversations();
+        }
+
+        function loadConversation(id) {
+            const conversation = allConversations[id];
+            // Store the conversation to load (confirmation removed for production)
+            sessionStorage.setItem('conversationToLoad', JSON.stringify(conversation));
+            // Redirect back to chat
+            window.location.href = '/chat';
+        }
+
+        function toggleFavorite(id) {
+            const favorites = JSON.parse(localStorage.getItem('favoriteConversations') || '[]');
+            const conversation = allConversations[id];
+            
+            if (conversation.isFavorite) {
+                // Remove from favorites
+                const index = favorites.indexOf(id);
+                if (index > -1) {
+                    favorites.splice(index, 1);
+                }
+                conversation.isFavorite = false;
+            } else {
+                // Add to favorites
+                favorites.push(id);
+                conversation.isFavorite = true;
+            }
+            
+            localStorage.setItem('favoriteConversations', JSON.stringify(favorites));
+            filterConversations(); // Refresh display
+        }
+
+        function copyConversation(id) {
+            const conversation = allConversations[id];
+            const textContent = extractPreview(conversation.content);
+            const fullText = `${conversation.title}\nCharacter: ${conversation.character}\nDate: ${conversation.date}\n\n${textContent}`;
+            
+            navigator.clipboard.writeText(fullText).then(function() {
+                // Conversation copied (alert removed for production)
+            }, function(err) {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = fullText;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                // Conversation copied (alert removed for production)
+            });
+        }
+
+        function exportConversation(id) {
+            const conversation = allConversations[id];
+            const exportData = {
+                title: conversation.title,
+                character: conversation.character,
+                date: conversation.date,
+                content: conversation.content
+            };
+            
+            const dataStr = JSON.stringify(exportData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = `${conversation.title.replace(/[^a-z0-9]/gi, '_')}_conversation.json`;
+            link.click();
+            
+            // Conversation exported (alert removed for production)
+        }
+
+        function deleteConversation(id) {
+            const conversation = allConversations[id];
+            
+            // Remove from saved conversations (confirmation removed for production)
+            const savedConversations = JSON.parse(localStorage.getItem('savedConversations') || '[]');
+            savedConversations.splice(id, 1);
+            localStorage.setItem('savedConversations', JSON.stringify(savedConversations));
+            // Remove from favorites if present
+            const favorites = JSON.parse(localStorage.getItem('favoriteConversations') || '[]');
+            const favIndex = favorites.indexOf(id);
+            if (favIndex > -1) {
+                favorites.splice(favIndex, 1);
+                // Update remaining favorite indices
+                const updatedFavorites = favorites.map(fav => fav > id ? fav - 1 : fav);
+                localStorage.setItem('favoriteConversations', JSON.stringify(updatedFavorites));
+            }
+            // Conversation deleted (alert removed for production)
+            loadConversations(); // Reload the list
+        }
+
+        function goBackToChat() {
+            window.location.href = '/chat';
+        }
+
+        function signOut() {
+            // Sign out (confirmation removed for production)
+            // Clear any stored user data
+            localStorage.removeItem('userToken');
+            sessionStorage.clear();
+            // Redirect to sign out endpoint or login page
+            window.location.href = '/logout';
+        }
+
+        // Theme toggle function
+        function toggleTheme() {
+            document.body.classList.toggle('day-mode');
+            var themeText = document.getElementById('themeText');
+            var themeIcon = document.getElementById('themeIcon');
+            
+            if (document.body.classList.contains('day-mode')) {
+                themeText.textContent = 'Day Mode is ON';
+                themeIcon.textContent = '☀️';
+                localStorage.setItem('themeMode', 'day');
+            } else {
+                themeText.textContent = 'Night Mode is ON';
+                themeIcon.textContent = '🌙';
+                localStorage.setItem('themeMode', 'night');
+            }
+        }
+
+        // Load saved theme from localStorage
+        function loadSavedTheme() {
+            var savedTheme = localStorage.getItem('themeMode');
+            var themeText = document.getElementById('themeText');
+            var themeIcon = document.getElementById('themeIcon');
+            
+            if (savedTheme === 'day') {
+                document.body.classList.add('day-mode');
+                if (themeText) themeText.textContent = 'Day Mode is ON';
+                if (themeIcon) themeIcon.textContent = '☀️';
+            } else {
+                document.body.classList.remove('day-mode');
+                if (themeText) themeText.textContent = 'Night Mode is ON';
+                if (themeIcon) themeIcon.textContent = '🌙';
+            }
+        }
+
+        // Netflix-style Companion Dropdown Functions
+        let selectedCompanion = 'all';
+
+        function toggleCompanionDropdown() {
+            const dropdown = document.getElementById('companionDropdown');
+            const selector = document.querySelector('.companion-selector');
+            
+            dropdown.classList.toggle('show');
+            selector.classList.toggle('active');
+            
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function closeDropdown(e) {
+                if (!e.target.closest('.companion-dropdown')) {
+                    dropdown.classList.remove('show');
+                    selector.classList.remove('active');
+                    document.removeEventListener('click', closeDropdown);
+                }
+            });
+        }
+
+        function populateCompanionDropdown() {
+            const dropdown = document.getElementById('companionDropdown');
+            console.log('🔧 Populating companion dropdown...');
+            
+            if (!dropdown) {
+                console.error('❌ Dropdown element not found!');
+                return;
+            }
+            
+            // Define all available companions with their tier information
+            const companions = [
+                // Filter Options
+                { id: 'all', name: 'All Companions', avatar: '', tier: 'special', description: 'Show conversations from all companions', available: true },
+                
+                // Bronze/Free Tier (8 companions)
+                { id: 'Blayzo', name: 'Blayzo', avatar: '/static/logos/Blayzo.png', tier: 'bronze', description: 'Your supportive AI companion', available: true },
+                { id: 'Blayzica', name: 'Blayzica', avatar: '/static/logos/Blayzica.png', tier: 'bronze', description: 'Your caring AI companion', available: true },
+                { id: 'GamerJay', name: 'GamerJay', avatar: '/static/logos/GamerJay_Free_companion.png', tier: 'bronze', description: 'Gaming-focused companion', available: true },
+                { id: 'Blayzion', name: 'Blayzion', avatar: '/static/logos/Blayzion.png', tier: 'bronze', description: 'Advanced Blayzo variant', available: true },
+                { id: 'Lumen', name: 'Lumen', avatar: '/static/logos/Lumen_Bronze.png', tier: 'bronze', description: 'Light-focused companion', available: true },
+                { id: 'Blayzo.2', name: 'Blayzo.2', avatar: '/static/logos/blayzo_free_tier.png', tier: 'bronze', description: 'Enhanced Blayzo version', available: true },
+                { id: 'Claude', name: 'Claude', avatar: '/static/logos/Claude_Free.png', tier: 'bronze', description: 'AI assistant companion', available: true },
+                { id: 'Blayzia', name: 'Blayzia', avatar: '/static/logos/Blayzia.png', tier: 'bronze', description: 'Blayzo family companion', available: true },
+                
+                // Silver Tier (8 companions)  
+                { id: 'SilverSky', name: 'Sky', avatar: '/static/logos/Sky_a_premium_companion.png', tier: 'silver', description: 'Mystical horoscope companion', available: false },
+                { id: 'SilverGamerJay', name: 'GamerJay', avatar: '/static/logos/GamerJay_premium_companion.png', tier: 'silver', description: 'Enhanced gaming companion', available: false },
+                { id: 'SilverClaude', name: 'Claude', avatar: '/static/logos/Claude Growth.png', tier: 'silver', description: 'AI assistant companion', available: false },
+                { id: 'SilverBlayzo', name: 'Blayzo', avatar: '/static/logos/Blayzo_premium_companion.png', tier: 'silver', description: 'Enhanced Blayzo experience', available: false },
+                { id: 'SilverBlayzica', name: 'Blayzica', avatar: '/static/logos/Blayzica_Pro.png', tier: 'silver', description: 'Advanced Blayzica features', available: false },
+                { id: 'SilverWatchDog', name: 'WatchDog', avatar: '/static/logos/WatchDog a Premium companion.png', tier: 'silver', description: 'Security-focused companion', available: false },
+                { id: 'SilverRozia', name: 'Rozia', avatar: '/static/logos/Rozia_Silver.png', tier: 'silver', description: 'Elegant silver companion', available: false },
+                { id: 'SilverLumen', name: 'Lumen', avatar: '/static/logos/Lumen_Silver.png', tier: 'silver', description: 'Enhanced light companion', available: false },
+                
+                // Gold Tier (7 companions)  
+                { id: 'GoldCrimson', name: 'Crimson', avatar: '/static/logos/Crimson_a_Max_companion.png', tier: 'gold', description: 'Elite companion experience', available: false },
+                { id: 'GoldViolet', name: 'Violet', avatar: '/static/logos/Violet_Max.png', tier: 'gold', description: 'Premium companion features', available: false },
+                { id: 'GoldClaude', name: 'Claude', avatar: '/static/logos/Claude Max.png', tier: 'gold', description: 'Ultimate AI assistant', available: false },
+                { id: 'GoldRoyal', name: 'Royal', avatar: '/static/logos/Royal_Max.png', tier: 'gold', description: 'Ultimate companion experience', available: false },
+                { id: 'GoldVen Blayzica', name: 'Ven Blayzica', avatar: '/static/logos/Ven_Blayzica_Max.png', tier: 'gold', description: 'Advanced Blayzica variant', available: false },
+                { id: 'GoldVen Sky', name: 'Ven Sky', avatar: '/static/logos/Ven_Sky_Max.png', tier: 'gold', description: 'Advanced Sky variant', available: false },
+                { id: 'GoldWatchDog', name: 'WatchDog', avatar: '/static/logos/WatchDog a Max Companion.png', tier: 'gold', description: 'Elite security companion', available: false },
+                
+                // Referral Tier (5 companions) - Locked, earned through referrals only
+                { id: 'Blayzike', name: 'Blayzike', avatar: '/static/logos/Blayzike.png', tier: 'referral', description: 'Exclusive referral companion', available: false },
+                { id: 'Nyxara', name: 'Nyxara', avatar: '/static/logos/Nyxara.png', tier: 'referral', description: 'Mystical referral companion', available: false },
+                { id: 'Blazelian', name: 'Blazelian', avatar: '/static/logos/Blazelian.png', tier: 'referral', description: 'Elite referral companion', available: false },
+                { id: 'Claude Referral', name: 'Claude Referral', avatar: '/static/logos/Claude Referral.png', tier: 'referral', description: 'Ultimate referral companion', available: false },
+                { id: 'Blayzo Referral', name: 'Blayzo Referral', avatar: '/static/logos/Blayzo Referral.png', tier: 'referral', description: 'Special Blayzo referral variant', available: false },
+                
+                // Special companions (content specialists - always available for filtering)
+                { id: 'Fortune Teller', name: 'Fortune Teller', avatar: '/static/logos/Fortune Teller Sky.png', tier: 'special', description: 'Fortune reading specialist', available: true },
+                { id: 'Agent', name: 'Agent', avatar: '/static/logos/Agent The decoder.png', tier: 'special', description: 'Decoder/Coder specialist', available: true },
+                { id: 'Sky', name: 'Sky (Horoscope)', avatar: '/static/logos/horoscope sky.png', tier: 'special', description: 'Horoscope specialist', available: true }
+            ];
+            
+            // Clear existing dropdown content
+            dropdown.innerHTML = '';
+            console.log('🔧 Found', companions.length, 'companions to populate');
+            
+            // Create companion items
+            companions.forEach(companion => {
+                console.log('🔧 Adding companion:', companion.name);
+                const item = document.createElement('div');
+                item.className = `companion-item ${companion.available ? '' : 'locked'}`;
+                item.onclick = () => selectCompanionFilter(companion.id, companion.name);
+                
+                const tierBadge = getTierBadge(companion.tier, companion.available);
+                
+                item.innerHTML = `
+                    ${companion.avatar ? `<img src="${companion.avatar}" alt="${companion.name}" class="companion-avatar" onerror="this.style.display='none'">` : '<div class="companion-avatar" style="background: #22d3ee; display: flex; align-items: center; justify-content: center; color: #000; font-weight: bold;">🤖</div>'}
+                    <div class="companion-info">
+                        <div class="companion-name">${companion.name}</div>
+                        <div class="companion-description">${companion.description}</div>
+                    </div>
+                    ${tierBadge}
+                    ${!companion.available ? '<span class="lock-icon">🔒</span>' : ''}
+                `;
+                
+                dropdown.appendChild(item);
+            });
+            
+            console.log('✅ Dropdown populated with', dropdown.children.length, 'companion items');
+        }
+
+        function getTierBadge(tier, available) {
+            if (tier === 'bronze') return '<span class="companion-tier-badge tier-bronze">BRONZE</span>';
+            if (tier === 'silver') return `<span class="companion-tier-badge ${available ? 'tier-silver' : 'tier-locked'}">SILVER</span>`;
+            if (tier === 'gold') return `<span class="companion-tier-badge ${available ? 'tier-gold' : 'tier-locked'}">GOLD</span>`;
+            if (tier === 'referral') return '<span class="companion-tier-badge tier-locked">REFERRAL ONLY</span>';
+            if (tier === 'special') return '<span class="companion-tier-badge tier-bronze">SPECIAL</span>';
+            return '';
+        }
+
+        function selectCompanionFilter(companionId, companionName) {
+            selectedCompanion = companionId;
+            
+            // Update dropdown button text
+            const selectorText = document.getElementById('companion-selector-text');
+            if (companionId === 'all') {
+                selectorText.textContent = '🤖 AI Companions';
+            } else {
+                selectorText.textContent = `🤖 ${companionName}`;
+            }
+            
+            // Close dropdown
+            const dropdown = document.getElementById('companionDropdown');
+            const selector = document.querySelector('.companion-selector');
+            dropdown.classList.remove('show');
+            selector.classList.remove('active');
+            
+            // Update filter
+            if (companionId === 'all') {
+                filterByType('all');
+            } else {
+                currentFilter = companionId;
+                filterConversations();
+            }
+            
+            // Update active filter button
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector('.companion-selector').classList.add('active');
+        }
+    </script>
+</body>
+    <script src="/static/js/mini-assistant-modal.js"></script>
+</html>

@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - SoulBridge AI</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Login to SoulBridge AI - Your personal AI companion for emotional support, guidance, and meaningful conversations.">
+    <meta name="keywords" content="AI companion, emotional support, artificial intelligence, personal assistant, mental health">
+    <meta name="author" content="SoulBridge AI">
+    
+    <!-- Open Graph Meta Tags for Social Media -->
+    <meta property="og:title" content="SoulBridge AI - Your Personal AI Companion">
+    <meta property="og:description" content="Connect with your personal AI companion for emotional support, guidance, and meaningful conversations.">
+    <meta property="og:image" content="https://soulbridgeai.com/static/logos/The IntroLogo.png">
+    <meta property="og:url" content="https://soulbridgeai.com">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="SoulBridge AI">
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="SoulBridge AI - Your Personal AI Companion">
+    <meta name="twitter:description" content="Connect with your personal AI companion for emotional support, guidance, and meaningful conversations.">
+    <meta name="twitter:image" content="https://soulbridgeai.com/static/logos/The IntroLogo.png">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192x192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/favicon-512x512.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta name="theme-color" content="#00ffff">
+    
+    <!-- Modular CSS Files -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/animations.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/themes.css') }}">
+    
+    
+    
+    <style>
+        .auth-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            position: relative;
+        }
+        
+        .auth-card {
+            background: rgba(0,0,0,0.9);
+            border: 2px solid #22d3ee;
+            border-radius: 16px;
+            padding: 2rem;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+            backdrop-filter: blur(15px);
+            position: relative;
+            z-index: 1;
+        }
+        
+        .auth-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: url('/static/logos/The IntroLogo.png?v=2025');
+            background-size: 280px 280px !important;
+            background-repeat: no-repeat;
+            background-position: center 10px;
+            opacity: 0.9;
+            z-index: 0;
+            border-radius: 16px;
+            pointer-events: none;
+        }
+        
+        /* Day mode logo - positioned under header text */
+        body.day-mode .auth-card::before {
+            background-image: url('/static/logos/BlackIntroLogo.png?v=2025');
+            background-size: 280px 280px !important;
+            background-position: center 10px;
+            opacity: 1;
+            filter: contrast(2) brightness(0.5);
+        }
+        
+        .auth-card > * {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .auth-header {
+            text-align: center;
+            margin-top: 0.03125rem;
+            margin-bottom: 7rem;
+        }
+        
+        /* Day mode - keep same header positioning */
+        body.day-mode .auth-header {
+            margin-top: 0.03125rem;
+            margin-bottom: 7rem;
+        }
+        
+        .auth-logo {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #22d3ee;
+            margin-bottom: 0.5rem;
+        }
+        
+        .auth-title {
+            font-size: 1.5rem;
+            color: #fff;
+            margin-bottom: 0.5rem;
+        }
+        
+        .auth-subtitle {
+            color: #94a3b8;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-label {
+            display: block;
+            color: #22d3ee;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #22d3ee;
+            border-radius: 8px;
+            background: rgba(0,0,0,0.8);
+            color: #fff;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #0891b2;
+            box-shadow: 0 0 0 4px rgba(34, 211, 238, 0.2);
+        }
+        
+        .form-input::placeholder {
+            color: #e2e8f0;
+        }
+        
+        /* Fix autofill styling and ensure consistent text color */
+        .form-input,
+        input[type="email"],
+        input[type="password"],
+        input[type="text"] {
+            color: #fff !important;
+        }
+        
+        .form-input:-webkit-autofill,
+        .form-input:-webkit-autofill:hover,
+        .form-input:-webkit-autofill:focus,
+        .form-input:-webkit-autofill:active,
+        input[type="email"]:-webkit-autofill,
+        input[type="email"]:-webkit-autofill:hover,
+        input[type="email"]:-webkit-autofill:focus,
+        input[type="email"]:-webkit-autofill:active {
+            -webkit-box-shadow: 0 0 0 30px rgba(0,0,0,0.8) inset !important;
+            -webkit-text-fill-color: #fff !important;
+            color: #fff !important;
+            caret-color: #fff !important;
+        }
+        
+        body.day-mode .form-input,
+        body.day-mode input[type="email"],
+        body.day-mode input[type="password"],
+        body.day-mode input[type="text"] {
+            color: #000 !important;
+        }
+        
+        body.day-mode .form-input:-webkit-autofill,
+        body.day-mode .form-input:-webkit-autofill:hover,
+        body.day-mode .form-input:-webkit-autofill:focus,
+        body.day-mode .form-input:-webkit-autofill:active,
+        body.day-mode input[type="email"]:-webkit-autofill,
+        body.day-mode input[type="email"]:-webkit-autofill:hover,
+        body.day-mode input[type="email"]:-webkit-autofill:focus,
+        body.day-mode input[type="email"]:-webkit-autofill:active {
+            -webkit-box-shadow: 0 0 0 30px rgba(255, 255, 255, 0.9) inset !important;
+            -webkit-text-fill-color: #000 !important;
+            color: #000 !important;
+            caret-color: #000 !important;
+        }
+        
+        .password-container {
+            position: relative;
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            color: #22d3ee;
+            font-size: 16px;
+            z-index: 10;
+            transition: color 0.3s ease;
+        }
+        
+        .password-toggle:hover {
+            color: #0891b2;
+        }
+        
+        body.day-mode .password-toggle {
+            color: #000;
+        }
+        
+        body.day-mode .password-toggle:hover {
+            color: #22d3ee;
+        }
+        
+        .auth-btn {
+            width: 100%;
+            padding: 14px 24px;
+            background: linear-gradient(135deg, #22d3ee, #0891b2);
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 1rem;
+        }
+        
+        .auth-btn:hover {
+            background: linear-gradient(135deg, #0891b2, #0e7490);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(34, 211, 238, 0.5);
+        }
+        
+        .auth-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .oauth-section {
+            margin: 3rem 0 2rem 0;
+            text-align: center;
+        }
+        
+        .oauth-divider {
+            position: relative;
+            margin: 1.5rem 0;
+            text-align: center;
+        }
+        
+        .oauth-divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: #374151;
+        }
+        
+        .oauth-divider span {
+            background: rgba(0,0,0,0.95);
+            color: #e2e8f0;
+            padding: 0 1.5rem;
+            font-size: 1rem;
+            font-weight: 500;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .oauth-btn {
+            width: 100%;
+            padding: 14px 24px;
+            border: 2px solid #374151;
+            border-radius: 8px;
+            background: rgba(0,0,0,0.8);
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            text-decoration: none;
+        }
+        
+        .oauth-btn:hover {
+            border-color: #22d3ee;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        
+        .oauth-btn.google {
+            border-color: #4285f4;
+        }
+        
+        .oauth-btn.google:hover {
+            border-color: #4285f4;
+            background: rgba(66, 133, 244, 0.1);
+        }
+        
+        /* Day mode adjustments */
+        body.day-mode .oauth-btn {
+            background: rgba(255, 255, 255, 0.9);
+            border-color: #000;
+            color: #000;
+        }
+        
+        body.day-mode .oauth-divider span {
+            background: rgba(248, 249, 250, 0.95);
+            color: #374151;
+        }
+        
+        .oauth-divider {
+            position: relative;
+            margin: 1.5rem 0;
+            text-align: center;
+        }
+        
+        .oauth-divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: #374151;
+        }
+        
+        .oauth-divider span {
+            background: rgba(0,0,0,0.95);
+            color: #e2e8f0;
+            padding: 0 1.5rem;
+            font-size: 1rem;
+            font-weight: 500;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .oauth-btn {
+            width: 100%;
+            padding: 14px 24px;
+            border: 2px solid #374151;
+            border-radius: 8px;
+            background: rgba(0,0,0,0.8);
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            text-decoration: none;
+        }
+        
+        .oauth-btn:hover {
+            border-color: #22d3ee;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        
+        .oauth-btn.google {
+            border-color: #4285f4;
+        }
+        
+        .oauth-btn.google:hover {
+            border-color: #4285f4;
+            background: rgba(66, 133, 244, 0.1);
+        }
+        
+        
+        .auth-footer {
+            text-align: center;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid #374151;
+        }
+        
+        .auth-link {
+            color: #22d3ee;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .auth-link:hover {
+            text-decoration: underline;
+        }
+        
+        .error-message {
+            background: rgba(220, 38, 38, 0.1);
+            border: 1px solid #dc2626;
+            color: #dc2626;
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+        
+        .success-message {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid #22c55e;
+            color: #22c55e;
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+        
+        .forgot-password {
+            text-align: right;
+            margin-top: 0.5rem;
+        }
+        
+        .forgot-password a {
+            color: #22d3ee;
+            text-decoration: none;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+        
+        .forgot-password a:hover {
+            color: #0891b2;
+            text-decoration: underline;
+        }
+        
+        /* Day mode forgot password link */
+        body.day-mode .forgot-password a {
+            color: #000;
+        }
+        
+        body.day-mode .forgot-password a:hover {
+            color: #333;
+        }
+        
+        /* Day mode adjustments */
+        body.day-mode .auth-card {
+            background: rgba(248, 249, 250, 0.95);
+            border-color: #000;
+        }
+        
+        body.day-mode .auth-title {
+            color: #000;
+        }
+        
+        body.day-mode .form-input {
+            background: rgba(255, 255, 255, 0.9);
+            border-color: #000;
+            color: #000;
+        }
+        
+        body.day-mode .oauth-btn {
+            background: rgba(255, 255, 255, 0.9);
+            border-color: #000;
+            color: #000;
+        }
+        
+        body.day-mode .oauth-divider span {
+            background: rgba(248, 249, 250, 0.95);
+            color: #374151;
+        }
+        
+        /* Responsive design */
+        @media (max-width: 480px) {
+            .auth-container {
+                padding: 1rem;
+            }
+            
+            .auth-card {
+                padding: 1.5rem;
+            }
+            
+            .auth-logo {
+                font-size: 1.5rem;
+            }
+            
+            .auth-title {
+                font-size: 1.25rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Language Selector (moved below sign-in) -->
+        
+    </div>
+
+
+    <div class="auth-container content-overlay">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="auth-logo">SoulBridge AI</div>
+                <h1 class="auth-title" data-translate="welcome_back">Welcome Back</h1>
+                <p class="auth-subtitle" data-translate="sign_in_subtitle">Sign in to continue your journey</p>
+            </div>
+            
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        {% if category == 'error' %}
+                        <div class="error-message" role="alert">
+                            {{ message }}
+                        </div>
+                        {% elif category == 'success' %}
+                        <div class="success-message" role="status">
+                            {{ message }}
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            <!-- Login Form -->
+            <form method="POST" action="/auth/login" id="loginForm">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <div class="form-group">
+                    <label for="email" class="form-label" data-translate="email">Email</label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        name="email" 
+                        class="form-input" 
+                        placeholder="Enter your email" data-translate-placeholder="enter_email"
+                        required
+                        autocomplete="email"
+                        value="{{ request.form.email or '' }}"
+                    >
+                </div>
+                
+                <div class="form-group">
+                    <label for="password" class="form-label" data-translate="password">Password</label>
+                    <div class="password-container">
+                        <input 
+                            type="password" 
+                            id="password" 
+                            name="password" 
+                            class="form-input" 
+                            placeholder="Enter your password" data-translate-placeholder="enter_password"
+                            required
+                            autocomplete="current-password"
+                            style="padding-right: 45px;"
+                        >
+                        <button type="button" class="password-toggle" id="loginToggleBtn" aria-label="Toggle password visibility">
+                            👁️
+                        </button>
+                    </div>
+                    <div class="forgot-password">
+                        <a href="/auth/forgot-password" data-translate="forgot_password">Forgot password?</a>
+                    </div>
+                </div>
+                
+                <button type="submit" class="auth-btn" id="loginBtn" data-translate="sign_in">
+                    Sign In
+                </button>
+            </form>
+            
+            
+            <!-- Footer -->
+            <div class="auth-footer">
+                <p style="color: #9ca3af; margin: 0;">
+                    <span data-translate="no_account">Don't have an account?</span> 
+                    <a href="/auth/register" class="auth-link" data-translate="sign_up">Sign up</a>
+                </p>
+            </div>
+            
+            <!-- Language Selector (Below Sign-In) -->
+            <div style="margin-top: 20px; display: flex; justify-content: center; position: relative;">
+                <button type="button" id="languageSelector" style="
+                    background: rgba(34, 211, 238, 0.8);
+                    color: #000;
+                    padding: 8px 12px;
+                    border-radius: 20px;
+                    cursor: pointer;
+                    font-weight: bold;
+                    transition: all 0.3s ease;
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                    position: relative;
+                    border: none;
+                    pointer-events: auto;
+                ">
+                    <span>🌐</span>
+                    <span id="currentLanguage" data-translate="language_en">EN</span>
+                </button>
+                
+                <!-- Language Dropdown -->
+                <div id="languageMenu" style="
+                    display: none;
+                    position: absolute;
+                    top: 100%;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background: rgba(0, 0, 0, 0.9);
+                    border: 2px solid #22d3ee;
+                    border-radius: 12px;
+                    padding: 8px;
+                    margin-top: 5px;
+                    min-width: 150px;
+                    box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+                    z-index: 1000;
+                ">
+                    <div class="language-option" onclick="changeLanguage('en')" style="padding: 8px 12px; cursor: pointer; border-radius: 8px; transition: all 0.3s ease; color: #22d3ee;" onmouseover="this.style.background='rgba(34, 211, 238, 0.2)'" onmouseout="this.style.background='transparent'">
+                        🇺🇸 <span data-translate="lang_english">English</span>
+                    </div>
+                    <div class="language-option" onclick="changeLanguage('es')" style="padding: 8px 12px; cursor: pointer; border-radius: 8px; transition: all 0.3s ease; color: #22d3ee;" onmouseover="this.style.background='rgba(34, 211, 238, 0.2)'" onmouseout="this.style.background='transparent'">
+                        🇪🇸 <span data-translate="lang_spanish">Español</span>
+                    </div>
+                    <div class="language-option" onclick="changeLanguage('fr')" style="padding: 8px 12px; cursor: pointer; border-radius: 8px; transition: all 0.3s ease; color: #22d3ee;" onmouseover="this.style.background='rgba(34, 211, 238, 0.2)'" onmouseout="this.style.background='transparent'">
+                        🇫🇷 <span data-translate="lang_french">Français</span>
+                    </div>
+                    <div class="language-option" onclick="changeLanguage('de')" style="padding: 8px 12px; cursor: pointer; border-radius: 8px; transition: all 0.3s ease; color: #22d3ee;" onmouseover="this.style.background='rgba(34, 211, 238, 0.2)'" onmouseout="this.style.background='transparent'">
+                        🇩🇪 <span data-translate="lang_german">Deutsch</span>
+                    </div>
+                    <div class="language-option" onclick="changeLanguage('pt')" style="padding: 8px 12px; cursor: pointer; border-radius: 8px; transition: all 0.3s ease; color: #22d3ee;" onmouseover="this.style.background='rgba(34, 211, 238, 0.2)'" onmouseout="this.style.background='transparent'">
+                        🇧🇷 <span data-translate="lang_portuguese">Português</span>
+                    </div>
+                    <div class="language-option" onclick="changeLanguage('zh')" style="padding: 8px 12px; cursor: pointer; border-radius: 8px; transition: all 0.3s ease; color: #22d3ee;" onmouseover="this.style.background='rgba(34, 211, 238, 0.2)'" onmouseout="this.style.background='transparent'">
+                        🇨🇳 <span data-translate="lang_chinese">中文</span>
+                    </div>
+                    <div class="language-option" onclick="changeLanguage('ja')" style="padding: 8px 12px; cursor: pointer; border-radius: 8px; transition: all 0.3s ease; color: #22d3ee;" onmouseover="this.style.background='rgba(34, 211, 238, 0.2)'" onmouseout="this.style.background='transparent'">
+                        🇯🇵 <span data-translate="lang_japanese">日本語</span>
+                    </div>
+                    <div class="language-option" onclick="changeLanguage('ru')" style="padding: 8px 12px; cursor: pointer; border-radius: 8px; transition: all 0.3s ease; color: #22d3ee;" onmouseover="this.style.background='rgba(34, 211, 238, 0.2)'" onmouseout="this.style.background='transparent'">
+                        🇷🇺 <span data-translate="lang_russian">Русский</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- All conflicting scripts disabled on login page - login-fixed.js handles everything -->
+    <!-- <script src="{{ url_for('static', filename='js/universal-button-fix.js') }}?v=20250725" defer></script> -->
+    <!-- <script src="{{ url_for('static', filename='js/app.js') }}?v=20250725" defer></script> -->
+    <script>
+        // Wait for DOM to be ready before attaching event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Auto-focus first input
+            const emailInput = document.getElementById('email');
+            if (emailInput) {
+                emailInput.focus();
+            }
+            // Cleaned up: Removed debug checks for missing theme/language buttons/functions
+        });
+        
+        // Global error handler with watchdog reporting
+        window.addEventListener('error', function(e) {
+            // Error handler (logging removed for production)
+            
+        });
+        
+        // Theme functionality handled by universal-button-fix.js
+
+        // Language functions
+        function toggleLanguageMenu() {
+            const menu = document.getElementById('languageMenu');
+            if (menu.style.display === 'none' || menu.style.display === '') {
+                menu.style.display = 'block';
+            } else {
+                menu.style.display = 'none';
+            }
+        }
+        
+        function changeLanguage(lang) {
+            localStorage.setItem('selectedLanguage', lang);
+            updateLanguageDisplay(lang);
+            toggleLanguageMenu();
+            // Apply translations immediately
+            applyTranslations(lang);
+        }
+        
+        function updateLanguageDisplay(lang) {
+            const currentLanguage = document.getElementById('currentLanguage');
+            const langMap = {
+                'en': 'EN',
+                'es': 'ES', 
+                'fr': 'FR',
+                'de': 'DE',
+                'pt': 'PT',
+                'zh': 'ZH',
+                'ja': 'JP',
+                'ru': 'RU'
+            };
+            currentLanguage.textContent = langMap[lang] || 'EN';
+        }
+        
+        // Translation data
+        const translations = {
+            en: {
+                sign_in: "Sign In",
+                sign_in_subtitle: "Sign in to continue your journey",
+                email_address: "Email Address", 
+                password: "Password",
+                forgot_password: "Forgot password?",
+ 
+                no_account: "Don't have an account?",
+                sign_up: "Sign up",
+                language_en: "EN",
+                lang_english: "English",
+                lang_spanish: "Español", 
+                lang_french: "Français",
+                lang_german: "Deutsch",
+                lang_portuguese: "Português",
+                lang_chinese: "中文",
+                lang_japanese: "日本語",
+                lang_russian: "Русский"
+            },
+            es: {
+                sign_in: "Iniciar Sesión",
+                sign_in_subtitle: "Inicia sesión para continuar tu viaje",
+                email_address: "Dirección de Correo",
+                password: "Contraseña", 
+                forgot_password: "¿Olvidaste tu contraseña?",
+                no_account: "¿No tienes una cuenta?",
+                sign_up: "Registrarse",
+                language_en: "ES",
+                lang_english: "English",
+                lang_spanish: "Español",
+                lang_french: "Français", 
+                lang_german: "Deutsch",
+                lang_portuguese: "Português",
+                lang_chinese: "中文",
+                lang_japanese: "日本語",
+                lang_russian: "Русский"
+            },
+            fr: {
+                sign_in: "Se Connecter",
+                sign_in_subtitle: "Connectez-vous pour continuer votre voyage",
+                email_address: "Adresse E-mail",
+                password: "Mot de Passe",
+                forgot_password: "Mot de passe oublié?",
+                no_account: "Vous n'avez pas de compte?",
+                sign_up: "S'inscrire",
+                language_en: "FR",
+                lang_english: "English",
+                lang_spanish: "Español",
+                lang_french: "Français",
+                lang_german: "Deutsch", 
+                lang_portuguese: "Português",
+                lang_chinese: "中文",
+                lang_japanese: "日本語",
+                lang_russian: "Русский"
+            },
+            de: {
+                sign_in: "Anmelden",
+                sign_in_subtitle: "Melden Sie sich an, um Ihre Reise fortzusetzen",
+                email_address: "E-Mail-Adresse",
+                password: "Passwort",
+                forgot_password: "Passwort vergessen?",
+                no_account: "Haben Sie kein Konto?",
+                sign_up: "Registrieren",
+                language_en: "DE",
+                lang_english: "English",
+                lang_spanish: "Español", 
+                lang_french: "Français",
+                lang_german: "Deutsch",
+                lang_portuguese: "Português",
+                lang_chinese: "中文",
+                lang_japanese: "日本語",
+                lang_russian: "Русский"
+            },
+            pt: {
+                sign_in: "Entrar",
+                sign_in_subtitle: "Faça login para continuar sua jornada",
+                email_address: "Endereço de E-mail",
+                password: "Senha",
+                forgot_password: "Esqueceu a senha?",
+                no_account: "Não tem uma conta?",
+                sign_up: "Cadastrar-se",
+                language_en: "PT",
+                lang_english: "English",
+                lang_spanish: "Español",
+                lang_french: "Français",
+                lang_german: "Deutsch",
+                lang_portuguese: "Português",
+                lang_chinese: "中文",
+                lang_japanese: "日本語",
+                lang_russian: "Русский"
+            },
+            zh: {
+                sign_in: "登录",
+                sign_in_subtitle: "登录以继续您的旅程",
+                email_address: "电子邮件地址",
+                password: "密码",
+                forgot_password: "忘记密码？",
+                no_account: "没有账户？",
+                sign_up: "注册",
+                language_en: "ZH",
+                lang_english: "English",
+                lang_spanish: "Español",
+                lang_french: "Français",
+                lang_german: "Deutsch",
+                lang_portuguese: "Português",
+                lang_chinese: "中文",
+                lang_japanese: "日本語",
+                lang_russian: "Русский"
+            },
+            ja: {
+                sign_in: "ログイン",
+                sign_in_subtitle: "あなたの旅を続けるためにログインしてください",
+                email_address: "メールアドレス",
+                password: "パスワード",
+                forgot_password: "パスワードを忘れましたか？",
+                no_account: "アカウントをお持ちでないですか？",
+                sign_up: "サインアップ",
+                language_en: "JP",
+                lang_english: "English",
+                lang_spanish: "Español",
+                lang_french: "Français",
+                lang_german: "Deutsch",
+                lang_portuguese: "Português",
+                lang_chinese: "中文",
+                lang_japanese: "日本語",
+                lang_russian: "Русский"
+            },
+            ru: {
+                sign_in: "Войти",
+                sign_in_subtitle: "Войдите, чтобы продолжить свое путешествие",
+                email_address: "Адрес электронной почты",
+                password: "Пароль",
+                forgot_password: "Забыли пароль?",
+                no_account: "Нет аккаунта?",
+                sign_up: "Зарегистрироваться",
+                language_en: "RU",
+                lang_english: "English",
+                lang_spanish: "Español",
+                lang_french: "Français",
+                lang_german: "Deutsch",
+                lang_portuguese: "Português",
+                lang_chinese: "中文",
+                lang_japanese: "日本語",
+                lang_russian: "Русский"
+            }
+        };
+        
+        // Apply translations to the page
+        function applyTranslations(lang) {
+            const translation = translations[lang] || translations.en;
+            
+            // Find all elements with data-translate attribute
+            document.querySelectorAll('[data-translate]').forEach(element => {
+                const key = element.getAttribute('data-translate');
+                if (translation[key]) {
+                    element.textContent = translation[key];
+                }
+            });
+            
+            // Update placeholders
+            const emailInput = document.getElementById('email');
+            const passwordInput = document.getElementById('password');
+            
+            if (emailInput && translation.email_address) {
+                emailInput.placeholder = translation.email_address;
+            }
+            if (passwordInput && translation.password) {
+                passwordInput.placeholder = translation.password;
+            }
+        }
+        
+        // Close language menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const languageSelector = document.getElementById('languageSelector');
+            const languageMenu = document.getElementById('languageMenu');
+            
+            if (languageSelector && languageMenu && 
+                !languageSelector.contains(event.target) && 
+                !languageMenu.contains(event.target)) {
+                languageMenu.style.display = 'none';
+            }
+        });
+        
+        // Load saved language on page load
+        function loadSavedLanguage() {
+            const savedLang = localStorage.getItem('selectedLanguage') || 'en';
+            updateLanguageDisplay(savedLang);
+            applyTranslations(savedLang);
+        }
+        
+        // Load saved theme on page load
+        function loadSavedTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'night';
+            if (savedTheme === 'day') {
+                document.body.classList.add('day-mode');
+                const themeText = document.getElementById('themeText');
+                const themeIcon = document.getElementById('themeIcon');
+                const themeToggle = document.getElementById('themeToggle');
+                
+                if (themeText) themeText.textContent = 'Day Mode is ON';
+                if (themeIcon) themeIcon.textContent = '☀️';
+                if (themeToggle) {
+                    themeToggle.style.background = 'rgba(255, 193, 7, 0.8)';
+                    themeToggle.style.color = '#000';
+                }
+            }
+        }
+
+        // Load theme on page load
+        window.addEventListener('load', function() {
+            loadSavedTheme();
+            loadSavedLanguage();
+        });
+        
+        // Password toggle function - DISABLED - Universal Button Fix handles this
+        // function togglePassword(fieldId) {
+        //     console.log('❌ Local togglePassword disabled - Universal Button Fix handling');
+        // }
+        
+        // Clear "loggedIn" flag on login page load (user either logged out or needs to login)
+        sessionStorage.removeItem('loggedIn');
+    // Cleaned up: Removed all debug logs for a silent login page
+        
+        // Wait for all scripts to load, then initialize
+        window.addEventListener('load', function() {
+            // Cleaned up: Removed Universal Button Fix and debug logs for a silent console
+        });
+    </script>
+    
+    <!-- AUTH.JS COMPLETELY REMOVED FOR PLAIN FORM SUBMISSION -->
+    
+    <!-- Complete working login system -->
+    <script src="{{ url_for('static', filename='js/login-fixed.js') }}" defer></script>
+</body>
+    <script src="/static/js/mini-assistant-modal.js"></script>
+</html>
