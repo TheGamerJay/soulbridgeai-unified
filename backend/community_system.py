@@ -1728,6 +1728,35 @@ def get_companions():
         trial_active = session.get('trial_active', False)
         referrals = int(session.get('referrals', 0))
         
+        # CRITICAL FIX: Verify trial status with database to prevent stale session access
+        try:
+            from database_utils import get_database
+            db = get_database()
+            if db:
+                conn = db.get_connection()
+                cursor = conn.cursor()
+                if db.use_postgres:
+                    cursor.execute("SELECT user_plan, trial_active, trial_expires_at FROM users WHERE id = %s", (user_id,))
+                else:
+                    cursor.execute("SELECT user_plan, trial_active, trial_expires_at FROM users WHERE id = ?", (user_id,))
+                result = cursor.fetchone()
+                if result:
+                    db_user_plan, db_trial_active, db_trial_expires = result
+                    # Use database values if they differ from session (database is source of truth)
+                    if db_user_plan != user_plan or bool(db_trial_active) != trial_active:
+                        logger.warning(f"🔧 COMMUNITY: Session mismatch detected - using database values")
+                        logger.warning(f"   Session: plan={user_plan}, trial={trial_active}")
+                        logger.warning(f"   Database: plan={db_user_plan}, trial={bool(db_trial_active)}")
+                        user_plan = db_user_plan
+                        trial_active = bool(db_trial_active)
+                        # Update session to match database
+                        session['user_plan'] = user_plan
+                        session['trial_active'] = trial_active
+                        session.modified = True
+                conn.close()
+        except Exception as e:
+            logger.error(f"Error verifying trial status: {e}")
+        
         # Get effective plan for companion access
         from unified_tier_system import get_effective_plan
         effective_plan = get_effective_plan(user_plan, trial_active)

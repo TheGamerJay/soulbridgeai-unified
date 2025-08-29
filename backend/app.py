@@ -19243,3 +19243,5 @@ logger.info("✅ Trial reset endpoint added")
 
 # Removed /chat-unified test route - no longer needed
 
+# Debug route removed to avoid conflicts
+
