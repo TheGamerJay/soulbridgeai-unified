@@ -698,25 +698,46 @@
             preview.style.borderColor = currentTheme.accent + '60';
         }
 
-        function saveTheme() {
-            localStorage.setItem('soulbridge_theme', JSON.stringify(currentTheme));
+        async function saveTheme() {
+            // Show saving indicator
+            const originalText = document.querySelector('.save-btn').textContent;
+            document.querySelector('.save-btn').textContent = '💾 Saving...';
+            document.querySelector('.save-btn').disabled = true;
             
-            // Apply theme to current page
-            document.body.style.background = `linear-gradient(135deg, ${currentTheme.background} 0%, ${currentTheme.accent}40 50%, ${currentTheme.background} 100%)`;
-            document.body.style.color = currentTheme.text;
-            
-            // Show success message
-            alert('🎨 Theme saved successfully! Your new colors will be applied across SoulBridge AI.');
-            
-            // Optional: Send to server to save in user preferences
-            fetch('/api/user/save-theme', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                credentials: 'include',
-                body: JSON.stringify(currentTheme)
-            }).catch(err => console.log('Theme save to server failed:', err));
+            try {
+                // Apply theme to current page immediately
+                document.body.style.background = `linear-gradient(135deg, ${currentTheme.background} 0%, ${currentTheme.accent}40 50%, ${currentTheme.background} 100%)`;
+                document.body.style.color = currentTheme.text;
+                
+                // Save to localStorage as backup
+                localStorage.setItem('soulbridge_theme', JSON.stringify(currentTheme));
+                
+                // Save to server database
+                const response = await fetch('/api/user/save-theme', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify(currentTheme)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('🎨 Theme saved successfully! Your new colors are now applied across all SoulBridge AI pages.');
+                } else {
+                    throw new Error(result.error || 'Failed to save theme');
+                }
+                
+            } catch (error) {
+                console.error('Theme save error:', error);
+                alert('❌ Failed to save theme to server. Your theme is saved locally but may not persist across sessions. Please try again.');
+            } finally {
+                // Reset button
+                document.querySelector('.save-btn').textContent = originalText;
+                document.querySelector('.save-btn').disabled = false;
+            }
         }
 
         // Close modals when clicking outside

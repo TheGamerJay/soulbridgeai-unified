@@ -1313,7 +1313,7 @@ def increment_rate_limit_session():
 @app.before_request
 def ensure_session_persistence():
     # IMPORTANT: Check open paths FIRST before authentication checks
-    open_paths = {"/api/login", "/api/logout", "/login", "/simple-login", "/auth/login", "/auth/register", "/auth/forgot-password", "/", "/chat-unified", "/mini-studio", "/mini_studio_health", "/api/stripe-debug", "/api/admin/reset-trial", "/health", "/api/user-status", "/api/check-user-status", "/api/chat", "/api/companion/chat", "/api/companion/status", "/api/companion/quota", "/api/companion/health", "/api/creative-writing", "/api/voice-chat/process", "/api/tier-limits", "/api/trial-status", "/api/user-info", "/api/companions", "/api/companions-test"}
+    open_paths = {"/api/login", "/api/logout", "/login", "/simple-login", "/auth/login", "/auth/register", "/auth/forgot-password", "/", "/mini-studio", "/mini_studio_health", "/api/stripe-debug", "/api/admin/reset-trial", "/health", "/api/user-status", "/api/check-user-status", "/api/chat", "/api/companion/chat", "/api/companion/status", "/api/companion/quota", "/api/companion/health", "/api/creative-writing", "/api/voice-chat/process", "/api/tier-limits", "/api/trial-status", "/api/user-info", "/api/companions", "/api/companions-test"}
     
     # Debug logging for auth paths
     if "/auth" in request.path:
@@ -13823,22 +13823,62 @@ def load_user_theme(user_id):
 
 @app.route("/api/user/get-theme", methods=["GET"])
 def get_user_theme():
-    """Get user's current theme preferences from session"""
+    """Get user's current theme preferences from session and database"""
     try:
         if not is_logged_in():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
+        user_id = session.get('user_id')
+        
+        # First check session
         theme = session.get('user_theme')
         if theme:
             return jsonify({"success": True, "theme": theme})
-        else:
-            # Return default theme
-            default_theme = {
-                'background': '#0f172a',
-                'text': '#22d3ee',
-                'accent': '#06b6d4'
-            }
-            return jsonify({"success": True, "theme": default_theme})
+        
+        # If not in session, try loading from database
+        try:
+            import json
+            
+            # Try PostgreSQL first (production)
+            if os.environ.get('DATABASE_URL'):
+                import psycopg2
+                conn = psycopg2.connect(os.environ.get('DATABASE_URL'))
+                cursor = conn.cursor()
+                cursor.execute("SELECT theme_preferences FROM users WHERE id = %s", (user_id,))
+                result = cursor.fetchone()
+                if result and result[0]:
+                    theme_data = json.loads(result[0])
+                    session['user_theme'] = theme_data  # Cache in session
+                    session.modified = True
+                    conn.close()
+                    return jsonify({"success": True, "theme": theme_data})
+                conn.close()
+            
+            # Try SQLite (local development)
+            db = get_database()
+            if db:
+                conn = db.get_connection()
+                cursor = conn.cursor()
+                cursor.execute("SELECT theme_preferences FROM users WHERE id = ?", (user_id,))
+                result = cursor.fetchone()
+                if result and result[0]:
+                    theme_data = json.loads(result[0])
+                    session['user_theme'] = theme_data  # Cache in session
+                    session.modified = True
+                    conn.close()
+                    return jsonify({"success": True, "theme": theme_data})
+                conn.close()
+                
+        except Exception as db_error:
+            logger.warning(f"Database theme load failed: {db_error}")
+        
+        # Return default theme if nothing found
+        default_theme = {
+            'background': '#0f172a',
+            'text': '#22d3ee',
+            'accent': '#06b6d4'
+        }
+        return jsonify({"success": True, "theme": default_theme})
             
     except Exception as e:
         logger.error(f"Get theme error: {e}")
@@ -19033,24 +19073,5 @@ logger.info("✅ Theme persistence API endpoints added")
 
 
 
-# UNIFIED CHAT INTERFACE (OPTION A TEST)
-# ========================================
-@app.route("/chat-unified")
-def unified_chat_test():
-    """Test route for unified chat interface - safe alongside existing system"""
-    if not is_logged_in():
-        return redirect("/login?return_to=chat-unified")
-    
-    user_plan = session.get("user_plan", "bronze")
-    trial_active = session.get("trial_active", False)
-    
-    # Use tier-specific isolated template based on user's plan
-    tier_templates = {'bronze': 'chat_bronze.html', 'silver': 'chat_silver.html', 'gold': 'chat_gold.html'}
-    template_name = tier_templates.get(user_plan, 'chat_bronze.html')
-    logger.info(f"🎯 TEST ROUTE: Using isolated template: {template_name} for plan {user_plan}")
-    return render_template(template_name, 
-                         user_plan=user_plan,
-                         trial_active=trial_active)
-
-logger.info("✅ Isolated chat test route added")
+# Removed /chat-unified test route - no longer needed
 
