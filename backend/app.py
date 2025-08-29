@@ -3122,6 +3122,9 @@ def force_session_reset():
     session['user_plan'] = 'bronze'  # Reset to bronze
     session['trial_active'] = False
     
+    # Load user's theme preferences
+    load_user_theme(user_id)
+    
     # Restore profile image if preserved
     if preserved_profile_image:
         session['profile_image'] = preserved_profile_image
@@ -3730,6 +3733,9 @@ def auth_register():
         session['user_authenticated'] = True
         session['session_version'] = "2025-07-28-banking-security"
         session['last_activity'] = datetime.now().isoformat()
+        
+        # Load user's theme preferences (will set default for new users)
+        load_user_theme(user_id)
         session['user_plan'] = 'bronze'
         session['plan_selected_at'] = time.time()
         session['first_time_user'] = False
@@ -13692,21 +13698,151 @@ def save_user_theme():
         data = request.get_json()
         user_id = session.get('user_id')
         
-        # Save to session for immediate use
-        session['user_theme'] = {
+        theme_data = {
             'background': data.get('background', '#0f172a'),
             'text': data.get('text', '#22d3ee'),
             'accent': data.get('accent', '#06b6d4')
         }
+        
+        # Save to session for immediate use
+        session['user_theme'] = theme_data
         session.modified = True
         
-        logger.info(f"Theme saved for user {user_id}: {session['user_theme']}")
+        # Save to database for persistence across login sessions
+        try:
+            import json
+            theme_json = json.dumps(theme_data)
+            
+            # Try PostgreSQL first (production)
+            if os.environ.get('DATABASE_URL'):
+                import psycopg2
+                conn = psycopg2.connect(os.environ.get('DATABASE_URL'))
+                cursor = conn.cursor()
+                cursor.execute("""
+                    UPDATE users 
+                    SET theme_preferences = %s 
+                    WHERE id = %s
+                """, (theme_json, user_id))
+                conn.commit()
+                cursor.close()
+                conn.close()
+                logger.info(f"Theme saved to PostgreSQL for user {user_id}")
+            
+            # Try SQLite (local development)
+            else:
+                from database_utils import get_database
+                db = get_database()
+                if db:
+                    conn = db.get_connection()
+                    cursor = conn.cursor()
+                    cursor.execute("""
+                        UPDATE users 
+                        SET theme_preferences = ? 
+                        WHERE id = ?
+                    """, (theme_json, user_id))
+                    conn.commit()
+                    conn.close()
+                    logger.info(f"Theme saved to SQLite for user {user_id}")
+                    
+        except Exception as db_error:
+            logger.warning(f"Failed to save theme to database: {db_error}")
+            # Continue anyway - theme is still saved to session
+        
+        logger.info(f"Theme saved for user {user_id}: {theme_data}")
         
         return jsonify({"success": True, "message": "Theme saved successfully"})
         
     except Exception as e:
         logger.error(f"Theme save error: {e}")
         return jsonify({"success": False, "error": "Failed to save theme"}), 500
+
+def load_user_theme(user_id):
+    """Load user's theme preferences from database into session"""
+    try:
+        import json
+        theme_data = None
+        
+        # Try PostgreSQL first (production)
+        if os.environ.get('DATABASE_URL'):
+            import psycopg2
+            conn = psycopg2.connect(os.environ.get('DATABASE_URL'))
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT theme_preferences 
+                FROM users 
+                WHERE id = %s
+            """, (user_id,))
+            result = cursor.fetchone()
+            if result and result[0]:
+                theme_data = json.loads(result[0])
+            cursor.close()
+            conn.close()
+            
+        # Try SQLite (local development)  
+        else:
+            from database_utils import get_database
+            db = get_database()
+            if db:
+                conn = db.get_connection()
+                cursor = conn.cursor()
+                cursor.execute("""
+                    SELECT theme_preferences 
+                    FROM users 
+                    WHERE id = ?
+                """, (user_id,))
+                result = cursor.fetchone()
+                if result and result[0]:
+                    theme_data = json.loads(result[0])
+                conn.close()
+        
+        # Load theme into session if found
+        if theme_data:
+            session['user_theme'] = theme_data
+            session.modified = True
+            logger.info(f"Theme loaded for user {user_id}: {theme_data}")
+        else:
+            # Set default theme
+            default_theme = {
+                'background': '#0f172a',
+                'text': '#22d3ee', 
+                'accent': '#06b6d4'
+            }
+            session['user_theme'] = default_theme
+            session.modified = True
+            logger.info(f"Default theme set for user {user_id}")
+            
+    except Exception as e:
+        logger.warning(f"Failed to load theme for user {user_id}: {e}")
+        # Set default theme on error
+        session['user_theme'] = {
+            'background': '#0f172a',
+            'text': '#22d3ee',
+            'accent': '#06b6d4'
+        }
+        session.modified = True
+
+@app.route("/api/user/get-theme", methods=["GET"])
+def get_user_theme():
+    """Get user's current theme preferences from session"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        theme = session.get('user_theme')
+        if theme:
+            return jsonify({"success": True, "theme": theme})
+        else:
+            # Return default theme
+            default_theme = {
+                'background': '#0f172a',
+                'text': '#22d3ee',
+                'accent': '#06b6d4'
+            }
+            return jsonify({"success": True, "theme": default_theme})
+            
+    except Exception as e:
+        logger.error(f"Get theme error: {e}")
+        return jsonify({"success": False, "error": "Failed to get theme"}), 500
 
 @app.route("/api/ai-image-generation/usage", methods=["GET"])
 def ai_image_generation_usage():

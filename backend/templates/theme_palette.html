@@ -431,10 +431,31 @@
         });
 
         function loadSavedTheme() {
-            const saved = localStorage.getItem('soulbridge_theme');
-            if (saved) {
-                currentTheme = JSON.parse(saved);
-            }
+            // First try to load from server session (most reliable)
+            fetch('/api/user/get-theme', { credentials: 'include' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.theme) {
+                        currentTheme = data.theme;
+                        updatePreview();
+                        return;
+                    }
+                    
+                    // Fallback to localStorage
+                    const saved = localStorage.getItem('soulbridge_theme');
+                    if (saved) {
+                        currentTheme = JSON.parse(saved);
+                        updatePreview();
+                    }
+                })
+                .catch(() => {
+                    // Final fallback to localStorage
+                    const saved = localStorage.getItem('soulbridge_theme');
+                    if (saved) {
+                        currentTheme = JSON.parse(saved);
+                        updatePreview();
+                    }
+                });
         }
 
         function populateColors() {
