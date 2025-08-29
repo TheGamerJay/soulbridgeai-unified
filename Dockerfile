@@ -24,17 +24,17 @@ ENV PIP_NO_CACHE_DIR=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
-# Copy requirements and install Python dependencies
-COPY backend/requirements.txt .
+# Copy requirements and install Python dependencies  
+COPY requirements.txt .
 
 # Install dependencies (audio processing temporarily disabled)
 RUN pip install --upgrade pip && pip install -r requirements.txt
 
-# Copy backend application
-COPY backend/ .
+# Copy modular application
+COPY . .
 
 # Create necessary directories
-RUN mkdir -p static/uploads static/logos
+RUN mkdir -p backend/static/uploads backend/static/logos logs
 
 # Set environment variables
 ENV FLASK_APP=app.py
