@@ -1364,7 +1364,13 @@ def set_community_avatar():
             return jsonify({"error": "Companion not available"}), 403
         
         # Get current companion for change tracking
-        old_companion_data = get_user_community_avatar(user_id)
+        try:
+            logger.info(f"🔍 Getting current companion for user {user_id}")
+            old_companion_data = get_user_community_avatar(user_id)
+            logger.info(f"✅ Got current companion: {old_companion_data}")
+        except Exception as e:
+            logger.error(f"❌ Error getting current companion: {e}")
+            return jsonify({"error": "Failed to get current avatar"}), 500
         
         companion_data = {
             'companion_id': companion_id,
@@ -1372,13 +1378,26 @@ def set_community_avatar():
             'rarity': companion_rarity,
             'avatar_url': avatar_url
         }
+        logger.info(f"🔍 Setting companion data: {companion_data}")
         
         # Set the avatar
-        success = set_user_community_avatar(user_id, companion_data)
+        try:
+            logger.info(f"🔍 Setting user community avatar for user {user_id}")
+            success = set_user_community_avatar(user_id, companion_data)
+            logger.info(f"✅ Set avatar success: {success}")
+        except Exception as e:
+            logger.error(f"❌ Error setting community avatar: {e}")
+            return jsonify({"error": "Failed to set avatar"}), 500
         
         if success:
-            # Record the change with appropriate cooldown
-            record_avatar_change(user_id, old_companion_data, companion_data, change_type)
+            try:
+                logger.info(f"🔍 Recording avatar change")
+                # Record the change with appropriate cooldown
+                record_avatar_change(user_id, old_companion_data, companion_data, change_type)
+                logger.info(f"✅ Recorded avatar change")
+            except Exception as e:
+                logger.error(f"❌ Error recording avatar change: {e}")
+                return jsonify({"error": "Failed to record change"}), 500
             
             logger.info(f"🎭 User {user_id} set community avatar to {companion_name} (type: {change_type})")
             
