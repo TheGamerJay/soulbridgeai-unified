@@ -1940,18 +1940,30 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    // Update UI
-                    document.getElementById('companion-name').textContent = selectedCompanion.display_name || selectedCompanion.name;
+                    console.log('✅ Avatar saved successfully:', data);
+                    
+                    // Update UI elements if they exist
+                    const companionNameEl = document.getElementById('companion-name');
+                    if (companionNameEl) {
+                        companionNameEl.textContent = selectedCompanion.display_name || selectedCompanion.name;
+                    }
                     
                     const avatarElement = document.getElementById('composer-avatar');
-                    if (selectedCompanion.avatar_url) {
-                        avatarElement.innerHTML = `<img src="${selectedCompanion.avatar_url}" alt="${selectedCompanion.display_name}" style="width: 100%; height: 100%; object-fit: contain;" onerror="this.style.display='none'; this.parentElement.textContent='${getCompanionEmoji(selectedCompanion.id)}';">`;;
-                    } else {
-                        avatarElement.textContent = getCompanionEmoji(selectedCompanion.id);
+                    if (avatarElement) {
+                        if (selectedCompanion.image_url) {
+                            avatarElement.innerHTML = `<img src="${selectedCompanion.image_url}" alt="${selectedCompanion.display_name}" style="width: 100%; height: 100%; object-fit: contain;" onerror="this.style.display='none'; this.parentElement.textContent='${getCompanionEmoji(selectedCompanion.id)}';">`;
+                        } else {
+                            avatarElement.textContent = getCompanionEmoji(selectedCompanion.id);
+                        }
                     }
                     
                     // Update current user companion for posting
                     currentUser = { companion: selectedCompanion };
+                    
+                    // Refresh the entire companion display to show the change
+                    setTimeout(() => {
+                        loadUserCompanion();
+                    }, 100);
                     
                     let message = `Companion avatar changed to ${selectedCompanion.display_name || selectedCompanion.name}!`;
                     if (changeType === 'ad_bypass') {
