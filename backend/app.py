@@ -1883,6 +1883,7 @@ def has_accepted_terms():
         if is_logged_in() and session.get('user_id'):
             # Auto-mark existing users as having accepted terms
             session['terms_accepted'] = True
+            session.modified = True
             logger.info(f"Auto-accepted terms for existing user: {session.get('user_email')}")
             return True
             
@@ -1895,8 +1896,12 @@ def requires_terms_acceptance():
     if not is_logged_in():
         return redirect("/login")
     
+    # Prevent redirect loop - don't check terms on terms-acceptance page itself
+    if request.path == '/terms-acceptance':
+        return None
+    
     if not has_accepted_terms():
-        logger.info(f"User {session.get('user_email')} needs to accept terms, redirecting to terms-acceptance")
+        logger.warning(f"🔄 REDIRECT LOOP PREVENTION: User {session.get('user_email')} from {request.path} needs to accept terms, redirecting to terms-acceptance")
         return redirect("/terms-acceptance")
     
     return None  # No redirect needed
