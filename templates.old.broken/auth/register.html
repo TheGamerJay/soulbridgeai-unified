@@ -1,0 +1,451 @@
+{% extends "base.html" %}
+
+{% block title %}Sign Up - SoulBridge AI{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <img src="{{ url_for('static', filename='logos/New IntroLogo.png') }}" alt="SoulBridge AI" class="auth-logo">
+            <h2>Join SoulBridge AI</h2>
+            <p>Create your account and start your AI journey</p>
+        </div>
+
+        <form id="registerForm" class="auth-form">
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" required 
+                       placeholder="Enter your email address"
+                       autocomplete="email">
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required 
+                       placeholder="Create a strong password"
+                       autocomplete="new-password">
+                <div class="password-strength" id="passwordStrength"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="confirmPassword">Confirm Password</label>
+                <input type="password" id="confirmPassword" name="confirm_password" required 
+                       placeholder="Confirm your password"
+                       autocomplete="new-password">
+                <div class="password-match" id="passwordMatch"></div>
+            </div>
+
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="termsAccept" required>
+                    <span class="checkmark"></span>
+                    I agree to the <a href="/terms" target="_blank">Terms of Service</a> and <a href="/privacy" target="_blank">Privacy Policy</a>
+                </label>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-full">
+                Create Account
+            </button>
+        </form>
+
+        <div class="auth-divider">
+            <span>or</span>
+        </div>
+
+        <div class="auth-links">
+            <p>Already have an account? <a href="{{ url_for('auth.login') }}">Sign in here</a></p>
+        </div>
+
+        <!-- Trial Info -->
+        <div class="trial-info">
+            <div class="trial-badge">🎁 Welcome Bonus</div>
+            <p><strong>Free 5-Hour Gold Trial</strong></p>
+            <p>Experience all premium features when you sign up!</p>
+        </div>
+    </div>
+</div>
+
+<style>
+.auth-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: calc(100vh - 200px);
+    padding: 2rem 0;
+}
+
+.auth-card {
+    background: white;
+    padding: 3rem;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 450px;
+    text-align: center;
+}
+
+.auth-header {
+    margin-bottom: 2rem;
+}
+
+.auth-logo {
+    width: 60px;
+    height: 60px;
+    margin-bottom: 1rem;
+}
+
+.auth-header h2 {
+    color: var(--text-primary);
+    font-size: 1.8rem;
+    margin-bottom: 0.5rem;
+}
+
+.auth-header p {
+    color: var(--text-secondary);
+    margin-bottom: 0;
+}
+
+.auth-form {
+    text-align: left;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.form-group input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e1e8ed;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+    box-sizing: border-box;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
+.password-strength {
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    padding: 8px 12px;
+    border-radius: 5px;
+    display: none;
+}
+
+.password-strength.weak {
+    background: #ffeaa7;
+    color: #b8860b;
+    display: block;
+}
+
+.password-strength.medium {
+    background: #ffd79a;
+    color: #e17055;
+    display: block;
+}
+
+.password-strength.strong {
+    background: #d4edda;
+    color: #155724;
+    display: block;
+}
+
+.password-match {
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    padding: 8px 12px;
+    border-radius: 5px;
+    display: none;
+}
+
+.password-match.match {
+    background: #d4edda;
+    color: #155724;
+    display: block;
+}
+
+.password-match.no-match {
+    background: #f8d7da;
+    color: #721c24;
+    display: block;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: auto;
+    margin: 0;
+}
+
+.checkbox-label a {
+    color: var(--primary-blue);
+    text-decoration: none;
+}
+
+.checkbox-label a:hover {
+    text-decoration: underline;
+}
+
+.btn-full {
+    width: 100%;
+    margin-bottom: 1rem;
+}
+
+.auth-divider {
+    margin: 2rem 0;
+    position: relative;
+    text-align: center;
+}
+
+.auth-divider::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: #e1e8ed;
+}
+
+.auth-divider span {
+    background: white;
+    padding: 0 1rem;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.auth-links {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.auth-links a {
+    color: var(--primary-blue);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.auth-links a:hover {
+    text-decoration: underline;
+}
+
+.trial-info {
+    background: linear-gradient(135deg, #ffd700, #ffed4a);
+    color: #000;
+    padding: 1.5rem;
+    border-radius: 10px;
+    text-align: center;
+    margin-top: 1rem;
+}
+
+.trial-badge {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.trial-info p {
+    margin: 0.5rem 0;
+}
+
+.trial-info p:last-child {
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
+
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.error-message {
+    background: #fee;
+    color: #c33;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    display: none;
+}
+
+@media (max-width: 480px) {
+    .auth-card {
+        margin: 1rem;
+        padding: 2rem;
+    }
+}
+</style>
+
+<script>
+// Password strength checker
+function checkPasswordStrength(password) {
+    const strengthEl = document.getElementById('passwordStrength');
+    
+    if (password.length === 0) {
+        strengthEl.style.display = 'none';
+        return;
+    }
+    
+    let score = 0;
+    let feedback = [];
+    
+    // Length check
+    if (password.length >= 8) score++;
+    else feedback.push('At least 8 characters');
+    
+    // Character variety checks
+    if (/[a-z]/.test(password)) score++;
+    else feedback.push('lowercase letter');
+    
+    if (/[A-Z]/.test(password)) score++;
+    else feedback.push('uppercase letter');
+    
+    if (/\d/.test(password)) score++;
+    else feedback.push('number');
+    
+    if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) score++;
+    
+    // Display feedback
+    if (score < 3) {
+        strengthEl.className = 'password-strength weak';
+        strengthEl.textContent = `Weak password. Add: ${feedback.join(', ')}`;
+    } else if (score < 4) {
+        strengthEl.className = 'password-strength medium';
+        strengthEl.textContent = 'Good password. Consider adding special characters.';
+    } else {
+        strengthEl.className = 'password-strength strong';
+        strengthEl.textContent = '✓ Strong password';
+    }
+}
+
+// Password match checker
+function checkPasswordMatch() {
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    const matchEl = document.getElementById('passwordMatch');
+    
+    if (confirmPassword.length === 0) {
+        matchEl.style.display = 'none';
+        return;
+    }
+    
+    if (password === confirmPassword) {
+        matchEl.className = 'password-match match';
+        matchEl.textContent = '✓ Passwords match';
+    } else {
+        matchEl.className = 'password-match no-match';
+        matchEl.textContent = '✗ Passwords do not match';
+    }
+}
+
+// Event listeners
+document.getElementById('password').addEventListener('input', function(e) {
+    checkPasswordStrength(e.target.value);
+    checkPasswordMatch();
+});
+
+document.getElementById('confirmPassword').addEventListener('input', checkPasswordMatch);
+
+// Form submission
+document.getElementById('registerForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const form = e.target;
+    const submitButton = form.querySelector('button[type="submit"]');
+    const originalText = submitButton.textContent;
+    
+    // Validate passwords match
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    
+    if (password !== confirmPassword) {
+        SoulBridge.showMessage('Passwords do not match', 'error');
+        return;
+    }
+    
+    // Show loading state
+    submitButton.textContent = 'Creating Account...';
+    submitButton.disabled = true;
+    form.classList.add('loading');
+    
+    // Remove any existing error messages
+    const existingError = document.querySelector('.error-message');
+    if (existingError) {
+        existingError.remove();
+    }
+    
+    try {
+        const formData = new FormData(form);
+        const data = {
+            email: formData.get('email'),
+            password: formData.get('password'),
+            confirm_password: formData.get('confirm_password')
+        };
+        
+        const response = await fetch('/auth/register', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok && result.success) {
+            // Registration successful
+            SoulBridge.showMessage('Account created successfully! Redirecting...', 'success');
+            
+            // Redirect after short delay
+            setTimeout(() => {
+                window.location.href = result.redirect || '/';
+            }, 1000);
+        } else {
+            // Registration failed
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            errorDiv.textContent = result.error || 'Registration failed';
+            errorDiv.style.display = 'block';
+            
+            form.insertBefore(errorDiv, form.firstChild);
+        }
+    } catch (error) {
+        console.error('Registration error:', error);
+        
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'error-message';
+        errorDiv.textContent = 'An error occurred during registration. Please try again.';
+        errorDiv.style.display = 'block';
+        
+        form.insertBefore(errorDiv, form.firstChild);
+    } finally {
+        // Reset loading state
+        submitButton.textContent = originalText;
+        submitButton.disabled = false;
+        form.classList.remove('loading');
+    }
+});
+
+// Auto-focus email field
+document.getElementById('email').focus();
+</script>
+{% endblock %}

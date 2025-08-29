@@ -1,0 +1,305 @@
+{% extends "base.html" %}
+
+{% block title %}SoulBridge AI - Your AI Companion Platform{% endblock %}
+
+{% block content %}
+<div class="hero-section">
+    <div class="hero-content">
+        <h1>Welcome to SoulBridge AI</h1>
+        <p class="hero-subtitle">Connect with AI companions, explore your creativity, and unlock your potential</p>
+        
+        <div class="hero-actions">
+            <a href="{{ url_for('auth.register') }}" class="btn btn-primary">Get Started Free</a>
+            <a href="{{ url_for('about') }}" class="btn btn-secondary">Learn More</a>
+        </div>
+    </div>
+</div>
+
+<section class="features-section">
+    <h2>Choose Your Experience</h2>
+    
+    <div class="tier-cards">
+        <!-- Bronze Tier -->
+        <div class="tier-card bronze">
+            <div class="tier-header">
+                <h3>🥉 Bronze Tier</h3>
+                <div class="tier-price">Free</div>
+            </div>
+            <div class="tier-features">
+                <ul>
+                    <li>✅ Basic AI companions</li>
+                    <li>✅ Decoder: 3 daily uses</li>
+                    <li>✅ Fortune: 2 daily uses</li>
+                    <li>✅ Horoscope: 3 daily uses</li>
+                    <li>✅ Creative Writer: 2 daily uses</li>
+                    <li>⚠️ Ad-supported experience</li>
+                </ul>
+            </div>
+            <div class="tier-trial">
+                <strong>🎁 5-Hour Gold Trial Available!</strong>
+                <p>Try all premium features for 5 hours</p>
+            </div>
+        </div>
+
+        <!-- Silver Tier -->
+        <div class="tier-card silver">
+            <div class="tier-header">
+                <h3>🥈 Silver Tier</h3>
+                <div class="tier-price">$12.99/month</div>
+            </div>
+            <div class="tier-features">
+                <ul>
+                    <li>✅ Enhanced AI companions</li>
+                    <li>✅ Decoder: 15 daily uses</li>
+                    <li>✅ Fortune: 8 daily uses</li>
+                    <li>✅ Horoscope: 10 daily uses</li>
+                    <li>✅ Creative Writer: 20 daily uses</li>
+                    <li>✅ AI Images: 10 monthly</li>
+                    <li>✅ Voice Journal & Meditations</li>
+                    <li>✅ No ads</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Gold Tier -->
+        <div class="tier-card gold popular">
+            <div class="tier-badge">Most Popular</div>
+            <div class="tier-header">
+                <h3>🥇 Gold Tier</h3>
+                <div class="tier-price">$19.99/month</div>
+            </div>
+            <div class="tier-features">
+                <ul>
+                    <li>✅ Premium AI companions</li>
+                    <li>✅ Unlimited daily uses</li>
+                    <li>✅ Unlimited AI images</li>
+                    <li>✅ Mini Studio (Gold exclusive)</li>
+                    <li>✅ All premium features</li>
+                    <li>✅ Priority support</li>
+                    <li>✅ No ads</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="cta-section">
+    <h2>Ready to Begin Your Journey?</h2>
+    <p>Join thousands of users exploring AI companionship and creativity</p>
+    
+    <div class="cta-actions">
+        <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-large">Start Free Today</a>
+    </div>
+</section>
+
+<style>
+.hero-section {
+    text-align: center;
+    padding: 4rem 0;
+    background: var(--accent-gradient);
+    color: white;
+    border-radius: 15px;
+    margin-bottom: 3rem;
+}
+
+.hero-content h1 {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    font-weight: 700;
+}
+
+.hero-subtitle {
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+    opacity: 0.9;
+}
+
+.hero-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    display: inline-block;
+}
+
+.btn-primary {
+    background: var(--primary-gold);
+    color: #000;
+}
+
+.btn-primary:hover {
+    background: #e6c200;
+    transform: translateY(-2px);
+}
+
+.btn-secondary {
+    background: transparent;
+    color: white;
+    border: 2px solid white;
+}
+
+.btn-secondary:hover {
+    background: white;
+    color: var(--text-primary);
+}
+
+.btn-large {
+    padding: 16px 32px;
+    font-size: 1.1rem;
+}
+
+.features-section {
+    margin: 4rem 0;
+    text-align: center;
+}
+
+.features-section h2 {
+    font-size: 2.5rem;
+    margin-bottom: 3rem;
+    color: var(--text-primary);
+}
+
+.tier-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.tier-card {
+    background: white;
+    border-radius: 15px;
+    padding: 2rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    position: relative;
+    border: 3px solid transparent;
+    transition: transform 0.3s ease;
+}
+
+.tier-card:hover {
+    transform: translateY(-5px);
+}
+
+.tier-card.bronze {
+    border-color: var(--bronze-color);
+}
+
+.tier-card.silver {
+    border-color: var(--silver-color);
+}
+
+.tier-card.gold {
+    border-color: var(--gold-color);
+}
+
+.tier-card.popular::before {
+    content: 'Most Popular';
+    position: absolute;
+    top: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--primary-gold);
+    color: #000;
+    padding: 5px 20px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.tier-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.tier-header h3 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.tier-price {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--primary-blue);
+}
+
+.tier-features ul {
+    list-style: none;
+    padding: 0;
+    text-align: left;
+}
+
+.tier-features li {
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.tier-features li:last-child {
+    border-bottom: none;
+}
+
+.tier-trial {
+    background: linear-gradient(135deg, #ffd700, #ffed4a);
+    color: #000;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-top: 1rem;
+    text-align: center;
+}
+
+.tier-trial strong {
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.cta-section {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: #f8f9ff;
+    border-radius: 15px;
+    margin-top: 4rem;
+}
+
+.cta-section h2 {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+}
+
+.cta-section p {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    margin-bottom: 2rem;
+}
+
+@media (max-width: 768px) {
+    .hero-content h1 {
+        font-size: 2rem;
+    }
+    
+    .hero-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .tier-cards {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .tier-card {
+        padding: 1.5rem;
+    }
+}
+</style>
+{% endblock %}

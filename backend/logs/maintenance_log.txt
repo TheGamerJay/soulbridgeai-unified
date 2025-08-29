@@ -1058,3 +1058,260 @@ hours
 [2025-08-29 12:10:51] 🔧 HEALTH_CHECK: System running for 163.5 hours
 [2025-08-29 12:10:51] 🔧 HEALTH_CHECK: System running for 77.9 hours
 [2025-08-29 12:10:51] 🔧 HEALTH_CHECK: System running for 77.9 hours
+[2025-08-29 12:15:51] 🔧 HEALTH_CHECK: System running for 38.6 hours
+[2025-08-29 12:15:51] 🔧 HEALTH_CHECK: System running for 163.6 hours
+[2025-08-29 12:15:51] 🔧 HEALTH_CHECK: System running for 163.6 hours
+[2025-08-29 12:15:51] 🔧 HEALTH_CHECK: System running for 38.6 hours
+[2025-08-29 12:15:51] 🔧 HEALTH_CHECK: System running for 78.0 hours
+[2025-08-29 12:20:35] 🔧 🚀 Auto-Maintenance System - Background monitoring started
+[2025-08-29 12:20:35] 🔧 HEALTH_CHECK: System running for 0.0 hours
+[2025-08-29 12:20:35] 🔧 MONITOR_START: Background monitoring thread started
+[2025-08-29 12:20:38] 🔧 🚀 Auto-Maintenance System - Background monitoring started
+[2025-08-29 12:20:38] 🔧 HEALTH_CHECK: System running for 0.0 hours
+[2025-08-29 12:20:38] 🔧 MONITOR_START: Background monitoring thread started
+[2025-08-29 12:20:51] 🔧 HEALTH_CHECK: System running for 38.6 hours
+[2025-08-29 12:20:51] 🔧 HEALTH_CHECK: System running for 163.7 hours
+[2025-08-29 12:20:51] 🔧 HEALTH_CHECK: System running for 163.7 hours
+[2025-08-29 12:20:51] 🔧 HEALTH_CHECK: System running for 38.6 hours
+[2025-08-29 12:20:51] 🔧 HEALTH_CHECK: System running for 78.1 hours
+[2025-08-29 12:23:34] 🔧 🚀 Auto-Maintenance System - Background monitoring started
+[2025-08-29 12:23:34] 🔧 HEALTH_CHECK: System running for 0.0 hours
+[2025-08-29 12:23:34] 🔧 MONITOR_START: Background monitoring thread started
+[2025-08-29 12:25:51] 🔧 HEALTH_CHECK: System running for 38.7 hours
+[2025-08-29 12:25:51] 🔧 HEALTH_CHECK: System running for 163.7 hours
+[2025-08-29 12:25:51] 🔧 HEALTH_CHECK: System running for 163.7 hours
+[2025-08-29 12:25:51] 🔧 HEALTH_CHECK: System running for 38.7 hours
+[2025-08-29 12:25:51] 🔧 HEALTH_CHECK: System running for 78.2 hours
+[2025-08-29 12:30:51] 🔧 HEALTH_CHECK: System running for 38.8 hours
+[2025-08-29 12:30:51] 🔧 HEALTH_CHECK: System running for 163.8 hours
+[2025-08-29 12:30:51] 🔧 HEALTH_CHECK: System running for 163.8 hours
+[2025-08-29 12:30:51] 🔧 HEALTH_CHECK: System running for 78.3 hours
+[2025-08-29 12:30:51] 🔧 HEALTH_CHECK: System running for 78.3 hours
+[2025-08-29 12:35:51] 🔧 HEALTH_CHECK: System running for 38.9 hours
+[2025-08-29 12:35:51] 🔧 HEALTH_CHECK: System running for 163.9 hours
+[2025-08-29 12:35:51] 🔧 HEALTH_CHECK: System running for 163.9 hours
+[2025-08-29 12:35:51] 🔧 HEALTH_CHECK: System running for 38.9 hours
+[2025-08-29 12:35:51] 🔧 HEALTH_CHECK: System running for 78.4 hours
+[2025-08-29 12:40:51] 🔧 HEALTH_CHECK: System running for 39.0 hours
+[2025-08-29 12:40:51] 🔧 HEALTH_CHECK: System running for 164.0 hours
+[2025-08-29 12:40:51] 🔧 HEALTH_CHECK: System running for 164.0 hours
+[2025-08-29 12:40:51] 🔧 HEALTH_CHECK: System running for 78.4 hours
+[2025-08-29 12:40:51] 🔧 HEALTH_CHECK: System running for 78.4 hours
+[2025-08-29 12:45:51] 🔧 HEALTH_CHECK: System running for 39.1 hours
+[2025-08-29 12:45:51] 🔧 HEALTH_CHECK: System running for 164.1 hours
+[2025-08-29 12:45:51] 🔧 HEALTH_CHECK: System running for 164.1 hours
+[2025-08-29 12:45:51] 🔧 HEALTH_CHECK: System running for 78.5 hours
+[2025-08-29 12:45:51] 🔧 HEALTH_CHECK: System running for 78.5 hours
+[2025-08-29 12:50:51] 🔧 HEALTH_CHECK: System running for 39.1 hours
+[2025-08-29 12:50:51] 🔧 CLEANUP: Performing periodic cleanup
+[2025-08-29 12:50:51] 🔧 HEALTH_CHECK: System running for 164.2 hours
+[2025-08-29 12:50:51] 🔧 HEALTH_CHECK: System running for 164.2 hours
+[2025-08-29 12:50:51] 🔧 HEALTH_CHECK: System running for 78.6 hours
+[2025-08-29 12:50:52] 🔧 CLEANUP: Performing periodic cleanup
+[2025-08-29 12:50:52] 🔧 HEALTH_CHECK: System running for 78.6 hours
+[2025-08-29 12:53:09] 🔧 🚀 Auto-Maintenance System - Background monitoring started
+[2025-08-29 12:53:09] 🔧 HEALTH_CHECK: System running for 0.0 hours
+[2025-08-29 12:53:09] 🔧 MONITOR_START: Background monitoring thread started
+[2025-08-29 12:53:13] 🔧 🚀 Auto-Maintenance System - Background monitoring started
+[2025-08-29 12:53:13] 🔧 HEALTH_CHECK: System running for 0.0 hours
+[2025-08-29 12:53:13] 🔧 MONITOR_START: Background monitoring thread started
+[2025-08-29 12:55:51] 🔧 HEALTH_CHECK: System running for 39.2 hours
+[2025-08-29 12:55:51] 🔧 HEALTH_CHECK: System running for 164.2 hours
+[2025-08-29 12:55:51] 🔧 HEALTH_CHECK: System running for 164.2 hours
+[2025-08-29 12:55:52] 🔧 HEALTH_CHECK: System running for 78.7 hours
+[2025-08-29 12:55:52] 🔧 HEALTH_CHECK: System running for 78.7 hours
+[2025-08-29 12:55:52] 🔧 HEALTH_CHECK: System running for 39.2 hours
+[2025-08-29 13:00:51] 🔧 HEALTH_CHECK: System running for 39.3 hours
+[2025-08-29 13:00:52] 🔧 HEALTH_CHECK: System running for 164.3 hours
+[2025-08-29 13:00:52] 🔧 HEALTH_CHECK: System running for 164.3 hours
+[2025-08-29 13:00:52] 🔧 HEALTH_CHECK: System running for 78.8 hours
+[2025-08-29 13:00:52] 🔧 HEALTH_CHECK: System running for 78.8 hours
+[2025-08-29 13:05:51] 🔧 HEALTH_CHECK: System running for 39.4 hours
+[2025-08-29 13:05:52] 🔧 HEALTH_CHECK: System running for 164.4 hours
+[2025-08-29 13:05:52] 🔧 HEALTH_CHECK: System running for 164.4 hours
+[2025-08-29 13:05:52] 🔧 HEALTH_CHECK: System running for 78.9 hours
+[2025-08-29 13:05:52] 🔧 HEALTH_CHECK: System running for 78.9 hours
+[2025-08-29 13:10:51] 🔧 HEALTH_CHECK: System running for 39.5 hours
+[2025-08-29 13:10:52] 🔧 HEALTH_CHECK: System running for 78.9 hours
+
+[2025-08-29 13:10:52] 🔧 HEALTH_CHECK: System running for 164.5 hours
+[2025-08-29 13:10:52] 🔧 HEALTH_CHECK: System running for 78.9 hours
+[2025-08-29 13:15:51] 🔧 HEALTH_CHECK: System running for 39.6 hours
+[2025-08-29 13:15:52] 🔧 HEALTH_CHECK: System running for 164.6 hours
+[2025-08-29 13:15:52] 🔧 HEALTH_CHECK: System running for 164.6 hours
+[2025-08-29 13:20:51] 🔧 HEALTH_CHECK: System running for 39.6 hours
+[2025-08-29 13:20:52] 🔧 HEALTH_CHECK: System running for 79.1 hours
+[2025-08-29 13:20:52] 🔧 HEALTH_CHECK: System running for 164.7 hours
+[2025-08-29 13:20:52] 🔧 HEALTH_CHECK: System running for 164.7 hours
+[2025-08-29 13:20:52] 🔧 HEALTH_CHECK: System running for 79.1 hours
+[2025-08-29 13:25:52] 🔧 HEALTH_CHECK: System running for 39.7 hours
+[2025-08-29 13:25:52] 🔧 HEALTH_CHECK: System running for 39.7 hours
+[2025-08-29 13:25:52] 🔧 HEALTH_CHECK: System running for 164.7 hours
+[2025-08-29 13:25:52] 🔧 HEALTH_CHECK: System running for 79.2 hours
+[2025-08-29 13:25:52] 🔧 HEALTH_CHECK: System running for 164.7 hours
+[2025-08-29 13:30:52] 🔧 HEALTH_CHECK: System running for 39.8 hours
+[2025-08-29 13:30:52] 🔧 HEALTH_CHECK: System running for 79.3 hours
+
+[2025-08-29 13:30:52] 🔧 HEALTH_CHECK: System running for 164.8 hours
+[2025-08-29 13:30:52] 🔧 HEALTH_CHECK: System running for 79.3 hours
+[2025-08-29 13:35:52] 🔧 HEALTH_CHECK: System running for 39.9 hours
+[2025-08-29 13:35:52] 🔧 HEALTH_CHECK: System running for 39.9 hours
+[2025-08-29 13:35:52] 🔧 HEALTH_CHECK: System running for 79.4 hours
+
+[2025-08-29 13:35:52] 🔧 HEALTH_CHECK: System running for 79.4 hours
+
+[2025-08-29 13:40:52] 🔧 HEALTH_CHECK: System running for 40.0 hours
+[2025-08-29 13:40:52] 🔧 HEALTH_CHECK: System running for 40.0 hours
+
+[2025-08-29 13:40:52] 🔧 HEALTH_CHECK: System running for 79.4 hours
+
+[2025-08-29 13:40:52] 🔧 HEALTH_CHECK: System running for 79.4 hours
+[2025-08-29 13:45:52] 🔧 HEALTH_CHECK: System running for 40.1 hours
+[2025-08-29 13:45:52] 🔧 HEALTH_CHECK: System running for 79.5 hours
+
+[2025-08-29 13:45:52] 🔧 HEALTH_CHECK: System running for 165.1 hours
+[2025-08-29 13:45:52] 🔧 HEALTH_CHECK: System running for 79.5 hours
+[2025-08-29 13:50:52] 🔧 HEALTH_CHECK: System running for 40.1 hours
+[2025-08-29 13:50:52] 🔧 HEALTH_CHECK: System running for 79.6 hours
+[2025-08-29 13:50:52] 🔧 HEALTH_CHECK: System running for 165.2 hours
+[2025-08-29 13:50:52] 🔧 HEALTH_CHECK: System running for 79.6 hours
+[2025-08-29 13:50:52] 🔧 HEALTH_CHECK: System running for 165.2 hours
+[2025-08-29 13:55:52] 🔧 HEALTH_CHECK: System running for 40.2 hours
+[2025-08-29 13:55:52] 🔧 HEALTH_CHECK: System running for 165.2 hours
+[2025-08-29 13:55:52] 🔧 HEALTH_CHECK: System running for 79.7 hours
+[2025-08-29 13:55:52] 🔧 HEALTH_CHECK: System running for 165.2 hours
+[2025-08-29 14:00:52] 🔧 HEALTH_CHECK: System running for 40.3 hours
+[2025-08-29 14:00:52] 🔧 HEALTH_CHECK: System running for 165.3 hours
+[2025-08-29 14:00:52] 🔧 HEALTH_CHECK: System running for 165.3 hours
+[2025-08-29 14:05:52] 🔧 HEALTH_CHECK: System running for 40.4 hours
+[2025-08-29 14:05:52] 🔧 HEALTH_CHECK: System running for 165.4 hours
+[2025-08-29 14:05:52] 🔧 HEALTH_CHECK: System running for 79.9 hours
+[2025-08-29 14:05:52] 🔧 HEALTH_CHECK: System running for 165.4 hours
+[2025-08-29 14:10:52] 🔧 HEALTH_CHECK: System running for 40.5 hours
+[2025-08-29 14:10:52] 🔧 HEALTH_CHECK: System running for 165.5 hours
+2025-08-29 14:10:52] 🔧 HEALTH_CHECK: System running for 79.9 hours
+[2025-08-29 14:10:52] 🔧 HEALTH_CHECK: System running for 165.5 hours
+[2025-08-29 14:15:52] 🔧 HEALTH_CHECK: System running for 40.6 hours
+[2025-08-29 14:15:52] 🔧 HEALTH_CHECK: System running for 165.6 hours
+[2025-08-29 14:15:52] 🔧 HEALTH_CHECK: System running for 165.6 hours
+[2025-08-29 14:20:52] 🔧 HEALTH_CHECK: System running for 40.6 hours
+[2025-08-29 14:20:52] 🔧 HEALTH_CHECK: System running for 165.7 hours
+[2025-08-29 14:20:52] 🔧 HEALTH_CHECK: System running for 80.1 hours
+[2025-08-29 14:20:52] 🔧 HEALTH_CHECK: System running for 165.7 hours
+[2025-08-29 14:25:52] 🔧 HEALTH_CHECK: System running for 40.7 hours
+[2025-08-29 14:25:52] 🔧 HEALTH_CHECK: System running for 165.7 hours
+[2025-08-29 14:25:52] 🔧 HEALTH_CHECK: System running for 80.2 hours
+[2025-08-29 14:25:52] 🔧 HEALTH_CHECK: System running for 165.7 hours
+[2025-08-29 14:30:52] 🔧 HEALTH_CHECK: System running for 40.8 hours
+[2025-08-29 14:30:52] 🔧 HEALTH_CHECK: System running for 40.8 hours
+[2025-08-29 14:30:52] 🔧 HEALTH_CHECK: System running for 165.8 hours
+[2025-08-29 14:30:52] 🔧 HEALTH_CHECK: System running for 80.3 hours
+[2025-08-29 14:30:52] 🔧 HEALTH_CHECK: System running for 165.8 hours
+[2025-08-29 14:35:52] 🔧 HEALTH_CHECK: System running for 40.9 hours
+[2025-08-29 14:35:52] 🔧 HEALTH_CHECK: System running for 80.4 hours
+
+[2025-08-29 14:35:52] 🔧 HEALTH_CHECK: System running for 165.9 hours
+[2025-08-29 14:35:52] 🔧 HEALTH_CHECK: System running for 80.4 hours
+[2025-08-29 14:40:52] 🔧 HEALTH_CHECK: System running for 41.0 hours
+[2025-08-29 14:40:52] 🔧 HEALTH_CHECK: System running for 41.0 hours
+[2025-08-29 14:40:52] 🔧 HEALTH_CHECK: System running for 166.0 hours
+[2025-08-29 14:40:52] 🔧 HEALTH_CHECK: System running for 80.4 hours
+[2025-08-29 14:40:52] 🔧 HEALTH_CHECK: System running for 166.0 hours
+[2025-08-29 14:45:52] 🔧 HEALTH_CHECK: System running for 41.1 hours
+[2025-08-29 14:45:52] 🔧 HEALTH_CHECK: System running for 80.5 hours
+[2025-08-29 14:45:52] 🔧 HEALTH_CHECK: System running for 80.5 hours
+[2025-08-29 14:45:52] 🔧 HEALTH_CHECK: System running for 166.1 hours
+[2025-08-29 14:45:52] 🔧 HEALTH_CHECK: System running for 166.1 hours
+[2025-08-29 14:50:52] 🔧 HEALTH_CHECK: System running for 41.1 hours
+[2025-08-29 14:50:52] 🔧 HEALTH_CHECK: System running for 80.6 hours
+[2025-08-29 14:50:52] 🔧 CLEANUP: Performing periodic cleanup
+[2025-08-29 14:50:52] 🔧 HEALTH_CHECK: System running for 80.6 hours
+[2025-08-29 14:50:52] 🔧 CLEANUP: Performing periodic cleanup
+[2025-08-29 14:50:52] 🔧 HEALTH_CHECK: System running for 166.2 hours
+[2025-08-29 14:50:52] 🔧 CLEANUP: Performing periodic cleanup
+[2025-08-29 14:50:52] 🔧 HEALTH_CHECK: System running for 166.2 hours
+[2025-08-29 14:50:52] 🔧 CLEANUP: Performing periodic cleanup
+[2025-08-29 14:55:52] 🔧 HEALTH_CHECK: System running for 41.2 hours
+[2025-08-29 14:55:52] 🔧 HEALTH_CHECK: System running for 80.7 hours
+
+[2025-08-29 14:55:52] 🔧 HEALTH_CHECK: System running for 80.7 hours
+[2025-08-29 14:55:52] 🔧 HEALTH_CHECK: System running for 166.2 hours
+[2025-08-29 15:00:52] 🔧 HEALTH_CHECK: System running for 41.3 hours
+[2025-08-29 15:00:52] 🔧 HEALTH_CHECK: System running for 41.3 hours
+[2025-08-29 15:00:52] 🔧 HEALTH_CHECK: System running for 166.3 hours
+[2025-08-29 15:00:52] 🔧 HEALTH_CHECK: System running for 80.8 hours
+[2025-08-29 15:00:52] 🔧 HEALTH_CHECK: System running for 166.3 hours
+[2025-08-29 15:05:52] 🔧 HEALTH_CHECK: System running for 41.4 hours
+[2025-08-29 15:05:52] 🔧 HEALTH_CHECK: System running for 41.4 hours
+[2025-08-29 15:05:52] 🔧 HEALTH_CHECK: System running for 166.4 hours
+[2025-08-29 15:05:52] 🔧 HEALTH_CHECK: System running for 166.4 hours
+[2025-08-29 15:10:52] 🔧 HEALTH_CHECK: System running for 41.5 hours
+[2025-08-29 15:10:52] 🔧 HEALTH_CHECK: System running for 41.5 hours
+[2025-08-29 15:10:52] 🔧 HEALTH_CHECK: System running for 166.5 hours
+[2025-08-29 15:10:52] 🔧 HEALTH_CHECK: System running for 80.9 hours
+[2025-08-29 15:10:52] 🔧 HEALTH_CHECK: System running for 166.5 hours
+[2025-08-29 16:49:17] 🔧 HEALTH_CHECK: System running for 168.1 hours[2025-08-29 16:49:17] 🔧 HEALTH_CHECK: System running for 43.1 hours
+[2025-08-29 16:49:17] 🔧 HEALTH_CHECK: System running for 43.1 hours
+[2025-08-29 16:49:17] 🔧 HEALTH_CHECK: System running for 168.1 hours
+[2025-08-29 16:49:17] 🔧 HEALTH_CHECK: System running for 82.6 hours
+[2025-08-29 16:54:17] 🔧 HEALTH_CHECK: System running for 82.7 hours
+
+[2025-08-29 16:54:17] 🔧 HEALTH_CHECK: System running for 43.2 hours
+[2025-08-29 16:54:17] 🔧 HEALTH_CHECK: System running for 168.2 hours
+[2025-08-29 16:54:17] 🔧 HEALTH_CHECK: System running for 82.7 hours
+[2025-08-29 16:59:17] 🔧 HEALTH_CHECK: System running for 82.8 hours
+
+[2025-08-29 16:59:17] 🔧 HEALTH_CHECK: System running for 168.3 hours
+[2025-08-29 16:59:17] 🔧 HEALTH_CHECK: System running for 82.8 hours
+[2025-08-29 17:04:17] 🔧 HEALTH_CHECK: System running for 82.8 hours
+[2025-08-29 17:04:17] 🔧 HEALTH_CHECK: System running for 168.4 hours
+[2025-08-29 17:04:17] 🔧 HEALTH_CHECK: System running for 43.4 hours
+[2025-08-29 17:04:17] 🔧 HEALTH_CHECK: System running for 168.4 hours
+[2025-08-29 17:04:17] 🔧 HEALTH_CHECK: System running for 82.8 hours
+[2025-08-29 17:09:17] 🔧 HEALTH_CHECK: System running for 82.9 hours
+[2025-08-29 17:09:17] 🔧 HEALTH_CHECK: System running for 43.4 hours
+[2025-08-29 17:09:17] 🔧 HEALTH_CHECK: System running for 168.5 hours
+[2025-08-29 17:09:17] 🔧 HEALTH_CHECK: System running for 82.9 hours
+[2025-08-29 17:14:17] 🔧 HEALTH_CHECK: System running for 43.5 hours
+
+[2025-08-29 17:14:17] 🔧 HEALTH_CHECK: System running for 168.5 hours
+[2025-08-29 17:14:17] 🔧 HEALTH_CHECK: System running for 43.5 hours
+[2025-08-29 17:14:17] 🔧 HEALTH_CHECK: System running for 83.0 hours
+[2025-08-29 17:19:17] 🔧 HEALTH_CHECK: System running for 83.1 hours
+
+[2025-08-29 17:19:17] 🔧 HEALTH_CHECK: System running for 168.6 hours
+[2025-08-29 17:19:17] 🔧 HEALTH_CHECK: System running for 43.6 hours
+[2025-08-29 17:19:17] 🔧 HEALTH_CHECK: System running for 83.1 hours
+[2025-08-29 17:24:17] 🔧 HEALTH_CHECK: System running for 168.7 hours
+[2025-08-29 17:24:17] 🔧 HEALTH_CHECK: System running for 168.7 hours
+[2025-08-29 17:24:17] 🔧 HEALTH_CHECK: System running for 83.2 hours
+[2025-08-29 17:29:17] 🔧 HEALTH_CHECK: System running for 43.8 hours
+
+[2025-08-29 17:29:17] 🔧 HEALTH_CHECK: System running for 43.8 hours
+
+[2025-08-29 17:29:17] 🔧 HEALTH_CHECK: System running for 83.3 hours
+[2025-08-29 17:34:17] 🔧 HEALTH_CHECK: System running for 168.9 hours
+[2025-08-29 17:34:17] 🔧 HEALTH_CHECK: System running for 43.9 hours
+[2025-08-29 17:34:17] 🔧 HEALTH_CHECK: System running for 168.9 hours
+[2025-08-29 17:34:17] 🔧 HEALTH_CHECK: System running for 43.9 hours
+[2025-08-29 17:34:17] 🔧 HEALTH_CHECK: System running for 83.3 hours
+[2025-08-29 17:39:17] 🔧 HEALTH_CHECK: System running for 83.4 hours
+
+[2025-08-29 17:39:17] 🔧 HEALTH_CHECK: System running for 169.0 hours
+[2025-08-29 17:39:17] 🔧 HEALTH_CHECK: System running for 43.9 hours
+[2025-08-29 17:39:17] 🔧 HEALTH_CHECK: System running for 83.4 hours
+[2025-08-29 17:44:17] 🔧 HEALTH_CHECK: System running for 44.0 hours
+
+[2025-08-29 17:44:17] 🔧 HEALTH_CHECK: System running for 169.0 hours
+[2025-08-29 17:44:17] 🔧 HEALTH_CHECK: System running for 44.0 hours
+[2025-08-29 17:44:17] 🔧 HEALTH_CHECK: System running for 83.5 hours
+[2025-08-29 17:49:17] 🔧 HEALTH_CHECK: System running for 44.1 hours
+
+[2025-08-29 17:49:17] 🔧 HEALTH_CHECK: System running for 169.1 hours
+[2025-08-29 17:49:17] 🔧 HEALTH_CHECK: System running for 44.1 hours
+[2025-08-29 17:49:17] 🔧 HEALTH_CHECK: System running for 83.6 hours
+[2025-08-29 17:54:17] 🔧 HEALTH_CHECK: System running for 44.2 hours
+
+[2025-08-29 17:54:17] 🔧 HEALTH_CHECK: System running for 169.2 hours
+[2025-08-29 17:54:17] 🔧 HEALTH_CHECK: System running for 44.2 hours
+[2025-08-29 17:54:17] 🔧 HEALTH_CHECK: System running for 83.7 hours
