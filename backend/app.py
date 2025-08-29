@@ -4257,14 +4257,28 @@ def community_companions():
         companions = []
         for c in COMPANIONS_NEW:
             # Use the companion access control logic
-            is_locked, lock_reason = is_companion_locked(c, user_plan, trial_active, referrals)
+            can_access = user_can_access_companion(user_plan, trial_active, referrals, c)
+            
+            locked = not can_access
+            lock_reason = ""
+            
+            if locked:
+                companion_tier = c.get("tier", "bronze")
+                min_referrals = c.get("min_referrals", 0)
+                
+                if companion_tier == "referral":
+                    lock_reason = f"Requires {min_referrals} referrals"
+                elif companion_tier in ["bronze", "silver", "gold"]:
+                    lock_reason = f"{companion_tier.capitalize()} tier required"
+                else:
+                    lock_reason = "Access restricted"
             
             companions.append({
                 "id": c["id"],
                 "name": c["name"],
                 "image_url": c["image_url"],
                 "tier": c["tier"],
-                "locked": is_locked,
+                "locked": locked,
                 "lock_reason": lock_reason
             })
         
