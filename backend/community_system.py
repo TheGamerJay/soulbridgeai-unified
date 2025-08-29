@@ -427,28 +427,51 @@ def set_user_community_avatar(user_id: int, companion_data: Dict[str, Any]) -> b
             logger.info(f"ℹ️ Migration not needed or not supported: {e}")
         
         # Insert or update avatar preference
-        cursor.execute("""
-            INSERT INTO user_community_avatars 
-            (user_id, companion_id, companion_name, companion_rarity, avatar_url)
-            VALUES (%s, %s, %s, %s, %s)
-            ON CONFLICT (user_id) 
-            DO UPDATE SET 
-                companion_id = EXCLUDED.companion_id,
+        logger.info(f"🔍 Attempting to insert companion data: user_id={user_id}, companion_id={companion_data['companion_id']}, name={companion_data['name']}")
+        
+        # TEMPORARY FIX: Handle both string and integer companion IDs
+        companion_id_to_insert = companion_data['companion_id']
+        
+        # If companion_id is a string like 'lumen_bronze', convert to a simple integer hash
+        if isinstance(companion_id_to_insert, str):
+            # Create a simple hash for string IDs to work with existing INTEGER columns
+            companion_id_to_insert = abs(hash(companion_id_to_insert)) % 1000000
+            logger.info(f"🔄 Converted string companion_id to integer: {companion_data['companion_id']} -> {companion_id_to_insert}")
+        
+        try:
+            cursor.execute("""
+                INSERT INTO user_community_avatars 
+                (user_id, companion_id, companion_name, companion_rarity, avatar_url)
+                VALUES (%s, %s, %s, %s, %s)
+                ON CONFLICT (user_id) 
+                DO UPDATE SET 
+                    companion_id = EXCLUDED.companion_id,
                 companion_name = EXCLUDED.companion_name,
                 companion_rarity = EXCLUDED.companion_rarity,
                 avatar_url = EXCLUDED.avatar_url,
                 updated_at = CURRENT_TIMESTAMP
-        """, (
-            user_id,
-            companion_data['companion_id'],
-            companion_data['name'],
-            companion_data['rarity'],
-            companion_data['avatar_url']
-        ))
-        
-        conn.commit()
-        conn.close()
-        return True
+            """, (
+                user_id,
+                companion_id_to_insert,
+                companion_data['name'],
+                companion_data['rarity'],
+                companion_data['avatar_url']
+            ))
+            
+            conn.commit()
+            conn.close()
+            logger.info(f"✅ Successfully inserted/updated avatar for user {user_id}")
+            return True
+            
+        except Exception as insert_error:
+            logger.error(f"❌ SQL INSERT ERROR: {insert_error}")
+            logger.error(f"❌ Data being inserted: {companion_data}")
+            try:
+                conn.rollback()
+                conn.close()
+            except:
+                pass
+            return False
         
     except Exception as e:
         logger.error(f"Failed to set community avatar: {e}")
