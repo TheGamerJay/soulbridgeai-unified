@@ -540,6 +540,7 @@
             
             <!-- Login Form -->
             <form method="POST" action="/auth/login" id="loginForm">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                 <div class="form-group">
                     <label for="email" class="form-label" data-translate="email">Email</label>
                     <input 
