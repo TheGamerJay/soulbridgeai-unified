@@ -1478,9 +1478,37 @@ def ensure_session_persistence():
                 trial_active = False
                 session.modified = True
         
-        # CRITICAL: Apply access flags after trial cleanup
+        # CRITICAL: Double-check database values to ensure session sync
         plan = session.get("user_plan", "bronze")
         trial = trial_active  # Use cleaned up value
+        
+        # Additional database verification for companion access flags
+        try:
+            db_instance = get_database()
+            if db_instance:
+                conn = db_instance.get_connection()
+                cursor = conn.cursor()
+                if db_instance.use_postgres:
+                    cursor.execute("SELECT user_plan, trial_active FROM users WHERE id = %s", (user_id,))
+                else:
+                    cursor.execute("SELECT user_plan, trial_active FROM users WHERE id = ?", (user_id,))
+                result = cursor.fetchone()
+                if result:
+                    db_user_plan, db_trial_active = result
+                    # Use database values as source of truth
+                    if db_user_plan != plan or bool(db_trial_active) != trial:
+                        logger.warning(f"🔧 MIDDLEWARE: Final session sync - using database values")
+                        logger.warning(f"   Session: plan={plan}, trial={trial}")  
+                        logger.warning(f"   Database: plan={db_user_plan}, trial={bool(db_trial_active)}")
+                        plan = db_user_plan
+                        trial = bool(db_trial_active)
+                        # Update session
+                        session['user_plan'] = plan
+                        session['trial_active'] = trial
+                        trial_active = trial  # Update local variable too
+                conn.close()
+        except Exception as e:
+            logger.error(f"Error in middleware database verification: {e}")
         
         # FIXED: Trial should NOT modify Bronze tier features - only unlock companion access
         access_bronze = True
