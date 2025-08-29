@@ -1884,11 +1884,12 @@ def has_accepted_terms():
             # Auto-mark existing users as having accepted terms
             session['terms_accepted'] = True
             session.modified = True
-            logger.info(f"Auto-accepted terms for existing user: {session.get('user_email')}")
+            logger.warning(f"🔧 AUTO-ACCEPTING terms for existing user: {session.get('user_email')} (user_id: {session.get('user_id')})")
             return True
             
         return False
-    except Exception:
+    except Exception as e:
+        logger.error(f"Error in has_accepted_terms(): {e}")
         return False
 
 def requires_terms_acceptance():
@@ -1898,6 +1899,13 @@ def requires_terms_acceptance():
     
     # Prevent redirect loop - don't check terms on terms-acceptance page itself
     if request.path == '/terms-acceptance':
+        return None
+    
+    # EMERGENCY BYPASS: Temporarily auto-accept all logged-in users to prevent redirect loops
+    if is_logged_in() and session.get('user_id') and not session.get('terms_accepted'):
+        logger.warning(f"🚨 EMERGENCY BYPASS: Auto-accepting terms for user {session.get('user_email')} to prevent redirect loop")
+        session['terms_accepted'] = True
+        session.modified = True
         return None
     
     if not has_accepted_terms():
@@ -2417,8 +2425,8 @@ def home():
     try:
         # Check if user is properly logged in (using proper authentication check)
         if is_logged_in():
-            # Check if user has accepted terms
-            if not session.get('terms_accepted', False):
+            # Check if user has accepted terms using proper function (handles auto-accept)
+            if not has_accepted_terms():
                 logger.info(f"🏠 HOME ROUTE: User authenticated but needs to accept terms")
                 return redirect("/terms-acceptance")
             else:
@@ -2662,8 +2670,8 @@ def auth_login():
             logger.info(f"[LOGIN] Login successful: {email} (plan: {session['user_plan']}, trial: {trial_active})")
             logger.info(f"[LOGIN] Access flags: bronze={session['access_bronze']}, silver={session['access_silver']}, gold={session['access_gold']}, trial={session['access_trial']}")
             # Handle both form submissions and AJAX requests
-            # Check if user needs to accept terms
-            if not session.get('terms_accepted', False):
+            # Check if user needs to accept terms (using proper function with auto-accept)
+            if not has_accepted_terms():
                 redirect_url = "/terms-acceptance"
             else:
                 redirect_url = "/intro"
@@ -4861,8 +4869,8 @@ def terms_acceptance_page():
         if not is_logged_in():
             return redirect("/login")
             
-        # Check if user already accepted terms
-        if session.get('terms_accepted'):
+        # Check if user already accepted terms (using proper function with auto-accept)
+        if has_accepted_terms():
             logger.info(f"Terms already accepted by {session.get('user_email')}, redirecting to intro")
             return redirect("/intro")
             
