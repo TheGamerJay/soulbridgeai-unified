@@ -183,8 +183,41 @@
             border: 2px solid rgba(34, 211, 238, 0.4);
             border-radius: 20px;
             padding: 40px;
-            max-width: 500px;
+            max-width: 550px;
             width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+
+        /* Custom Color Picker Styling */
+        .custom-color-section {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(34, 211, 238, 0.2);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+
+        .hex-input {
+            background: rgba(0,0,0,0.6) !important;
+            border: 2px solid rgba(34, 211, 238, 0.3) !important;
+            color: #e2e8f0 !important;
+            padding: 10px 15px !important;
+            border-radius: 8px !important;
+            width: 120px !important;
+            text-align: center !important;
+            font-family: monospace !important;
+            font-size: 14px !important;
+            transition: all 0.3s ease !important;
+        }
+
+        .color-picker-input {
+            width: 80px !important;
+            height: 40px !important;
+            border: 2px solid rgba(34, 211, 238, 0.3) !important;
+            border-radius: 8px !important;
+            cursor: pointer !important;
+            transition: all 0.3s ease !important;
         }
 
         .color-grid {
@@ -366,7 +399,30 @@
         <div class="color-picker-content">
             <button class="close-btn" onclick="closeModal('backgroundModal')">&times;</button>
             <h3 style="color: #22d3ee; margin-bottom: 20px; text-align: center;">Choose Background Color</h3>
-            <div class="color-grid" id="backgroundColors"></div>
+            
+            <!-- Custom Color Picker -->
+            <div class="custom-color-section">
+                <label style="color: #22d3ee; display: block; margin-bottom: 15px; font-weight: 600; text-align: center;">🎨 Custom Color Picker</label>
+                <div style="display: flex; justify-content: center; align-items: center; gap: 15px; flex-wrap: wrap;">
+                    <div>
+                        <label style="color: #94a3b8; font-size: 12px; display: block; margin-bottom: 5px; text-align: center;">Visual Picker</label>
+                        <input type="color" id="backgroundColorPicker" class="color-picker-input"
+                               onchange="selectCustomColor('background', this.value)">
+                    </div>
+                    <div>
+                        <label style="color: #94a3b8; font-size: 12px; display: block; margin-bottom: 5px; text-align: center;">Hex Code</label>
+                        <input type="text" id="backgroundHexInput" placeholder="#1a1a1a" class="hex-input"
+                               onchange="selectCustomColor('background', this.value)"
+                               oninput="validateHex(this)">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Preset Colors -->
+            <div style="margin-bottom: 15px;">
+                <label style="color: #94a3b8; display: block; margin-bottom: 10px; font-weight: 500;">Preset Colors</label>
+                <div class="color-grid" id="backgroundColors"></div>
+            </div>
         </div>
     </div>
 
@@ -375,7 +431,30 @@
         <div class="color-picker-content">
             <button class="close-btn" onclick="closeModal('textModal')">&times;</button>
             <h3 style="color: #22d3ee; margin-bottom: 20px; text-align: center;">Choose Text Color</h3>
-            <div class="color-grid" id="textColors"></div>
+            
+            <!-- Custom Color Picker -->
+            <div class="custom-color-section">
+                <label style="color: #22d3ee; display: block; margin-bottom: 15px; font-weight: 600; text-align: center;">🎨 Custom Color Picker</label>
+                <div style="display: flex; justify-content: center; align-items: center; gap: 15px; flex-wrap: wrap;">
+                    <div>
+                        <label style="color: #94a3b8; font-size: 12px; display: block; margin-bottom: 5px; text-align: center;">Visual Picker</label>
+                        <input type="color" id="textColorPicker" class="color-picker-input"
+                               onchange="selectCustomColor('text', this.value)">
+                    </div>
+                    <div>
+                        <label style="color: #94a3b8; font-size: 12px; display: block; margin-bottom: 5px; text-align: center;">Hex Code</label>
+                        <input type="text" id="textHexInput" placeholder="#e2e8f0" class="hex-input"
+                               onchange="selectCustomColor('text', this.value)"
+                               oninput="validateHex(this)">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Preset Colors -->
+            <div style="margin-bottom: 15px;">
+                <label style="color: #94a3b8; display: block; margin-bottom: 10px; font-weight: 500;">Preset Colors</label>
+                <div class="color-grid" id="textColors"></div>
+            </div>
         </div>
     </div>
 
@@ -531,6 +610,15 @@
 
         function openColorPicker(type) {
             const modalId = type + 'Modal';
+            
+            // Initialize color picker and hex input with current theme value
+            const currentColor = currentTheme[type] || (type === 'background' ? '#1a1a1a' : '#e2e8f0');
+            const colorPicker = document.getElementById(type + 'ColorPicker');
+            const hexInput = document.getElementById(type + 'HexInput');
+            
+            if (colorPicker) colorPicker.value = currentColor;
+            if (hexInput) hexInput.value = currentColor;
+            
             document.getElementById(modalId).style.display = 'block';
         }
 
@@ -546,6 +634,53 @@
             currentTheme[type] = color;
             updatePreview();
             closeModal(type + 'Modal');
+        }
+
+        function selectCustomColor(type, color) {
+            // Validate hex color format
+            if (!/^#[0-9A-F]{6}$/i.test(color)) {
+                console.warn('Invalid hex color:', color);
+                return;
+            }
+            
+            // Update both the color picker and hex input
+            const colorPicker = document.getElementById(type + 'ColorPicker');
+            const hexInput = document.getElementById(type + 'HexInput');
+            
+            if (colorPicker) colorPicker.value = color;
+            if (hexInput) hexInput.value = color;
+            
+            // Apply the color
+            currentTheme[type] = color;
+            updatePreview();
+        }
+
+        function validateHex(input) {
+            let value = input.value.trim();
+            
+            // Add # if missing
+            if (value && !value.startsWith('#')) {
+                value = '#' + value;
+                input.value = value;
+            }
+            
+            // Validate format
+            if (value.length === 7 && /^#[0-9A-F]{6}$/i.test(value)) {
+                input.style.borderColor = 'rgba(34, 211, 238, 0.6)';
+                input.style.boxShadow = '0 0 10px rgba(34, 211, 238, 0.3)';
+                
+                // Update the color picker to match
+                const type = input.id.includes('background') ? 'background' : 'text';
+                const colorPicker = document.getElementById(type + 'ColorPicker');
+                if (colorPicker) colorPicker.value = value;
+                
+            } else if (value.length > 1) {
+                input.style.borderColor = 'rgba(255, 107, 107, 0.6)';
+                input.style.boxShadow = '0 0 10px rgba(255, 107, 107, 0.3)';
+            } else {
+                input.style.borderColor = 'rgba(34, 211, 238, 0.3)';
+                input.style.boxShadow = 'none';
+            }
         }
 
         function selectPreset(preset) {
