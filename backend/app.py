@@ -4255,32 +4255,56 @@ def community_companions():
         
         # Use same companion logic as main API
         companions = []
-        for c in COMPANIONS_NEW:
-            # Use the companion access control logic
-            can_access = user_can_access_companion(user_plan, trial_active, referrals, c)
-            
-            locked = not can_access
-            lock_reason = ""
-            
-            if locked:
-                companion_tier = c.get("tier", "bronze")
-                min_referrals = c.get("min_referrals", 0)
+        
+        try:
+            for c in COMPANIONS_NEW:
+                # Use the companion access control logic
+                can_access = user_can_access_companion(user_plan, trial_active, referrals, c)
                 
-                if companion_tier == "referral":
-                    lock_reason = f"Requires {min_referrals} referrals"
-                elif companion_tier in ["bronze", "silver", "gold"]:
-                    lock_reason = f"{companion_tier.capitalize()} tier required"
-                else:
-                    lock_reason = "Access restricted"
-            
-            companions.append({
-                "id": c["id"],
-                "name": c["name"],
-                "image_url": c["image_url"],
-                "tier": c["tier"],
-                "locked": locked,
-                "lock_reason": lock_reason
-            })
+                locked = not can_access
+                lock_reason = ""
+                
+                if locked:
+                    companion_tier = c.get("tier", "bronze")
+                    min_referrals = c.get("min_referrals", 0)
+                    
+                    if companion_tier == "referral":
+                        lock_reason = f"Requires {min_referrals} referrals"
+                    elif companion_tier in ["bronze", "silver", "gold"]:
+                        lock_reason = f"{companion_tier.capitalize()} tier required"
+                    else:
+                        lock_reason = "Access restricted"
+                
+                companions.append({
+                    "id": c["id"],
+                    "name": c["name"],
+                    "image_url": c["image_url"],
+                    "tier": c["tier"],
+                    "locked": locked,
+                    "lock_reason": lock_reason
+                })
+                
+        except Exception as comp_error:
+            logger.error(f"Error processing companions: {comp_error}")
+            # Fallback - return basic companion list
+            companions = [
+                {
+                    "id": "gamerjay_bronze",
+                    "name": "GamerJay",
+                    "image_url": "/static/logos/GamerJay_Free_companion.png",
+                    "tier": "bronze",
+                    "locked": False,
+                    "lock_reason": ""
+                },
+                {
+                    "id": "blayzo_bronze", 
+                    "name": "Blayzo",
+                    "image_url": "/static/logos/Blayzo.png",
+                    "tier": "bronze",
+                    "locked": False,
+                    "lock_reason": ""
+                }
+            ]
         
         return jsonify({
             "success": True,
