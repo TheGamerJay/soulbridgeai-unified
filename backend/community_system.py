@@ -563,6 +563,19 @@ def record_avatar_change(user_id: int, old_companion_data: Dict, new_companion_d
         
         cooldown_expires = datetime.now(timezone.utc) + timedelta(hours=cooldown_hours)
         
+        # TEMPORARY FIX: Handle both string and integer companion IDs for avatar changes
+        old_companion_id = old_companion_data.get('companion_id') if old_companion_data else None
+        new_companion_id = new_companion_data.get('companion_id')
+        
+        # Convert string IDs to integer hashes for database compatibility
+        if old_companion_id and isinstance(old_companion_id, str):
+            old_companion_id = abs(hash(old_companion_id)) % 1000000
+            
+        if new_companion_id and isinstance(new_companion_id, str):
+            new_companion_id = abs(hash(new_companion_id)) % 1000000
+        
+        logger.info(f"🔍 Recording avatar change: old_id={old_companion_id}, new_id={new_companion_id}, type={change_type}")
+
         # Record the change
         cursor.execute("""
             INSERT INTO user_avatar_changes 
@@ -570,22 +583,30 @@ def record_avatar_change(user_id: int, old_companion_data: Dict, new_companion_d
             VALUES (%s, %s, %s, %s, %s, %s, %s)
         """, (
             user_id,
-            old_companion_data.get('companion_id') if old_companion_data else None,
+            old_companion_id,
             old_companion_data.get('name') if old_companion_data else None,
-            new_companion_data.get('companion_id'),
+            new_companion_id,
             new_companion_data.get('name'),
             change_type,
             cooldown_expires
         ))
         
-        conn.commit()
-        conn.close()
-        
-        logger.info(f"🎭 Avatar change recorded for user {user_id}: {change_type} change, cooldown until {cooldown_expires}")
-        return True
+        try:
+            conn.commit()
+            conn.close()
+            logger.info(f"✅ Avatar change recorded for user {user_id}: {change_type} change, cooldown until {cooldown_expires}")
+            return True
+        except Exception as commit_error:
+            logger.error(f"❌ AVATAR CHANGE COMMIT ERROR: {commit_error}")
+            try:
+                conn.rollback()
+                conn.close()
+            except:
+                pass
+            return False
         
     except Exception as e:
-        logger.error(f"Failed to record avatar change: {e}")
+        logger.error(f"❌ Failed to record avatar change: {e}")
         return False
 
 def get_user_tier_badge(user_id: int) -> str:
