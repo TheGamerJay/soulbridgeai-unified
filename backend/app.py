@@ -9721,6 +9721,7 @@ def api_companions():
                     logger.error(f"Error checking trial expiration: {e}")
         
         logger.info(f"🔍 COMPANIONS API DEBUG: user_plan={user_plan}, trial_active={trial_active}, user_id={session.get('user_id')}")
+        logger.info(f"🔍 SESSION DEBUG: trial_active={session.get('trial_active')}, trial_expires_at={session.get('trial_expires_at')}")
         
         # Get referral count from database if available
         try:
