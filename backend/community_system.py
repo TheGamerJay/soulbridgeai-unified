@@ -1401,9 +1401,38 @@ def set_community_avatar():
                 "can_bypass": True  # Show bypass options
             }), 429
         
-        # Get user tier for bypass validation
+        # Get user tier for bypass validation with database verification
         user_plan = session.get('user_plan', 'bronze')
         trial_active = session.get('trial_active', False)
+        
+        # CRITICAL FIX: Verify trial status with database to prevent stale session access
+        try:
+            from database_utils import get_database
+            db = get_database()
+            if db:
+                conn = db.get_connection()
+                cursor = conn.cursor()
+                if db.use_postgres:
+                    cursor.execute("SELECT user_plan, trial_active FROM users WHERE id = %s", (user_id,))
+                else:
+                    cursor.execute("SELECT user_plan, trial_active FROM users WHERE id = ?", (user_id,))
+                result = cursor.fetchone()
+                if result:
+                    db_user_plan, db_trial_active = result
+                    # Use database values if they differ from session (database is source of truth)
+                    if db_user_plan != user_plan or bool(db_trial_active) != trial_active:
+                        logger.warning(f"🔧 AVATAR SAVE: Session mismatch detected - using database values")
+                        logger.warning(f"   Session: plan={user_plan}, trial={trial_active}")
+                        logger.warning(f"   Database: plan={db_user_plan}, trial={bool(db_trial_active)}")
+                        user_plan = db_user_plan
+                        trial_active = bool(db_trial_active)
+                        # Update session to match database
+                        session['user_plan'] = user_plan
+                        session['trial_active'] = trial_active
+                        session.modified = True
+                conn.close()
+        except Exception as e:
+            logger.error(f"Error verifying trial status in avatar save: {e}")
         
         from unified_tier_system import get_effective_plan
         effective_plan = get_effective_plan(user_plan, trial_active)

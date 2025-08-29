@@ -4367,6 +4367,52 @@ def community_set_avatar():
         if not companion_id:
             return jsonify({"success": False, "error": "Companion ID required"}), 400
         
+        # CRITICAL FIX: Add companion access validation
+        user_id = session.get('user_id')
+        user_plan = session.get('user_plan', 'bronze')
+        trial_active = session.get('trial_active', False)
+        
+        # Verify trial status with database to prevent stale session access
+        try:
+            db_instance = get_database()
+            if db_instance:
+                conn = db_instance.get_connection()
+                cursor = conn.cursor()
+                if db_instance.use_postgres:
+                    cursor.execute("SELECT user_plan, trial_active FROM users WHERE id = %s", (user_id,))
+                else:
+                    cursor.execute("SELECT user_plan, trial_active FROM users WHERE id = ?", (user_id,))
+                result = cursor.fetchone()
+                if result:
+                    db_user_plan, db_trial_active = result
+                    # Use database values if they differ from session
+                    if db_user_plan != user_plan or bool(db_trial_active) != trial_active:
+                        logger.warning(f"🔧 AVATAR SET: Session mismatch - using database values")
+                        user_plan = db_user_plan
+                        trial_active = bool(db_trial_active)
+                        session['user_plan'] = user_plan
+                        session['trial_active'] = trial_active
+                        session.modified = True
+                conn.close()
+        except Exception as e:
+            logger.error(f"Error verifying trial status in avatar set: {e}")
+        
+        # Validate companion access
+        effective_plan = get_effective_plan(user_plan, trial_active)
+        
+        # Get allowed companions for user's tier
+        tier_companions = {
+            'bronze': [c for c in COMPANIONS_NEW if c['tier'] == 'bronze'],
+            'silver': [c for c in COMPANIONS_NEW if c['tier'] in ['bronze', 'silver']], 
+            'gold': [c for c in COMPANIONS_NEW if c['tier'] in ['bronze', 'silver', 'gold']]
+        }
+        
+        allowed_companions = tier_companions.get(effective_plan, tier_companions['bronze'])
+        companion_allowed = any(c.get('id') == companion_id for c in allowed_companions)
+        
+        if not companion_allowed:
+            return jsonify({"success": False, "error": "Failed to save companion choice. Please try again."}), 403
+        
         # Update session with new companion info
         session['companion_info'] = {
             'name': data.get('name', 'Soul'),
