@@ -13666,8 +13666,7 @@ def theme_palette_silver():
     if user_plan not in ['silver', 'gold'] and not trial_active:
         return redirect("/subscription?feature=theme-palette")
     
-    # For now, redirect to companion selection until theme palette is built
-    return redirect("/companion-selection")
+    return render_template("theme_palette.html", tier="silver")
 
 @app.route("/theme-palette/gold")
 def theme_palette_gold():
@@ -13681,8 +13680,33 @@ def theme_palette_gold():
     if user_plan not in ['gold'] and not trial_active:
         return redirect("/subscription?feature=theme-palette")
     
-    # For now, redirect to companion selection until theme palette is built
-    return redirect("/companion-selection")
+    return render_template("theme_palette.html", tier="gold")
+
+@app.route("/api/user/save-theme", methods=["POST"])
+def save_user_theme():
+    """Save user's theme preferences"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        data = request.get_json()
+        user_id = session.get('user_id')
+        
+        # Save to session for immediate use
+        session['user_theme'] = {
+            'background': data.get('background', '#0f172a'),
+            'text': data.get('text', '#22d3ee'),
+            'accent': data.get('accent', '#06b6d4')
+        }
+        session.modified = True
+        
+        logger.info(f"Theme saved for user {user_id}: {session['user_theme']}")
+        
+        return jsonify({"success": True, "message": "Theme saved successfully"})
+        
+    except Exception as e:
+        logger.error(f"Theme save error: {e}")
+        return jsonify({"success": False, "error": "Failed to save theme"}), 500
 
 @app.route("/api/ai-image-generation/usage", methods=["GET"])
 def ai_image_generation_usage():
