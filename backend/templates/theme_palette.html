@@ -19,6 +19,34 @@
             padding: 20px;
         }
 
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            background: linear-gradient(135deg, #22d3ee 0%, #0891b2 100%);
+            color: #000000;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.95rem;
+            box-shadow: 0 4px 15px rgba(34, 211, 238, 0.3);
+        }
+
+        .back-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(34, 211, 238, 0.4);
+            color: #000000;
+            text-decoration: none;
+        }
+
         .container {
             max-width: 1200px;
             margin: auto;
@@ -277,6 +305,11 @@
     </style>
 </head>
 <body>
+    <!-- Back Button -->
+    <a href="/chat-{{ tier }}" class="back-button">
+        ← Back to Chat
+    </a>
+    
     <div class="container">
         <div class="header">
             <div class="tier-badge">🎨 Theme Palette - {{ tier.title() }} Tier</div>

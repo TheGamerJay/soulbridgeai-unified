@@ -151,7 +151,9 @@
       "Bash(git pull:*)",
       "Bash(git log:*)",
       "Bash(if [ -z \"$OPENAI_API_KEY\" ])",
-      "Bash(then echo \"❌ OPENAI_API_KEY is NOT set\")"
+      "Bash(then echo \"❌ OPENAI_API_KEY is NOT set\")",
+      "Bash(DATABASE_URL=\"postgresql://postgres:sDCOyvWZKSxyJvnJBZNSJemzZKbbSjIT@postgres-wj-8.railway.internal:5432/railway\" python -c \"\nimport psycopg2\nimport os\n\ntry:\n    conn = psycopg2.connect(os.environ.get(''DATABASE_URL''))\n    cur = conn.cursor()\n    \n    # Check your current user status in the database\n    user_id = 104  # Your user ID\n    cur.execute(''SELECT id, email, user_plan, trial_active, trial_expires_at FROM users WHERE id = %s'', (user_id,))\n    result = cur.fetchone()\n    \n    if result:\n        user_id, email, user_plan, trial_active, trial_expires = result\n        print(f''DATABASE USER STATUS:'')\n        print(f''  User ID: {user_id}'')\n        print(f''  Email: {email}'')\n        print(f''  Plan: {user_plan}'')\n        print(f''  Trial Active: {trial_active}'')\n        print(f''  Trial Expires: {trial_expires}'')\n        \n        print(f''\\nFor AI Images, user should see:'')\n        if user_plan == ''gold'':\n            print(f''  AI Image Tier: gold'')\n            print(f''  Monthly Limit: 999 (displayed as unlimited)'')\n        elif trial_active and user_plan == ''bronze'':\n            print(f''  AI Image Tier: silver (trial access)'')\n            print(f''  Monthly Limit: 10 (Silver tier access)'')\n        else:\n            print(f''  AI Image Tier: {user_plan}'')\n            if user_plan == ''silver'':\n                print(f''  Monthly Limit: 10'')\n            else:\n                print(f''  Monthly Limit: 0 (Bronze - locked)'')\n    else:\n        print(''User not found'')\n        \n    conn.close()\nexcept Exception as e:\n    print(f''Error: {e}'')\n\")",
+      "Bash(DATABASE_URL=\"postgresql://postgres:sDCOyvWZKSxyJvnJBZNSJemzZKbbSjIT@postgres-wj-8.railway.internal:5432/railway\" python add_theme_column.py)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"

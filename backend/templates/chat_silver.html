@@ -44,14 +44,35 @@
         const Send = window.lucide?.Send || (() => React.createElement('span', {}, '→'));
 
         function SilverChatPage({ userPlan = "silver", trialActive = false }) {
-          // Silver tier colors - Fixed to silver
+          // Load user theme or use Silver tier defaults
+          const [theme, setTheme] = React.useState({
+            background: '#1a1a1a',
+            text: '#C0C0C0',
+            accent: '#C0C0C0'
+          });
+
+          React.useEffect(() => {
+            // Load user theme from API
+            fetch('/api/user/get-theme')
+              .then(response => response.json())
+              .then(data => {
+                if (data.success && data.theme) {
+                  setTheme(data.theme);
+                  // Apply theme to body
+                  document.body.style.background = `linear-gradient(135deg, ${data.theme.background} 0%, ${data.theme.accent}40 50%, ${data.theme.background} 100%)`;
+                  document.body.style.color = data.theme.text;
+                }
+              })
+              .catch(error => console.log('Using default Silver theme'));
+          }, []);
+
           const colors = {
-            primary: '#C0C0C0',
-            secondary: '#1a1a1a',
+            primary: theme.accent,
+            secondary: theme.background,
             gradient: 'from-gray-400 to-gray-500'
           };
           
-          console.log('🥈 SILVER TIER: Fixed colors =', colors);
+          console.log('🥈 SILVER TIER: Theme colors =', colors);
           
           // Get companion info from backend data
           const companion = window.APP_DATA?.companionInfo || {

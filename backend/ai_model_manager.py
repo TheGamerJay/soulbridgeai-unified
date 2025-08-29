@@ -197,6 +197,7 @@ class AIModelManager:
             "ven_sky_gold": "Violet",
             "watchdog_gold": "Crimson", 
             "violet2_gold": "Violet",
+            "dr_madjay_gold": "Claude",
             
             # Referral companions
             "blayzike": "Blayzo",

@@ -44,14 +44,35 @@
         const Send = window.lucide?.Send || (() => React.createElement('span', {}, '→'));
 
         function GoldChatPage({ userPlan = "gold", trialActive = false }) {
-          // Gold tier colors - Fixed to gold
+          // Load user theme or use Gold tier defaults
+          const [theme, setTheme] = React.useState({
+            background: '#1a1a1a',
+            text: '#FFD700',
+            accent: '#FFD700'
+          });
+
+          React.useEffect(() => {
+            // Load user theme from API
+            fetch('/api/user/get-theme')
+              .then(response => response.json())
+              .then(data => {
+                if (data.success && data.theme) {
+                  setTheme(data.theme);
+                  // Apply theme to body
+                  document.body.style.background = `linear-gradient(135deg, ${data.theme.background} 0%, ${data.theme.accent}40 50%, ${data.theme.background} 100%)`;
+                  document.body.style.color = data.theme.text;
+                }
+              })
+              .catch(error => console.log('Using default Gold theme'));
+          }, []);
+
           const colors = {
-            primary: '#FFD700',
-            secondary: '#1a1a1a',
+            primary: theme.accent,
+            secondary: theme.background,
             gradient: 'from-yellow-400 to-yellow-500'
           };
           
-          console.log('🥇 GOLD TIER: Fixed colors =', colors);
+          console.log('🥇 GOLD TIER: Theme colors =', colors);
           
           // Get companion info from backend data
           const companion = window.APP_DATA?.companionInfo || {

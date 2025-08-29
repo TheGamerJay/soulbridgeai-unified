@@ -48,15 +48,35 @@
         const Send = window.lucide?.Send || (() => React.createElement('span', {}, '→'));
 
         function BronzeChatPage({ userPlan = "bronze", trialActive = false }) {
-          // Bronze tier colors - Fixed to cyan
+          // Load user theme or use Bronze tier defaults
+          const [theme, setTheme] = React.useState({
+            background: '#1a1a1a',
+            text: '#22d3ee',
+            accent: '#22d3ee'
+          });
+
+          React.useEffect(() => {
+            // Load user theme from API
+            fetch('/api/user/get-theme')
+              .then(response => response.json())
+              .then(data => {
+                if (data.success && data.theme) {
+                  setTheme(data.theme);
+                  // Apply theme to body
+                  document.body.style.background = `linear-gradient(135deg, ${data.theme.background} 0%, ${data.theme.accent}40 50%, ${data.theme.background} 100%)`;
+                  document.body.style.color = data.theme.text;
+                }
+              })
+              .catch(error => console.log('Using default Bronze theme'));
+          }, []);
+
           const colors = {
-            primary: '#22d3ee',
-            secondary: '#1a1a1a',
+            primary: theme.accent,
+            secondary: theme.background,
             gradient: 'from-cyan-400 to-cyan-500'
           };
           
-          console.log('🥉 BRONZE TIER v2.1: Fixed colors =', colors);
-          console.log('🎨 PRIMARY COLOR:', colors.primary, 'should be #22d3ee not #00FFFF');
+          console.log('🥉 BRONZE TIER: Theme colors =', colors);
           
           // Get companion info from backend data
           const companion = window.APP_DATA?.companionInfo || {
