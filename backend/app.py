@@ -4327,8 +4327,8 @@ def community_get_avatar():
         # Get user's current companion from session or database
         companion_info = session.get('companion_info', {
             'name': 'Soul',
-            'companion_id': 1,
-            'avatar_url': None
+            'id': 'gamerjay_bronze',
+            'image_url': '/static/logos/GamerJay_Free_companion.png'
         })
         
         return jsonify({
@@ -9747,6 +9747,7 @@ def api_companions():
                 "name": c["name"],
                 "image_url": c["image_url"],
                 "tier": c["tier"],
+                "can_access": can_access,
                 "locked": locked,
                 "lock_reason": lock_reason
             })
