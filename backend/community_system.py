@@ -77,13 +77,13 @@ def initialize_community_database():
             return False
         cursor = conn.cursor()
         
-        # Community posts table - matches spec exactly
+        # Community posts table - matches spec exactly (updated for string companion IDs)
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS community_posts (
                 id SERIAL PRIMARY KEY,
                 author_uid_hash TEXT NOT NULL,
                 author_uid INTEGER NOT NULL,
-                companion_id INTEGER,
+                companion_id TEXT,
                 companion_skin_id INTEGER,
                 category TEXT NOT NULL,
                 text TEXT,
@@ -173,13 +173,13 @@ def initialize_community_database():
             );
         """)
         
-        # Community mutes table - viewer-scoped
+        # Community mutes table - viewer-scoped (updated for string companion IDs)
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS community_mutes (
                 id SERIAL PRIMARY KEY,
                 viewer_uid INTEGER NOT NULL,
                 muted_author_uid_hash TEXT,
-                muted_companion_id INTEGER,
+                muted_companion_id TEXT,
                 muted_category TEXT,
                 mute_type TEXT NOT NULL CHECK (mute_type IN ('author', 'companion', 'category')),
                 expires_at TIMESTAMP,
@@ -218,11 +218,11 @@ def initialize_community_database():
             );
         """)
         
-        # User community avatars table - stores current avatar selection
+        # User community avatars table - stores current avatar selection (updated for string companion IDs)
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS user_community_avatars (
                 user_id INTEGER PRIMARY KEY,
-                companion_id INTEGER NOT NULL,
+                companion_id TEXT NOT NULL,
                 companion_name TEXT NOT NULL,
                 companion_rarity TEXT DEFAULT 'common',
                 avatar_url TEXT NOT NULL,
@@ -231,14 +231,14 @@ def initialize_community_database():
             );
         """)
         
-        # Avatar change tracking table - implements cooldown with ad bypass
+        # Avatar change tracking table - implements cooldown with ad bypass (updated for string companion IDs)
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS user_avatar_changes (
                 id SERIAL PRIMARY KEY,
                 user_id INTEGER NOT NULL,
-                old_companion_id INTEGER,
+                old_companion_id TEXT,
                 old_companion_name TEXT,
-                new_companion_id INTEGER NOT NULL,
+                new_companion_id TEXT NOT NULL,
                 new_companion_name TEXT NOT NULL,
                 change_type TEXT DEFAULT 'normal' CHECK (change_type IN ('normal', 'ad_bypass', 'premium_skip')),
                 cooldown_expires_at TIMESTAMP NOT NULL,
@@ -255,7 +255,7 @@ def initialize_community_database():
                 cursor.execute("""
                     CREATE TABLE user_community_avatars (
                         user_id INTEGER PRIMARY KEY,
-                        companion_id INTEGER NOT NULL,
+                        companion_id TEXT NOT NULL,
                         companion_name TEXT NOT NULL,
                         companion_rarity TEXT DEFAULT 'common',
                         avatar_url TEXT NOT NULL,
@@ -395,11 +395,11 @@ def set_user_community_avatar(user_id: int, companion_data: Dict[str, Any]) -> b
             return False
         cursor = conn.cursor()
         
-        # Create table if it doesn't exist
+        # Create table if it doesn't exist (updated schema for string companion IDs)
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS user_community_avatars (
                 user_id INTEGER PRIMARY KEY,
-                companion_id INTEGER NOT NULL,
+                companion_id TEXT NOT NULL,
                 companion_name TEXT NOT NULL,
                 companion_rarity TEXT NOT NULL,
                 avatar_url TEXT NOT NULL,
@@ -408,6 +408,23 @@ def set_user_community_avatar(user_id: int, companion_data: Dict[str, Any]) -> b
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             )
         """)
+        
+        # Migrate existing table to use TEXT companion_id if needed
+        try:
+            cursor.execute("""
+                SELECT data_type 
+                FROM information_schema.columns 
+                WHERE table_name = 'user_community_avatars' 
+                AND column_name = 'companion_id'
+            """)
+            result = cursor.fetchone()
+            if result and result[0] == 'integer':
+                logger.info("🔄 Migrating companion_id from INTEGER to TEXT...")
+                cursor.execute("ALTER TABLE user_community_avatars ALTER COLUMN companion_id TYPE TEXT")
+                logger.info("✅ Migrated companion_id to TEXT successfully")
+        except Exception as e:
+            # Probably SQLite, which doesn't support ALTER COLUMN TYPE
+            logger.info(f"ℹ️ Migration not needed or not supported: {e}")
         
         # Insert or update avatar preference
         cursor.execute("""
