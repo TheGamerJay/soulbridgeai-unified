@@ -4087,7 +4087,7 @@ def tiers_page():
     trial_active = session.get('trial_active', False)
     trial_expires_at = session.get('trial_expires_at')
     
-    # Get referral count and trial status from database
+    # CRITICAL FIX: Verify trial status with database to prevent stale session access
     referral_count = 0
     trial_used_permanently = False
     try:
@@ -4096,13 +4096,27 @@ def tiers_page():
             conn = db_instance.get_connection()
             cursor = conn.cursor()
             if db_instance.use_postgres:
-                cursor.execute("SELECT referral_points, trial_used_permanently FROM users WHERE id = %s", (user_id,))
+                cursor.execute("SELECT referral_points, trial_used_permanently, user_plan, trial_active FROM users WHERE id = %s", (user_id,))
             else:
-                cursor.execute("SELECT referral_points, trial_used_permanently FROM users WHERE id = ?", (user_id,))
+                cursor.execute("SELECT referral_points, trial_used_permanently, user_plan, trial_active FROM users WHERE id = ?", (user_id,))
             result = cursor.fetchone()
             if result:
-                referral_count = result[0] or 0
-                trial_used_permanently = result[1] or False
+                db_referral_count, db_trial_used_permanently, db_user_plan, db_trial_active = result
+                referral_count = db_referral_count or 0
+                trial_used_permanently = db_trial_used_permanently or False
+                
+                # Use database values if they differ from session (database is source of truth)
+                if db_user_plan != user_plan or bool(db_trial_active) != trial_active:
+                    logger.warning(f"🔧 TIERS: Session mismatch detected - using database values")
+                    logger.warning(f"   Session: plan={user_plan}, trial={trial_active}")
+                    logger.warning(f"   Database: plan={db_user_plan}, trial={bool(db_trial_active)}")
+                    user_plan = db_user_plan
+                    trial_active = bool(db_trial_active)
+                    # Update session to match database
+                    session['user_plan'] = user_plan
+                    session['trial_active'] = trial_active
+                    session.modified = True
+            conn.close()
     except Exception as e:
         logger.error(f"Error getting user data: {e}")
         referral_count = 0
