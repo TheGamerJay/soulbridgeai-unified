@@ -904,14 +904,35 @@
         
         // Rate limiting for reactions
         let reactionCooldowns = new Map(); // postId -> timestamp
+        let userReactions = new Map(); // postId -> emoji (one reaction per post max)
         const REACTION_COOLDOWN = 3000; // 3 seconds between reactions per post
 
         // Initialize the page
         document.addEventListener('DOMContentLoaded', function() {
             initializeComposer();
+            loadUserReactions();
             loadFeed();
             setupEventListeners();
         });
+        
+        // Load user's existing reactions from backend
+        async function loadUserReactions() {
+            try {
+                const response = await fetch(`${API_BASE}/user-reactions`);
+                const data = await response.json();
+                
+                if (data.success && data.reactions) {
+                    // Store user reactions locally
+                    userReactions.clear();
+                    Object.entries(data.reactions).forEach(([postId, emoji]) => {
+                        userReactions.set(parseInt(postId), emoji);
+                    });
+                }
+            } catch (error) {
+                // Silent fail - reactions will start fresh
+                console.log('Could not load user reactions, starting fresh');
+            }
+        }
 
         // Initialize post composer
         function initializeComposer() {
@@ -1341,22 +1362,41 @@
 
         // Toggle reaction on a post
         async function toggleReaction(postId, emoji) {
-            // Check rate limiting
-            const now = Date.now();
-            const lastReaction = reactionCooldowns.get(postId);
+            // Check if user already reacted to this post
+            const existingReaction = userReactions.get(postId);
             
-            if (lastReaction && (now - lastReaction) < REACTION_COOLDOWN) {
-                const remainingTime = Math.ceil((REACTION_COOLDOWN - (now - lastReaction)) / 1000);
-                showMessage(`Please wait ${remainingTime} seconds before reacting to this post again`, 'error');
-                return;
+            if (existingReaction) {
+                if (existingReaction === emoji) {
+                    // Remove the same reaction
+                    userReactions.delete(postId);
+                    showMessage(`Removed ${emoji} reaction`, 'success');
+                } else {
+                    // User trying to add different reaction - not allowed
+                    showMessage(`You can only react once per post. Remove your ${existingReaction} reaction first to change it.`, 'error');
+                    return;
+                }
+            } else {
+                // Check rate limiting between different posts
+                const now = Date.now();
+                const lastReaction = reactionCooldowns.get(postId);
+                
+                if (lastReaction && (now - lastReaction) < REACTION_COOLDOWN) {
+                    const remainingTime = Math.ceil((REACTION_COOLDOWN - (now - lastReaction)) / 1000);
+                    showMessage(`Please wait ${remainingTime} seconds before reacting to this post`, 'error');
+                    return;
+                }
+                
+                // Add new reaction
+                userReactions.set(postId, emoji);
+                reactionCooldowns.set(postId, now);
+                showMessage(`Added ${emoji} reaction`, 'success');
             }
             
-            // Set cooldown
-            reactionCooldowns.set(postId, now);
-            
-            // Disable all reaction buttons for this post temporarily
+            // Update UI to reflect reaction state
             const postElement = document.querySelector(`[data-post-id="${postId}"]`);
             const reactionButtons = postElement.querySelectorAll('.reaction-btn');
+            
+            // Disable all buttons temporarily during processing
             reactionButtons.forEach(btn => {
                 btn.disabled = true;
                 btn.style.opacity = '0.6';
@@ -1374,24 +1414,27 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    // Update the reaction button
+                    // Update the reaction buttons UI
                     const post = document.querySelector(`[data-post-id="${postId}"]`);
-                    const reactionBtn = post.querySelector(`[data-reaction="${emoji}"]`);
+                    const currentUserReaction = userReactions.get(postId);
                     
-                    if (data.action === 'removed') {
-                        reactionBtn.classList.remove('active');
-                        reactionBtn.innerHTML = `${emoji}`;
-                    } else {
-                        // Remove active class from other reactions
-                        post.querySelectorAll('.reaction-btn').forEach(btn => btn.classList.remove('active'));
-                        reactionBtn.classList.add('active');
-                    }
-                    
-                    // Update all reaction counts
+                    // Update all reaction counts and visual states
                     Object.entries(data.reaction_counts).forEach(([emo, count]) => {
                         const btn = post.querySelector(`[data-reaction="${emo}"]`);
                         if (btn) {
+                            // Update count display
                             btn.innerHTML = count > 0 ? `${emo} ${count}` : emo;
+                            
+                            // Style active reaction (user's current reaction)
+                            if (emo === currentUserReaction) {
+                                btn.classList.add('active');
+                                btn.style.background = 'rgba(0, 255, 255, 0.2)';
+                                btn.style.border = '1px solid rgba(0, 255, 255, 0.4)';
+                            } else {
+                                btn.classList.remove('active');
+                                btn.style.background = '';
+                                btn.style.border = '';
+                            }
                         }
                     });
                 } else {

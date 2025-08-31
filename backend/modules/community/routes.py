@@ -265,10 +265,35 @@ def react_to_post(post_id):
         # Mock reaction logic - in real app would save to database
         user_id = session.get('user_id')
         
-        # Simulate toggling reaction
-        action = 'added'  # Could be 'added' or 'removed'
+        # Check if user already reacted to this post (session-based tracking)
+        user_reactions_key = f'user_reactions_{user_id}'
+        user_reactions = session.get(user_reactions_key, {})
         
-        # Mock reaction counts
+        # Check existing reaction for this post
+        existing_reaction = user_reactions.get(str(post_id))
+        action = 'removed'
+        
+        if existing_reaction:
+            if existing_reaction == emoji:
+                # Remove same reaction
+                del user_reactions[str(post_id)]
+                action = 'removed'
+            else:
+                # User trying to change reaction - not allowed
+                return jsonify({
+                    'success': False, 
+                    'error': f'You can only react once per post. Remove your {existing_reaction} reaction first.'
+                }), 400
+        else:
+            # Add new reaction
+            user_reactions[str(post_id)] = emoji
+            action = 'added'
+        
+        # Save to session
+        session[user_reactions_key] = user_reactions
+        session.modified = True
+        
+        # Mock reaction counts (in real app, would aggregate from database)
         reaction_counts = {
             "❤️": 5,
             "✨": 3, 
@@ -280,6 +305,7 @@ def react_to_post(post_id):
             "🫶": 2
         }
         
+        # Adjust count based on action
         if emoji in reaction_counts:
             if action == 'added':
                 reaction_counts[emoji] += 1
@@ -297,6 +323,26 @@ def react_to_post(post_id):
     except Exception as e:
         logger.error(f"Error reacting to post: {e}")
         return jsonify({"success": False, "error": "Failed to react to post"}), 500
+
+@community_bp.route("/community/user-reactions")
+def get_user_reactions():
+    """Get current user's reactions"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        user_id = session.get('user_id')
+        user_reactions_key = f'user_reactions_{user_id}'
+        user_reactions = session.get(user_reactions_key, {})
+        
+        return jsonify({
+            "success": True,
+            "reactions": user_reactions
+        })
+        
+    except Exception as e:
+        logger.error(f"Error getting user reactions: {e}")
+        return jsonify({"success": False, "error": "Failed to get reactions"}), 500
 
 @community_bp.route("/community/posts/<int:post_id>/flag-category", methods=["POST"])
 def flag_post_category(post_id):
