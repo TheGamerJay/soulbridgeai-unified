@@ -25,25 +25,12 @@ class NavigationService:
         }
     
     def determine_home_redirect(self) -> str:
-        """Determine where to redirect user from home route"""
+        """Determine where to redirect user from home route - always login first"""
         try:
-            # Check authentication status
-            if not self._is_logged_in():
-                logger.info("🏠 HOME: User not authenticated → /login")
-                return "/login"
-            
-            # Check terms acceptance - but be more forgiving
-            try:
-                if not self._has_accepted_terms():
-                    logger.info("🏠 HOME: User needs terms acceptance → /terms-acceptance")
-                    return "/terms-acceptance"
-            except Exception as terms_error:
-                logger.error(f"🏠 HOME: Error checking terms, assuming accepted: {terms_error}")
-                # If terms check fails, assume they're accepted and proceed
-            
-            # User is authenticated and terms accepted (or assumed accepted)
-            logger.info("🏠 HOME: User authenticated → /intro")
-            return "/intro"
+            # ALWAYS send users to login first when they type the URL directly
+            # This ensures proper authentication flow and prevents any session confusion
+            logger.info("🏠 HOME: Directing user to login page (standard flow)")
+            return "/login"
             
         except Exception as e:
             logger.error(f"Error determining home redirect: {e}")
