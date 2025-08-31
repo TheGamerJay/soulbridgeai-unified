@@ -130,6 +130,21 @@ def tiers_page():
         logger.error(f"Error in tiers redirect: {e}")
         return redirect("/subscription")
 
+# Debug route for session state
+@core_bp.route('/whoami')
+def whoami():
+    """Debug route to check current session state"""
+    return {
+        "logged_in": session.get("logged_in"),
+        "user_id": session.get("user_id"),
+        "email": session.get("email"),
+        "terms_accepted": session.get("terms_accepted"),
+        "user_plan": session.get("user_plan"),
+        "session_keys": list(session.keys()),
+        "cookies": list(request.cookies.keys()),
+        "path": request.path
+    }
+
 # API endpoints for core functionality
 @core_bp.route('/api/navigation/menu')
 @requires_login

@@ -23,10 +23,20 @@ def create_app():
     # Configuration
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
     app.config['PERMANENT_SESSION_LIFETIME'] = 86400  # 24 hours
-    app.config['SESSION_COOKIE_SECURE'] = True if os.environ.get('ENVIRONMENT') == 'production' else False
-    app.config['SESSION_COOKIE_HTTPONLY'] = True
-    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
-    
+   # Cookie settings
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['SESSION_COOKIE_PATH'] = "/"
+
+if os.environ.get("ENVIRONMENT") == "production":
+    app.config['SESSION_COOKIE_DOMAIN'] = ".soulbridgeai.com"
+    app.config['SESSION_COOKIE_SECURE'] = True
+else:
+    app.config['SESSION_COOKIE_DOMAIN'] = None
+    app.config['SESSION_COOKIE_SECURE'] = False
+
+
+
     # Auto-cleanup configuration
     app.config['AUTO_START_MONITORING'] = True
     app.config['AUTO_CLEANUP_CHAT_SESSIONS'] = True
@@ -220,14 +230,39 @@ def setup_middleware(app):
     try:
         @app.before_request
         def ensure_session_persistence():
-            """Ensure proper session handling"""
+            """Ensure proper session handling and auth guard"""
             try:
                 # Make sessions permanent
                 session.permanent = True
                 
-                # Log request for debugging (only in development)
-                if os.environ.get('DEBUG_MODE') == 'true':
-                    logger.debug(f"Request: {request.method} {request.path}")
+                # Auth guard with detailed logging
+                PUBLIC_PATHS = ("/login", "/auth/login", "/auth/register", "/static", "/assets", "/favicon", "/whoami", "/health")
+                
+                if any(request.path.startswith(p) for p in PUBLIC_PATHS):
+                    return  # Allow public paths
+                
+                # Check authentication
+                logged_in = session.get("logged_in")
+                user_id = session.get("user_id")
+                email = session.get("email")
+                terms_accepted = session.get("terms_accepted")
+                user_plan = session.get("user_plan")
+                
+                if logged_in is True and user_id and email:
+                    # Properly authenticated, allow through
+                    return
+                
+                # About to redirect - log exactly why
+                logger.info(
+                    f"[AUTH_GUARD] Redirecting {request.path} to /login: "
+                    f"logged_in={logged_in}, user_id={user_id}, email={email}, "
+                    f"terms_accepted={terms_accepted}, user_plan={user_plan}, "
+                    f"session_keys={list(session.keys())}, "
+                    f"cookies={list(request.cookies.keys())}"
+                )
+                
+                from flask import redirect, url_for
+                return redirect(f"/login?return_to={request.path.lstrip('/')}")
                 
             except Exception as e:
                 logger.error(f"Middleware error: {e}")
