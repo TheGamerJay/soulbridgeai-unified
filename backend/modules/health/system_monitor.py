@@ -16,7 +16,21 @@ logger = logging.getLogger(__name__)
 class SystemMonitor:
     """Background system monitoring and surveillance with threat detection"""
     
+    _instance = None
+    _lock = threading.Lock()
+    
+    def __new__(cls, health_checker=None):
+        """Singleton pattern to ensure only one SystemMonitor instance"""
+        with cls._lock:
+            if cls._instance is None:
+                cls._instance = super().__new__(cls)
+            return cls._instance
+    
     def __init__(self, health_checker=None):
+        # Only initialize once
+        if hasattr(self, '_initialized'):
+            return
+        self._initialized = True
         self.health_checker = health_checker
         self.system_start_time = datetime.now(timezone.utc)
         self.blocked_ips = set()
@@ -61,6 +75,7 @@ class SystemMonitor:
         # Monitoring thread
         self.monitoring_thread = None
         self.monitoring_active = False
+        self._monitor_lock = threading.Lock()
         
         self.log_maintenance("SYSTEM_START", "System monitor initialized")
         logger.info("👁️ System monitor initialized")
@@ -68,21 +83,22 @@ class SystemMonitor:
     def start_monitoring(self):
         """Start background monitoring thread"""
         try:
-            if self.monitoring_active:
-                logger.warning("Monitoring already active")
-                return False
-            
-            self.monitoring_active = True
-            self.monitoring_thread = threading.Thread(
-                target=self._monitoring_loop, 
-                daemon=True,
-                name="SystemMonitor"
-            )
-            self.monitoring_thread.start()
-            
-            self.log_maintenance("MONITOR_START", "Background monitoring started")
-            logger.info("👁️ Background monitoring started")
-            return True
+            with self._monitor_lock:
+                if self.monitoring_active:
+                    logger.warning("Monitoring already active")
+                    return False
+                
+                self.monitoring_active = True
+                self.monitoring_thread = threading.Thread(
+                    target=self._monitoring_loop, 
+                    daemon=True,
+                    name="SystemMonitor"
+                )
+                self.monitoring_thread.start()
+                
+                self.log_maintenance("MONITOR_START", "Background monitoring started")
+                logger.info("👁️ Background monitoring started")
+                return True
             
         except Exception as e:
             logger.error(f"Failed to start monitoring: {e}")
@@ -92,12 +108,13 @@ class SystemMonitor:
     def stop_monitoring(self):
         """Stop background monitoring"""
         try:
-            self.monitoring_active = False
-            if self.monitoring_thread and self.monitoring_thread.is_alive():
-                self.monitoring_thread.join(timeout=5)
-            
-            self.log_maintenance("MONITOR_STOP", "Background monitoring stopped")
-            logger.info("👁️ Background monitoring stopped")
+            with self._monitor_lock:
+                self.monitoring_active = False
+                if self.monitoring_thread and self.monitoring_thread.is_alive():
+                    self.monitoring_thread.join(timeout=5)
+                
+                self.log_maintenance("MONITOR_STOP", "Background monitoring stopped")
+                logger.info("👁️ Background monitoring stopped")
             
         except Exception as e:
             logger.error(f"Error stopping monitoring: {e}")
@@ -166,9 +183,14 @@ class SystemMonitor:
             self.last_health_check = datetime.now(timezone.utc)
             uptime_hours = (datetime.now(timezone.utc) - self.system_start_time).total_seconds() / 3600
             
-            # Log basic health status every hour
-            if int(uptime_hours) % 1 == 0:
+            # Log basic health status every hour (check if we've crossed an hour boundary)
+            current_hour = int(uptime_hours)
+            if not hasattr(self, '_last_logged_hour'):
+                self._last_logged_hour = -1
+            
+            if current_hour > self._last_logged_hour and current_hour > 0:
                 self.log_maintenance("HEALTH_CHECK", f"Basic check: System running for {uptime_hours:.1f} hours")
+                self._last_logged_hour = current_hour
             
         except Exception as e:
             logger.error(f"Basic health check error: {e}")

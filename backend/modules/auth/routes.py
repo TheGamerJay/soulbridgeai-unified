@@ -13,8 +13,8 @@ from unified_tier_system import get_effective_plan
 
 logger = logging.getLogger(__name__)
 
-# Create blueprint for auth routes
-auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
+# Create blueprint for auth routes  
+auth_bp = Blueprint('auth', __name__)
 
 def parse_request_data():
     """Parse request data for email/password - extracted utility function"""
@@ -32,12 +32,9 @@ def parse_request_data():
         logger.error(f"Error parsing request data: {e}")
         return '', '', {}
 
-@auth_bp.route("/login", methods=["GET", "POST"])
+@auth_bp.route("/auth/login", methods=["POST"])
 def auth_login():
-    """Login route - redirect GET to main login page, process POST"""
-    if request.method == "GET":
-        return redirect("/login")
-    
+    """Login authentication - process POST only"""
     # Handle POST requests - process login
     try:
         logger.info(f"[LOGIN] Received {request.method} request at /auth/login from {request.remote_addr}")

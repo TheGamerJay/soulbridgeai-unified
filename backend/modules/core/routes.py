@@ -70,7 +70,7 @@ def login_page():
         
     except Exception as e:
         logger.error(f"Error rendering login page: {e}")
-        return page_renderer.render_error_page("Failed to load login page")
+        return page_renderer.render_error_page("Login system temporarily unavailable")
 
 @core_bp.route('/register')
 def register_page():
