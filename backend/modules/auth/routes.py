@@ -6,7 +6,7 @@ import os
 import logging
 from datetime import datetime, timezone
 from flask import Blueprint, request, session, redirect, flash, jsonify, render_template
-from .auth_service import AuthService
+from .auth_service import AuthService, has_accepted_terms
 from .session_manager import setup_user_session, requires_login
 from ..shared.database import get_database
 from unified_tier_system import get_effective_plan
