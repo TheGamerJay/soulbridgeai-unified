@@ -219,6 +219,10 @@ def initialize_systems(app):
         from modules.api import init_api_system
         init_api_system(app)
         
+        # Initialize legal system
+        from modules.legal.routes import init_legal_services
+        init_legal_services(database_manager)
+        
         logger.info("🔧 All systems initialized successfully")
         
     except Exception as e:

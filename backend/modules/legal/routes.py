@@ -6,7 +6,7 @@ Extracted from backend/app.py
 import logging
 from datetime import datetime, timezone
 from flask import Blueprint, render_template, request, jsonify, session, redirect
-from database_utils import get_database
+from ..shared.database import get_database
 from .terms_service import TermsService
 from .privacy_manager import PrivacyManager
 from .legal_documents import LegalDocuments
