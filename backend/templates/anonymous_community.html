@@ -1384,6 +1384,7 @@
             if (lastReaction && (now - lastReaction) < REACTION_COOLDOWN) {
                 const remainingTime = Math.ceil((REACTION_COOLDOWN - (now - lastReaction)) / 1000);
                 showMessage(`Please wait ${remainingTime} seconds before reacting to this post`, 'error');
+                startReactionCountdown(postElement, remainingTime);
                 return;
             }
             
@@ -1943,6 +1944,60 @@
                 'stress_relief': 'Stress Relief'
             };
             return names[category] || 'General';
+        }
+        
+        function startReactionCountdown(postElement, seconds) {
+            // Remove any existing countdown
+            const existingCountdown = postElement.querySelector('.reaction-countdown');
+            if (existingCountdown) {
+                existingCountdown.remove();
+            }
+            
+            // Create countdown overlay
+            const countdown = document.createElement('div');
+            countdown.className = 'reaction-countdown';
+            countdown.style.cssText = `
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.8);
+                color: #00ffff;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.5rem;
+                font-weight: bold;
+                z-index: 100;
+                border-radius: 8px;
+            `;
+            
+            // Add countdown to reaction buttons container
+            const reactionsContainer = postElement.querySelector('.post-reactions');
+            reactionsContainer.style.position = 'relative';
+            reactionsContainer.appendChild(countdown);
+            
+            // Start countdown
+            let remaining = seconds;
+            countdown.textContent = `⏱️ ${remaining}s`;
+            
+            const timer = setInterval(() => {
+                remaining--;
+                if (remaining > 0) {
+                    countdown.textContent = `⏱️ ${remaining}s`;
+                } else {
+                    countdown.remove();
+                    clearInterval(timer);
+                    
+                    // Re-enable reaction buttons
+                    const reactionButtons = postElement.querySelectorAll('.reaction-btn');
+                    reactionButtons.forEach(btn => {
+                        btn.disabled = false;
+                        btn.style.opacity = '1';
+                    });
+                }
+            }, 1000);
         }
 
         function formatTimeAgo(dateString) {
