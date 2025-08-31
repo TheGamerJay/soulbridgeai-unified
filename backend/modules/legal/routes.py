@@ -89,22 +89,14 @@ def load_terms_acceptance_status(user_id: int):
 def terms_page():
     """Terms of service and privacy policy page"""
     try:
-        language = request.args.get('lang', 'en')
+        logger.info(f"[TERMS] Accessing terms page, legal_documents={legal_documents is not None}")
         
-        if legal_documents:
-            # Get combined legal document
-            doc_result = legal_documents.get_combined_legal_document(language)
-            if doc_result['success']:
-                return render_template("terms.html", 
-                                       legal_document=doc_result['document'],
-                                       language=language)
-        
-        # Fallback to simple terms content
+        # Always use fallback mode for now to ensure page loads
         return render_template("terms.html", fallback_mode=True)
         
     except Exception as e:
         logger.error(f"Terms page error: {e}")
-        # Emergency fallback
+        # Emergency fallback HTML
         return f"""
         <html>
         <head><title>Terms & Privacy - SoulBridge AI</title></head>
@@ -114,7 +106,7 @@ def terms_page():
             <p>By using SoulBridge AI, you agree to use our service responsibly and in accordance with applicable laws.</p>
             <h2>Privacy Policy</h2>
             <p>We respect your privacy. Your conversations are private and we don't share your personal data with third parties.</p>
-            <a href="/register" style="color: #22d3ee;">← Back to Registration</a>
+            <a href="/login" style="color: #22d3ee;">← Back to Login</a>
         </body>
         </html>
         """
@@ -123,31 +115,40 @@ def terms_page():
 def terms_acceptance_page():
     """Terms acceptance page - required for new users"""
     try:
+        logger.info("[TERMS-ACCEPTANCE] Accessing terms acceptance page")
+        
         if not is_logged_in():
+            logger.info("[TERMS-ACCEPTANCE] User not logged in, redirecting to login")
             return redirect("/login")
         
         # Check if user already accepted terms
-        if has_accepted_terms():
-            logger.info(f"Terms already accepted by {session.get('user_email')}, redirecting to intro")
-            return redirect("/intro")
+        try:
+            if has_accepted_terms():
+                logger.info(f"[TERMS-ACCEPTANCE] Terms already accepted by {session.get('email')}, redirecting to intro")
+                return redirect("/intro")
+        except Exception as terms_error:
+            logger.error(f"[TERMS-ACCEPTANCE] Error checking terms acceptance: {terms_error}")
+            # Continue to show acceptance page if check fails
         
         # Get user's preferred language
         language = session.get('language_preference', 'en')
         
-        # Get legal documents for acceptance
-        legal_content = None
-        if legal_documents:
-            doc_result = legal_documents.get_combined_legal_document(language)
-            if doc_result['success']:
-                legal_content = doc_result['document']
-        
+        # Always use simple mode for now to ensure page loads
+        logger.info(f"[TERMS-ACCEPTANCE] Rendering terms acceptance page for language: {language}")
         return render_template("terms_acceptance.html", 
-                               legal_content=legal_content,
-                               language=language)
+                               legal_content=None,
+                               language=language,
+                               fallback_mode=True)
         
     except Exception as e:
-        logger.error(f"Terms acceptance page error: {e}")
-        return redirect("/login")
+        logger.error(f"[TERMS-ACCEPTANCE] Critical error in terms acceptance page: {e}")
+        import traceback
+        logger.error(f"[TERMS-ACCEPTANCE] Traceback: {traceback.format_exc()}")
+        
+        # Emergency fallback - render terms acceptance directly
+        return render_template("error.html", 
+                               error="Terms acceptance page is temporarily unavailable. Please try again later.",
+                               error_code=500)
 
 @legal_bp.route("/privacy")
 def privacy_page():
