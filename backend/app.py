@@ -31,10 +31,11 @@ def create_app():
     app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
     app.config['SESSION_COOKIE_PATH'] = "/"
 
-    # Always set domain to work with both soulbridgeai.com and www.soulbridgeai.com in production
+    # Session cookie settings for Railway deployment
     # Railway deployment should always use HTTPS and production settings
     if os.environ.get("ENVIRONMENT") == "production" or os.environ.get("RAILWAY_PROJECT_ID"):
-        app.config['SESSION_COOKIE_DOMAIN'] = '.soulbridgeai.com'  
+        # Don't set domain - let it default to the actual domain being used
+        app.config['SESSION_COOKIE_DOMAIN'] = None
         app.config['SESSION_COOKIE_SECURE'] = True
     else:
         # Local development - no domain restriction, no secure flag
