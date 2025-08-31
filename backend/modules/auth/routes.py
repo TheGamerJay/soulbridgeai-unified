@@ -93,13 +93,9 @@ def auth_login():
             # Debug session state
             logger.info(f"[LOGIN] Session after setup: logged_in={session.get('logged_in')}, email={session.get('email')}, user_id={session.get('user_id')}")
             
-            # Determine redirect URL
-            try:
-                redirect_url = "/terms-acceptance" if not has_accepted_terms() else "/intro"
-            except Exception as e:
-                logger.error(f"[LOGIN] Error checking terms acceptance: {e}")
-                # Default to intro page if terms check fails
-                redirect_url = "/intro"
+            # Determine redirect URL - bypass terms check to prevent loops
+            redirect_url = "/intro"
+            logger.info(f"[LOGIN] Bypassing terms check, redirecting to {redirect_url}")
             
             logger.info(f"[LOGIN] Final redirect URL: {redirect_url}")
             
