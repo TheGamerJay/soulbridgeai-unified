@@ -242,7 +242,10 @@ def setup_middleware(app):
             """Ensure proper session handling and auth guard"""
             try:
                 # Auth guard with detailed logging  
-                PUBLIC_PATHS = ("/login", "/auth/login", "/auth/register", "/static", "/assets", "/favicon", "/whoami", "/health", "/debug-session", "/api")
+                # API routes that handle their own auth with @requires_login decorators
+                API_SELF_AUTH_PATHS = ("/api/me", "/api/user-info", "/api/sapphire-chat", "/api/user-status", "/api/check-user-status", "/api/trial-status", "/api/user-plan", "/api/plan", "/api/user-addons", "/api/accept-terms", "/api/sync-trial-session", "/api/protected-feature", "/api/log-action", "/api/feature-preview-seen", "/api/session-refresh", "/api/clear-session", "/api/logout-on-close")
+                
+                PUBLIC_PATHS = ("/login", "/auth/login", "/auth/register", "/static", "/assets", "/favicon", "/whoami", "/health", "/debug-session") + API_SELF_AUTH_PATHS
                 
                 if any(request.path.startswith(p) for p in PUBLIC_PATHS):
                     return  # Allow public paths
