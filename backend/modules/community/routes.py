@@ -114,6 +114,94 @@ def referral_redirect():
 # COMMUNITY API ENDPOINTS
 # =============================================================================
 
+@community_bp.route("/community/posts")
+def community_posts():
+    """Get community posts with filtering and pagination"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        # Parse query parameters
+        category = request.args.get('category', 'all')
+        sort_by = request.args.get('sort', 'new')
+        limit = min(int(request.args.get('limit', 20)), 50)  # Max 50 items
+        offset = int(request.args.get('offset', 0))
+        
+        # Mock community posts data for now
+        mock_posts = [
+            {
+                "id": 1,
+                "title": "Finding Peace Through Meditation",
+                "content": "Today I discovered a wonderful guided meditation that helped me find inner calm...",
+                "author": "Anonymous Companion",
+                "companion_avatar": "/static/images/companions/aurora.png",
+                "category": "wellness",
+                "hearts": 12,
+                "created_at": "2024-01-15T10:30:00Z",
+                "tags": ["meditation", "mindfulness", "peace"]
+            },
+            {
+                "id": 2,
+                "title": "Creative Writing Journey",
+                "content": "Sharing my latest poem about self-discovery and growth...",
+                "author": "Anonymous Companion", 
+                "companion_avatar": "/static/images/companions/sage.png",
+                "category": "creative",
+                "hearts": 8,
+                "created_at": "2024-01-14T14:20:00Z",
+                "tags": ["poetry", "creativity", "growth"]
+            },
+            {
+                "id": 3,
+                "title": "Daily Reflection Practice",
+                "content": "How I started my morning reflection routine and the positive changes it brought...",
+                "author": "Anonymous Companion",
+                "companion_avatar": "/static/images/companions/luna.png", 
+                "category": "wellness",
+                "hearts": 15,
+                "created_at": "2024-01-13T09:15:00Z",
+                "tags": ["reflection", "morning", "routine"]
+            },
+            {
+                "id": 4,
+                "title": "Artistic Expression",
+                "content": "Created this beautiful mandala during my art therapy session...",
+                "author": "Anonymous Companion",
+                "companion_avatar": "/static/images/companions/phoenix.png",
+                "category": "creative", 
+                "hearts": 20,
+                "created_at": "2024-01-12T16:45:00Z",
+                "tags": ["art", "therapy", "mandala"]
+            }
+        ]
+        
+        # Filter by category if specified
+        if category != 'all':
+            mock_posts = [post for post in mock_posts if post['category'] == category]
+        
+        # Sort posts
+        if sort_by == 'popular':
+            mock_posts.sort(key=lambda x: x['hearts'], reverse=True)
+        elif sort_by == 'new':
+            mock_posts.sort(key=lambda x: x['created_at'], reverse=True)
+        
+        # Apply pagination
+        total_posts = len(mock_posts)
+        paginated_posts = mock_posts[offset:offset + limit]
+        
+        return jsonify({
+            "success": True,
+            "posts": paginated_posts,
+            "total_count": total_posts,
+            "has_more": offset + limit < total_posts,
+            "categories": ["wellness", "creative", "growth", "mindfulness"],
+            "sort_options": ["new", "popular"]
+        })
+        
+    except Exception as e:
+        logger.error(f"Community posts error: {e}")
+        return jsonify({"success": False, "error": "Failed to load community posts"}), 500
+
 @community_bp.route("/community/companions")
 def community_companions():
     """Get companions available for community avatar selection"""
