@@ -22,8 +22,9 @@ def create_app():
     
     # Configuration
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
-    # Session expires when browser closes (temporary session)
-    app.config['PERMANENT_SESSION_LIFETIME'] = None
+    # Session expires when browser closes (temporary session - short lifetime)
+    from datetime import timedelta
+    app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=30)
     
     # Cookie settings
     app.config['SESSION_COOKIE_HTTPONLY'] = True
