@@ -18,10 +18,21 @@ class CompanionChatService:
     def process_chat(self, user_id: int, companion_id: str, message: str) -> dict:
         """Process a chat message and generate AI response"""
         try:
-            # Get companion info
-            companion = get_companion_by_id(companion_id)
-            if not companion:
-                return {'success': False, 'error': 'Companion not found'}
+            # Special handling for Sapphire guide companion
+            if companion_id == 'sapphire':
+                companion = {
+                    'id': 'sapphire',
+                    'name': 'Sapphire',
+                    'description': 'Your AI guide for SoulBridge',
+                    'tier': 'bronze',
+                    'model': 'gpt-3.5-turbo',
+                    'personality': 'helpful, knowledgeable, and friendly guide'
+                }
+            else:
+                # Get companion info from database
+                companion = get_companion_by_id(companion_id)
+                if not companion:
+                    return {'success': False, 'error': 'Companion not found'}
             
             # Log the chat interaction
             logger.info(f"[CHAT] User {user_id} chatting with {companion['name']}: {message[:50]}...")
@@ -55,7 +66,11 @@ class CompanionChatService:
     def _generate_ai_response(self, user_id: int, companion: dict, message: str) -> dict:
         """Generate AI response using the companion's personality"""
         try:
-            # Try to use the premium AI service
+            # Special handling for Sapphire guide using direct OpenAI
+            if companion['id'] == 'sapphire':
+                return self._generate_sapphire_response(message)
+            
+            # Try to use the premium AI service for other companions
             try:
                 from premium_free_ai_service import get_premium_free_ai_service
                 ai_service = get_premium_free_ai_service()
@@ -91,6 +106,57 @@ class CompanionChatService:
         except Exception as e:
             logger.error(f"Error generating AI response: {e}")
             return self._fallback_response(companion, message)
+    
+    def _generate_sapphire_response(self, message: str) -> dict:
+        """Generate response for Sapphire guide using OpenAI GPT-3.5 Turbo"""
+        try:
+            import os
+            from openai import OpenAI
+            
+            # Initialize OpenAI client
+            client = OpenAI(api_key=os.environ.get('OPENAI_API_KEY'))
+            
+            # Sapphire's system prompt
+            system_prompt = """You are Sapphire, the helpful AI guide for SoulBridge AI. You help users navigate the platform, understand features, and get the most out of their spiritual journey. 
+
+You are knowledgeable, friendly, and supportive. You can help with:
+- Understanding SoulBridge features and tiers (Bronze, Silver, Gold)
+- Spiritual guidance and advice
+- Platform navigation and usage tips
+- General questions about personal growth and spirituality
+
+Keep responses helpful, warm, and under 150 words. Always maintain a supportive and wise tone."""
+            
+            # Generate response
+            start_time = time.time()
+            response = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": message}
+                ],
+                max_tokens=200,
+                temperature=0.7
+            )
+            
+            response_time = time.time() - start_time
+            ai_response = response.choices[0].message.content.strip()
+            
+            logger.info(f"[SAPPHIRE] Generated response in {response_time:.2f}s: {ai_response[:50]}...")
+            
+            return {
+                'success': True,
+                'response': ai_response,
+                'response_time': response_time,
+                'model_used': 'gpt-3.5-turbo'
+            }
+            
+        except Exception as e:
+            logger.error(f"Error generating Sapphire response: {e}")
+            return {
+                'success': False,
+                'error': 'I\'m having trouble connecting right now. Please try again in a moment.'
+            }
     
     def _build_chat_context(self, user_id: int, companion: dict) -> str:
         """Build context for AI response generation"""
