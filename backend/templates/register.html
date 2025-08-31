@@ -1060,12 +1060,22 @@
         const translations = {
             en: {
                 create_account: "Create Account",
-                create_account_subtitle: "Join SoulBridge AI today",
-                email_address: "Email Address",
+                start_journey: "Start your journey with AI companions",
+                display_name: "Display Name",
+                email: "Email",
                 password: "Password", 
                 confirm_password: "Confirm Password",
+                req_8_chars: "At least 8 characters",
+                req_uppercase: "One uppercase letter", 
+                req_lowercase: "One lowercase letter",
+                req_number: "One number",
+                agree_to: "I agree to the",
+                terms_service: "Terms of Service",
+                and: "and", 
+                privacy_policy: "Privacy Policy",
                 already_have_account: "Already have an account?",
                 sign_in: "Sign in",
+                back: "← Back",
                 language_en: "EN",
                 lang_english: "English",
                 lang_spanish: "Español",
@@ -1078,12 +1088,22 @@
             },
             es: {
                 create_account: "Crear Cuenta",
-                create_account_subtitle: "Únete a SoulBridge AI hoy",
-                email_address: "Dirección de Correo",
+                start_journey: "Comienza tu viaje con compañeros de IA",
+                display_name: "Nombre de Pantalla",
+                email: "Correo Electrónico",
                 password: "Contraseña",
-                confirm_password: "Confirmar Contraseña", 
+                confirm_password: "Confirmar Contraseña",
+                req_8_chars: "Al menos 8 caracteres",
+                req_uppercase: "Una letra mayúscula",
+                req_lowercase: "Una letra minúscula",
+                req_number: "Un número",
+                agree_to: "Acepto los",
+                terms_service: "Términos de Servicio",
+                and: "y",
+                privacy_policy: "Política de Privacidad",
                 already_have_account: "¿Ya tienes una cuenta?",
                 sign_in: "Iniciar sesión",
+                back: "← Atrás",
                 language_en: "ES",
                 lang_english: "English",
                 lang_spanish: "Español",
@@ -1275,6 +1295,9 @@
         });
     </script>
     <script src="{{ url_for('static', filename='js/app.js') }}?v=20250725" defer></script>
+    
+    <!-- Comprehensive register system with full translation support -->
+    <script src="{{ url_for('static', filename='js/register-fixed.js') }}?v=20250831-register" defer></script>
     
     <!-- Unified authentication handler -->
     <script src="/static/js/auth.js?v=20250725" defer></script>
