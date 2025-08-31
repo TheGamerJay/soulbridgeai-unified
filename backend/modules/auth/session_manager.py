@@ -71,7 +71,15 @@ def load_terms_acceptance_status(user_id: int):
 
 def is_logged_in() -> bool:
     """Check if user is logged in"""
-    return session.get('logged_in', False) and session.get('email') is not None
+    logged_in = session.get('logged_in', False)
+    email = session.get('email')
+    
+    # Debug logging
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.info(f"[SESSION_CHECK] is_logged_in check: logged_in={logged_in}, email={email}, session_keys={list(session.keys())}")
+    
+    return logged_in and email is not None
 
 def get_user_id() -> int:
     """Get current user ID from session"""
