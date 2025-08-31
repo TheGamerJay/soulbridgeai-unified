@@ -32,12 +32,8 @@ class NavigationService:
                 logger.info("🏠 HOME: User not authenticated → /login")
                 return "/login"
             
-            # Check terms acceptance
-            if not self._has_accepted_terms():
-                logger.info("🏠 HOME: User needs terms acceptance → /terms-acceptance")
-                return "/terms-acceptance"
-            
-            # User is authenticated and terms accepted
+            # Skip terms check - go directly to intro for authenticated users
+            # Terms are auto-accepted in legal routes, so no need to check here
             logger.info("🏠 HOME: User authenticated → /intro")
             return "/intro"
             
