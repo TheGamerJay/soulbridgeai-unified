@@ -901,6 +901,10 @@
         let currentPosts = [];
         let currentPostToReport = null;
         let currentPostToMute = null;
+        
+        // Rate limiting for reactions
+        let reactionCooldowns = new Map(); // postId -> timestamp
+        const REACTION_COOLDOWN = 3000; // 3 seconds between reactions per post
 
         // Initialize the page
         document.addEventListener('DOMContentLoaded', function() {
@@ -1326,8 +1330,8 @@
                             <button class="action-btn" onclick="flagCategoryMismatch(${post.id}, '${post.category}', \`${escapeHtml(post.text)}\`)">
                                 Flag Category
                             </button>
-                            <button class="action-btn" onclick="muteContent(${post.id}, '${post.author_hash}', '${post.category}', ${post.companion_id})">
-                                Mute
+                            <button class="action-btn" onclick="suggestMuteContent(${post.id}, '${post.author_hash}', '${post.category}', ${post.companion_id})">
+                                Suggest Review
                             </button>
                         </div>
                     </div>
@@ -1337,6 +1341,27 @@
 
         // Toggle reaction on a post
         async function toggleReaction(postId, emoji) {
+            // Check rate limiting
+            const now = Date.now();
+            const lastReaction = reactionCooldowns.get(postId);
+            
+            if (lastReaction && (now - lastReaction) < REACTION_COOLDOWN) {
+                const remainingTime = Math.ceil((REACTION_COOLDOWN - (now - lastReaction)) / 1000);
+                showMessage(`Please wait ${remainingTime} seconds before reacting to this post again`, 'error');
+                return;
+            }
+            
+            // Set cooldown
+            reactionCooldowns.set(postId, now);
+            
+            // Disable all reaction buttons for this post temporarily
+            const postElement = document.querySelector(`[data-post-id="${postId}"]`);
+            const reactionButtons = postElement.querySelectorAll('.reaction-btn');
+            reactionButtons.forEach(btn => {
+                btn.disabled = true;
+                btn.style.opacity = '0.6';
+            });
+            
             try {
                 const response = await fetch(`${API_BASE}/posts/${postId}/react`, {
                     method: 'POST',
@@ -1376,6 +1401,14 @@
             } catch (error) {
                 console.error('Error reacting to post:', error);
                 showMessage('Failed to react to post. Please try again.', 'error');
+            } finally {
+                // Re-enable reaction buttons after a short delay
+                setTimeout(() => {
+                    reactionButtons.forEach(btn => {
+                        btn.disabled = false;
+                        btn.style.opacity = '1';
+                    });
+                }, 1000);
             }
         }
 
@@ -1441,15 +1474,209 @@
             return bestScore > 0 ? suggestedCategory : 'general';
         }
 
-        // Mute content
-        function muteContent(postId, authorHash, category, companionId) {
+        // Suggest content for moderation review
+        function suggestMuteContent(postId, authorHash, category, companionId) {
             currentPostToMute = {
                 postId: postId,
                 authorHash: authorHash,
                 category: category,
                 companionId: companionId
             };
-            document.getElementById('mute-modal').style.display = 'block';
+            
+            // Show moderation suggestion modal instead of direct mute
+            showModerationSuggestionModal();
+        }
+        
+        function showModerationSuggestionModal() {
+            if (!currentPostToMute) return;
+            
+            // Analyze content and suggest reasons
+            const post = currentPosts.find(p => p.id == currentPostToMute.postId);
+            const suggestedReasons = analyzeContentForModerationReasons(post);
+            
+            // Create moderation suggestion modal
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.style.display = 'block';
+            modal.innerHTML = `
+                <div class="modal-content" style="max-width: 600px;">
+                    <div class="modal-header">
+                        <h3 class="modal-title">🤖 Suggest Content for AI Review</h3>
+                        <span class="close" onclick="closeModerationModal()">&times;</span>
+                    </div>
+                    
+                    <div style="margin: 20px 0;">
+                        <p style="color: rgba(226, 232, 240, 0.8); margin-bottom: 20px;">
+                            Help our AI moderator understand why this content needs review. Your suggestion will be evaluated automatically.
+                        </p>
+                        
+                        <div class="form-group">
+                            <label class="form-label">AI-Suggested Reasons:</label>
+                            <div id="suggested-reasons" style="margin: 10px 0;">
+                                ${suggestedReasons.map(reason => `
+                                    <label style="display: block; margin: 8px 0; cursor: pointer;">
+                                        <input type="checkbox" name="moderation-reason" value="${reason.value}" 
+                                               style="margin-right: 8px;" ${reason.confidence > 0.7 ? 'checked' : ''}>
+                                        <span style="color: #e2e8f0;">${reason.text}</span>
+                                        <span style="color: rgba(0, 255, 255, 0.6); font-size: 0.8rem; margin-left: 8px;">
+                                            (${Math.round(reason.confidence * 100)}% confidence)
+                                        </span>
+                                    </label>
+                                `).join('')}
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Additional Context (Optional):</label>
+                            <textarea id="moderation-context" class="form-control" rows="3" 
+                                      placeholder="Provide any additional context to help the AI reviewer..."></textarea>
+                        </div>
+                        
+                        <div style="background: rgba(0, 255, 255, 0.1); padding: 15px; border-radius: 8px; margin: 15px 0;">
+                            <p style="color: rgba(0, 255, 255, 0.8); font-size: 0.9rem; margin: 0;">
+                                💡 <strong>Note:</strong> This sends a suggestion to our AI moderation system. 
+                                Real humans will only be involved for complex cases. Most reviews are handled automatically.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 15px; justify-content: end;">
+                        <button onclick="closeModerationModal()" class="btn" 
+                                style="background: rgba(255, 255, 255, 0.1);">Cancel</button>
+                        <button onclick="submitModerationSuggestion()" class="btn btn-primary">
+                            Submit for AI Review
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            modal.id = 'moderation-suggestion-modal';
+        }
+        
+        function analyzeContentForModerationReasons(post) {
+            if (!post) return [];
+            
+            const content = post.content || post.text || '';
+            const contentLower = content.toLowerCase();
+            const reasons = [];
+            
+            // Spam detection
+            const repeatedChars = /(.)\1{4,}/.test(content);
+            const allCaps = content.length > 10 && content === content.toUpperCase();
+            const tooManyEmojis = (content.match(/[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F700}-\u{1F77F}]|[\u{1F780}-\u{1F7FF}]|[\u{1F800}-\u{1F8FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/gu) || []).length > 5;
+            
+            if (repeatedChars || allCaps || tooManyEmojis) {
+                reasons.push({
+                    value: 'spam_patterns',
+                    text: 'Contains spam-like patterns (repeated characters, excessive caps, or emojis)',
+                    confidence: repeatedChars ? 0.9 : (allCaps ? 0.8 : 0.7)
+                });
+            }
+            
+            // Category mismatch
+            const currentCategory = post.category;
+            const suggestedCategory = validateContentCategorySync(content);
+            if (currentCategory !== suggestedCategory && suggestedCategory !== 'general') {
+                reasons.push({
+                    value: 'category_mismatch',
+                    text: `Content seems to belong in "${getCategoryName(suggestedCategory)}" rather than "${getCategoryName(currentCategory)}"`,
+                    confidence: 0.6
+                });
+            }
+            
+            // Off-topic content
+            const offTopicKeywords = ['sell', 'buy', 'promotion', 'advertisement', 'click here', 'subscribe', 'follow me'];
+            const offTopicScore = offTopicKeywords.filter(word => contentLower.includes(word)).length;
+            if (offTopicScore > 0) {
+                reasons.push({
+                    value: 'off_topic',
+                    text: 'May contain promotional or off-topic content',
+                    confidence: Math.min(offTopicScore * 0.3, 0.9)
+                });
+            }
+            
+            // Inappropriate tone
+            const negativeWords = ['hate', 'stupid', 'dumb', 'terrible', 'awful', 'worst'];
+            const negativeScore = negativeWords.filter(word => contentLower.includes(word)).length;
+            if (negativeScore > 1) {
+                reasons.push({
+                    value: 'negative_tone',
+                    text: 'Contains potentially negative or unconstructive language',
+                    confidence: Math.min(negativeScore * 0.4, 0.8)
+                });
+            }
+            
+            // Too short/low effort
+            if (content.trim().length < 10) {
+                reasons.push({
+                    value: 'low_effort',
+                    text: 'Content may be too brief or low-effort for meaningful discussion',
+                    confidence: 0.5
+                });
+            }
+            
+            // Default if no issues found
+            if (reasons.length === 0) {
+                reasons.push({
+                    value: 'other_concern',
+                    text: 'General content concern (please specify in additional context)',
+                    confidence: 0.3
+                });
+            }
+            
+            return reasons.sort((a, b) => b.confidence - a.confidence);
+        }
+        
+        function closeModerationModal() {
+            const modal = document.getElementById('moderation-suggestion-modal');
+            if (modal) {
+                document.body.removeChild(modal);
+            }
+            currentPostToMute = null;
+        }
+        
+        async function submitModerationSuggestion() {
+            const checkedReasons = Array.from(document.querySelectorAll('input[name="moderation-reason"]:checked'))
+                .map(input => input.value);
+            const context = document.getElementById('moderation-context').value.trim();
+            
+            if (checkedReasons.length === 0) {
+                showMessage('Please select at least one reason for the suggestion.', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/suggest-moderation`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        post_id: currentPostToMute.postId,
+                        reasons: checkedReasons,
+                        context: context,
+                        post_data: {
+                            author_hash: currentPostToMute.authorHash,
+                            category: currentPostToMute.category,
+                            companion_id: currentPostToMute.companionId
+                        }
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showMessage('🤖 Moderation suggestion submitted! Our AI will review this content shortly.', 'success');
+                    closeModerationModal();
+                } else {
+                    throw new Error(data.error || 'Failed to submit suggestion');
+                }
+                
+            } catch (error) {
+                console.error('Error submitting moderation suggestion:', error);
+                showMessage('Failed to submit suggestion. Please try again.', 'error');
+            }
         }
 
         // Setup event listeners
@@ -1639,6 +1866,20 @@
                 'stress_relief': '🌿 Stress Relief'
             };
             return labels[category] || category;
+        }
+        
+        function getCategoryName(category) {
+            const names = {
+                'general': 'General',
+                'gratitude': 'Gratitude',
+                'peace': 'Peace',
+                'growth': 'Growth',
+                'healing': 'Healing',
+                'dreams': 'Dreams',
+                'mood': 'Mood',
+                'stress_relief': 'Stress Relief'
+            };
+            return names[category] || 'General';
         }
 
         function formatTimeAgo(dateString) {

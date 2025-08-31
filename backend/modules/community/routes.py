@@ -391,6 +391,103 @@ def mute_content():
         logger.error(f"Error muting content: {e}")
         return jsonify({"success": False, "error": "Failed to mute content"}), 500
 
+@community_bp.route("/community/suggest-moderation", methods=["POST"])
+def suggest_moderation():
+    """Submit a moderation suggestion for AI review (no direct user power)"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        data = request.get_json()
+        if not data:
+            return jsonify({"success": False, "error": "No data provided"}), 400
+        
+        post_id = data.get('post_id')
+        reasons = data.get('reasons', [])
+        context = data.get('context', '')
+        post_data = data.get('post_data', {})
+        
+        if not post_id or not reasons:
+            return jsonify({"success": False, "error": "Post ID and reasons are required"}), 400
+        
+        user_id = session.get('user_id')
+        
+        # Create moderation suggestion (would go to AI review queue)
+        suggestion = {
+            'user_id': user_id,
+            'post_id': post_id,
+            'reasons': reasons,
+            'context': context,
+            'post_data': post_data,
+            'submitted_at': datetime.now().isoformat(),
+            'status': 'pending_ai_review',
+            'priority': calculate_suggestion_priority(reasons, context)
+        }
+        
+        # In a real system, this would:
+        # 1. Save to moderation_suggestions table
+        # 2. Queue for AI analysis
+        # 3. Auto-review based on AI confidence
+        # 4. Only escalate to humans if needed
+        
+        logger.info(f"[MODERATION] User {user_id} suggested post {post_id} for review: {reasons}")
+        
+        # Simulate AI processing
+        ai_response = simulate_ai_moderation_review(suggestion)
+        
+        return jsonify({
+            "success": True,
+            "message": "Moderation suggestion submitted successfully",
+            "suggestion_id": f"mod_{post_id}_{user_id}",
+            "ai_review_status": ai_response["status"],
+            "estimated_review_time": ai_response["estimated_time"]
+        })
+        
+    except Exception as e:
+        logger.error(f"Error submitting moderation suggestion: {e}")
+        return jsonify({"success": False, "error": "Failed to submit suggestion"}), 500
+
+def calculate_suggestion_priority(reasons, context):
+    """Calculate priority based on suggestion reasons"""
+    priority_weights = {
+        'spam_patterns': 0.8,
+        'negative_tone': 0.7,
+        'off_topic': 0.5,
+        'category_mismatch': 0.3,
+        'low_effort': 0.2,
+        'other_concern': 0.4
+    }
+    
+    max_priority = max([priority_weights.get(reason, 0.3) for reason in reasons])
+    
+    # Boost priority if user provided context
+    if context.strip():
+        max_priority += 0.1
+    
+    return min(max_priority, 1.0)
+
+def simulate_ai_moderation_review(suggestion):
+    """Simulate AI moderation review process"""
+    priority = suggestion['priority']
+    reasons = suggestion['reasons']
+    
+    # High priority suggestions get faster review
+    if priority > 0.7:
+        return {
+            "status": "high_priority_queue",
+            "estimated_time": "within 5 minutes"
+        }
+    elif priority > 0.5:
+        return {
+            "status": "standard_queue", 
+            "estimated_time": "within 15 minutes"
+        }
+    else:
+        return {
+            "status": "low_priority_queue",
+            "estimated_time": "within 1 hour"
+        }
+
 @community_bp.route("/community/companions")
 def community_companions():
     """Get companions available for community avatar selection"""
