@@ -1,0 +1,59 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: studio
+      POSTGRES_PASSWORD: studio
+      POSTGRES_DB: studio
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports: ["5432:5432"]
+    networks:
+      - studio-network
+
+  api:
+    build: ./api
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      DATABASE_URL: postgres://studio:studio@postgres:5432/studio
+      BEATS_URL: http://beats:7001
+      VOCALS_URL: http://vocals:7002
+      STORAGE_DIR: /data/assets
+    volumes:
+      - ./storage:/data/assets
+    depends_on: 
+      - postgres
+      - beats
+      - vocals
+    ports: ["8080:8080"]
+    networks:
+      - studio-network
+
+  beats:
+    build: ./beats
+    environment:
+      HF_HOME: /models/hf
+    volumes:
+      - ./models:/models
+    ports: ["7001:7001"]
+    networks:
+      - studio-network
+
+  vocals:
+    build: ./vocals
+    environment:
+      DS_HOME: /models/diffsinger
+    volumes:
+      - ./models:/models
+    ports: ["7002:7002"]
+    networks:
+      - studio-network
+
+volumes:
+  pgdata:
+
+networks:
+  studio-network:
+    driver: bridge

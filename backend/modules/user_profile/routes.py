@@ -1,0 +1,565 @@
+"""
+SoulBridge AI - User Profile Routes
+All user profile management endpoints extracted from backend/app.py
+Flask Blueprint for modular architecture
+"""
+import logging
+from flask import Blueprint, request, jsonify, session, redirect, render_template, Response
+from .profile_service import ProfileService
+from .theme_manager import ThemeManager
+from .image_manager import ProfileImageManager
+
+logger = logging.getLogger(__name__)
+
+# Create Blueprint
+profile_bp = Blueprint('profile', __name__)
+
+# Initialize services (to be configured in main app)
+profile_service = None
+theme_manager = None
+image_manager = None
+
+def init_profile_routes(app, database):
+    """Initialize profile routes with dependencies"""
+    global profile_service, theme_manager, image_manager
+    
+    profile_service = ProfileService(database)
+    theme_manager = ThemeManager(database)
+    image_manager = ProfileImageManager(database)
+    
+    app.register_blueprint(profile_bp)
+    logger.info("✅ Profile routes initialized")
+
+def is_logged_in():
+    """Check if user is logged in"""
+    return 'user_id' in session and session.get('user_id') is not None
+
+# ================================
+# MAIN PROFILE PAGES
+# ================================
+
+@profile_bp.route("/profile")
+def profile_page():
+    """User profile page"""
+    try:
+        if not is_logged_in():
+            return redirect("/login")
+        
+        # Check terms acceptance
+        # TODO: Add terms check from main app if needed
+        
+        # Get user data for profile
+        user_plan = session.get('user_plan', 'bronze')
+        trial_active = session.get('trial_active', False)
+        
+        # Determine effective plan for companion access
+        if trial_active and user_plan == 'bronze':
+            effective_plan = 'gold'
+        else:
+            effective_plan = user_plan
+        
+        # Set access flags for profile page - trial does NOT modify Bronze features
+        session['access_bronze'] = True
+        session['access_silver'] = user_plan in ['silver', 'gold']  # NO trial modification
+        session['access_gold'] = user_plan == 'gold'  # NO trial modification
+        session['companion_access'] = effective_plan  # Trial DOES affect companion access
+        
+        logger.info(f"✅ PROFILE: user_plan={user_plan}, trial_active={trial_active}, effective_plan={effective_plan}")
+        
+        return render_template("profile.html")
+        
+    except Exception as e:
+        logger.error(f"❌ PROFILE ERROR: {e}")
+        import traceback
+        logger.error(f"❌ PROFILE TRACEBACK: {traceback.format_exc()}")
+        return f"<h1>Profile Error</h1><p>Error: {str(e)}</p>", 500
+
+# ================================
+# PROFILE DATA API
+# ================================
+
+@profile_bp.route("/api/users", methods=["GET", "POST"])
+@profile_bp.route("/api/user/profile", methods=["GET", "POST"])
+def api_user_profile():
+    """User profile API endpoint"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        if not profile_service:
+            return jsonify({"success": False, "error": "Profile service not available"}), 503
+        
+        user_id = session.get('user_id')
+        
+        if request.method == "GET":
+            # Get user profile
+            result = profile_service.get_user_profile(user_id, include_access=True)
+            
+            if result['success']:
+                # Add current companion info from session
+                companion_info = session.get('companion_info', {
+                    'name': 'Soul',
+                    'companion_id': 'soul',
+                    'avatar_url': '/static/companions/soul.png'
+                })
+                result['user']['companion'] = companion_info
+                
+                logger.info(f"👤 Profile data for user {user_id}: companion={companion_info}")
+            
+            return jsonify(result)
+            
+        elif request.method == "POST":
+            # Update user profile
+            data = request.get_json() or {}
+            
+            # Update session data with new profile info
+            if 'displayName' in data:
+                session['display_name'] = data['displayName']
+                session['user_name'] = data['displayName']
+            
+            # Update profile in database
+            result = profile_service.update_profile(user_id, data)
+            
+            return jsonify(result)
+    
+    except Exception as e:
+        logger.error(f"Profile API error: {e}")
+        return jsonify({"success": False, "error": "Failed to process request"}), 500
+
+@profile_bp.route("/api/user/stats", methods=["GET"])
+def get_user_stats():
+    """Get user profile statistics"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        if not profile_service:
+            return jsonify({"success": False, "error": "Profile service not available"}), 503
+        
+        user_id = session.get('user_id')
+        result = profile_service.get_profile_stats(user_id)
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        logger.error(f"User stats error: {e}")
+        return jsonify({"success": False, "error": "Failed to get user statistics"}), 500
+
+# ================================
+# PROFILE IMAGE MANAGEMENT
+# ================================
+
+@profile_bp.route("/api/upload-profile-image", methods=["POST"])
+def upload_profile_image():
+    """Upload and set user profile image"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        if not image_manager:
+            return jsonify({"success": False, "error": "Image service not available"}), 503
+        
+        file = request.files.get('profileImage')
+        if not file or file.filename == '':
+            return jsonify({"success": False, "error": "No image file provided"}), 400
+        
+        user_id = session.get('user_id')
+        result = image_manager.upload_profile_image(user_id, file)
+        
+        # Update session if successful
+        if result['success']:
+            session['profile_image'] = result['profileImage']
+            session.modified = True
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        logger.error(f"Profile image upload error: {e}")
+        return jsonify({"success": False, "error": "Server error"}), 500
+
+@profile_bp.route("/api/profile-image/<int:user_id>")
+def serve_profile_image(user_id):
+    """Serve user's profile image"""
+    try:
+        if not image_manager:
+            return redirect('/static/logos/New IntroLogo.png')
+        
+        image_bytes, mime_type = image_manager.serve_profile_image(user_id)
+        
+        if image_bytes:
+            return Response(image_bytes, mimetype=mime_type)
+        else:
+            return redirect('/static/logos/New IntroLogo.png')
+        
+    except Exception as e:
+        logger.error(f"Serve profile image error: {e}")
+        return redirect('/static/logos/New IntroLogo.png')
+
+@profile_bp.route("/api/delete-profile-image", methods=["DELETE"])
+def delete_profile_image():
+    """Delete user's profile image"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        if not image_manager:
+            return jsonify({"success": False, "error": "Image service not available"}), 503
+        
+        user_id = session.get('user_id')
+        result = image_manager.delete_profile_image(user_id)
+        
+        # Update session if successful
+        if result['success']:
+            session.pop('profile_image', None)
+            session.modified = True
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        logger.error(f"Delete profile image error: {e}")
+        return jsonify({"success": False, "error": "Failed to delete image"}), 500
+
+@profile_bp.route("/api/profile-image/stats", methods=["GET"])
+def get_profile_image_stats():
+    """Get profile image statistics"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        if not image_manager:
+            return jsonify({"success": False, "error": "Image service not available"}), 503
+        
+        user_id = session.get('user_id')
+        result = image_manager.get_image_stats(user_id)
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        logger.error(f"Image stats error: {e}")
+        return jsonify({"success": False, "error": "Failed to get image stats"}), 500
+
+# ================================
+# THEME MANAGEMENT
+# ================================
+
+@profile_bp.route("/theme-palette")
+def theme_palette_page():
+    """Theme palette page - redirects to tier-specific routes"""
+    if not is_logged_in():
+        return redirect("/login")
+        
+    user_plan = session.get('user_plan', 'bronze')
+    trial_active = session.get('trial_active', False)
+    
+    # Redirect to appropriate tier
+    if user_plan == 'gold' or (trial_active and user_plan == 'bronze'):
+        return redirect("/theme-palette/gold")
+    elif user_plan == 'silver':
+        return redirect("/theme-palette/silver")
+    else:
+        return redirect("/subscription?feature=theme-palette")
+
+@profile_bp.route("/theme-palette/silver")
+def theme_palette_silver():
+    """Theme palette Silver tier page"""
+    if not is_logged_in():
+        return redirect("/login")
+    
+    user_plan = session.get('user_plan', 'bronze')
+    trial_active = session.get('trial_active', False)
+    
+    if user_plan not in ['silver', 'gold'] and not trial_active:
+        return redirect("/subscription?feature=theme-palette")
+    
+    return render_template("theme_palette.html", tier="silver")
+
+@profile_bp.route("/theme-palette/gold")
+def theme_palette_gold():
+    """Theme palette Gold tier page"""
+    if not is_logged_in():
+        return redirect("/login")
+    
+    user_plan = session.get('user_plan', 'bronze')
+    trial_active = session.get('trial_active', False)
+    
+    if user_plan not in ['gold'] and not trial_active:
+        return redirect("/subscription?feature=theme-palette")
+    
+    return render_template("theme_palette.html", tier="gold")
+
+@profile_bp.route("/api/user/save-theme", methods=["POST"])
+def save_user_theme():
+    """Save user's theme preferences for specific tier"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        if not theme_manager:
+            return jsonify({"success": False, "error": "Theme service not available"}), 503
+        
+        data = request.get_json()
+        if not data:
+            return jsonify({"success": False, "error": "No data provided"}), 400
+        
+        user_id = session.get('user_id')
+        tier = data.get('tier', 'general')
+        
+        theme_data = {
+            'background': data.get('background', '#0f172a'),
+            'text': data.get('text', '#22d3ee'),
+            'accent': data.get('accent', '#06b6d4')
+        }
+        
+        result = theme_manager.save_theme(user_id, tier, theme_data)
+        
+        # Update session cache if successful
+        if result['success']:
+            if 'user_themes' not in session:
+                session['user_themes'] = {}
+            session['user_themes'][tier] = theme_data
+            session.modified = True
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        logger.error(f"Save theme error: {e}")
+        return jsonify({"success": False, "error": "Failed to save theme"}), 500
+
+@profile_bp.route("/api/user/get-theme", methods=["GET"])
+def get_user_theme():
+    """Get user's theme preferences for specific tier"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        if not theme_manager:
+            return jsonify({"success": False, "error": "Theme service not available"}), 503
+        
+        user_id = session.get('user_id')
+        tier = request.args.get('tier', 'general')
+        
+        # Check session cache first
+        user_themes = session.get('user_themes', {})
+        if tier in user_themes:
+            return jsonify({"success": True, "theme": user_themes[tier]})
+        
+        # Get from database
+        result = theme_manager.get_theme(user_id, tier)
+        
+        # Cache in session if successful
+        if result['success']:
+            if 'user_themes' not in session:
+                session['user_themes'] = {}
+            session['user_themes'][tier] = result['theme']
+            session.modified = True
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        logger.error(f"Get theme error: {e}")
+        return jsonify({"success": False, "error": "Failed to get theme"}), 500
+
+@profile_bp.route("/api/user/get-all-themes", methods=["GET"])
+def get_all_user_themes():
+    """Get all user's themes across all tiers"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        if not theme_manager:
+            return jsonify({"success": False, "error": "Theme service not available"}), 503
+        
+        user_id = session.get('user_id')
+        result = theme_manager.get_all_themes(user_id)
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        logger.error(f"Get all themes error: {e}")
+        return jsonify({"success": False, "error": "Failed to get themes"}), 500
+
+@profile_bp.route("/api/user/reset-theme", methods=["POST"])
+def reset_user_theme():
+    """Reset theme to default for specific tier"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        if not theme_manager:
+            return jsonify({"success": False, "error": "Theme service not available"}), 503
+        
+        data = request.get_json() or {}
+        tier = data.get('tier', 'general')
+        
+        user_id = session.get('user_id')
+        result = theme_manager.reset_theme(user_id, tier)
+        
+        # Update session cache if successful
+        if result['success']:
+            user_themes = session.get('user_themes', {})
+            if tier in user_themes:
+                del user_themes[tier]
+                session['user_themes'] = user_themes
+                session.modified = True
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        logger.error(f"Reset theme error: {e}")
+        return jsonify({"success": False, "error": "Failed to reset theme"}), 500
+
+@profile_bp.route("/api/theme/presets", methods=["GET"])
+def get_theme_presets():
+    """Get available theme presets"""
+    try:
+        if not theme_manager:
+            return jsonify({"success": False, "error": "Theme service not available"}), 503
+        
+        result = theme_manager.get_theme_presets()
+        return jsonify(result)
+        
+    except Exception as e:
+        logger.error(f"Get theme presets error: {e}")
+        return jsonify({"success": False, "error": "Failed to get presets"}), 500
+
+@profile_bp.route("/api/theme/apply-preset", methods=["POST"])
+def apply_theme_preset():
+    """Apply a theme preset to user's tier"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        if not theme_manager:
+            return jsonify({"success": False, "error": "Theme service not available"}), 503
+        
+        data = request.get_json()
+        if not data or 'tier' not in data or 'preset_name' not in data:
+            return jsonify({"success": False, "error": "Tier and preset_name required"}), 400
+        
+        user_id = session.get('user_id')
+        result = theme_manager.apply_preset(user_id, data['tier'], data['preset_name'])
+        
+        # Update session cache if successful
+        if result['success']:
+            # Reload theme into session
+            theme_result = theme_manager.get_theme(user_id, data['tier'])
+            if theme_result['success']:
+                if 'user_themes' not in session:
+                    session['user_themes'] = {}
+                session['user_themes'][data['tier']] = theme_result['theme']
+                session.modified = True
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        logger.error(f"Apply preset error: {e}")
+        return jsonify({"success": False, "error": "Failed to apply preset"}), 500
+
+# ================================
+# COMMUNITY AVATAR MANAGEMENT
+# ================================
+
+@profile_bp.route("/community/avatar", methods=["GET"])
+def get_community_avatar():
+    """Get current user's community avatar/companion"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        # Get user's current companion from session
+        companion_info = session.get('companion_info', {
+            'name': 'Soul',
+            'companion_id': 'soul',
+            'avatar_url': '/static/companions/soul.png'
+        })
+        
+        return jsonify({
+            "success": True,
+            "companion": companion_info
+        })
+        
+    except Exception as e:
+        logger.error(f"Get community avatar error: {e}")
+        return jsonify({"success": False, "error": "Failed to load avatar"}), 500
+
+@profile_bp.route("/community/avatar", methods=["POST"])
+def set_community_avatar():
+    """Set user's community avatar/companion"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        data = request.get_json()
+        if not data:
+            return jsonify({"success": False, "error": "No data provided"}), 400
+        
+        companion_id = data.get('companion_id')
+        if not companion_id:
+            return jsonify({"success": False, "error": "Companion ID required"}), 400
+        
+        # TODO: Validate companion access based on user's plan
+        # This would require importing companion data and tier checking
+        
+        # Update session with new companion info
+        session['companion_info'] = {
+            'name': data.get('name', 'Soul'),
+            'companion_id': companion_id,
+            'avatar_url': data.get('avatar_url')
+        }
+        session.modified = True
+        
+        return jsonify({
+            "success": True,
+            "message": "Avatar updated successfully"
+        })
+        
+    except Exception as e:
+        logger.error(f"Set community avatar error: {e}")
+        return jsonify({"success": False, "error": "Failed to set avatar"}), 500
+
+@profile_bp.route("/community/avatar/check", methods=["GET"])
+def check_avatar_cooldown():
+    """Check if user can change avatar (no cooldown for community)"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        # No cooldown for community avatar changes
+        return jsonify({
+            "success": True,
+            "can_change": True
+        })
+        
+    except Exception as e:
+        logger.error(f"Avatar cooldown check error: {e}")
+        return jsonify({"success": False, "error": "Failed to check cooldown"}), 500
+
+# ================================
+# UTILITY FUNCTIONS
+# ================================
+
+def load_user_theme_into_session(user_id: int) -> None:
+    """Load user's theme preferences into session (for use during login)"""
+    try:
+        if theme_manager:
+            theme_manager.load_theme_into_session(user_id, session)
+    except Exception as e:
+        logger.warning(f"Failed to load theme into session: {e}")
+
+def preserve_profile_data_in_session() -> dict:
+    """Preserve important profile data during session operations"""
+    try:
+        if profile_service:
+            return profile_service.preserve_session_profile_data(session)
+        return {}
+    except Exception as e:
+        logger.warning(f"Failed to preserve profile data: {e}")
+        return {}
+
+def restore_profile_data_to_session(preserved_data: dict) -> None:
+    """Restore preserved profile data to session"""
+    try:
+        if profile_service:
+            profile_service.restore_session_profile_data(session, preserved_data)
+    except Exception as e:
+        logger.warning(f"Failed to restore profile data: {e}")

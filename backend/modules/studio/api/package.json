@@ -1,0 +1,18 @@
+{
+  "name": "soulbridge-mini-studio-api",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "SoulBridge AI Mini Studio API with real AI music production",
+  "scripts": { 
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "express-fileupload": "^1.5.1",
+    "openai": "^4.57.0",
+    "pg": "^8.11.5",
+    "uuid": "^9.0.1",
+    "node-fetch": "^3.3.2"
+  }
+}
