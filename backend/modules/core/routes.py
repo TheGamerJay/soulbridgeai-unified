@@ -36,7 +36,6 @@ def home():
         return redirect("/login")
 
 @core_bp.route('/intro')
-@requires_login
 def intro_page():
     """Welcome/intro page for authenticated users"""
     try:
@@ -57,12 +56,10 @@ def intro_page():
 
 @core_bp.route('/login')
 def login_page():
-    """Login page"""
+    """Login page - always show login form"""
     try:
-        # If already logged in, redirect to home
-        if navigation_service._is_logged_in():
-            return redirect("/")
-        
+        # Always show login page, don't redirect if already logged in
+        # This prevents redirect loops and ensures users can always access login
         error_message = request.args.get('error')
         return_to = request.args.get('return_to')
         
