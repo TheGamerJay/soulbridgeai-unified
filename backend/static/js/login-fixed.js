@@ -183,7 +183,15 @@ document.addEventListener("DOMContentLoaded", function() {
                 welcome_back: "Welcome Back",
                 no_account: "Don't have an account?",
                 sign_up: "Sign up",
-                language_en: "EN"
+                language_en: "EN",
+                lang_english: "English",
+                lang_spanish: "Español",
+                lang_french: "Français", 
+                lang_german: "Deutsch",
+                lang_portuguese: "Português",
+                lang_chinese: "中文",
+                lang_japanese: "日本語",
+                lang_russian: "Русский"
             },
             es: {
                 sign_in: "Iniciar Sesión",
@@ -194,7 +202,15 @@ document.addEventListener("DOMContentLoaded", function() {
                 welcome_back: "Bienvenido de Vuelta",
                 no_account: "¿No tienes una cuenta?",
                 sign_up: "Registrarse",
-                language_en: "ES"
+                language_en: "ES",
+                lang_english: "English",
+                lang_spanish: "Español",
+                lang_french: "Français", 
+                lang_german: "Deutsch",
+                lang_portuguese: "Português",
+                lang_chinese: "中文",
+                lang_japanese: "日本語",
+                lang_russian: "Русский"
             },
             fr: {
                 sign_in: "Se Connecter",
@@ -205,7 +221,15 @@ document.addEventListener("DOMContentLoaded", function() {
                 welcome_back: "Bon Retour",
                 no_account: "Vous n'avez pas de compte?",
                 sign_up: "S'inscrire",
-                language_en: "FR"
+                language_en: "FR",
+                lang_english: "English",
+                lang_spanish: "Español",
+                lang_french: "Français", 
+                lang_german: "Deutsch",
+                lang_portuguese: "Português",
+                lang_chinese: "中文",
+                lang_japanese: "日本語",
+                lang_russian: "Русский"
             },
             de: {
                 sign_in: "Anmelden",
@@ -216,7 +240,15 @@ document.addEventListener("DOMContentLoaded", function() {
                 welcome_back: "Willkommen zurück",
                 no_account: "Haben Sie kein Konto?",
                 sign_up: "Registrieren",
-                language_en: "DE"
+                language_en: "DE",
+                lang_english: "English",
+                lang_spanish: "Español",
+                lang_french: "Français", 
+                lang_german: "Deutsch",
+                lang_portuguese: "Português",
+                lang_chinese: "中文",
+                lang_japanese: "日本語",
+                lang_russian: "Русский"
             },
             pt: {
                 sign_in: "Entrar",
@@ -227,7 +259,15 @@ document.addEventListener("DOMContentLoaded", function() {
                 welcome_back: "Bem-vindo de Volta",
                 no_account: "Não tem uma conta?",
                 sign_up: "Cadastrar-se",
-                language_en: "PT"
+                language_en: "PT",
+                lang_english: "English",
+                lang_spanish: "Español",
+                lang_french: "Français", 
+                lang_german: "Deutsch",
+                lang_portuguese: "Português",
+                lang_chinese: "中文",
+                lang_japanese: "日本語",
+                lang_russian: "Русский"
             },
             zh: {
                 sign_in: "登录",
@@ -238,7 +278,15 @@ document.addEventListener("DOMContentLoaded", function() {
                 welcome_back: "欢迎回来",
                 no_account: "没有账户？",
                 sign_up: "注册",
-                language_en: "ZH"
+                language_en: "ZH",
+                lang_english: "English",
+                lang_spanish: "Español",
+                lang_french: "Français", 
+                lang_german: "Deutsch",
+                lang_portuguese: "Português",
+                lang_chinese: "中文",
+                lang_japanese: "日本語",
+                lang_russian: "Русский"
             },
             ja: {
                 sign_in: "ログイン",
@@ -249,7 +297,15 @@ document.addEventListener("DOMContentLoaded", function() {
                 welcome_back: "おかえりなさい",
                 no_account: "アカウントをお持ちでないですか？",
                 sign_up: "サインアップ",
-                language_en: "JP"
+                language_en: "JP",
+                lang_english: "English",
+                lang_spanish: "Español",
+                lang_french: "Français", 
+                lang_german: "Deutsch",
+                lang_portuguese: "Português",
+                lang_chinese: "中文",
+                lang_japanese: "日本語",
+                lang_russian: "Русский"
             },
             ru: {
                 sign_in: "Войти",
@@ -260,7 +316,15 @@ document.addEventListener("DOMContentLoaded", function() {
                 welcome_back: "Добро пожаловать обратно",
                 no_account: "Нет аккаунта?",
                 sign_up: "Зарегистрироваться",
-                language_en: "RU"
+                language_en: "RU",
+                lang_english: "English",
+                lang_spanish: "Español",
+                lang_french: "Français", 
+                lang_german: "Deutsch",
+                lang_portuguese: "Português",
+                lang_chinese: "中文",
+                lang_japanese: "日本語",
+                lang_russian: "Русский"
             }
         };
         
