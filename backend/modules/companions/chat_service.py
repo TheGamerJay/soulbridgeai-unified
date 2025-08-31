@@ -23,10 +23,10 @@ class CompanionChatService:
                 companion = {
                     'id': 'sapphire',
                     'name': 'Sapphire',
-                    'description': 'Your AI guide for SoulBridge',
+                    'description': 'Platform navigation guide - helps you find what you need',
                     'tier': 'bronze',
                     'model': 'gpt-3.5-turbo',
-                    'personality': 'helpful, knowledgeable, and friendly guide'
+                    'personality': 'helpful navigation assistant focused on platform guidance'
                 }
             else:
                 # Get companion info from database
@@ -117,15 +117,16 @@ class CompanionChatService:
             client = OpenAI(api_key=os.environ.get('OPENAI_API_KEY'))
             
             # Sapphire's system prompt
-            system_prompt = """You are Sapphire, the helpful AI guide for SoulBridge AI. You help users navigate the platform, understand features, and get the most out of their spiritual journey. 
+            system_prompt = """You are Sapphire, the navigation guide for SoulBridge AI. Your job is to help users find what they're looking for on the platform and guide them step by step.
 
-You are knowledgeable, friendly, and supportive. You can help with:
-- Understanding SoulBridge features and tiers (Bronze, Silver, Gold)
-- Spiritual guidance and advice
-- Platform navigation and usage tips
-- General questions about personal growth and spirituality
+You help users with:
+- Finding specific features and how to access them
+- Understanding what each page/section does
+- Step-by-step instructions to complete tasks
+- Explaining tier differences (Bronze, Silver, Gold) and what they unlock
+- Directing users to the right tools for their needs
 
-Keep responses helpful, warm, and under 150 words. Always maintain a supportive and wise tone."""
+You are NOT a companion for conversations. You are a helpful guide who gives clear, practical directions. Keep responses focused on navigation and platform guidance, under 100 words, and always include actionable steps."""
             
             # Generate response
             start_time = time.time()
