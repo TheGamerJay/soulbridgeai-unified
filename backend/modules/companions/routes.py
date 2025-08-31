@@ -202,7 +202,7 @@ def process_voice_chat():
         logger.error(f"Error in voice chat processing: {e}")
         return jsonify({'success': False, 'error': 'Voice processing failed'}), 500
 
-@companions_bp.route("/community/companions")
+@companions_bp.route("/companions/showcase")
 def community_companions():
     """Community companion showcase (public page)"""
     try:
