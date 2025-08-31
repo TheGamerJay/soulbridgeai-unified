@@ -23,20 +23,20 @@ def create_app():
     # Configuration
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
     app.config['PERMANENT_SESSION_LIFETIME'] = 86400  # 24 hours
-   # Cookie settings
-app.config['SESSION_COOKIE_HTTPONLY'] = True
-app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
-app.config['SESSION_COOKIE_PATH'] = "/"
+    
+    # Cookie settings
+    app.config['SESSION_COOKIE_HTTPONLY'] = True
+    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+    app.config['SESSION_COOKIE_PATH'] = "/"
 
-if os.environ.get("ENVIRONMENT") == "production":
-    app.config['SESSION_COOKIE_DOMAIN'] = ".soulbridgeai.com"
-    app.config['SESSION_COOKIE_SECURE'] = True
-else:
-    app.config['SESSION_COOKIE_DOMAIN'] = None
-    app.config['SESSION_COOKIE_SECURE'] = False
-
-
-
+    if os.environ.get("ENVIRONMENT") == "production":
+        # Don't set domain for Railway - let it use the default
+        app.config['SESSION_COOKIE_DOMAIN'] = None  
+        app.config['SESSION_COOKIE_SECURE'] = True
+    else:
+        app.config['SESSION_COOKIE_DOMAIN'] = None
+        app.config['SESSION_COOKIE_SECURE'] = False
+    
     # Auto-cleanup configuration
     app.config['AUTO_START_MONITORING'] = True
     app.config['AUTO_CLEANUP_CHAT_SESSIONS'] = True
