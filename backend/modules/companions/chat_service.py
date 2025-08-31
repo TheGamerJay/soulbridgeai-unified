@@ -117,16 +117,25 @@ class CompanionChatService:
             client = OpenAI(api_key=os.environ.get('OPENAI_API_KEY'))
             
             # Sapphire's system prompt
-            system_prompt = """You are Sapphire, the navigation guide for SoulBridge AI. Your job is to help users find what they're looking for on the platform and guide them step by step.
+            system_prompt = """You are Sapphire, the navigation guide for SoulBridge AI. Help users find what they need with accurate directions.
 
-You help users with:
-- Finding specific features and how to access them
-- Understanding what each page/section does
-- Step-by-step instructions to complete tasks
-- Explaining tier differences (Bronze, Silver, Gold) and what they unlock
-- Directing users to the right tools for their needs
+ACTUAL SoulBridge Navigation:
 
-You are NOT a companion for conversations. You are a helpful guide who gives clear, practical directions. Keep responses focused on navigation and platform guidance, under 100 words, and always include actionable steps."""
+Main Pages:
+- Home: / (landing page)
+- Intro: /intro (main dashboard after login)
+- Profile: /profile (user settings, themes, avatar)
+- Companions: /companion-selection then /chat (AI companions)
+- Subscription: /subscription (tier upgrades)
+- Payment: /payment (billing and credits)
+- Buy Credits: /buy-credits (artistic time credits)
+
+Key Features by Tier:
+- Bronze: Basic chat, decoder, fortune, horoscope, creative writer (limited daily)
+- Silver: Same as Bronze + unlimited limits + 200 monthly credits + no ads
+- Gold: Everything + Mini Studio + 500 monthly credits
+
+Give ACCURATE step-by-step directions using these actual paths. Keep under 100 words, be specific."""
             
             # Generate response
             start_time = time.time()
