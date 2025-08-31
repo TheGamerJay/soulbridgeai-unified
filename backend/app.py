@@ -239,41 +239,12 @@ def setup_middleware(app):
     try:
         @app.before_request
         def ensure_session_persistence():
-            """Ensure proper session handling and auth guard"""
+            """Basic session handling without auth guard - routes handle their own auth"""
             try:
-                # Auth guard with detailed logging  
-                # API routes that handle their own auth with @requires_login decorators
-                API_SELF_AUTH_PATHS = ("/api/me", "/api/user-info", "/api/sapphire-chat", "/api/user-status", "/api/check-user-status", "/api/trial-status", "/api/user-plan", "/api/plan", "/api/user-addons", "/api/accept-terms", "/api/sync-trial-session", "/api/protected-feature", "/api/log-action", "/api/feature-preview-seen", "/api/session-refresh", "/api/clear-session", "/api/logout-on-close")
-                
-                PUBLIC_PATHS = ("/login", "/auth/login", "/auth/register", "/static", "/assets", "/favicon", "/whoami", "/health", "/debug-session") + API_SELF_AUTH_PATHS
-                
-                if any(request.path.startswith(p) for p in PUBLIC_PATHS):
-                    return  # Allow public paths
-                
-                # Check authentication
-                logged_in = session.get("logged_in")
-                user_id = session.get("user_id")
-                email = session.get("email")
-                terms_accepted = session.get("terms_accepted")
-                user_plan = session.get("user_plan")
-                
-                if logged_in is True and user_id and email:
-                    # Properly authenticated, allow through
-                    return
-                
-                # About to redirect - log exactly why
-                try:
-                    logger.info(
-                        f"[AUTH_GUARD] Redirecting {request.path} to /login: "
-                        f"logged_in={logged_in}, user_id={user_id}, email={email}, "
-                        f"terms_accepted={terms_accepted}, user_plan={user_plan}, "
-                        f"session_keys={list(session.keys()) if session else []}, "
-                        f"cookies={list(request.cookies.keys()) if request.cookies else []}"
-                    )
-                except Exception as log_error:
-                    logger.error(f"Error in auth guard logging: {log_error}")
-                
-                return redirect(f"/login?return_to={request.path.lstrip('/')}")
+                # DISABLED AUTH GUARD - Let routes handle their own authentication
+                # This prevents conflicts between middleware and route decorators
+                logger.debug(f"Request to {request.path} - auth handled by route decorators")
+                pass
                 
             except Exception as e:
                 logger.error(f"Middleware error: {e}")
