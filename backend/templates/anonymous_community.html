@@ -1275,6 +1275,18 @@
             const reactions = post.reactions || {};
             const totalReactions = post.total_reactions || 0;
             
+            // Emoji meanings for tooltips
+            const emojiMeanings = {
+                '❤️': 'Love - Show love and appreciation',
+                '✨': 'Magic - This feels magical or inspiring',
+                '🌿': 'Peace - This brings me peace',
+                '🔥': 'Fire - This is amazing/powerful',
+                '🙏': 'Gratitude - Thank you for sharing',
+                '⭐': 'Star - This brightened my day',
+                '👏': 'Applause - Well said!',
+                '🫶': 'Heart Hands - Sending support and care'
+            };
+            
             return `
                 <div class="post" data-post-id="${post.id}">
                     <div class="post-header">
@@ -1295,10 +1307,12 @@
                             ${REACTIONS.map(emoji => {
                                 const count = reactions[emoji] || 0;
                                 const isActive = false; // Would check if current user reacted
+                                const meaning = emojiMeanings[emoji] || emoji;
                                 return `
                                     <button class="reaction-btn ${isActive ? 'active' : ''}" 
                                             onclick="toggleReaction(${post.id}, '${emoji}')"
-                                            data-reaction="${emoji}">
+                                            data-reaction="${emoji}"
+                                            title="${meaning}">
                                         ${emoji} ${count > 0 ? count : ''}
                                     </button>
                                 `;

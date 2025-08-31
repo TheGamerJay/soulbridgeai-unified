@@ -202,6 +202,195 @@ def community_posts():
         logger.error(f"Community posts error: {e}")
         return jsonify({"success": False, "error": "Failed to load community posts"}), 500
 
+@community_bp.route("/community/posts", methods=["POST"])
+def create_community_post():
+    """Create a new community post"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        data = request.get_json()
+        if not data:
+            return jsonify({"success": False, "error": "No data provided"}), 400
+        
+        text = data.get('text', '').strip()
+        category = data.get('category', 'general')
+        
+        if not text:
+            return jsonify({"success": False, "error": "Post content is required"}), 400
+        
+        if len(text) > 700:
+            return jsonify({"success": False, "error": "Post content too long (max 700 characters)"}), 400
+        
+        # Mock post creation - in real app would save to database
+        new_post = {
+            "id": 999,  # Mock ID
+            "title": text[:50] + "..." if len(text) > 50 else text,
+            "content": text,
+            "author": "Anonymous Companion",
+            "companion_avatar": "/static/logos/New IntroLogo.png",
+            "category": category,
+            "hearts": 0,
+            "created_at": datetime.now().isoformat(),
+            "tags": []
+        }
+        
+        logger.info(f"[COMMUNITY] Created post: {text[:50]}... in {category}")
+        
+        return jsonify({
+            "success": True,
+            "message": "Post created successfully",
+            "post": new_post
+        })
+        
+    except Exception as e:
+        logger.error(f"Error creating post: {e}")
+        return jsonify({"success": False, "error": "Failed to create post"}), 500
+
+@community_bp.route("/community/posts/<int:post_id>/react", methods=["POST"])
+def react_to_post(post_id):
+    """Add reaction to a post"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        data = request.get_json()
+        if not data:
+            return jsonify({"success": False, "error": "No data provided"}), 400
+        
+        emoji = data.get('emoji', '')
+        if not emoji:
+            return jsonify({"success": False, "error": "Emoji is required"}), 400
+        
+        # Mock reaction logic - in real app would save to database
+        user_id = session.get('user_id')
+        
+        # Simulate toggling reaction
+        action = 'added'  # Could be 'added' or 'removed'
+        
+        # Mock reaction counts
+        reaction_counts = {
+            "❤️": 5,
+            "✨": 3, 
+            "🌿": 2,
+            "🔥": 8,
+            "🙏": 1,
+            "⭐": 0,
+            "👏": 4,
+            "🫶": 2
+        }
+        
+        if emoji in reaction_counts:
+            if action == 'added':
+                reaction_counts[emoji] += 1
+            else:
+                reaction_counts[emoji] = max(0, reaction_counts[emoji] - 1)
+        
+        logger.info(f"[COMMUNITY] User {user_id} reacted to post {post_id} with {emoji}")
+        
+        return jsonify({
+            "success": True,
+            "action": action,
+            "reaction_counts": reaction_counts
+        })
+        
+    except Exception as e:
+        logger.error(f"Error reacting to post: {e}")
+        return jsonify({"success": False, "error": "Failed to react to post"}), 500
+
+@community_bp.route("/community/posts/<int:post_id>/flag-category", methods=["POST"])
+def flag_post_category(post_id):
+    """Flag a post for category mismatch"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        data = request.get_json()
+        if not data:
+            return jsonify({"success": False, "error": "No data provided"}), 400
+        
+        current_category = data.get('current_category')
+        suggested_category = data.get('suggested_category')
+        reason = data.get('reason', 'category_mismatch')
+        
+        # Mock flagging logic - in real app would save to moderation queue
+        user_id = session.get('user_id')
+        
+        logger.info(f"[COMMUNITY] User {user_id} flagged post {post_id}: {current_category} -> {suggested_category}")
+        
+        return jsonify({
+            "success": True,
+            "message": "Category flag submitted successfully"
+        })
+        
+    except Exception as e:
+        logger.error(f"Error flagging post category: {e}")
+        return jsonify({"success": False, "error": "Failed to flag post"}), 500
+
+@community_bp.route("/community/posts/<int:post_id>/report", methods=["POST"])
+def report_post(post_id):
+    """Report a post for inappropriate content"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        data = request.get_json()
+        if not data:
+            return jsonify({"success": False, "error": "No data provided"}), 400
+        
+        reason = data.get('reason', '')
+        notes = data.get('notes', '')
+        
+        if not reason:
+            return jsonify({"success": False, "error": "Report reason is required"}), 400
+        
+        # Mock reporting logic - in real app would save to moderation queue
+        user_id = session.get('user_id')
+        
+        logger.info(f"[COMMUNITY] User {user_id} reported post {post_id}: {reason}")
+        
+        return jsonify({
+            "success": True,
+            "message": "Report submitted successfully"
+        })
+        
+    except Exception as e:
+        logger.error(f"Error reporting post: {e}")
+        return jsonify({"success": False, "error": "Failed to report post"}), 500
+
+@community_bp.route("/community/mute", methods=["POST"])
+def mute_content():
+    """Mute content (author, companion, or category)"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        data = request.get_json()
+        if not data:
+            return jsonify({"success": False, "error": "No data provided"}), 400
+        
+        mute_type = data.get('type', '')
+        target = data.get('target', '')
+        duration_days = data.get('duration_days', 7)
+        reason = data.get('reason', 'User preference')
+        
+        if not mute_type or not target:
+            return jsonify({"success": False, "error": "Mute type and target are required"}), 400
+        
+        # Mock muting logic - in real app would save to user preferences
+        user_id = session.get('user_id')
+        
+        logger.info(f"[COMMUNITY] User {user_id} muted {mute_type}: {target} for {duration_days} days")
+        
+        return jsonify({
+            "success": True,
+            "message": f"{mute_type.title()} muted successfully"
+        })
+        
+    except Exception as e:
+        logger.error(f"Error muting content: {e}")
+        return jsonify({"success": False, "error": "Failed to mute content"}), 500
+
 @community_bp.route("/community/companions")
 def community_companions():
     """Get companions available for community avatar selection"""
