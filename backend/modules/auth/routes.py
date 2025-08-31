@@ -105,6 +105,7 @@ def auth_login():
     except Exception as e:
         logger.error(f"[LOGIN] Unexpected error: {e}")
         import traceback
+        logger.error(f"[LOGIN] Traceback: {traceback.format_exc()}")
         traceback.print_exc()
         
         error_msg = "Login system temporarily unavailable"
