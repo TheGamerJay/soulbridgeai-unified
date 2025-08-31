@@ -5,6 +5,7 @@
 from flask import Blueprint, request, jsonify, render_template, session, redirect
 from datetime import datetime
 import logging
+from modules.auth.session_manager import requires_login
 
 secret = Blueprint("secret", __name__)
 logger = logging.getLogger(__name__)
@@ -169,6 +170,7 @@ def secretwriter_page():
 
 # ---------- API Routes ----------
 @secret.route("/api/secretwriter/full-song", methods=["POST"])
+@requires_login
 def secretwriter_full_song():
     data   = request.get_json(force=True) or {}
     prompt = build_full_song_prompt(data)
@@ -176,6 +178,7 @@ def secretwriter_full_song():
     return jsonify({"ok": True, "output": out})
 
 @secret.route("/api/secretwriter/fix-song", methods=["POST"])
+@requires_login
 def secretwriter_fix_song():
     data   = request.get_json(force=True) or {}
     prompt = build_fix_song_prompt(data)
@@ -183,6 +186,7 @@ def secretwriter_fix_song():
     return jsonify({"ok": True, "output": out})
 
 @secret.route("/api/secretwriter/fix-part", methods=["POST"])
+@requires_login
 def secretwriter_fix_part():
     data   = request.get_json(force=True) or {}
     prompt = build_fix_part_prompt(data)
@@ -190,6 +194,7 @@ def secretwriter_fix_part():
     return jsonify({"ok": True, "output": out})
 
 @secret.route("/api/secretwriter/suggestions", methods=["POST"])
+@requires_login
 def secretwriter_suggestions():
     data   = request.get_json(force=True) or {}
     prompt = build_suggestions_prompt(data)

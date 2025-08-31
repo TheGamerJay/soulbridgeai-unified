@@ -7,12 +7,14 @@ from datetime import datetime, timezone, timedelta
 from app_core import current_user
 from db_users import db_get_user_plan, db_fetch_user_row
 from access import get_effective_access
+from modules.auth.session_manager import requires_login
 
 logger = logging.getLogger(__name__)
 
 bp_analytics = Blueprint("analytics", __name__, url_prefix="/api/analytics")
 
 @bp_analytics.route("/dashboard", methods=["GET"])
+@requires_login
 def analytics_dashboard():
     """
     Render the analytics dashboard page.
@@ -31,6 +33,7 @@ def analytics_dashboard():
         return render_template('error.html', error="Failed to load analytics"), 500
 
 @bp_analytics.route("/usage", methods=["GET"])
+@requires_login
 def get_usage_analytics():
     """
     Get usage analytics for the current user.
@@ -97,6 +100,7 @@ def get_usage_analytics():
         }), 500
 
 @bp_analytics.route("/insights", methods=["GET"])
+@requires_login
 def get_ai_insights():
     """
     Get AI-generated insights about user behavior and recommendations.
@@ -130,6 +134,7 @@ def get_ai_insights():
         }), 500
 
 @bp_analytics.route("/export", methods=["POST"])
+@requires_login
 def export_analytics():
     """
     Export user analytics data in various formats.
