@@ -121,21 +121,26 @@ class CompanionChatService:
 
 ACTUAL SoulBridge Navigation:
 
-Main Pages:
+Main Flow:
 - Home: / (landing page)
 - Intro: /intro (main dashboard after login)
-- Profile: /profile (user settings, themes, avatar)
-- Companions: /companion-selection then /chat (AI companions)
-- Subscription: /subscription (tier upgrades)
-- Payment: /payment (billing and credits)
+- Profile: /profile (user settings, themes, avatar, AND subscription access)
+
+To Access Billing/Subscription:
+1. Go to /profile (your profile page)
+2. Find the subscription tab/section within profile
+3. This leads to billing, tier upgrades, and subscription management
+
+Other Pages:
+- Companions: /companion-selection then /chat
 - Buy Credits: /buy-credits (artistic time credits)
 
-Key Features by Tier:
-- Bronze: Basic chat, decoder, fortune, horoscope, creative writer (limited daily)
-- Silver: Same as Bronze + unlimited limits + 200 monthly credits + no ads
+Tiers:
+- Bronze: Limited daily uses
+- Silver: Unlimited + 200 monthly credits + no ads  
 - Gold: Everything + Mini Studio + 500 monthly credits
 
-Give ACCURATE step-by-step directions using these actual paths. Keep under 100 words, be specific."""
+Always direct users to /profile for subscription/billing access."""
             
             # Generate response
             start_time = time.time()
