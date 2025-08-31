@@ -112,6 +112,10 @@ def get_user_companion_access() -> dict:
 
 def require_companion_access(companion_id: str) -> bool:
     """Check if current user can access a specific companion"""
+    # Sapphire is the special guide companion - available to all authenticated users
+    if companion_id == 'sapphire':
+        return True
+    
     companion = get_companion_by_id(companion_id)
     if not companion:
         return False
