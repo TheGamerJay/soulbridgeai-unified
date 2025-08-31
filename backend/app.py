@@ -259,10 +259,13 @@ def setup_middleware(app):
                     user_id = session.get("user_id") 
                     email = session.get("email")
                     
+                    # Debug session state
+                    logger.info(f"[AUTH_GUARD] Checking {request.path}: logged_in={logged_in}, user_id={user_id}, email={email}, session_keys={list(session.keys())}")
+                    
                     # If not authenticated, redirect to login
                     if not (logged_in and user_id and email):
                         logger.info(f"[AUTH_GUARD] Page {request.path} requires auth - redirecting to login")
-                        return redirect("/auth/login")
+                        return redirect(f"/auth/login?return_to={request.path.lstrip('/')}")
                 
                 # Let everything else through (including API routes)
                 return

@@ -93,9 +93,14 @@ def auth_login():
             # Debug session state
             logger.info(f"[LOGIN] Session after setup: logged_in={session.get('logged_in')}, email={session.get('email')}, user_id={session.get('user_id')}")
             
+            # Explicitly save session to ensure persistence
+            session.modified = True
+            session.permanent = False
+            
             # Determine redirect URL - bypass terms check to prevent loops
             redirect_url = "/intro"
             logger.info(f"[LOGIN] Bypassing terms check, redirecting to {redirect_url}")
+            logger.info(f"[LOGIN] Session explicitly saved: modified={session.modified}, keys={list(session.keys())}")
             
             logger.info(f"[LOGIN] Final redirect URL: {redirect_url}")
             
