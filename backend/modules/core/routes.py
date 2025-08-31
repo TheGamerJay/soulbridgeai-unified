@@ -4,7 +4,7 @@ Core application routes (home, navigation, basic pages)
 Extracted from monolith app.py with improvements
 """
 import logging
-from flask import Blueprint, request, session, redirect, render_template
+from flask import Blueprint, request, session, redirect, render_template, jsonify
 
 from ..auth.session_manager import requires_login, get_user_id
 from .navigation_service import NavigationService
@@ -127,7 +127,7 @@ def tiers_page():
         logger.error(f"Error in tiers redirect: {e}")
         return redirect("/subscription")
 
-# Debug route for session state
+# Debug routes for session state
 @core_bp.route('/whoami')
 def whoami():
     """Debug route to check current session state"""
@@ -141,6 +141,39 @@ def whoami():
         "cookies": list(request.cookies.keys()),
         "path": request.path
     }
+
+@core_bp.route('/debug-session')
+def debug_session():
+    """Enhanced debug route for session troubleshooting"""
+    from datetime import datetime
+    import os
+    
+    debug_info = {
+        "timestamp": datetime.now().isoformat(),
+        "session_data": dict(session),
+        "request_info": {
+            "path": request.path,
+            "method": request.method,
+            "remote_addr": request.remote_addr,
+            "user_agent": request.headers.get('User-Agent'),
+            "cookies": dict(request.cookies),
+            "headers": dict(request.headers)
+        },
+        "flask_config": {
+            "SECRET_KEY_SET": bool(os.environ.get('SECRET_KEY')),
+            "SESSION_COOKIE_DOMAIN": request.app.config.get('SESSION_COOKIE_DOMAIN'),
+            "SESSION_COOKIE_SECURE": request.app.config.get('SESSION_COOKIE_SECURE'),
+            "SESSION_COOKIE_HTTPONLY": request.app.config.get('SESSION_COOKIE_HTTPONLY'),
+            "SESSION_COOKIE_SAMESITE": request.app.config.get('SESSION_COOKIE_SAMESITE'),
+            "PERMANENT_SESSION_LIFETIME": str(request.app.config.get('PERMANENT_SESSION_LIFETIME'))
+        },
+        "environment": {
+            "ENVIRONMENT": os.environ.get("ENVIRONMENT"),
+            "RAILWAY_PROJECT_ID": os.environ.get("RAILWAY_PROJECT_ID")
+        }
+    }
+    
+    return jsonify(debug_info)
 
 # API endpoints for core functionality
 @core_bp.route('/api/navigation/menu')

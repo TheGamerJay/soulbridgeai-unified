@@ -36,7 +36,10 @@ def setup_user_session(email: str, user_id: int = None, is_admin: bool = False, 
         session.permanent = False  # Expire when browser closes
         session.modified = True
         
+        # Debugging: log all session data after setup
         logger.info(f"[SESSION] Session setup complete for {email}")
+        logger.info(f"[SESSION] Final session contents: {dict(session)}")
+        logger.info(f"[SESSION] Session modified: {session.modified}, permanent: {session.permanent}")
         
     except Exception as e:
         logger.error(f"[SESSION] Error setting up session for {email}: {e}")

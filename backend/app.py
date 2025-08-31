@@ -31,11 +31,13 @@ def create_app():
     app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
     app.config['SESSION_COOKIE_PATH'] = "/"
 
-    if os.environ.get("ENVIRONMENT") == "production":
-        # Set domain to work with both soulbridgeai.com and www.soulbridgeai.com
+    # Always set domain to work with both soulbridgeai.com and www.soulbridgeai.com in production
+    # Railway deployment should always use HTTPS and production settings
+    if os.environ.get("ENVIRONMENT") == "production" or os.environ.get("RAILWAY_PROJECT_ID"):
         app.config['SESSION_COOKIE_DOMAIN'] = '.soulbridgeai.com'  
         app.config['SESSION_COOKIE_SECURE'] = True
     else:
+        # Local development - no domain restriction, no secure flag
         app.config['SESSION_COOKIE_DOMAIN'] = None
         app.config['SESSION_COOKIE_SECURE'] = False
     
@@ -238,11 +240,8 @@ def setup_middleware(app):
         def ensure_session_persistence():
             """Ensure proper session handling and auth guard"""
             try:
-                # Make sessions temporary (expire when browser closes)
-                session.permanent = False
-                
-                # Auth guard with detailed logging
-                PUBLIC_PATHS = ("/login", "/auth/login", "/auth/register", "/static", "/assets", "/favicon", "/whoami", "/health")
+                # Auth guard with detailed logging  
+                PUBLIC_PATHS = ("/login", "/auth/login", "/auth/register", "/static", "/assets", "/favicon", "/whoami", "/health", "/debug-session")
                 
                 if any(request.path.startswith(p) for p in PUBLIC_PATHS):
                     return  # Allow public paths

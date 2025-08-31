@@ -998,23 +998,44 @@
             alert('Google sign-up is temporarily unavailable. Please use email/password to create your account.');
         }
         
+        // Initialize language selector backup event listener
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add backup event listener for language selector (in case onclick doesn't work)
+            const languageSelector = document.getElementById('languageSelector');
+            if (languageSelector) {
+                console.log('🌐 Adding backup event listener for language selector');
+                languageSelector.addEventListener('click', function(e) {
+                    console.log('🌐 Backup event listener triggered');
+                    e.preventDefault();
+                    e.stopPropagation();
+                    toggleLanguageMenu();
+                });
+            }
+        });
+        
         // Theme functionality handled by universal-button-fix.js
 
         // Language functions
         function toggleLanguageMenu() {
+            console.log('🌐 toggleLanguageMenu called');
             const menu = document.getElementById('languageMenu');
+            console.log('🌐 menu element:', menu);
             if (menu.style.display === 'none' || menu.style.display === '') {
                 menu.style.display = 'block';
+                console.log('🌐 Showing language menu');
             } else {
                 menu.style.display = 'none';
+                console.log('🌐 Hiding language menu');
             }
         }
         
         function changeLanguage(lang) {
+            console.log('🌐 changeLanguage called with:', lang);
             localStorage.setItem('selectedLanguage', lang);
             updateLanguageDisplay(lang);
             // Apply translations immediately
             applyTranslations(lang);
+            console.log('🌐 Language changed to:', lang);
             
             // Don't close menu immediately to allow multiple language selections
             // User can click elsewhere or on the button again to close
