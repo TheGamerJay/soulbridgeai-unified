@@ -205,6 +205,35 @@ class AuthService:
             logger.error(f"Failed to set tier access flags: {e}")
 
 def has_accepted_terms() -> bool:
-    """Check if user has accepted terms - placeholder function"""
-    # This would need to be implemented based on the existing logic in app.py
-    return True
+    """Check if user has accepted terms"""
+    from flask import session
+    
+    # Check session first (faster)
+    if session.get('terms_accepted'):
+        return True
+    
+    # Check database if session doesn't have it
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return False
+            
+        db = get_database()
+        with db.get_connection() as conn:
+            cursor = conn.cursor()
+            
+            if db.is_postgresql():
+                cursor.execute("SELECT terms_accepted FROM users WHERE id = %s", (user_id,))
+            else:  # SQLite
+                cursor.execute("SELECT terms_accepted FROM users WHERE id = ?", (user_id,))
+            
+            result = cursor.fetchone()
+            if result and result[0]:
+                # Update session cache
+                session['terms_accepted'] = True
+                return True
+                
+    except Exception as e:
+        logger.error(f"Error checking terms acceptance: {e}")
+    
+    return False
