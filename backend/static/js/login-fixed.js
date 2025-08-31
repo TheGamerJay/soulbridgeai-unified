@@ -87,23 +87,22 @@ document.addEventListener("DOMContentLoaded", function() {
         console.log("🌍 Changing language to:", langCode);
         localStorage.setItem("selectedLanguage", langCode);
         
-        // Update language display
-        const languageText = document.getElementById("languageText");
-        const languages = {
-            "en": "🇺🇸 English",
-            "es": "🇪🇸 Español", 
-            "fr": "🇫🇷 Français",
-            "de": "🇩🇪 Deutsch",
-            "it": "🇮🇹 Italiano",
-            "pt": "🇵🇹 Português",
-            "ru": "🇷🇺 Русский",
-            "ja": "🇯🇵 日本語",
-            "ko": "🇰🇷 한국어",
-            "zh": "🇨🇳 中文"
+        // Update language display (match template's currentLanguage element)
+        const currentLanguage = document.getElementById("currentLanguage");
+        const langMap = {
+            'en': 'EN',
+            'es': 'ES', 
+            'fr': 'FR',
+            'de': 'DE',
+            'pt': 'PT',
+            'zh': 'ZH',
+            'ja': 'JP',
+            'ru': 'RU'
         };
         
-        if (languageText && languages[langCode]) {
-            languageText.textContent = languages[langCode];
+        if (currentLanguage && langMap[langCode]) {
+            currentLanguage.textContent = langMap[langCode];
+            console.log('🌐 [EXTERNAL] Updated language display to:', langMap[langCode]);
         }
         
         // Hide menu
@@ -132,55 +131,156 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         }
         
-        // Load language
+        // Load language (match template's currentLanguage element)
         const savedLang = localStorage.getItem("selectedLanguage") || "en";
-        const languageText = document.getElementById("languageText");
-        const languages = {
-            "en": "🇺🇸 English",
-            "es": "🇪🇸 Español",
-            "fr": "🇫🇷 Français",
-            "de": "🇩🇪 Deutsch",
-            "it": "🇮🇹 Italiano",
-            "pt": "🇵🇹 Português",
-            "ru": "🇷🇺 Русский",
-            "ja": "🇯🇵 日本語",
-            "ko": "🇰🇷 한국어",
-            "zh": "🇨🇳 中文"
+        const currentLanguage = document.getElementById("currentLanguage");
+        const langMap = {
+            'en': 'EN',
+            'es': 'ES',
+            'fr': 'FR',
+            'de': 'DE',
+            'pt': 'PT',
+            'zh': 'ZH',
+            'ja': 'JP',
+            'ru': 'RU'
         };
         
-        if (languageText && languages[savedLang]) {
-            languageText.textContent = languages[savedLang];
+        if (currentLanguage && langMap[savedLang]) {
+            currentLanguage.textContent = langMap[savedLang];
+            console.log('🌐 [EXTERNAL] Loaded saved language display:', langMap[savedLang]);
         }
+        
+        // Apply saved language translations
+        applyTranslations(savedLang);
     }
     
     // === BASIC TRANSLATIONS ===
     function applyTranslations(langCode) {
+        console.log('🌍 [EXTERNAL] Applying translations for language:', langCode);
+        
         const translations = {
-            "es": {
-                "email": "Correo electrónico",
-                "password": "Contraseña",
-                "sign_in": "Iniciar sesión",
-                "forgot_password": "¿Olvidaste tu contraseña?",
-                "create_account": "Crear cuenta"
+            en: {
+                sign_in: "Sign In",
+                sign_in_subtitle: "Sign in to continue your journey",
+                email_address: "Email Address", 
+                password: "Password",
+                forgot_password: "Forgot password?",
+                welcome_back: "Welcome Back",
+                no_account: "Don't have an account?",
+                sign_up: "Sign up",
+                language_en: "EN"
             },
-            "fr": {
-                "email": "E-mail",
-                "password": "Mot de passe",
-                "sign_in": "Se connecter",
-                "forgot_password": "Mot de passe oublié?",
-                "create_account": "Créer un compte"
+            es: {
+                sign_in: "Iniciar Sesión",
+                sign_in_subtitle: "Inicia sesión para continuar tu viaje",
+                email_address: "Dirección de Correo",
+                password: "Contraseña", 
+                forgot_password: "¿Olvidaste tu contraseña?",
+                welcome_back: "Bienvenido de Vuelta",
+                no_account: "¿No tienes una cuenta?",
+                sign_up: "Registrarse",
+                language_en: "ES"
+            },
+            fr: {
+                sign_in: "Se Connecter",
+                sign_in_subtitle: "Connectez-vous pour continuer votre voyage",
+                email_address: "Adresse E-mail",
+                password: "Mot de Passe",
+                forgot_password: "Mot de passe oublié?",
+                welcome_back: "Bon Retour",
+                no_account: "Vous n'avez pas de compte?",
+                sign_up: "S'inscrire",
+                language_en: "FR"
+            },
+            de: {
+                sign_in: "Anmelden",
+                sign_in_subtitle: "Melden Sie sich an, um Ihre Reise fortzusetzen",
+                email_address: "E-Mail-Adresse",
+                password: "Passwort",
+                forgot_password: "Passwort vergessen?",
+                welcome_back: "Willkommen zurück",
+                no_account: "Haben Sie kein Konto?",
+                sign_up: "Registrieren",
+                language_en: "DE"
+            },
+            pt: {
+                sign_in: "Entrar",
+                sign_in_subtitle: "Faça login para continuar sua jornada",
+                email_address: "Endereço de E-mail",
+                password: "Senha",
+                forgot_password: "Esqueceu a senha?",
+                welcome_back: "Bem-vindo de Volta",
+                no_account: "Não tem uma conta?",
+                sign_up: "Cadastrar-se",
+                language_en: "PT"
+            },
+            zh: {
+                sign_in: "登录",
+                sign_in_subtitle: "登录以继续您的旅程",
+                email_address: "电子邮件地址",
+                password: "密码",
+                forgot_password: "忘记密码？",
+                welcome_back: "欢迎回来",
+                no_account: "没有账户？",
+                sign_up: "注册",
+                language_en: "ZH"
+            },
+            ja: {
+                sign_in: "ログイン",
+                sign_in_subtitle: "あなたの旅を続けるためにログインしてください",
+                email_address: "メールアドレス",
+                password: "パスワード",
+                forgot_password: "パスワードを忘れましたか？",
+                welcome_back: "おかえりなさい",
+                no_account: "アカウントをお持ちでないですか？",
+                sign_up: "サインアップ",
+                language_en: "JP"
+            },
+            ru: {
+                sign_in: "Войти",
+                sign_in_subtitle: "Войдите, чтобы продолжить свое путешествие",
+                email_address: "Адрес электронной почты",
+                password: "Пароль",
+                forgot_password: "Забыли пароль?",
+                welcome_back: "Добро пожаловать обратно",
+                no_account: "Нет аккаунта?",
+                sign_up: "Зарегистрироваться",
+                language_en: "RU"
             }
         };
         
-        const trans = translations[langCode];
-        if (trans) {
-            document.querySelectorAll("[data-translate]").forEach(element => {
-                const key = element.getAttribute("data-translate");
-                if (trans[key]) {
-                    element.textContent = trans[key];
-                }
-            });
+        const translation = translations[langCode] || translations.en;
+        console.log('🌍 [EXTERNAL] Translation object:', translation);
+        
+        // Find all elements with data-translate attribute
+        const elements = document.querySelectorAll('[data-translate]');
+        console.log('🌍 [EXTERNAL] Found elements with data-translate:', elements.length);
+        
+        elements.forEach(element => {
+            const key = element.getAttribute('data-translate');
+            console.log('🌍 [EXTERNAL] Processing element with key:', key, 'current text:', element.textContent.trim());
+            if (translation[key]) {
+                element.textContent = translation[key];
+                console.log('🌍 [EXTERNAL] Updated to:', translation[key]);
+            } else {
+                console.warn('🌍 [EXTERNAL] Missing translation for key:', key);
+            }
+        });
+        
+        // Update placeholders
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        
+        if (emailInput && translation.email_address) {
+            emailInput.placeholder = translation.email_address;
+            console.log('🌍 [EXTERNAL] Updated email placeholder to:', translation.email_address);
         }
+        if (passwordInput && translation.password) {
+            passwordInput.placeholder = translation.password;
+            console.log('🌍 [EXTERNAL] Updated password placeholder to:', translation.password);
+        }
+        
+        console.log('🌍 [EXTERNAL] Translation application complete');
     }
     
     // Initialize settings
