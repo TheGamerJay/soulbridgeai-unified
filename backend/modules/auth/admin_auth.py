@@ -88,7 +88,7 @@ def setup_admin_session(admin_user_id: str, email: str):
     session['admin_email'] = email
     session['admin_login_time'] = current_time
     session['admin_last_activity'] = current_time
-    session.permanent = True
+    session.permanent = False  # Admin sessions expire when browser closes
     
     logger.info(f"🔑 Admin session established for {email} (ID: {admin_user_id})")
 

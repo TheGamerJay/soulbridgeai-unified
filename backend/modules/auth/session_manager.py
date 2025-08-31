@@ -33,7 +33,7 @@ def setup_user_session(email: str, user_id: int = None, is_admin: bool = False, 
         # Load terms acceptance status
         load_terms_acceptance_status(user_id)
         
-        session.permanent = True
+        session.permanent = False  # Expire when browser closes
         session.modified = True
         
         logger.info(f"[SESSION] Session setup complete for {email}")

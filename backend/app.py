@@ -22,7 +22,8 @@ def create_app():
     
     # Configuration
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
-    app.config['PERMANENT_SESSION_LIFETIME'] = 86400  # 24 hours
+    # Session expires when browser closes (temporary session)
+    app.config['PERMANENT_SESSION_LIFETIME'] = None
     
     # Cookie settings
     app.config['SESSION_COOKIE_HTTPONLY'] = True
@@ -236,8 +237,8 @@ def setup_middleware(app):
         def ensure_session_persistence():
             """Ensure proper session handling and auth guard"""
             try:
-                # Make sessions permanent
-                session.permanent = True
+                # Make sessions temporary (expire when browser closes)
+                session.permanent = False
                 
                 # Auth guard with detailed logging
                 PUBLIC_PATHS = ("/login", "/auth/login", "/auth/register", "/static", "/assets", "/favicon", "/whoami", "/health")
