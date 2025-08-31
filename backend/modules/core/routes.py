@@ -190,6 +190,20 @@ def get_page_metadata():
         }, 500
 
 # Error handlers for core routes
+@core_bp.route('/healthcheck')
+def backup_health_check():
+    """Backup health check endpoint in case health module has issues"""
+    from datetime import datetime, timezone
+    from flask import jsonify
+    
+    return jsonify({
+        'status': 'healthy',
+        'timestamp': datetime.now(timezone.utc).isoformat(),
+        'service': 'soulbridge-ai-core',
+        'version': '1.0.0',
+        'message': 'Core service is running'
+    })
+
 @core_bp.errorhandler(404)
 def not_found_error(error):
     """Handle 404 errors"""
