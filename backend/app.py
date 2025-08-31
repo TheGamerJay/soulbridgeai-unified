@@ -148,7 +148,7 @@ def register_blueprints(app):
         
         # Admin system
         from modules.admin import admin_bp
-        app.register_blueprint(admin_bp)
+        app.register_blueprint(admin_bp, url_prefix='/admin')
         logger.info("✅ Admin system registered")
         
         # Health and monitoring
@@ -168,7 +168,7 @@ def register_blueprints(app):
         
         # Consolidated API endpoints
         from modules.api import api_bp
-        app.register_blueprint(api_bp)
+        app.register_blueprint(api_bp, url_prefix='/api')
         logger.info("✅ Consolidated API registered")
         
         # Mini Studio (if available)

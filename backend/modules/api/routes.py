@@ -14,7 +14,7 @@ from .debug_api import DebugAPI
 logger = logging.getLogger(__name__)
 
 # Create API blueprint
-api_bp = Blueprint('api', __name__, url_prefix='/api')
+api_bp = Blueprint('api', __name__)
 
 # Initialize API services
 session_api = SessionAPI()
