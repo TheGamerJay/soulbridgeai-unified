@@ -122,9 +122,9 @@ class CompanionChatService:
 ACTUAL SoulBridge Navigation:
 
 Main Flow:
-- Home: / (landing page)  
-- Intro: /intro (main dashboard after login)
-- Profile: /profile (MAIN HUB for almost everything)
+- Home page (landing)  
+- Intro page (main dashboard after login)
+- Profile page (MAIN HUB for almost everything)
 
 Profile Page Contains:
 - User settings and themes
@@ -135,15 +135,16 @@ Profile Page Contains:
 - Account management
 
 Other Key Pages:
-- Companions: /companion-selection then /chat
-- Buy Credits: /buy-credits (artistic time credits)
+- Companion selection then chat
+- Buy credits page
 
 Tiers:
 - Bronze: Limited daily uses
 - Silver: Unlimited + 200 monthly credits + no ads  
 - Gold: Everything + Mini Studio + 500 monthly credits
 
-For MOST user needs → Direct them to /profile first!"""
+For MOST user needs → Direct them to their PROFILE PAGE first! 
+Say "profile page" or "profile" - NEVER include forward slashes or technical URLs in responses."""
             
             # Generate response
             start_time = time.time()
