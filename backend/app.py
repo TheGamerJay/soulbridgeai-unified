@@ -239,12 +239,33 @@ def setup_middleware(app):
     try:
         @app.before_request
         def ensure_session_persistence():
-            """Basic session handling without auth guard - routes handle their own auth"""
+            """Simple auth guard for pages only - APIs handle their own auth"""
             try:
-                # DISABLED AUTH GUARD - Let routes handle their own authentication
-                # This prevents conflicts between middleware and route decorators
-                logger.debug(f"Request to {request.path} - auth handled by route decorators")
-                pass
+                # Define paths that don't need authentication
+                PUBLIC_PATHS = (
+                    "/login", "/auth/login", "/auth/register", "/auth/logout",
+                    "/static", "/assets", "/favicon", "/whoami", "/health", 
+                    "/debug-session", "/", "/api"
+                )
+                
+                # Let public paths and API routes through
+                if any(request.path.startswith(p) for p in PUBLIC_PATHS):
+                    return  # Allow through
+                
+                # Only check auth for main application pages
+                # (like /intro, /profile, etc - not API routes)
+                if not request.path.startswith('/api'):
+                    logged_in = session.get("logged_in")
+                    user_id = session.get("user_id") 
+                    email = session.get("email")
+                    
+                    # If not authenticated, redirect to login
+                    if not (logged_in and user_id and email):
+                        logger.info(f"[AUTH_GUARD] Page {request.path} requires auth - redirecting to login")
+                        return redirect("/auth/login")
+                
+                # Let everything else through (including API routes)
+                return
                 
             except Exception as e:
                 logger.error(f"Middleware error: {e}")
