@@ -206,7 +206,15 @@ document.addEventListener("DOMContentLoaded", function() {
                 already_have_account: "Already have an account?",
                 sign_in: "Sign in",
                 back: "← Back",
-                language_en: "EN"
+                language_en: "EN",
+                lang_english: "English",
+                lang_spanish: "Español",
+                lang_french: "Français", 
+                lang_german: "Deutsch",
+                lang_portuguese: "Português",
+                lang_chinese: "中文",
+                lang_japanese: "日本語",
+                lang_russian: "Русский"
             },
             es: {
                 create_account: "Crear Cuenta",
@@ -226,7 +234,15 @@ document.addEventListener("DOMContentLoaded", function() {
                 already_have_account: "¿Ya tienes una cuenta?",
                 sign_in: "Iniciar sesión",
                 back: "← Atrás",
-                language_en: "ES"
+                language_en: "ES",
+                lang_english: "English",
+                lang_spanish: "Español",
+                lang_french: "Français", 
+                lang_german: "Deutsch",
+                lang_portuguese: "Português",
+                lang_chinese: "中文",
+                lang_japanese: "日本語",
+                lang_russian: "Русский"
             },
             fr: {
                 create_account: "Créer un Compte",
