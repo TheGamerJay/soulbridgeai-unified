@@ -129,8 +129,25 @@ class NavigationService:
             return {"allowed": False, "reason": "error", "error": str(e)}
     
     def _is_logged_in(self) -> bool:
-        """Check if user is authenticated"""
-        return session.get('logged_in', False) and session.get('user_id') is not None
+        """Check if user is authenticated - strict validation"""
+        try:
+            # Check basic session data
+            logged_in = session.get('logged_in', False)
+            user_id = session.get('user_id')
+            email = session.get('email')
+            
+            # Must have all required session data
+            if not (logged_in and user_id and email):
+                logger.debug(f"🔍 AUTH: Missing session data - logged_in={logged_in}, user_id={user_id}, email={email}")
+                return False
+            
+            # Session looks valid
+            logger.debug(f"🔍 AUTH: Valid session for user {user_id} ({email})")
+            return True
+            
+        except Exception as e:
+            logger.error(f"🔍 AUTH: Error checking authentication: {e}")
+            return False
     
     def _has_accepted_terms(self) -> bool:
         """Check if user has accepted terms"""
@@ -368,8 +385,25 @@ class NavigationService:
         return descriptions.get(feature_type, f"Used {feature_type}")
     
     def _is_logged_in(self) -> bool:
-        """Check if user is authenticated"""
-        return session.get('logged_in', False) and session.get('user_id') is not None
+        """Check if user is authenticated - strict validation"""
+        try:
+            # Check basic session data
+            logged_in = session.get('logged_in', False)
+            user_id = session.get('user_id')
+            email = session.get('email')
+            
+            # Must have all required session data
+            if not (logged_in and user_id and email):
+                logger.debug(f"🔍 AUTH: Missing session data - logged_in={logged_in}, user_id={user_id}, email={email}")
+                return False
+            
+            # Session looks valid
+            logger.debug(f"🔍 AUTH: Valid session for user {user_id} ({email})")
+            return True
+            
+        except Exception as e:
+            logger.error(f"🔍 AUTH: Error checking authentication: {e}")
+            return False
     
     def _has_accepted_terms(self) -> bool:
         """Check if user has accepted terms"""
