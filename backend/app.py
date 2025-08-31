@@ -5,9 +5,10 @@ Clean Flask application with Blueprint architecture
 """
 import os
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask import Flask, session, request, redirect, jsonify, url_for
 from flask_cors import CORS
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 # Configure logging
 logging.basicConfig(
@@ -20,27 +21,46 @@ def create_app():
     """Application factory pattern"""
     app = Flask(__name__)
     
-    # Configuration
-    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
-    # Session expires when browser closes (temporary session - short lifetime)
-    from datetime import timedelta
-    app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=30)
-    
-    # Cookie settings
-    app.config['SESSION_COOKIE_HTTPONLY'] = True
-    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
-    app.config['SESSION_COOKIE_PATH'] = "/"
+    # ----- Core secrets -----
+    # IMPORTANT: keep SECRET_KEY stable across deploys/instances
+    app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-only-change-me")
 
-    # Session cookie settings for Railway deployment
-    # Railway deployment should always use HTTPS and production settings
-    if os.environ.get("ENVIRONMENT") == "production" or os.environ.get("RAILWAY_PROJECT_ID"):
-        # Don't set domain - let it default to the actual domain being used
-        app.config['SESSION_COOKIE_DOMAIN'] = None
-        app.config['SESSION_COOKIE_SECURE'] = True
+    # Detect prod on Railway
+    IS_RAILWAY = bool(os.environ.get("RAILWAY_PROJECT_ID"))
+    IS_PROD = os.environ.get("ENVIRONMENT") == "production" or IS_RAILWAY
+
+    # Make Flask trust Railway's reverse proxy so it sees HTTPS correctly.
+    # Without this, Flask may think the request is http and set cookies wrong.
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
+
+    # ----- Session cookie settings -----
+    # Use sane defaults that work for normal same-site navigations (form POST -> redirect -> GET).
+    app.config.update(
+        SESSION_COOKIE_NAME="session",
+        SESSION_COOKIE_HTTPONLY=True,
+        SESSION_COOKIE_PATH="/",
+        PERMANENT_SESSION_LIFETIME=timedelta(days=7),
+        SESSION_REFRESH_EACH_REQUEST=True,
+    )
+
+    if IS_PROD:
+        # Let the browser decide the correct host; avoids domain mismatch across custom domains / *.railway.app
+        app.config["SESSION_COOKIE_DOMAIN"] = None
+
+        # If your origin is HTTPS (custom domain with TLS or *.railway.app over HTTPS):
+        # Preferred, secure setup:
+        app.config["SESSION_COOKIE_SECURE"] = True
+        app.config["SESSION_COOKIE_SAMESITE"] = "Lax"  # great for normal same-site redirects
+
+        # ---- TEMPORARY DIAGNOSTIC SWITCH ----
+        # If cookies still don't stick, toggle these 2 lines *temporarily* and retest:
+        # app.config["SESSION_COOKIE_SECURE"] = False   # TEMP TEST ONLY
+        # app.config["SESSION_COOKIE_SAMESITE"] = "Lax" # keep Lax for same-site
     else:
-        # Local development - no domain restriction, no secure flag
-        app.config['SESSION_COOKIE_DOMAIN'] = None
-        app.config['SESSION_COOKIE_SECURE'] = False
+        # Local dev often runs http://localhost → cookie must not be Secure there
+        app.config["SESSION_COOKIE_SECURE"] = False
+        app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+        app.config["SESSION_COOKIE_DOMAIN"] = None
     
     # Auto-cleanup configuration
     app.config['AUTO_START_MONITORING'] = True
@@ -71,6 +91,23 @@ def create_app():
     # Set up error handlers
     setup_error_handlers(app)
     
+    # Add diagnostic routes for session debugging
+    @app.route("/_debug/session")
+    def _debug_session():
+        return jsonify(
+            session=dict(session),
+            keys=list(session.keys()),
+            permanent=session.permanent,
+        )
+
+    @app.after_request
+    def _log_set_cookie(resp):
+        # Log Set-Cookie once (or when logging is enabled)
+        sc = resp.headers.get("Set-Cookie")
+        if sc and "/auth/login" in request.path:
+            logger.info(f"Set-Cookie on login: {sc}")
+        return resp
+
     logger.info("🚀 SoulBridge AI application created successfully")
     return app
 
