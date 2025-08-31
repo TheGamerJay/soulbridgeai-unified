@@ -30,11 +30,11 @@ class NavigationService:
             # ALWAYS send users to login first when they type the URL directly
             # This ensures proper authentication flow and prevents any session confusion
             logger.info("🏠 HOME: Directing user to login page (standard flow)")
-            return "/login"
+            return "/auth/login"
             
         except Exception as e:
             logger.error(f"Error determining home redirect: {e}")
-            return "/login"
+            return "/auth/login"
     
     def check_route_access(self, route_path: str) -> Dict[str, Any]:
         """Check if user can access a specific route"""
@@ -55,7 +55,7 @@ class NavigationService:
                     return {
                         "allowed": False, 
                         "reason": "authentication_required",
-                        "redirect": f"/login?return_to={route_path.lstrip('/')}"
+                        "redirect": f"/auth/login?return_to={route_path.lstrip('/')}"
                     }
                 
                 # Check terms acceptance
