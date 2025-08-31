@@ -108,10 +108,16 @@ document.addEventListener("DOMContentLoaded", function() {
         // Hide menu
         if (languageMenu) {
             languageMenu.style.display = "none";
+            console.log('🌐 [EXTERNAL] Language menu hidden');
         }
         
         // Apply translations (basic implementation)
-        applyTranslations(langCode);
+        console.log('🌐 [EXTERNAL] About to call applyTranslations with:', langCode);
+        try {
+            applyTranslations(langCode);
+        } catch (error) {
+            console.error('🌐 [EXTERNAL] Error in applyTranslations:', error);
+        }
     };
     
     // === LOAD SAVED SETTINGS ===
