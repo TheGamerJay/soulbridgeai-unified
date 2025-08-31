@@ -120,6 +120,25 @@ def user_info():
             "error": "Failed to get user information"
         }), 500
 
+@api_bp.route('/me')
+@requires_login  
+def me():
+    """Get basic user information - alias for /user-info"""
+    try:
+        result = user_api.get_user_info()
+        
+        if result["success"]:
+            return jsonify(result)
+        else:
+            return jsonify(result), 401
+        
+    except Exception as e:
+        logger.error(f"Error getting user info via /me: {e}")
+        return jsonify({
+            "success": False,
+            "error": "Failed to get user information"
+        }), 500
+
 @api_bp.route('/trial-status')
 @requires_login
 def trial_status():

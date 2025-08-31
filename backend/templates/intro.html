@@ -1840,7 +1840,7 @@
 
         async function refreshUserStatus() {
             try {
-                const res = await fetch('/api/user-info');
+                const res = await fetch('/api/user-info', { credentials: 'include' });
                 const data = await res.json();
 
                 if (!data.success) {
