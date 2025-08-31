@@ -121,6 +121,12 @@ document.addEventListener("DOMContentLoaded", function() {
         } catch (error) {
             console.error('🌐 [EXTERNAL] Error in applyTranslations:', error);
         }
+        
+        // Also try to call the inline template's comprehensive translation system if it exists
+        if (window.loadSavedLanguage && typeof window.loadSavedLanguage === 'function') {
+            console.log('🌐 [EXTERNAL] Calling inline template translation system');
+            window.loadSavedLanguage();
+        }
     };
     
     // === LOAD SAVED SETTINGS ===
