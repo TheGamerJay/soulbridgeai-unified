@@ -272,12 +272,27 @@ class UserAPI:
             cursor = conn.cursor()
             
             if db.use_postgres:
-                cursor.execute("""
-                    SELECT id, email, user_plan, trial_active, trial_expires_at,
-                           referrals, credits, created_at, last_login
-                    FROM users 
-                    WHERE id = %s
-                """, (user_id,))
+                # Try with referrals column first, fallback if it doesn't exist
+                try:
+                    cursor.execute("""
+                        SELECT id, email, user_plan, trial_active, trial_expires_at,
+                               COALESCE(referrals, 0) as referrals, COALESCE(credits, 0) as credits, 
+                               created_at, last_login
+                        FROM users 
+                        WHERE id = %s
+                    """, (user_id,))
+                except Exception as e:
+                    if "column" in str(e).lower() and "referrals" in str(e).lower():
+                        # Fallback query without referrals column
+                        cursor.execute("""
+                            SELECT id, email, user_plan, trial_active, trial_expires_at,
+                                   0 as referrals, COALESCE(credits, 0) as credits, 
+                                   created_at, last_login
+                            FROM users 
+                            WHERE id = %s
+                        """, (user_id,))
+                    else:
+                        raise
             else:
                 cursor.execute("""
                     SELECT id, email, user_plan, trial_active, trial_expires_at,
