@@ -283,6 +283,10 @@ class UserAPI:
                     """, (user_id,))
                 except Exception as e:
                     if "column" in str(e).lower() and "referrals" in str(e).lower():
+                        # Close connection and get a new one to avoid aborted transaction
+                        conn.close()
+                        conn = db.get_connection()
+                        cursor = conn.cursor()
                         # Fallback query without referrals column
                         cursor.execute("""
                             SELECT id, email, user_plan, trial_active, trial_expires_at,
