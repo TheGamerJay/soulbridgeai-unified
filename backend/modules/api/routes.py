@@ -42,6 +42,7 @@ def session_refresh():
         }), 500
 
 @api_bp.route('/user-status', methods=['GET'])
+@requires_login
 def user_status():
     """Get current user status"""
     try:
@@ -56,6 +57,7 @@ def user_status():
         }), 500
 
 @api_bp.route('/check-user-status', methods=['GET'])
+@requires_login
 def check_user_status():
     """Alternative user status endpoint"""
     try:
@@ -69,6 +71,7 @@ def check_user_status():
         }), 500
 
 @api_bp.route('/clear-session', methods=['POST'])
+@requires_login
 def clear_session():
     """Clear user session"""
     try:
@@ -83,6 +86,7 @@ def clear_session():
         }), 500
 
 @api_bp.route('/logout-on-close', methods=['POST'])
+@requires_login
 def logout_on_close():
     """Handle logout when browser closes"""
     try:

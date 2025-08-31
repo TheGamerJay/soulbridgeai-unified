@@ -9,12 +9,14 @@ from db_users import db_get_trial_state, db_get_user_plan, db_set_trial, db_fetc
 from access import get_effective_access
 from database_utils import get_database
 from constants import PLAN_LIMITS
+from modules.auth.session_manager import requires_login
 
 logger = logging.getLogger(__name__)
 
 bp_me = Blueprint("me", __name__, url_prefix="/api")
 
 @bp_me.route("/me", methods=["GET"])
+@requires_login
 def me():
     """
     Lightweight endpoint for frontend to get user access permissions.
@@ -166,6 +168,7 @@ def me():
         }), 500
 
 @bp_me.route("/me/trial-status", methods=["GET"])
+@requires_login
 def trial_status():
     """
     Get detailed trial status for user.
@@ -215,6 +218,7 @@ def trial_status():
         }), 500
 
 @bp_me.route("/me/access-check/<tier>", methods=["GET"])
+@requires_login
 def access_check(tier):
     """
     Check if user can access a specific tier.
@@ -262,6 +266,7 @@ def access_check(tier):
         }), 500
 
 @bp_me.route("/trial/activate", methods=["POST"])
+@requires_login
 def trial_activate():
     """
     Activate 5-hour trial for Bronze users.

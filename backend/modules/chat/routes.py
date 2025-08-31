@@ -331,6 +331,7 @@ def end_chat_session(session_id):
         }), 500
 
 @chat_bp.route('/api/chat/models/debug')
+@requires_login
 def debug_model_selection():
     """Debug endpoint to check model selection by tier"""
     try:
