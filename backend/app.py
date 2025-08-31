@@ -242,7 +242,7 @@ def setup_middleware(app):
             """Ensure proper session handling and auth guard"""
             try:
                 # Auth guard with detailed logging  
-                PUBLIC_PATHS = ("/login", "/auth/login", "/auth/register", "/static", "/assets", "/favicon", "/whoami", "/health", "/debug-session")
+                PUBLIC_PATHS = ("/login", "/auth/login", "/auth/register", "/static", "/assets", "/favicon", "/whoami", "/health", "/debug-session", "/api")
                 
                 if any(request.path.startswith(p) for p in PUBLIC_PATHS):
                     return  # Allow public paths
