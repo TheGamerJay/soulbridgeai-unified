@@ -85,10 +85,13 @@ document.addEventListener("DOMContentLoaded", function() {
     // === LANGUAGE CHANGE ===
     window.changeLanguage = function(langCode) {
         console.log("🌍 Changing language to:", langCode);
+        console.log("🌐 [EXTERNAL] Step 1: Setting localStorage");
         localStorage.setItem("selectedLanguage", langCode);
         
+        console.log("🌐 [EXTERNAL] Step 2: Getting currentLanguage element");
         // Update language display (match template's currentLanguage element)
         const currentLanguage = document.getElementById("currentLanguage");
+        console.log("🌐 [EXTERNAL] Step 3: currentLanguage element:", currentLanguage);
         const langMap = {
             'en': 'EN',
             'es': 'ES', 
