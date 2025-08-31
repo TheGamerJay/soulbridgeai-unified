@@ -398,8 +398,16 @@ def community_companions():
         if not is_logged_in():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
+        # Initialize companion manager if not already done
+        global companion_manager
         if not companion_manager:
-            return jsonify({"success": False, "error": "Service unavailable"}), 503
+            try:
+                from .companion_manager import CompanionManager
+                companion_manager = CompanionManager()
+                logger.info("🏘️ Initialized companion manager on demand")
+            except Exception as init_error:
+                logger.error(f"Failed to initialize companion manager: {init_error}")
+                return jsonify({"success": False, "error": "Service initialization failed"}), 503
         
         user_plan = session.get("user_plan", "bronze")
         trial_active = bool(session.get("trial_active", False))
@@ -423,15 +431,17 @@ def community_companions():
         except Exception as e:
             logger.error(f"Error getting referral count: {e}")
         
-        # Get available companions
-        companions_result = companion_manager.get_available_companions(user_plan, trial_active, referrals)
+        # Get available companions for community
+        companions = companion_manager.get_community_companions(user_plan, trial_active, referrals)
         
-        if not companions_result['success']:
-            return jsonify({"success": False, "error": companions_result['error']}), 500
+        # Add can_access field for frontend compatibility  
+        for companion in companions:
+            companion['can_access'] = not companion.get('locked', False)
+            companion['id'] = companion.get('slug', companion.get('id', ''))
         
         return jsonify({
             "success": True,
-            "companions": companions_result['companions']
+            "companions": companions
         })
         
     except Exception as e:
