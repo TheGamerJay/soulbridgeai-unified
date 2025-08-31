@@ -260,9 +260,17 @@ document.addEventListener("DOMContentLoaded", function() {
                 and: "et",
                 privacy_policy: "Politique de Confidentialité",
                 already_have_account: "Vous avez déjà un compte?",
-                sign_in: "Se connecter",
+                sign_in: "Se connecter", 
                 back: "← Retour",
-                language_en: "FR"
+                language_en: "FR",
+                lang_english: "English",
+                lang_spanish: "Español",
+                lang_french: "Français",
+                lang_german: "Deutsch", 
+                lang_portuguese: "Português",
+                lang_chinese: "中文",
+                lang_japanese: "日本語",
+                lang_russian: "Русский"
             },
             de: {
                 create_account: "Konto Erstellen",
@@ -282,7 +290,15 @@ document.addEventListener("DOMContentLoaded", function() {
                 already_have_account: "Haben Sie bereits ein Konto?",
                 sign_in: "Anmelden",
                 back: "← Zurück",
-                language_en: "DE"
+                language_en: "DE",
+                lang_english: "English",
+                lang_spanish: "Español",
+                lang_french: "Français",
+                lang_german: "Deutsch", 
+                lang_portuguese: "Português",
+                lang_chinese: "中文",
+                lang_japanese: "日本語",
+                lang_russian: "Русский"
             },
             pt: {
                 create_account: "Criar Conta",
@@ -302,7 +318,15 @@ document.addEventListener("DOMContentLoaded", function() {
                 already_have_account: "Já tem uma conta?",
                 sign_in: "Entrar",
                 back: "← Voltar",
-                language_en: "PT"
+                language_en: "PT",
+                lang_english: "English",
+                lang_spanish: "Español",
+                lang_french: "Français",
+                lang_german: "Deutsch", 
+                lang_portuguese: "Português",
+                lang_chinese: "中文",
+                lang_japanese: "日本語",
+                lang_russian: "Русский"
             },
             zh: {
                 create_account: "创建账户",
@@ -322,7 +346,15 @@ document.addEventListener("DOMContentLoaded", function() {
                 already_have_account: "已经有账户了？",
                 sign_in: "登录",
                 back: "← 返回",
-                language_en: "ZH"
+                language_en: "ZH",
+                lang_english: "English",
+                lang_spanish: "Español",
+                lang_french: "Français",
+                lang_german: "Deutsch", 
+                lang_portuguese: "Português",
+                lang_chinese: "中文",
+                lang_japanese: "日本語",
+                lang_russian: "Русский"
             },
             ja: {
                 create_account: "アカウント作成",
@@ -342,7 +374,15 @@ document.addEventListener("DOMContentLoaded", function() {
                 already_have_account: "すでにアカウントをお持ちですか？",
                 sign_in: "ログイン",
                 back: "← 戻る",
-                language_en: "JP"
+                language_en: "JP",
+                lang_english: "English",
+                lang_spanish: "Español",
+                lang_french: "Français",
+                lang_german: "Deutsch", 
+                lang_portuguese: "Português",
+                lang_chinese: "中文",
+                lang_japanese: "日本語",
+                lang_russian: "Русский"
             },
             ru: {
                 create_account: "Создать Аккаунт",
@@ -362,7 +402,15 @@ document.addEventListener("DOMContentLoaded", function() {
                 already_have_account: "Уже есть аккаунт?",
                 sign_in: "Войти",
                 back: "← Назад",
-                language_en: "RU"
+                language_en: "RU",
+                lang_english: "English",
+                lang_spanish: "Español",
+                lang_french: "Français",
+                lang_german: "Deutsch", 
+                lang_portuguese: "Português",
+                lang_chinese: "中文",
+                lang_japanese: "日本語",
+                lang_russian: "Русский"
             }
         };
         
