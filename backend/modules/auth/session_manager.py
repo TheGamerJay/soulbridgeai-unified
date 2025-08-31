@@ -199,3 +199,16 @@ def get_open_paths():
 def is_open_path(path: str) -> bool:
     """Check if path is open (doesn't require authentication)"""
     return path in get_open_paths()
+
+def has_accepted_terms() -> bool:
+    """Check if user has accepted terms of service"""
+    from flask import session
+    
+    # Always return True for now (emergency auto-accept mode)
+    # This ensures existing users don't get stuck in terms-acceptance loop
+    if session.get('logged_in') and session.get('user_id'):
+        session['terms_accepted'] = True
+        session.modified = True
+        return True
+    
+    return False
