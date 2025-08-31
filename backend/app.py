@@ -6,7 +6,7 @@ Clean Flask application with Blueprint architecture
 import os
 import logging
 from datetime import datetime
-from flask import Flask, session, request, redirect, jsonify
+from flask import Flask, session, request, redirect, jsonify, url_for
 from flask_cors import CORS
 
 # Configure logging
@@ -253,15 +253,17 @@ def setup_middleware(app):
                     return
                 
                 # About to redirect - log exactly why
-                logger.info(
-                    f"[AUTH_GUARD] Redirecting {request.path} to /login: "
-                    f"logged_in={logged_in}, user_id={user_id}, email={email}, "
-                    f"terms_accepted={terms_accepted}, user_plan={user_plan}, "
-                    f"session_keys={list(session.keys())}, "
-                    f"cookies={list(request.cookies.keys())}"
-                )
+                try:
+                    logger.info(
+                        f"[AUTH_GUARD] Redirecting {request.path} to /login: "
+                        f"logged_in={logged_in}, user_id={user_id}, email={email}, "
+                        f"terms_accepted={terms_accepted}, user_plan={user_plan}, "
+                        f"session_keys={list(session.keys()) if session else []}, "
+                        f"cookies={list(request.cookies.keys()) if request.cookies else []}"
+                    )
+                except Exception as log_error:
+                    logger.error(f"Error in auth guard logging: {log_error}")
                 
-                from flask import redirect, url_for
                 return redirect(f"/login?return_to={request.path.lstrip('/')}")
                 
             except Exception as e:
