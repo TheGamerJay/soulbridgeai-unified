@@ -79,6 +79,9 @@ def auth_login():
             # Set isolated tier access flags
             auth_service.set_tier_access_flags()
             
+            # Debug session state
+            logger.info(f"[LOGIN] Session after setup: logged_in={session.get('logged_in')}, email={session.get('email')}, user_id={session.get('user_id')}")
+            
             # Determine redirect URL
             try:
                 redirect_url = "/terms-acceptance" if not has_accepted_terms() else "/intro"
@@ -86,6 +89,8 @@ def auth_login():
                 logger.error(f"[LOGIN] Error checking terms acceptance: {e}")
                 # Default to intro page if terms check fails
                 redirect_url = "/intro"
+            
+            logger.info(f"[LOGIN] Final redirect URL: {redirect_url}")
             
             if request.headers.get('Content-Type') == 'application/json' or request.is_json:
                 return jsonify({"success": True, "redirect": redirect_url})
