@@ -17,7 +17,7 @@ class TierLockManager {
             const response = await fetch('/api/me', {
                 method: 'GET',
                 headers: { 'Content-Type': 'application/json' },
-                credentials: 'same-origin'
+                credentials: 'include'
             });
 
             if (response.ok) {
