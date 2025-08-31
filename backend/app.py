@@ -30,8 +30,8 @@ def create_app():
     app.config['SESSION_COOKIE_PATH'] = "/"
 
     if os.environ.get("ENVIRONMENT") == "production":
-        # Don't set domain for Railway - let it use the default
-        app.config['SESSION_COOKIE_DOMAIN'] = None  
+        # Set domain to work with both soulbridgeai.com and www.soulbridgeai.com
+        app.config['SESSION_COOKIE_DOMAIN'] = '.soulbridgeai.com'  
         app.config['SESSION_COOKIE_SECURE'] = True
     else:
         app.config['SESSION_COOKIE_DOMAIN'] = None
