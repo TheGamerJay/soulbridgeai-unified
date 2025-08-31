@@ -54,22 +54,17 @@ def intro_page():
         logger.error(f"Error rendering intro page: {e}")
         return page_renderer.render_error_page("Failed to load welcome page")
 
-@core_bp.route('/login')
-def login_page():
-    """Login page - always show login form"""
-    try:
-        # Always show login page, don't redirect if already logged in
-        # This prevents redirect loops and ensures users can always access login
-        error_message = request.args.get('error')
-        return_to = request.args.get('return_to')
-        
-        return page_renderer.render_login_page(error_message, return_to)
-        
-    except Exception as e:
-        logger.error(f"Error rendering login page: {e}")
-        return page_renderer.render_error_page("Login system temporarily unavailable")
+# Login handled by auth blueprint - removed to avoid conflict
 
-# Register route handled by auth blueprint - removed duplicate
+@core_bp.route('/login')
+def login_redirect():
+    """Redirect /login to /auth/login for compatibility"""
+    return redirect("/auth/login")
+
+@core_bp.route('/register') 
+def register_redirect():
+    """Redirect /register to /auth/register for compatibility"""
+    return redirect("/auth/register")
 
 @core_bp.route('/terms-acceptance')
 @requires_login  

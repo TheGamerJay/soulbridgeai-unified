@@ -32,9 +32,20 @@ def parse_request_data():
         logger.error(f"Error parsing request data: {e}")
         return '', '', {}
 
-@auth_bp.route("/auth/login", methods=["POST"])
+@auth_bp.route("/login", methods=["GET", "POST"])
 def auth_login():
-    """Login authentication - process POST only"""
+    """Login page and authentication"""
+    if request.method == "GET":
+        # Display login form
+        error_message = request.args.get('error')
+        return_to = request.args.get('return_to')
+        try:
+            from flask import render_template
+            return render_template('login.html', error=error_message, return_to=return_to)
+        except Exception as e:
+            logger.error(f"Error rendering login page: {e}")
+            return f"<h1>Login Error</h1><p>{str(e)}</p>"
+    
     # Handle POST requests - process login
     try:
         logger.info(f"[LOGIN] Received {request.method} request at /auth/login from {request.remote_addr}")
@@ -49,7 +60,7 @@ def auth_login():
                 return jsonify({"success": False, "error": error_msg}), 400
             else:
                 flash(error_msg, "error")
-                return redirect("/login")
+                return redirect("/auth/login")
         
         # Initialize auth service
         auth_service = AuthService()
@@ -105,7 +116,7 @@ def auth_login():
             else:
                 logger.warning(f"[LOGIN] Flashing error: {result['error']}")
                 flash(result["error"], "error")
-                return redirect("/login")
+                return redirect("/auth/login")
                 
     except Exception as e:
         logger.error(f"[LOGIN] Unexpected error: {e}")
@@ -118,7 +129,7 @@ def auth_login():
             return jsonify({"success": False, "error": error_msg}), 500
         else:
             flash(error_msg, "error")
-            return redirect("/login")
+            return redirect("/auth/login")
 
 @auth_bp.route("/logout", methods=["GET", "POST"])
 def logout():
@@ -152,7 +163,7 @@ def register():
         
         if not email or not password:
             flash("Email and password are required", "error")
-            return redirect("/register")
+            return redirect("/auth/register")
         
         auth_service = AuthService()
         result = auth_service.register_user(email, password, form_data)
@@ -160,15 +171,15 @@ def register():
         if result["success"]:
             logger.info(f"[REGISTER] Successfully registered user: {email}")
             flash("Registration successful! Please log in.", "success")
-            return redirect("/login")
+            return redirect("/auth/login")
         else:
             logger.warning(f"[REGISTER] Registration failed for {email}: {result['error']}")
             flash(result["error"], "error")
-            return redirect("/register")
+            return redirect("/auth/register")
             
     except Exception as e:
         logger.error(f"[REGISTER] Unexpected error: {e}")
         flash("Registration system temporarily unavailable", "error")
-        return redirect("/register")
+        return redirect("/auth/register")
 
 # Add more auth routes as needed...
