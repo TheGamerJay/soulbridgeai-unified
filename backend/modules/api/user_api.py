@@ -19,7 +19,7 @@ class UserAPI:
     def get_user_info(self) -> Dict[str, Any]:
         """Get comprehensive user information"""
         try:
-            if not session.get('user_authenticated') or not session.get('user_id'):
+            if not session.get('logged_in') or not session.get('user_id'):
                 return {
                     "success": False,
                     "error": "Not authenticated"
