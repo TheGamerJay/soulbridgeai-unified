@@ -953,9 +953,9 @@
                     // Use actual companion image or fallback to emoji
                     const avatarElement = document.getElementById('composer-avatar');
                     if (companion.image_url) {
-                        avatarElement.innerHTML = `<img src="${companion.image_url}" alt="${companion.name}" style="width: 100%; height: 100%; object-fit: contain;" onerror="this.style.display='none'; this.parentElement.textContent='🌟';">`;
+                        avatarElement.innerHTML = `<img src="${companion.image_url}" alt="${companion.name}" style="width: 100%; height: 100%; object-fit: contain;" onerror="this.style.display='none'; this.parentElement.innerHTML='🌟';">`;
                     } else {
-                        avatarElement.textContent = getCompanionEmoji(companion.id);
+                        avatarElement.innerHTML = getCompanionEmoji(companion.id);
                     }
                     
                     // Store current companion for posting
@@ -1565,6 +1565,44 @@
 
         function getCompanionEmoji(companionId) {
             const companions = {
+                // Bronze tier companions
+                'gamerjay_bronze': '🎮',
+                'blayzo_bronze': '🌟',
+                'blayzica_bronze': '✨',
+                'claude_bronze': '🤖',
+                'blayzia_bronze': '💫',
+                'blayzion_bronze': '🌌',
+                'lumen_bronze': '💡',
+                'blayzo2_bronze': '⭐',
+                
+                // Silver tier companions
+                'sky_silver': '☁️',
+                'gamerjay_silver': '🎯',
+                'claude_silver': '🔮',
+                'blayzo_silver': '🌠',
+                'blayzica_silver': '💎',
+                'watchdog_silver': '🐕',
+                'rozia_silver': '🌹',
+                'lumen_silver': '🔆',
+                
+                // Gold tier companions
+                'crimson_gold': '🔴',
+                'violet_gold': '🟣',
+                'claude_gold': '👑',
+                'royal_gold': '👑',
+                'ven_blayzica_gold': '🚀',
+                'ven_sky_gold': '🌈',
+                'watchdog_gold': '🛡️',
+                'dr_madjay_gold': '🧪',
+                
+                // Referral companions
+                'blayzike': '🎭',
+                'nyxara': '🌙',
+                'blazelian': '🔥',
+                'claude_referral': '🎁',
+                'blayzo_referral': '🎊',
+                
+                // Legacy IDs
                 1: '👤',
                 2: '🌟',
                 3: '✨',
@@ -1616,7 +1654,7 @@
                 document.getElementById('companion-loading').style.display = 'block';
                 document.getElementById('companion-list').style.display = 'none';
                 
-                const response = await fetch(`/api/companions`);
+                const response = await fetch(`${API_BASE}/companions`);
                 const data = await response.json();
                 
                 if (data.success && data.companions) {
@@ -1665,12 +1703,13 @@
                     upgradeText = `<div style="color: #ff6b6b; font-size: 10px; margin-top: 4px;">${companion.lock_reason || 'Access restricted'}</div>`;
                 }
                 
+                const fallbackEmoji = getCompanionEmoji(companion.id);
                 companionCard.innerHTML = `
                     ${lockIcon}
                     <div class="companion-avatar">
                         ${companion.image_url 
-                            ? `<img src="${companion.image_url}" alt="${companion.name}" style="width: 100%; height: 100%; object-fit: contain;" onerror="this.style.display='none'; this.parentElement.textContent='${getCompanionEmoji(companion.id)}';">` 
-                            : getCompanionEmoji(companion.id)
+                            ? `<img src="${companion.image_url}" alt="${companion.name}" style="width: 100%; height: 100%; object-fit: contain;" onerror="this.style.display='none'; this.parentElement.innerHTML='${fallbackEmoji}';">` 
+                            : fallbackEmoji
                         }
                     </div>
                     <div class="companion-name">${companion.name}</div>
@@ -1788,9 +1827,10 @@
             // Set companion avatar with proper fallback logic
             const avatarContainer = confirmModal.querySelector('#modal-companion-avatar');
             if (selectedCompanion.image_url) {
+                const fallbackEmoji = getCompanionEmoji(selectedCompanion.id);
                 avatarContainer.innerHTML = `<img src="${selectedCompanion.image_url}" alt="${companionName}" 
                                                   style="width: 100%; height: 100%; object-fit: contain; border-radius: 50%;" 
-                                                  onerror="this.style.display='none'; this.parentElement.innerHTML='${getCompanionEmoji(selectedCompanion.id)}';">`;
+                                                  onerror="this.style.display='none'; this.parentElement.innerHTML='${fallbackEmoji}';">`;
             } else {
                 avatarContainer.innerHTML = getCompanionEmoji(selectedCompanion.id);
             }
@@ -1951,9 +1991,9 @@
                     const avatarElement = document.getElementById('composer-avatar');
                     if (avatarElement) {
                         if (selectedCompanion.image_url) {
-                            avatarElement.innerHTML = `<img src="${selectedCompanion.image_url}" alt="${selectedCompanion.display_name}" style="width: 100%; height: 100%; object-fit: contain;" onerror="this.style.display='none'; this.parentElement.textContent='${getCompanionEmoji(selectedCompanion.id)}';">`;
+                            avatarElement.innerHTML = `<img src="${selectedCompanion.image_url}" alt="${selectedCompanion.display_name || selectedCompanion.name}" style="width: 100%; height: 100%; object-fit: contain;" onerror="this.style.display='none'; this.parentElement.innerHTML='${getCompanionEmoji(selectedCompanion.id)}';">`;
                         } else {
-                            avatarElement.textContent = getCompanionEmoji(selectedCompanion.id);
+                            avatarElement.innerHTML = getCompanionEmoji(selectedCompanion.id);
                         }
                     }
                     

@@ -28,19 +28,68 @@ class CommunityService:
     def get_user_avatar(self, user_id: int) -> Dict[str, Any]:
         """Get user's current community avatar/companion"""
         try:
-            # Try to get from session first (for performance)
-            # In production, this would check the database
+            from flask import session
+            
+            # Get companion info from session first
+            companion_info = session.get('companion_info')
+            
+            if companion_info and 'id' in companion_info:
+                # Return companion info from session
+                return {
+                    'success': True,
+                    'companion': {
+                        'name': companion_info.get('name', 'Soul'),
+                        'companion_id': companion_info.get('id', 'soul'),
+                        'avatar_url': companion_info.get('image_url', '/static/logos/New IntroLogo.png'),
+                        'image_url': companion_info.get('image_url', '/static/logos/New IntroLogo.png'),
+                        'tier': companion_info.get('tier', 'bronze')
+                    }
+                }
+            
+            # Try to get from database if available
+            if self.database:
+                try:
+                    conn = self.database.get_connection()
+                    cursor = conn.cursor()
+                    
+                    # Check if user has a set companion
+                    if self.database.use_postgres:
+                        cursor.execute("SELECT companion_avatar_id, companion_avatar_name FROM users WHERE id = %s", (user_id,))
+                    else:
+                        cursor.execute("SELECT companion_avatar_id, companion_avatar_name FROM users WHERE id = ?", (user_id,))
+                    
+                    result = cursor.fetchone()
+                    conn.close()
+                    
+                    if result and result[0]:
+                        companion_id, companion_name = result
+                        # Get companion data from companion manager
+                        if self.companion_manager:
+                            companion_data = self.companion_manager.get_companion_by_id(companion_id)
+                            if companion_data:
+                                return {
+                                    'success': True,
+                                    'companion': {
+                                        'name': companion_name or companion_data.get('name', 'Soul'),
+                                        'companion_id': companion_id,
+                                        'avatar_url': companion_data.get('image_url', '/static/logos/New IntroLogo.png'),
+                                        'image_url': companion_data.get('image_url', '/static/logos/New IntroLogo.png'),
+                                        'tier': companion_data.get('tier', 'bronze')
+                                    }
+                                }
+                        
+                except Exception as db_error:
+                    logger.warning(f"Database lookup failed for avatar: {db_error}")
             
             # Default companion if none set
             default_companion = {
                 'name': 'Soul',
                 'companion_id': 'soul',
-                'avatar_url': '/static/companions/soul.png',
+                'avatar_url': '/static/logos/New IntroLogo.png',
+                'image_url': '/static/logos/New IntroLogo.png',
                 'tier': 'bronze'
             }
             
-            # TODO: Get from database/session storage
-            # For now, return default
             return {
                 'success': True,
                 'companion': default_companion
@@ -69,10 +118,11 @@ class CommunityService:
             
             # Validate companion access if companion manager available
             if self.companion_manager:
-                # Get user's plan and trial status (would come from session/database)
-                user_plan = 'bronze'  # TODO: Get from session/database
-                trial_active = False  # TODO: Get from session/database
-                referrals = 0  # TODO: Get from database
+                from flask import session
+                # Get user's plan and trial status from session
+                user_plan = session.get('user_plan', 'bronze')
+                trial_active = session.get('trial_active', False)
+                referrals = session.get('referrals', 0)
                 
                 if not self.companion_manager.can_user_access_companion(
                     user_plan, trial_active, referrals, companion_id
@@ -82,7 +132,45 @@ class CommunityService:
                         'error': 'You do not have access to this companion'
                     }
             
-            # Save avatar selection
+            # Save avatar selection to session
+            from flask import session
+            
+            companion_info = {
+                'id': companion_id,
+                'name': companion_data['name'], 
+                'image_url': companion_data['avatar_url'],
+                'tier': companion_data.get('tier', 'bronze')
+            }
+            
+            session['companion_info'] = companion_info
+            session.modified = True
+            
+            # Also save to database if available
+            if self.database:
+                try:
+                    conn = self.database.get_connection()
+                    cursor = conn.cursor()
+                    
+                    if self.database.use_postgres:
+                        cursor.execute("""
+                            UPDATE users 
+                            SET companion_avatar_id = %s, companion_avatar_name = %s 
+                            WHERE id = %s
+                        """, (companion_id, companion_data['name'], user_id))
+                    else:
+                        cursor.execute("""
+                            UPDATE users 
+                            SET companion_avatar_id = ?, companion_avatar_name = ? 
+                            WHERE id = ?
+                        """, (companion_id, companion_data['name'], user_id))
+                    
+                    conn.commit()
+                    conn.close()
+                    logger.info(f"👤 Saved avatar to database for user {user_id}")
+                    
+                except Exception as db_error:
+                    logger.warning(f"Failed to save avatar to database: {db_error}")
+            
             avatar_data = {
                 'user_id': user_id,
                 'companion_id': companion_id,
@@ -90,9 +178,6 @@ class CommunityService:
                 'avatar_url': companion_data['avatar_url'],
                 'selected_at': datetime.now().isoformat()
             }
-            
-            # TODO: Save to database
-            # For now, this would be handled in the route using session
             
             logger.info(f"👤 Set community avatar for user {user_id}: {companion_id}")
             
