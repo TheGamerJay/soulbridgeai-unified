@@ -96,11 +96,17 @@ def requires_login(f):
     """Decorator to require login for routes"""
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if not is_logged_in():
+        login_status = is_logged_in()
+        logger.info(f"[REQUIRES_LOGIN] {request.path}: is_logged_in()={login_status}, request.is_json={request.is_json}")
+        
+        if not login_status:
+            logger.warning(f"[REQUIRES_LOGIN] {request.path}: Authentication required - returning 401")
             if request.is_json:
                 return jsonify({'error': 'Authentication required'}), 401
             else:
                 return redirect('/login')
+        
+        logger.info(f"[REQUIRES_LOGIN] {request.path}: Authentication passed - proceeding to route")
         return f(*args, **kwargs)
     return decorated_function
 
