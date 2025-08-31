@@ -1331,14 +1331,16 @@
                         <div class="reaction-buttons">
                             ${REACTIONS.map(emoji => {
                                 const count = reactions[emoji] || 0;
-                                const isActive = false; // Would check if current user reacted
+                                const userReaction = userReactions.get(post.id);
+                                const isActive = userReaction === emoji;
                                 const meaning = emojiMeanings[emoji] || emoji;
                                 return `
                                     <button class="reaction-btn ${isActive ? 'active' : ''}" 
                                             onclick="toggleReaction(${post.id}, '${emoji}')"
                                             data-reaction="${emoji}"
-                                            title="${meaning}">
-                                        ${emoji} ${count > 0 ? count : ''}
+                                            title="${meaning}"
+                                            style="${isActive ? 'background: rgba(0, 255, 255, 0.2); border: 1px solid rgba(0, 255, 255, 0.4);' : ''}">
+                                        ${emoji}${count > 0 ? ' ' + count : ''}
                                     </button>
                                 `;
                             }).join('')}
@@ -1362,45 +1364,49 @@
 
         // Toggle reaction on a post
         async function toggleReaction(postId, emoji) {
+            const postElement = document.querySelector(`[data-post-id="${postId}"]`);
+            const reactionButtons = postElement.querySelectorAll('.reaction-btn');
+            const clickedButton = postElement.querySelector(`[data-reaction="${emoji}"]`);
+            
             // Check if user already reacted to this post
             const existingReaction = userReactions.get(postId);
             
-            if (existingReaction) {
-                if (existingReaction === emoji) {
-                    // Remove the same reaction
-                    userReactions.delete(postId);
-                    showMessage(`Removed ${emoji} reaction`, 'success');
-                } else {
-                    // User trying to add different reaction - not allowed
-                    showMessage(`You can only react once per post. Remove your ${existingReaction} reaction first to change it.`, 'error');
-                    return;
-                }
-            } else {
-                // Check rate limiting between different posts
-                const now = Date.now();
-                const lastReaction = reactionCooldowns.get(postId);
-                
-                if (lastReaction && (now - lastReaction) < REACTION_COOLDOWN) {
-                    const remainingTime = Math.ceil((REACTION_COOLDOWN - (now - lastReaction)) / 1000);
-                    showMessage(`Please wait ${remainingTime} seconds before reacting to this post`, 'error');
-                    return;
-                }
-                
-                // Add new reaction
-                userReactions.set(postId, emoji);
-                reactionCooldowns.set(postId, now);
-                showMessage(`Added ${emoji} reaction`, 'success');
+            if (existingReaction && existingReaction !== emoji) {
+                // User trying to add different reaction - not allowed
+                showMessage(`You can only react once per post. Click your ${existingReaction} reaction to remove it first.`, 'error');
+                return;
             }
             
-            // Update UI to reflect reaction state
-            const postElement = document.querySelector(`[data-post-id="${postId}"]`);
-            const reactionButtons = postElement.querySelectorAll('.reaction-btn');
+            // Check rate limiting between posts
+            const now = Date.now();
+            const lastReaction = reactionCooldowns.get(postId);
             
-            // Disable all buttons temporarily during processing
+            if (lastReaction && (now - lastReaction) < REACTION_COOLDOWN) {
+                const remainingTime = Math.ceil((REACTION_COOLDOWN - (now - lastReaction)) / 1000);
+                showMessage(`Please wait ${remainingTime} seconds before reacting to this post`, 'error');
+                return;
+            }
+            
+            // Disable all buttons immediately to prevent double-clicking
             reactionButtons.forEach(btn => {
                 btn.disabled = true;
                 btn.style.opacity = '0.6';
             });
+            
+            // Determine action and update local state immediately
+            let action, newReaction;
+            if (existingReaction === emoji) {
+                // Remove existing reaction
+                userReactions.delete(postId);
+                action = 'removed';
+                newReaction = null;
+            } else {
+                // Add new reaction
+                userReactions.set(postId, emoji);
+                action = 'added';  
+                newReaction = emoji;
+                reactionCooldowns.set(postId, now);
+            }
             
             try {
                 const response = await fetch(`${API_BASE}/posts/${postId}/react`, {
@@ -1414,44 +1420,58 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    // Update the reaction buttons UI
-                    const post = document.querySelector(`[data-post-id="${postId}"]`);
+                    // Update UI based on local state to prevent inconsistencies
                     const currentUserReaction = userReactions.get(postId);
                     
-                    // Update all reaction counts and visual states
-                    Object.entries(data.reaction_counts).forEach(([emo, count]) => {
-                        const btn = post.querySelector(`[data-reaction="${emo}"]`);
-                        if (btn) {
-                            // Update count display
-                            btn.innerHTML = count > 0 ? `${emo} ${count}` : emo;
-                            
-                            // Style active reaction (user's current reaction)
-                            if (emo === currentUserReaction) {
-                                btn.classList.add('active');
-                                btn.style.background = 'rgba(0, 255, 255, 0.2)';
-                                btn.style.border = '1px solid rgba(0, 255, 255, 0.4)';
-                            } else {
-                                btn.classList.remove('active');
-                                btn.style.background = '';
-                                btn.style.border = '';
-                            }
+                    // Update all reaction buttons
+                    reactionButtons.forEach(btn => {
+                        const btnEmoji = btn.dataset.reaction;
+                        const count = data.reaction_counts[btnEmoji] || 0;
+                        
+                        // Update button display
+                        btn.innerHTML = count > 0 ? `${btnEmoji} ${count}` : btnEmoji;
+                        
+                        // Style active reaction (user's current reaction only)
+                        if (btnEmoji === currentUserReaction) {
+                            btn.classList.add('active');
+                            btn.style.background = 'rgba(0, 255, 255, 0.2)';
+                            btn.style.border = '1px solid rgba(0, 255, 255, 0.4)';
+                        } else {
+                            btn.classList.remove('active');
+                            btn.style.background = '';
+                            btn.style.border = '';
                         }
                     });
+                    
+                    // Show confirmation message
+                    if (action === 'added') {
+                        showMessage(`Added ${emoji} reaction`, 'success');
+                    } else {
+                        showMessage(`Removed ${emoji} reaction`, 'success');
+                    }
                 } else {
                     throw new Error(data.error || 'Failed to react');
                 }
                 
             } catch (error) {
                 console.error('Error reacting to post:', error);
+                
+                // Revert local state since API call failed
+                if (action === 'added') {
+                    userReactions.delete(postId);
+                } else if (action === 'removed') {
+                    userReactions.set(postId, emoji);
+                }
+                
                 showMessage('Failed to react to post. Please try again.', 'error');
             } finally {
-                // Re-enable reaction buttons after a short delay
+                // Re-enable reaction buttons
                 setTimeout(() => {
                     reactionButtons.forEach(btn => {
                         btn.disabled = false;
                         btn.style.opacity = '1';
                     });
-                }, 1000);
+                }, 500);
             }
         }
 
