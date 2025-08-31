@@ -69,20 +69,7 @@ def login_page():
         logger.error(f"Error rendering login page: {e}")
         return page_renderer.render_error_page("Login system temporarily unavailable")
 
-@core_bp.route('/register')
-def register_page():
-    """Registration page"""
-    try:
-        # If already logged in, redirect to home
-        if navigation_service._is_logged_in():
-            return redirect("/")
-        
-        error_message = request.args.get('error')
-        return page_renderer.render_register_page(error_message)
-        
-    except Exception as e:
-        logger.error(f"Error rendering register page: {e}")
-        return page_renderer.render_error_page("Failed to load registration page")
+# Register route handled by auth blueprint - removed duplicate
 
 @core_bp.route('/terms-acceptance')
 @requires_login  
