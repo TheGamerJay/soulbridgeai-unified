@@ -314,6 +314,25 @@ def react_to_post(post_id):
         
         logger.info(f"[COMMUNITY] User {user_id} reacted to post {post_id} with {emoji}")
         
+        # Update weekly event metrics if there's an active event
+        try:
+            from .weekly_events_service import WeeklyEventsService
+            events_service = WeeklyEventsService(get_database())
+            current_event = events_service.get_current_weekly_event()
+            
+            if current_event:
+                # Update post metrics for the weekly event
+                events_service.update_post_metrics(post_id, current_event['id'])
+                
+                # Auto-register user as participant if not already
+                events_service.register_participant(
+                    current_event['id'], 
+                    user_id, 
+                    session.get('selected_companion')
+                )
+        except Exception as e:
+            logger.warning(f"Failed to update weekly event metrics: {e}")
+        
         return jsonify({
             "success": True,
             "action": action,
@@ -590,6 +609,85 @@ def community_companions():
     except Exception as e:
         logger.error(f"Community companions error: {e}")
         return jsonify({"success": False, "error": "Failed to load companions"}), 500
+
+@community_bp.route("/community/weekly-event")
+def get_weekly_event():
+    """Get current weekly appreciation event"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+            
+        from .weekly_events_service import WeeklyEventsService
+        events_service = WeeklyEventsService(get_database())
+        
+        current_event = events_service.get_current_weekly_event()
+        if not current_event:
+            return jsonify({
+                "success": True, 
+                "event": None,
+                "message": "No active event this week"
+            })
+        
+        # Get leaderboard
+        leaderboard = events_service.get_weekly_leaderboard(current_event['id'], limit=10)
+        
+        # Get user's stats
+        user_id = session.get('user_id')
+        user_stats = events_service.get_user_event_stats(user_id, current_event['id'])
+        
+        return jsonify({
+            "success": True,
+            "event": current_event,
+            "leaderboard": leaderboard,
+            "user_stats": user_stats
+        })
+        
+    except Exception as e:
+        logger.error(f"Error getting weekly event: {e}")
+        return jsonify({"success": False, "error": "Failed to load weekly event"}), 500
+
+@community_bp.route("/community/weekly-event/join", methods=["POST"])
+def join_weekly_event():
+    """Join the current weekly appreciation event"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+            
+        data = request.get_json()
+        companion_id = data.get('companion_id') if data else None
+        
+        from .weekly_events_service import WeeklyEventsService
+        events_service = WeeklyEventsService(get_database())
+        
+        current_event = events_service.get_current_weekly_event()
+        if not current_event:
+            return jsonify({
+                "success": False, 
+                "error": "No active event to join"
+            }), 400
+        
+        user_id = session.get('user_id')
+        success = events_service.register_participant(
+            current_event['id'], 
+            user_id, 
+            companion_id
+        )
+        
+        if success:
+            return jsonify({
+                "success": True,
+                "message": "Successfully joined the weekly appreciation event!",
+                "event": current_event
+            })
+        else:
+            return jsonify({
+                "success": False,
+                "error": "Failed to join event"
+            }), 500
+            
+    except Exception as e:
+        logger.error(f"Error joining weekly event: {e}")
+        return jsonify({"success": False, "error": "Failed to join event"}), 500
 
 @community_bp.route("/community/avatar")
 def community_get_avatar():
