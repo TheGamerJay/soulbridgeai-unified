@@ -126,7 +126,7 @@ class NavigationService:
     
     def _is_logged_in(self) -> bool:
         """Check if user is authenticated"""
-        return session.get('user_authenticated', False) and session.get('user_id') is not None
+        return session.get('logged_in', False) and session.get('user_id') is not None
     
     def _has_accepted_terms(self) -> bool:
         """Check if user has accepted terms"""
@@ -365,7 +365,7 @@ class NavigationService:
     
     def _is_logged_in(self) -> bool:
         """Check if user is authenticated"""
-        return session.get('user_authenticated', False) and session.get('user_id') is not None
+        return session.get('logged_in', False) and session.get('user_id') is not None
     
     def _has_accepted_terms(self) -> bool:
         """Check if user has accepted terms"""
