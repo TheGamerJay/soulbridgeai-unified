@@ -271,7 +271,7 @@ class UserAPI:
             conn = db.get_connection()
             cursor = conn.cursor()
             
-            if db.db_type == 'postgresql':
+            if db.use_postgres:
                 cursor.execute("""
                     SELECT id, email, user_plan, trial_active, trial_expires_at,
                            referrals, credits, created_at, last_login
@@ -320,7 +320,7 @@ class UserAPI:
             conn = db.get_connection()
             cursor = conn.cursor()
             
-            if db.db_type == 'postgresql':
+            if db.use_postgres:
                 cursor.execute("""
                     SELECT trial_active, trial_expires_at, trial_start_time
                     FROM users 
@@ -407,7 +407,7 @@ class UserAPI:
             cursor = conn.cursor()
             
             # Update terms acceptance
-            if db.db_type == 'postgresql':
+            if db.use_postgres:
                 cursor.execute("""
                     UPDATE users 
                     SET terms_accepted = true, 
@@ -445,7 +445,7 @@ class UserAPI:
             conn = db.get_connection()
             cursor = conn.cursor()
             
-            if db.db_type == 'postgresql':
+            if db.use_postgres:
                 cursor.execute("""
                     SELECT addon_type FROM user_addons 
                     WHERE user_id = %s AND active = true
