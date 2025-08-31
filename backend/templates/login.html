@@ -692,9 +692,11 @@
         function changeLanguage(lang) {
             localStorage.setItem('selectedLanguage', lang);
             updateLanguageDisplay(lang);
-            toggleLanguageMenu();
             // Apply translations immediately
             applyTranslations(lang);
+            
+            // Don't close menu immediately to allow multiple language selections
+            // User can click elsewhere or on the button again to close
         }
         
         function updateLanguageDisplay(lang) {
