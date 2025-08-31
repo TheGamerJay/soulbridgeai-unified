@@ -80,7 +80,12 @@ def auth_login():
             auth_service.set_tier_access_flags()
             
             # Determine redirect URL
-            redirect_url = "/terms-acceptance" if not has_accepted_terms() else "/intro"
+            try:
+                redirect_url = "/terms-acceptance" if not has_accepted_terms() else "/intro"
+            except Exception as e:
+                logger.error(f"[LOGIN] Error checking terms acceptance: {e}")
+                # Default to intro page if terms check fails
+                redirect_url = "/intro"
             
             if request.headers.get('Content-Type') == 'application/json' or request.is_json:
                 return jsonify({"success": True, "redirect": redirect_url})
