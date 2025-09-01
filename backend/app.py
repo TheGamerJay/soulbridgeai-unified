@@ -108,7 +108,97 @@ def create_app():
             logger.info(f"Set-Cookie on login: {sc}")
         return resp
 
-    # ===== WORKING COMPANION SELECTION ROUTE (using blueprint as guide) =====
+    # ===== WORKING ROUTES (rebuilt from module blueprints) =====
+    
+    # AUTH ROUTES (from auth module blueprint)
+    @app.route("/auth/login", methods=["GET", "POST"])
+    def auth_login():
+        """Login page and authentication - from auth blueprint"""
+        if request.method == "GET":
+            from flask import render_template
+            error_message = request.args.get('error')
+            return_to = request.args.get('return_to')
+            return render_template('login.html', error=error_message, return_to=return_to)
+        
+        # Handle POST - simple login processing
+        try:
+            email = request.form.get('email', '').strip()
+            password = request.form.get('password', '')
+            
+            if not email or not password:
+                return redirect('/auth/login?error=Please enter email and password')
+            
+            # Simple auth - set session (expand this later)
+            session['logged_in'] = True
+            session['email'] = email
+            session['user_id'] = 1  # Placeholder
+            session['user_plan'] = 'bronze'  # Default
+            session.permanent = True
+            
+            return_to = request.args.get('return_to', '')
+            if return_to:
+                return redirect(f'/{return_to}')
+            return redirect('/intro')
+            
+        except Exception as e:
+            logger.error(f"Login error: {e}")
+            return redirect('/auth/login?error=Login failed')
+    
+    @app.route("/auth/logout")
+    def auth_logout():
+        """Logout - from auth blueprint"""
+        session.clear()
+        return redirect('/auth/login')
+    
+    @app.route("/auth/register", methods=["GET", "POST"])
+    def auth_register():
+        """Registration - from auth blueprint"""
+        if request.method == "GET":
+            from flask import render_template
+            return render_template('register.html')
+        
+        # Handle POST - simple registration
+        try:
+            email = request.form.get('email', '').strip()
+            password = request.form.get('password', '')
+            
+            if not email or not password:
+                return redirect('/auth/register?error=Please fill all fields')
+            
+            # Simple registration - set session (expand this later)
+            session['logged_in'] = True
+            session['email'] = email
+            session['user_id'] = 2  # Placeholder
+            session['user_plan'] = 'bronze'
+            session.permanent = True
+            
+            return redirect('/intro')
+            
+        except Exception as e:
+            logger.error(f"Registration error: {e}")
+            return redirect('/auth/register?error=Registration failed')
+    
+    # CORE ROUTES (from core module blueprint)
+    @app.route("/")
+    def home():
+        """Home page redirect - from core blueprint"""
+        if session.get('logged_in'):
+            return redirect('/intro')
+        return redirect('/auth/login')
+    
+    @app.route("/intro")
+    def intro():
+        """Intro page - from core blueprint"""
+        from flask import render_template
+        return render_template('intro.html')
+    
+    @app.route("/tiers")
+    def tiers():
+        """Tiers page - from core blueprint"""
+        from flask import render_template
+        return render_template('tiers.html')
+    
+    # COMPANION ROUTES (from companions module blueprint)
     @app.route("/companion-selection")
     def companion_selection():
         """Working companion selection page - rebuilt from blueprint guide"""
@@ -158,6 +248,188 @@ def create_app():
         except Exception as e:
             logger.error(f"❌ Error in companion selection: {e}")
             return render_template("error.html", error="Unable to load companion selection")
+    
+    @app.route("/chat")
+    def chat_home():
+        """Main chat page - from companions blueprint"""
+        if not session.get('logged_in'):
+            return redirect('/auth/login?return_to=chat')
+        
+        selected_companion = session.get('selected_companion')
+        if not selected_companion:
+            return redirect('/companion-selection')
+        
+        from flask import render_template
+        return render_template('chat.html', companion={'name': selected_companion})
+    
+    @app.route("/chat/<tier>/<companion_id>")
+    def companion_specific_chat(tier, companion_id):
+        """Chat with specific companion - from companions blueprint"""
+        if not session.get('logged_in'):
+            return redirect('/auth/login')
+        
+        # Set selected companion
+        session['selected_companion'] = companion_id
+        session.modified = True
+        
+        from flask import render_template
+        companion = {"id": companion_id, "name": companion_id.replace('_', ' ').title(), "tier": tier}
+        return render_template('chat.html', companion=companion)
+    
+    # COMMUNITY ROUTES (from community module blueprint)
+    @app.route("/community")
+    def community():
+        """Community page - from community blueprint"""
+        if not session.get('logged_in'):
+            return redirect('/auth/login?return_to=community')
+        
+        from flask import render_template
+        return render_template('anonymous_community.html')
+    
+    # PROFILE ROUTES (from user_profile module blueprint)  
+    @app.route("/profile")
+    def profile():
+        """User profile page - from user_profile blueprint"""
+        if not session.get('logged_in'):
+            return redirect('/auth/login?return_to=profile')
+        
+        from flask import render_template
+        user_data = {
+            'email': session.get('email'),
+            'user_plan': session.get('user_plan', 'bronze'),
+            'trial_active': session.get('trial_active', False)
+        }
+        return render_template('profile.html', user=user_data)
+    
+    # API ROUTES (from api module blueprint)
+    @app.route("/api/chat", methods=["POST"])
+    def api_chat():
+        """Chat API endpoint - from api blueprint"""
+        if not session.get('logged_in'):
+            return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+        
+        try:
+            data = request.get_json()
+            message = data.get('message', '').strip()
+            companion_id = data.get('companion_id') or session.get('selected_companion')
+            
+            if not message:
+                return jsonify({'success': False, 'error': 'Message required'}), 400
+            
+            if not companion_id:
+                return jsonify({'success': False, 'error': 'No companion selected'}), 400
+            
+            # Simple response (expand with AI integration later)
+            response = f"Hello! I'm {companion_id.replace('_', ' ').title()}. You said: {message}"
+            
+            return jsonify({
+                'success': True,
+                'response': response,
+                'companion_id': companion_id
+            })
+            
+        except Exception as e:
+            logger.error(f"Chat API error: {e}")
+            return jsonify({'success': False, 'error': 'Chat processing failed'}), 500
+    
+    @app.route("/api/companions")
+    def api_companions():
+        """Companions API - from companions blueprint"""
+        if not session.get('logged_in'):
+            return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+        
+        companions = [
+            {"id": "gamerjay_bronze", "name": "GamerJay", "tier": "bronze", "image_url": "/static/logos/GamerJay_Free_companion.png"},
+            {"id": "blayzo_bronze", "name": "Blayzo", "tier": "bronze", "image_url": "/static/logos/Blayzo.png"},
+            {"id": "blayzica_bronze", "name": "Blayzica", "tier": "bronze", "image_url": "/static/logos/Blayzica.png"},
+            {"id": "claude_bronze", "name": "Claude", "tier": "bronze", "image_url": "/static/logos/Claude_Free.png"},
+        ]
+        
+        return jsonify({
+            'success': True,
+            'companions': companions,
+            'user_plan': session.get('user_plan', 'bronze')
+        })
+    
+    # CREATIVE ROUTES (from creative module blueprint)
+    @app.route("/creative")
+    def creative():
+        """Creative tools page - from creative blueprint"""
+        if not session.get('logged_in'):
+            return redirect('/auth/login?return_to=creative')
+        
+        from flask import render_template
+        return render_template('creative.html')
+    
+    @app.route("/decoder")
+    def decoder():
+        """Decoder tool - from creative blueprint"""
+        if not session.get('logged_in'):
+            return redirect('/auth/login?return_to=decoder')
+        
+        from flask import render_template
+        return render_template('decoder.html')
+    
+    @app.route("/fortune")
+    def fortune():
+        """Fortune tool - from creative blueprint"""
+        if not session.get('logged_in'):
+            return redirect('/auth/login?return_to=fortune')
+        
+        from flask import render_template
+        return render_template('fortune.html')
+    
+    @app.route("/horoscope")
+    def horoscope():
+        """Horoscope tool - from creative blueprint"""
+        if not session.get('logged_in'):
+            return redirect('/auth/login?return_to=horoscope')
+        
+        from flask import render_template
+        return render_template('horoscope.html')
+    
+    # LIBRARY ROUTES (from library module blueprint)
+    @app.route("/library")
+    def library():
+        """Library page - from library blueprint"""
+        if not session.get('logged_in'):
+            return redirect('/auth/login?return_to=library')
+        
+        from flask import render_template
+        return render_template('library.html')
+    
+    # MEDITATION ROUTES (from meditations module blueprint)
+    @app.route("/meditations")
+    def meditations():
+        """Meditations page - from meditations blueprint"""
+        if not session.get('logged_in'):
+            return redirect('/auth/login?return_to=meditations')
+        
+        from flask import render_template
+        return render_template('meditations.html')
+    
+    # HEALTH ROUTES (from health module blueprint)
+    @app.route("/health")
+    def health():
+        """Health check - from health blueprint"""
+        return jsonify({
+            'status': 'healthy',
+            'timestamp': datetime.now().isoformat(),
+            'version': '1.0.0',
+            'service': 'soulbridge-ai'
+        })
+    
+    # UTILITY ROUTES
+    @app.route("/whoami")
+    def whoami():
+        """Session info - utility route"""
+        return jsonify({
+            'logged_in': session.get('logged_in'),
+            'email': session.get('email'),
+            'user_id': session.get('user_id'),
+            'user_plan': session.get('user_plan'),
+            'session_keys': list(session.keys())
+        })
 
     logger.info("🚀 SoulBridge AI application created successfully")
     return app
