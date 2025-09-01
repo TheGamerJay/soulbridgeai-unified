@@ -885,11 +885,15 @@
         <div class="post-composer">
             <div class="composer-avatar">
                 <div class="avatar-container" id="composer-avatar">
-                    👤
+                    {% if current_avatar and current_avatar.avatar_url %}
+                        <img src="{{ current_avatar.avatar_url }}" alt="{{ current_avatar.name }}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+                    {% else %}
+                        👤
+                    {% endif %}
                 </div>
                 <div class="composer-info">
                     <h3>Anonymous</h3>
-                    <p>Posting with your <span id="companion-name">companion</span></p>
+                    <p>Posting with your <span id="companion-name">{{ current_avatar.name if current_avatar else 'Soul' }}</span></p>
                     <button onclick="openCompanionSelector()" class="avatar-change-btn" title="Change companion avatar">Change Avatar</button>
                 </div>
             </div>
@@ -1144,37 +1148,13 @@
             loadUserCompanion();
         }
 
-        // Load user's companion information
+        // DISABLED: Avatar loading now handled server-side - eliminates race condition!
         async function loadUserCompanion() {
-            try {
-                const response = await fetch(`${API_BASE}/avatar`);
-                const data = await response.json();
-                
-                if (data.success && data.companion) {
-                    const companion = data.companion;
-                    document.getElementById('companion-name').textContent = companion.name;
-                    
-                    // Use actual companion image or fallback to emoji
-                    const avatarElement = document.getElementById('composer-avatar');
-                    if (companion.image_url) {
-                        avatarElement.innerHTML = `<img src="${companion.image_url}" alt="${companion.name}" style="width: 100%; height: 100%; object-fit: contain;" onerror="this.style.display='none'; this.parentElement.innerHTML='🌟';">`;
-                    } else {
-                        avatarElement.innerHTML = getCompanionEmoji(companion.id);
-                    }
-                    
-                    // Store current companion for posting
-                    currentUser = { companion: companion };
-                } else {
-                    // Fallback to default
-                    document.getElementById('companion-name').textContent = 'Soul';
-                    document.getElementById('composer-avatar').textContent = '🌟';
-                }
-            } catch (error) {
-                console.warn('Could not load companion info:', error);
-                // Fallback to default
-                document.getElementById('companion-name').textContent = 'Soul';
-                document.getElementById('composer-avatar').textContent = '🌟';
-            }
+            console.log('🎯 RACE CONDITION ELIMINATED: Avatar loaded server-side, no client fetch needed');
+            console.log('✅ No more flash between "Soul" and companion name on refresh');
+            
+            // Avatar data now comes directly from Flask template - no AJAX needed!
+            // This prevents the "Posting with your Soul" → "Posting with your companion" flash
         }
 
         // Create a new post with AI validation

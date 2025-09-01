@@ -76,7 +76,81 @@ def anonymous_community():
         if not is_logged_in():
             return redirect("/login")
         
-        return render_template("anonymous_community.html")
+        # SERVER-SIDE AVATAR LOADING - Eliminates race condition!
+        user_id = session.get('user_id')
+        current_avatar = None
+        
+        # Load avatar from database (primary) or session (fallback)
+        try:
+            db = get_database()
+            if db:
+                conn = db.get_connection()
+                cursor = conn.cursor()
+                
+                # Get saved avatar from database
+                if db.use_postgres:
+                    cursor.execute("SELECT companion_data FROM users WHERE id = %s", (user_id,))
+                else:
+                    cursor.execute("SELECT companion_data FROM users WHERE id = ?", (user_id,))
+                    
+                result = cursor.fetchone()
+                conn.close()
+                
+                if result and result[0]:
+                    import json
+                    try:
+                        companion_data = json.loads(result[0])
+                        # Add cache busting
+                        import time
+                        cache_buster = int(time.time())
+                        avatar_url = companion_data.get('image_url', '/static/logos/New IntroLogo.png')
+                        if '?' not in avatar_url:
+                            avatar_url += f"?t={cache_buster}"
+                        
+                        current_avatar = {
+                            'name': companion_data.get('name', 'Soul'),
+                            'companion_id': companion_data.get('id', 'soul'),
+                            'avatar_url': avatar_url,
+                            'tier': companion_data.get('tier', 'bronze')
+                        }
+                        logger.info(f"✅ SERVER-SIDE: Loaded avatar for user {user_id}: {current_avatar['name']}")
+                    except json.JSONDecodeError:
+                        logger.error(f"❌ Invalid JSON in companion_data for user {user_id}")
+            
+            # Fallback to session if database failed
+            if not current_avatar:
+                session_companion = session.get('companion_info')
+                if session_companion:
+                    import time
+                    cache_buster = int(time.time())
+                    avatar_url = session_companion.get('image_url', '/static/logos/New IntroLogo.png')
+                    if '?' not in avatar_url:
+                        avatar_url += f"?t={cache_buster}"
+                        
+                    current_avatar = {
+                        'name': session_companion.get('name', 'Soul'),
+                        'companion_id': session_companion.get('id', 'soul'),
+                        'avatar_url': avatar_url,
+                        'tier': session_companion.get('tier', 'bronze')
+                    }
+                    logger.info(f"⚠️ SERVER-SIDE: Using session fallback for user {user_id}")
+                        
+        except Exception as avatar_error:
+            logger.error(f"❌ SERVER-SIDE avatar loading failed: {avatar_error}")
+        
+        # Default avatar if all else fails
+        if not current_avatar:
+            import time
+            cache_buster = int(time.time())
+            current_avatar = {
+                'name': 'Soul',
+                'companion_id': 'soul', 
+                'avatar_url': f'/static/logos/New IntroLogo.png?t={cache_buster}',
+                'tier': 'bronze'
+            }
+            logger.info(f"🔄 SERVER-SIDE: Using default avatar for user {user_id}")
+        
+        return render_template("anonymous_community.html", current_avatar=current_avatar)
     except Exception as e:
         logger.error(f"Community page error: {e}")
         return redirect("/")
