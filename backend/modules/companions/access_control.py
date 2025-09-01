@@ -55,19 +55,29 @@ def companion_unlock_state_new(user_plan: str, trial_active: bool, referrals: in
         comp_id = comp["id"]
         can_access = user_can_access_companion(user_plan, trial_active, referrals, comp)
         
-        # Determine unlock reason
+        # Format expected by template: {companion_id: {'can_access': bool, 'reason': str}}
         if can_access:
-            unlock_state[comp_id] = "unlocked"
+            unlock_state[comp_id] = {
+                'can_access': True,
+                'reason': 'unlocked'
+            }
         elif comp.get("min_referrals", 0) > referrals:
-            unlock_state[comp_id] = f"referrals_needed_{comp['min_referrals']}"
+            unlock_state[comp_id] = {
+                'can_access': False,
+                'reason': f'referrals_needed_{comp["min_referrals"]}'
+            }
         else:
             # Tier locked
+            reason = "locked"
             if comp["tier"] == "silver":
-                unlock_state[comp_id] = "silver_tier_needed"
+                reason = "silver_tier_needed"
             elif comp["tier"] == "gold":
-                unlock_state[comp_id] = "gold_tier_needed"
-            else:
-                unlock_state[comp_id] = "locked"
+                reason = "gold_tier_needed"
+            
+            unlock_state[comp_id] = {
+                'can_access': False,
+                'reason': reason
+            }
     
     return unlock_state
 
