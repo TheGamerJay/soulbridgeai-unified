@@ -633,28 +633,69 @@ class WeeklyEventsService:
         
         try:
             logger.info("🏆 Checking weekly events tables...")
-            from database_migrations.weekly_events_migration import migrate_weekly_events_tables
             
             conn = self.database.get_connection()
             cursor = conn.cursor()
             
             # Check if tables exist by trying to query them
+            table_exists = False
             try:
-                if self.database.use_postgres:
-                    cursor.execute("SELECT 1 FROM weekly_events LIMIT 1")
-                else:
-                    cursor.execute("SELECT 1 FROM weekly_events LIMIT 1")
+                cursor.execute("SELECT 1 FROM weekly_events LIMIT 1")
+                table_exists = True
                 logger.info("✅ Weekly events tables already exist")
-            except Exception:
+            except Exception as e:
+                # Table doesn't exist or query failed
                 logger.info("🏗️ Weekly events tables don't exist, creating them...")
-                # Tables don't exist, run migration
-                success = migrate_weekly_events_tables(cursor, use_postgres=self.database.use_postgres)
-                if success:
-                    logger.info("✅ Weekly events migration completed successfully!")
+                
+                # Roll back the failed transaction first
+                conn.rollback()
+                
+                # Create the table directly
+                if self.database.use_postgres:
+                    cursor.execute("""
+                        CREATE TABLE IF NOT EXISTS weekly_events (
+                            id SERIAL PRIMARY KEY,
+                            event_type VARCHAR(50) NOT NULL,
+                            title VARCHAR(200) NOT NULL,
+                            description TEXT,
+                            start_date TIMESTAMP NOT NULL,
+                            end_date TIMESTAMP NOT NULL,
+                            status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('upcoming', 'active', 'ended', 'cancelled')),
+                            winner_post_id INTEGER,
+                            winner_user_id INTEGER,
+                            winner_prize_type VARCHAR(50),
+                            winner_prize_value TEXT,
+                            total_participants INTEGER DEFAULT 0,
+                            total_reactions INTEGER DEFAULT 0,
+                            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                        )
+                    """)
                 else:
-                    logger.error("❌ Weekly events migration failed!")
+                    cursor.execute("""
+                        CREATE TABLE IF NOT EXISTS weekly_events (
+                            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            event_type TEXT NOT NULL,
+                            title TEXT NOT NULL,
+                            description TEXT,
+                            start_date TEXT NOT NULL,
+                            end_date TEXT NOT NULL,
+                            status TEXT DEFAULT 'active',
+                            winner_post_id INTEGER,
+                            winner_user_id INTEGER,
+                            winner_prize_type TEXT,
+                            winner_prize_value TEXT,
+                            total_participants INTEGER DEFAULT 0,
+                            total_reactions INTEGER DEFAULT 0,
+                            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                            updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+                        )
+                    """)
+                
+                conn.commit()
+                logger.info("✅ Weekly events table created successfully!")
             
             conn.close()
                 
         except Exception as e:
-            logger.error(f"❌ Error ensuring tables exist: {e}")
+            logger.error(f"❌ Error ensuring weekly events tables exist: {e}")

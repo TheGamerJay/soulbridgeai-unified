@@ -28,16 +28,21 @@ community_service = None
 wellness_gallery = None
 content_moderator = None
 companion_manager = None
+weekly_events_service = None
 
 def init_community_services(database=None, openai_client=None):
     """Initialize community services with dependencies"""
-    global community_service, wellness_gallery, content_moderator, companion_manager
+    global community_service, wellness_gallery, content_moderator, companion_manager, weekly_events_service
     
     try:
         companion_manager = CompanionManager()
         content_moderator = ContentModerator(openai_client)
         wellness_gallery = WellnessGallery(database, content_moderator)
         community_service = CommunityService(database, companion_manager)
+        
+        # Initialize weekly events service
+        from .weekly_events_service import WeeklyEventsService
+        weekly_events_service = WeeklyEventsService(database)
         
         logger.info("🏘️ Community services initialized successfully")
         return True
@@ -314,7 +319,7 @@ def react_to_post(post_id):
         try:
             from .weekly_events_service import WeeklyEventsService
             events_service = WeeklyEventsService(get_database())
-            current_event = events_service.get_current_weekly_event()
+            current_event = weekly_events_service.get_current_weekly_event()
             
             if current_event:
                 # Update post metrics for the weekly event
@@ -613,10 +618,12 @@ def get_weekly_event():
         if not is_logged_in():
             return jsonify({"success": False, "error": "Authentication required"}), 401
             
-        from .weekly_events_service import WeeklyEventsService
-        events_service = WeeklyEventsService(get_database())
+        # Use the initialized weekly events service
+        if not weekly_events_service:
+            logger.error("Weekly events service not initialized")
+            return jsonify({"success": False, "error": "Service unavailable"}), 503
         
-        current_event = events_service.get_current_weekly_event()
+        current_event = weekly_events_service.get_current_weekly_event()
         if not current_event:
             return jsonify({
                 "success": True, 
@@ -652,10 +659,12 @@ def join_weekly_event():
         data = request.get_json()
         companion_id = data.get('companion_id') if data else None
         
-        from .weekly_events_service import WeeklyEventsService
-        events_service = WeeklyEventsService(get_database())
+        # Use the initialized weekly events service
+        if not weekly_events_service:
+            logger.error("Weekly events service not initialized")
+            return jsonify({"success": False, "error": "Service unavailable"}), 503
         
-        current_event = events_service.get_current_weekly_event()
+        current_event = weekly_events_service.get_current_weekly_event()
         if not current_event:
             return jsonify({
                 "success": False, 
