@@ -35,9 +35,9 @@ class CompanionManager:
             {"id":"blayzo2_bronze","name":"Blayzo.2","tier":"bronze","image_url":"/static/logos/blayzo_free_tier.png","min_referrals":0,"greeting":"What's good! I'm Blayzo.2, the upgraded free version. Let's vibe and explore together!"},
             
             # Silver tier - 8 companions
-            {"id":"gamerjay_silver","name":"GamerJay Silver","tier":"silver","image_url":"/static/logos/GamerJay_Silver.png","min_referrals":0,"greeting":"Hey there, Silver member! I'm GamerJay Silver. Ready to unlock some premium gaming experiences?"},
-            {"id":"blayzo_silver","name":"Blayzo Silver","tier":"silver","image_url":"/static/logos/Blayzo_Silver.png","min_referrals":0,"greeting":"What's up, Silver! I'm Blayzo Silver. Let's dive into some exclusive content together!"},
-            {"id":"blayzica_silver","name":"Blayzica Silver","tier":"silver","image_url":"/static/logos/Blayzica_Silver.png","min_referrals":0,"greeting":"Hello, Silver member! I'm Blayzica Silver. Ready to explore premium features with style?"},
+            {"id":"gamerjay_silver","name":"GamerJay Silver","tier":"silver","image_url":"/static/logos/GamerJay_premium_companion.png","min_referrals":0,"greeting":"Hey there, Silver member! I'm GamerJay Silver. Ready to unlock some premium gaming experiences?"},
+            {"id":"blayzo_silver","name":"Blayzo Silver","tier":"silver","image_url":"/static/logos/Blayzo_premium_companion.png","min_referrals":0,"greeting":"What's up, Silver! I'm Blayzo Silver. Let's dive into some exclusive content together!"},
+            {"id":"blayzica_silver","name":"Blayzica Silver","tier":"silver","image_url":"/static/logos/Blayzica_Pro.png","min_referrals":0,"greeting":"Hello, Silver member! I'm Blayzica Silver. Ready to explore premium features with style?"},
             {"id":"claude_silver","name":"Claude Silver","tier":"silver","image_url":"/static/logos/Claude_Silver.png","min_referrals":0,"greeting":"Greetings, Silver member! I'm Claude Silver. Let's unlock advanced AI capabilities together!"},
             {"id":"sky_silver","name":"Sky","tier":"silver","image_url":"/static/logos/Sky_a_premium_companion.png","min_referrals":0,"greeting":"Hello! I'm Sky. Ready to soar to new heights with your Silver experience?"},
             {"id":"lumen2_silver","name":"Lumen.2","tier":"silver","image_url":"/static/logos/Lumen_Silver.png","min_referrals":0,"greeting":"Hello! I'm Lumen.2, the upgraded version. Let me illuminate your premium experience!"},
