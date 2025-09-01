@@ -301,7 +301,9 @@ def create_app():
                                  access_info=access_info,
                                  tier=user_plan,
                                  tier_display=tier_display,
-                                 limits=limits)
+                                 limits=limits,
+                                 user_plan=user_plan,
+                                 trial_active=session.get('trial_active', False))
         
         except Exception as e:
             logger.error(f"❌ Error in companion selection: {e}")

@@ -405,6 +405,32 @@
             </div>
         </div>
         
+        <!-- Trial Offer Section (for Bronze users only) -->
+        {% if user_plan == 'bronze' and not trial_active %}
+        <div class="trial-offer-section" style="background: rgba(34, 211, 238, 0.1); border: 2px solid rgba(34, 211, 238, 0.3); border-radius: 16px; padding: 25px; margin: 30px 0; text-align: center;">
+            <h3 style="color: #22d3ee; margin-bottom: 15px; font-size: 1.5rem;">🎉 Want to Try Silver & Gold Companions?</h3>
+            <p style="color: rgba(255, 255, 255, 0.9); margin-bottom: 20px; font-size: 1.1rem;">
+                Start your <strong>5-Hour Trial</strong> to unlock all companions + 60 artistic credits!
+            </p>
+            <button id="companion-trial-btn" class="trial-btn" style="background: linear-gradient(135deg, #22d3ee, #0891b2); color: #000; padding: 12px 24px; border: none; border-radius: 8px; font-weight: 600; font-size: 1.1rem; cursor: pointer; transition: all 0.3s ease;" onclick="startCompanionTrial()">
+                ⏰ Start 5-Hour Trial
+            </button>
+            <div style="margin-top: 15px; font-size: 0.9rem; color: rgba(255, 255, 255, 0.7);">
+                ✅ One-time trial • ✅ No payment required • ✅ Instant access
+            </div>
+        </div>
+        {% elif trial_active %}
+        <div class="trial-active-section" style="background: rgba(34, 197, 94, 0.1); border: 2px solid rgba(34, 197, 94, 0.3); border-radius: 16px; padding: 25px; margin: 30px 0; text-align: center;">
+            <h3 style="color: #22c55e; margin-bottom: 15px; font-size: 1.5rem;">🎉 Trial Active!</h3>
+            <div id="companion-trial-timer" style="background: rgba(34, 197, 94, 0.2); color: #22c55e; padding: 12px 20px; border-radius: 8px; font-weight: 600; font-size: 1.1rem; margin-bottom: 15px;">
+                ⏰ Time Remaining: <span id="trial-time-display">Loading...</span>
+            </div>
+            <p style="color: rgba(255, 255, 255, 0.9); font-size: 1rem;">
+                All Silver & Gold companions are now unlocked! Enjoy your trial!
+            </p>
+        </div>
+        {% endif %}
+        
         {% if companions %}
             {% set bronze_companions = companions | selectattr('tier', 'equalto', 'bronze') | list %}
             {% set silver_companions = companions | selectattr('tier', 'equalto', 'silver') | list %}
@@ -656,6 +682,97 @@
                 window.location.href = '/referrals';
             }
         }
+        
+        // Trial system functions
+        async function startCompanionTrial() {
+            const button = document.getElementById('companion-trial-btn');
+            
+            if (!confirm('Start your 5-hour trial? This will unlock Silver and Gold companions for 5 hours and give you 60 artistic credits.')) {
+                return;
+            }
+            
+            // Disable button and show loading
+            button.disabled = true;
+            button.textContent = '⏳ Starting Trial...';
+            
+            try {
+                const response = await fetch('/api/trial/activate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('🎉 Trial activated! You now have access to Silver and Gold companions for 5 hours, plus 60 artistic credits!');
+                    // Reload page to show updated state
+                    window.location.reload();
+                } else {
+                    alert('Failed to start trial: ' + (result.error || 'Unknown error'));
+                    button.disabled = false;
+                    button.textContent = '⏰ Start 5-Hour Trial';
+                }
+            } catch (error) {
+                console.error('Trial activation error:', error);
+                alert('Failed to start trial: ' + error.message);
+                button.disabled = false;
+                button.textContent = '⏰ Start 5-Hour Trial';
+            }
+        }
+        
+        // Initialize trial timer if active
+        function initializeTrialTimer() {
+            const timerDisplay = document.getElementById('trial-time-display');
+            if (!timerDisplay) return;
+            
+            // Check trial status from session or make API call
+            fetch('/api/me/trial-status')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.trial_active && data.trial_expires_at) {
+                        startTrialCountdown(data.trial_expires_at);
+                    } else {
+                        timerDisplay.textContent = 'Expired';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching trial status:', error);
+                    timerDisplay.textContent = 'Error';
+                });
+        }
+        
+        function startTrialCountdown(expiresAt) {
+            const timerDisplay = document.getElementById('trial-time-display');
+            if (!timerDisplay) return;
+            
+            const updateTimer = () => {
+                const now = new Date().getTime();
+                const expiry = new Date(expiresAt).getTime();
+                const timeLeft = expiry - now;
+                
+                if (timeLeft <= 0) {
+                    timerDisplay.textContent = 'Expired';
+                    clearInterval(interval);
+                    // Reload page to show expired state
+                    setTimeout(() => window.location.reload(), 1000);
+                    return;
+                }
+                
+                const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+                const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+                
+                timerDisplay.textContent = `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            };
+            
+            updateTimer();
+            const interval = setInterval(updateTimer, 1000);
+        }
+        
+        // Initialize timer on page load
+        document.addEventListener('DOMContentLoaded', initializeTrialTimer);
     </script>
 </body>
 </html>
