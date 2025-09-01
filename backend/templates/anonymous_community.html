@@ -2627,10 +2627,16 @@
                     // Update current user companion for posting
                     currentUser = { companion: selectedCompanion };
                     
-                    // Refresh the entire companion display to show the change
-                    setTimeout(() => {
-                        loadUserCompanion();
-                    }, 100);
+                    // Update the avatar display directly (no API call needed)
+                    const companionName = selectedCompanion.display_name || selectedCompanion.name;
+                    document.getElementById('companion-name').textContent = companionName;
+                    
+                    const avatarElement = document.getElementById('composer-avatar');
+                    if (selectedCompanion.image_url) {
+                        avatarElement.innerHTML = `<img src="${selectedCompanion.image_url}" alt="${companionName}" style="width: 100%; height: 100%; object-fit: contain;" onerror="this.style.display='none'; this.parentElement.innerHTML='🌟';">`;
+                    } else {
+                        avatarElement.innerHTML = getCompanionEmoji(selectedCompanion.id);
+                    }
                     
                     let message = `Companion avatar changed to ${selectedCompanion.display_name || selectedCompanion.name}!`;
                     if (changeType === 'ad_bypass') {
