@@ -3,8 +3,9 @@ SoulBridge AI - Community Routes
 Flask Blueprint for all community-related endpoints
 Extracted from backend/app.py
 """
+import json
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from flask import Blueprint, render_template, request, jsonify, session, redirect
 from database_utils import get_database
 try:
@@ -933,14 +934,31 @@ def community_set_avatar():
             
             companion_json = json.dumps(companion_info)
             logger.info(f"💾 DIRECT SAVE: Saving to database for user {user_id}: {companion_json}")
+            logger.info(f"🔧 Database type: {db.__class__.__name__}, use_postgres: {db.use_postgres}")
             
+            # First check if user exists
             if db.use_postgres:
+                cursor.execute("SELECT id FROM users WHERE id = %s", (user_id,))
+            else:
+                cursor.execute("SELECT id FROM users WHERE id = ?", (user_id,))
+            
+            user_exists = cursor.fetchone()
+            logger.info(f"👤 User {user_id} exists check: {user_exists is not None}")
+            
+            if not user_exists:
+                conn.close()
+                return jsonify({"success": False, "error": f"User {user_id} not found in database"}), 404
+            
+            # Now do the UPDATE
+            if db.use_postgres:
+                logger.info(f"🐘 Using PostgreSQL UPDATE for user {user_id}")
                 cursor.execute("""
                     UPDATE users 
-                    SET companion_data = %s, updated_at = CURRENT_TIMESTAMP
+                    SET companion_data = %s::jsonb, updated_at = CURRENT_TIMESTAMP
                     WHERE id = %s
                 """, (companion_json, user_id))
             else:
+                logger.info(f"🪶 Using SQLite UPDATE for user {user_id}")
                 cursor.execute("""
                     UPDATE users 
                     SET companion_data = ?, updated_at = CURRENT_TIMESTAMP
@@ -948,13 +966,24 @@ def community_set_avatar():
                 """, (companion_json, user_id))
             
             rows_affected = cursor.rowcount
+            logger.info(f"💾 PRE-COMMIT: {rows_affected} rows affected for user {user_id}")
+            
             conn.commit()
+            logger.info(f"✅ COMMIT SUCCESSFUL for user {user_id}")
+            
+            # Verify the save worked
+            if db.use_postgres:
+                cursor.execute("SELECT companion_data FROM users WHERE id = %s", (user_id,))
+            else:
+                cursor.execute("SELECT companion_data FROM users WHERE id = ?", (user_id,))
+            
+            verify_result = cursor.fetchone()
+            logger.info(f"🔍 VERIFICATION: Data saved = {verify_result[0] is not None if verify_result else 'No result'}")
+            
             conn.close()
             
-            logger.info(f"💾 DIRECT SAVE RESULT: {rows_affected} rows affected for user {user_id}")
-            
             if rows_affected == 0:
-                return jsonify({"success": False, "error": "User not found in database"}), 404
+                return jsonify({"success": False, "error": "Update failed - no rows affected"}), 500
                 
         except Exception as save_error:
             logger.error(f"❌ DIRECT SAVE FAILED: {save_error}")
@@ -1493,6 +1522,102 @@ def api_community_access():
     except Exception as e:
         logger.error(f"Community access validation error: {e}")
         return jsonify({"success": False, "error": "Failed to validate access"}), 500
+
+@community_bp.route("/community/test-avatar-save", methods=["POST"])
+def test_avatar_save():
+    """TEMPORARY: Test avatar save without authentication for debugging"""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"success": False, "error": "Invalid request data"}), 400
+        
+        # Hard-coded user ID for testing
+        user_id = data.get('user_id', 104)
+        companion_name = data.get('companion_name', 'Seraphina')
+        avatar_url = data.get('avatar_url', '/static/images/avatars/f_seraphina_angel.png')
+        
+        logger.info(f"🧪 TESTING AVATAR SAVE: user_id={user_id}, companion={companion_name}")
+        
+        # Get database connection
+        db = get_database()
+        if not db:
+            logger.error("❌ Database not available")
+            return jsonify({"success": False, "error": "Database not available"}), 503
+        
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        
+        # Prepare companion data with correct field names for server-side loading
+        companion_json = json.dumps({
+            "name": companion_name,
+            "image_url": avatar_url,  # SERVER-SIDE CODE EXPECTS image_url, not avatar!
+            "id": "seraphina",  # Add companion ID for completeness
+            "tier": "silver",   # Add tier for completeness
+            "saved_at": datetime.now(timezone.utc).isoformat()
+        })
+        
+        # Check if user exists
+        if db.use_postgres:
+            cursor.execute("SELECT id FROM users WHERE id = %s", (user_id,))
+        else:
+            cursor.execute("SELECT id FROM users WHERE id = ?", (user_id,))
+        user_exists = cursor.fetchone()
+        
+        logger.info(f"👤 User {user_id} exists: {user_exists is not None}")
+        
+        if not user_exists:
+            logger.error(f"❌ User {user_id} not found")
+            conn.close()
+            return jsonify({"success": False, "error": f"User {user_id} not found"}), 404
+        
+        # Save to database
+        logger.info(f"💾 DIRECT SAVE: Saving to database for user {user_id}: {companion_json}")
+        logger.info(f"🔧 Database type: {db.__class__.__name__}, use_postgres: {db.use_postgres}")
+        
+        if db.use_postgres:
+            logger.info(f"🐘 Using PostgreSQL UPDATE for user {user_id}")
+            cursor.execute("UPDATE users SET companion_data = %s WHERE id = %s", (companion_json, user_id))
+        else:
+            logger.info(f"🗃️ Using SQLite UPDATE for user {user_id}")
+            cursor.execute("UPDATE users SET companion_data = ? WHERE id = ?", (companion_json, user_id))
+        
+        rows_affected = cursor.rowcount
+        logger.info(f"💾 PRE-COMMIT: {rows_affected} rows affected for user {user_id}")
+        
+        conn.commit()
+        logger.info(f"✅ COMMIT SUCCESSFUL for user {user_id}")
+        
+        # Verify the save worked
+        if db.use_postgres:
+            cursor.execute("SELECT companion_data FROM users WHERE id = %s", (user_id,))
+        else:
+            cursor.execute("SELECT companion_data FROM users WHERE id = ?", (user_id,))
+        verify_result = cursor.fetchone()
+        
+        logger.info(f"🔍 VERIFICATION: Data saved = {verify_result[0] is not None if verify_result else 'No result'}")
+        
+        if verify_result and verify_result[0]:
+            logger.info(f"✅ VERIFICATION SUCCESS: {verify_result[0]}")
+        else:
+            logger.error(f"❌ VERIFICATION FAILED: No data found after save")
+        
+        conn.close()
+        
+        return jsonify({
+            "success": True,
+            "message": "Avatar save test completed",
+            "debug": {
+                "user_id": user_id,
+                "companion_name": companion_name,
+                "avatar_url": avatar_url,
+                "rows_affected": rows_affected,
+                "verification_data": verify_result[0] if verify_result else None
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"❌ Test avatar save error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
 
 # =============================================================================
 # BLUEPRINT REGISTRATION HELPER
