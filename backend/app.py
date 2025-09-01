@@ -178,6 +178,11 @@ def create_app():
             logger.error(f"Registration error: {e}")
             return redirect('/auth/register?error=Registration failed')
     
+    @app.route("/auth/forgot-password")
+    def auth_forgot_password():
+        """Forgot password placeholder - from auth blueprint"""
+        return redirect('/auth/login?error=Password reset feature coming soon')
+    
     # CORE ROUTES (from core module blueprint)
     @app.route("/")
     def home():
