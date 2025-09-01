@@ -1573,6 +1573,72 @@ def debug_current_user():
         logger.error(f"❌ Debug current user error: {e}")
         return jsonify({"success": False, "error": str(e)}), 500
 
+@community_bp.route("/community/debug-schema", methods=["GET"])
+def debug_schema():
+    """Debug database schema to check columns"""
+    try:
+        db = get_database()
+        if not db:
+            return jsonify({"success": False, "error": "Database not available"}), 503
+        
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        
+        if db.use_postgres:
+            # Check PostgreSQL schema
+            cursor.execute("""
+                SELECT column_name, data_type, is_nullable, column_default
+                FROM information_schema.columns 
+                WHERE table_name = 'users'
+                AND column_name LIKE '%companion%'
+                ORDER BY column_name
+            """)
+            companion_columns = cursor.fetchall()
+            
+            # Also get a sample user to see all data
+            cursor.execute("SELECT * FROM users WHERE id = 104")
+            user_data = cursor.fetchone()
+            
+            # Get column names for the user table
+            cursor.execute("""
+                SELECT column_name 
+                FROM information_schema.columns 
+                WHERE table_name = 'users'
+                ORDER BY ordinal_position
+            """)
+            all_columns = [row[0] for row in cursor.fetchall()]
+            
+        else:
+            # SQLite schema check
+            cursor.execute("PRAGMA table_info(users)")
+            all_columns_info = cursor.fetchall()
+            companion_columns = [col for col in all_columns_info if 'companion' in col[1].lower()]
+            all_columns = [col[1] for col in all_columns_info]
+            
+            cursor.execute("SELECT * FROM users WHERE id = 104")
+            user_data = cursor.fetchone()
+        
+        conn.close()
+        
+        # Create user data dict
+        user_dict = {}
+        if user_data and all_columns:
+            for i, value in enumerate(user_data):
+                if i < len(all_columns):
+                    user_dict[all_columns[i]] = value
+        
+        return jsonify({
+            "success": True,
+            "database_type": "PostgreSQL" if db.use_postgres else "SQLite",
+            "companion_columns": companion_columns,
+            "all_columns": all_columns,
+            "user_104_data": user_dict
+        })
+        
+    except Exception as e:
+        logger.error(f"❌ Debug schema error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
 @community_bp.route("/community/debug-users", methods=["GET"])
 def debug_users():
     """TEMPORARY: Debug what users exist in the database"""
@@ -1639,13 +1705,13 @@ def test_avatar_save():
         cursor = conn.cursor()
         
         # Prepare companion data with correct field names for server-side loading
-        companion_json = json.dumps({
+        companion_data = {
             "name": companion_name,
             "image_url": avatar_url,  # SERVER-SIDE CODE EXPECTS image_url, not avatar!
             "id": "seraphina",  # Add companion ID for completeness
             "tier": "silver",   # Add tier for completeness
             "saved_at": datetime.now(timezone.utc).isoformat()
-        })
+        }
         
         # Check if user exists
         if db.use_postgres:
@@ -1662,15 +1728,17 @@ def test_avatar_save():
             return jsonify({"success": False, "error": f"User {user_id} not found"}), 404
         
         # Save to database
-        logger.info(f"💾 DIRECT SAVE: Saving to database for user {user_id}: {companion_json}")
+        logger.info(f"💾 DIRECT SAVE: Saving to database for user {user_id}: {companion_data}")
         logger.info(f"🔧 Database type: {db.__class__.__name__}, use_postgres: {db.use_postgres}")
         
         if db.use_postgres:
             logger.info(f"🐘 Using PostgreSQL UPDATE for user {user_id}")
-            cursor.execute("UPDATE users SET companion_data = %s WHERE id = %s", (companion_json, user_id))
+            # PostgreSQL can handle dict directly for jsonb columns
+            cursor.execute("UPDATE users SET companion_data = %s WHERE id = %s", (companion_data, user_id))
         else:
             logger.info(f"🗃️ Using SQLite UPDATE for user {user_id}")
-            cursor.execute("UPDATE users SET companion_data = ? WHERE id = ?", (companion_json, user_id))
+            # SQLite needs JSON string
+            cursor.execute("UPDATE users SET companion_data = ? WHERE id = ?", (json.dumps(companion_data), user_id))
         
         rows_affected = cursor.rowcount
         logger.info(f"💾 PRE-COMMIT: {rows_affected} rows affected for user {user_id}")
