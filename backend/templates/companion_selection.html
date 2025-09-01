@@ -250,7 +250,7 @@
         /* Locked Cards */
         .netflix-card.locked {
             opacity: 0.6;
-            cursor: not-allowed;
+            cursor: pointer;
             background: linear-gradient(135deg, #333 0%, #1a1a1a 100%);
         }
         
@@ -438,7 +438,7 @@
                                 </div>
                             </a>
                         {% else %}
-                            <a href="/subscription?tier=bronze" class="netflix-card locked">
+                            <div class="netflix-card locked" onclick="confirmUpgrade('{{ companion.name }}', 'bronze')">
                                 <div class="netflix-poster">
                                     <img src="{{ companion.image_url }}" alt="{{ companion.name }}" />
                                     <div class="netflix-overlay">
@@ -638,5 +638,24 @@
             </div>
         {% endif %}
     </div>
+    
+    <script>
+        function confirmUpgrade(companionName, tier) {
+            const tierName = tier.charAt(0).toUpperCase() + tier.slice(1);
+            const message = `${companionName} requires ${tierName} tier access. Would you like to upgrade now?`;
+            
+            if (confirm(message)) {
+                window.location.href = `/subscription?tier=${tier}`;
+            }
+        }
+        
+        function confirmReferral(companionName, referralCount) {
+            const message = `${companionName} requires ${referralCount} referrals to unlock. Would you like to visit the referral page?`;
+            
+            if (confirm(message)) {
+                window.location.href = '/referrals';
+            }
+        }
+    </script>
 </body>
 </html>
