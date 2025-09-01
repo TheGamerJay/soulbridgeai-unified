@@ -323,16 +323,45 @@ def create_app():
     @app.route("/chat/<tier>/<companion_id>")
     def companion_specific_chat(tier, companion_id):
         """Chat with specific companion - from companions blueprint"""
-        if not session.get('logged_in'):
-            return redirect('/auth/login')
-        
-        # Set selected companion
-        session['selected_companion'] = companion_id
-        session.modified = True
-        
-        from flask import render_template
-        companion = {"id": companion_id, "name": companion_id.replace('_', ' ').title(), "tier": tier}
-        return render_template('chat.html', companion=companion)
+        try:
+            if not session.get('logged_in'):
+                return redirect('/auth/login')
+            
+            # Set selected companion
+            session['selected_companion'] = companion_id
+            session.modified = True
+            
+            # Find companion data
+            companions = [
+                # Bronze companions (10)
+                {"id": "gamerjay_bronze", "name": "GamerJay", "tier": "bronze", "image_url": "/static/logos/GamerJay_Free_companion.png"},
+                {"id": "blayzo_bronze", "name": "Blayzo", "tier": "bronze", "image_url": "/static/logos/Blayzo.png"},
+                {"id": "blayzica_bronze", "name": "Blayzica", "tier": "bronze", "image_url": "/static/logos/Blayzica.png"},
+                {"id": "claude_bronze", "name": "Claude", "tier": "bronze", "image_url": "/static/logos/Claude_Free.png"},
+                {"id": "blayzia_bronze", "name": "Blayzia", "tier": "bronze", "image_url": "/static/logos/Blayzia.png"},
+                {"id": "blayzion_bronze", "name": "Blayzion", "tier": "bronze", "image_url": "/static/logos/Blayzion.png"},
+                {"id": "lumen_bronze", "name": "Lumen", "tier": "bronze", "image_url": "/static/logos/Lumen_Bronze.png"},
+                {"id": "blayzo2_bronze", "name": "Blayzo.2", "tier": "bronze", "image_url": "/static/logos/blayzo_free_tier.png"},
+                {"id": "crimson_bronze", "name": "Crimson", "tier": "bronze", "image_url": "/static/logos/Crimson_Free.png"},
+                {"id": "violet_bronze", "name": "Violet", "tier": "bronze", "image_url": "/static/logos/Violet_Free.png"},
+            ]
+            
+            # Find the specific companion
+            companion = next((c for c in companions if c['id'] == companion_id), None)
+            if not companion:
+                # Fallback companion data
+                companion = {"id": companion_id, "name": companion_id.replace('_bronze', '').replace('_', ' ').title(), "tier": tier}
+            
+            logger.info(f"✅ Loading chat for companion: {companion_id}")
+            
+            from flask import render_template
+            return render_template('chat.html', 
+                                 companion=companion,
+                                 companion_display_name=companion.get('name', 'AI Assistant'))
+                                 
+        except Exception as e:
+            logger.error(f"❌ Error in companion chat: {e}")
+            return render_template("error.html", error="Unable to load chat page")
     
     # COMMUNITY ROUTES (from community module blueprint)
     @app.route("/community")
