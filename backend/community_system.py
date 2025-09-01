@@ -1017,7 +1017,7 @@ def get_community_feed():
             
             # Calculate time ago
             post_time = datetime.fromisoformat(created_at)
-            time_ago = format_time_ago(post_time)
+            time_ago = self._format_time_ago(post_time)
             
             # Get companion avatar info - use actual companion names
             companion_names = {
@@ -1852,6 +1852,39 @@ def get_companions():
 # ===============================
 # FLASK INTEGRATION
 # ===============================
+
+def _format_time_ago(timestamp) -> str:
+    """Format timestamp as time ago"""
+    try:
+        if not timestamp:
+            return "Recently"
+        
+        if isinstance(timestamp, str):
+            created_time = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
+        else:
+            created_time = timestamp
+        
+        now = datetime.now()
+        if created_time.tzinfo:
+            created_time = created_time.replace(tzinfo=None)
+        
+        diff = now - created_time
+        
+        if diff.days > 30:
+            return f"{diff.days // 30} month{'s' if diff.days // 30 > 1 else ''} ago"
+        elif diff.days > 0:
+            return f"{diff.days} day{'s' if diff.days > 1 else ''} ago"
+        elif diff.seconds > 3600:
+            hours = diff.seconds // 3600
+            return f"{hours} hour{'s' if hours > 1 else ''} ago"
+        elif diff.seconds > 60:
+            minutes = diff.seconds // 60
+            return f"{minutes} minute{'s' if minutes > 1 else ''} ago"
+        else:
+            return "Just now"
+            
+    except Exception:
+        return "Recently"
 
 def register_community_system(app):
     """Register the community system with Flask app"""

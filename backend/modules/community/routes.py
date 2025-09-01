@@ -7,7 +7,11 @@ import logging
 from datetime import datetime
 from flask import Blueprint, render_template, request, jsonify, session, redirect
 from database_utils import get_database
-from ..companions.companion_data import COMPANIONS as COMPANIONS_NEW
+try:
+    from ..companions.companion_data import COMPANIONS as COMPANIONS_NEW
+except ImportError:
+    # Fallback if companions module doesn't exist or has different structure
+    COMPANIONS_NEW = []
 from constants import PLAN_LIMITS
 from .community_service import CommunityService
 from .wellness_gallery import WellnessGallery
@@ -911,7 +915,7 @@ def api_heart_wellness_content():
             return jsonify({"success": False, "error": "Content ID required"}), 400
         
         user_id = session.get('user_id')
-        heart_result = wellness_gallery.heart_content(user_id, content_id)
+        heart_result = wellness_gallery.add_heart(user_id, content_id)
         
         if not heart_result['success']:
             return jsonify({"success": False, "error": heart_result['error']}), 404 if 'not found' in heart_result.get('error', '').lower() else 500
