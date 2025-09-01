@@ -268,12 +268,31 @@ def create_app():
                 'creative_writer': 2 if user_plan == 'bronze' else (20 if user_plan == 'silver' else 999)
             }
             
-            # Simple access info
+            # Proper tier-based access control
             access_info = {
                 'user_plan': user_plan,
                 'trial_active': session.get('trial_active', False),
-                'unlock_state': {comp['id']: {'can_access': True, 'reason': 'unlocked'} for comp in companions}
+                'unlock_state': {}
             }
+            
+            for comp in companions:
+                comp_id = comp['id']
+                comp_tier = comp['tier']
+                
+                # Bronze companions are always accessible
+                if comp_tier == 'bronze':
+                    access_info['unlock_state'][comp_id] = {'can_access': True, 'reason': 'unlocked'}
+                # Silver companions require Silver or Gold tier
+                elif comp_tier == 'silver':
+                    has_access = user_plan in ['silver', 'gold']
+                    access_info['unlock_state'][comp_id] = {'can_access': has_access, 'reason': 'tier_locked' if not has_access else 'unlocked'}
+                # Gold companions require Gold tier
+                elif comp_tier == 'gold':
+                    has_access = user_plan == 'gold'
+                    access_info['unlock_state'][comp_id] = {'can_access': has_access, 'reason': 'tier_locked' if not has_access else 'unlocked'}
+                # Referral companions require referrals (always locked for now)
+                elif comp_tier == 'referral':
+                    access_info['unlock_state'][comp_id] = {'can_access': False, 'reason': 'referral_locked'}
             
             logger.info(f"✅ Companion selection loaded: user_plan={user_plan}, companions={len(companions)}")
             
