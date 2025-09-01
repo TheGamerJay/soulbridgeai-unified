@@ -438,7 +438,7 @@
                                 </div>
                             </a>
                         {% else %}
-                            <div class="netflix-card locked">
+                            <a href="/subscription?tier=bronze" class="netflix-card locked">
                                 <div class="netflix-poster">
                                     <img src="{{ companion.image_url }}" alt="{{ companion.name }}" />
                                     <div class="netflix-overlay">
@@ -453,7 +453,7 @@
                                         <span class="badge {{ companion.tier }}">🥉 Bronze</span>
                                     </div>
                                 </div>
-                            </div>
+                            </a>
                         {% endif %}
                     {% endfor %}
                 </div>
@@ -487,22 +487,34 @@
                                 </div>
                             </a>
                         {% else %}
-                            <div class="netflix-card locked">
+                            {% if companion.get('min_referrals', 0) > 0 %}
+                                <a href="/referrals" class="netflix-card locked">
+                            {% else %}
+                                <a href="/subscription?tier=silver" class="netflix-card locked">
+                            {% endif %}
                                 <div class="netflix-poster">
                                     <img src="{{ companion.image_url }}" alt="{{ companion.name }}" />
                                     <div class="netflix-overlay">
                                         <div class="unlock-status locked">🔒 LOCKED</div>
-                                        <div class="unlock-requirement">Upgrade to access</div>
+                                        {% if companion.get('min_referrals', 0) > 0 %}
+                                            <div class="unlock-requirement">{{ companion.min_referrals }} referrals needed</div>
+                                        {% else %}
+                                            <div class="unlock-requirement">Upgrade to access</div>
+                                        {% endif %}
                                     </div>
                                 </div>
                                 <div class="netflix-info">
                                     <h3>{{ companion.name }}</h3>
-                                    <p class="unlock-tier">Requires {{ companion.tier|title }} tier</p>
+                                    {% if companion.get('min_referrals', 0) > 0 %}
+                                        <p class="unlock-tier">Requires {{ companion.min_referrals }} referrals</p>
+                                    {% else %}
+                                        <p class="unlock-tier">Requires {{ companion.tier|title }} tier</p>
+                                    {% endif %}
                                     <div class="netflix-badges">
                                         <span class="badge {{ companion.tier }}">🥈 Silver</span>
                                     </div>
                                 </div>
-                            </div>
+                            </a>
                         {% endif %}
                     {% endfor %}
                 </div>
@@ -536,22 +548,34 @@
                                 </div>
                             </a>
                         {% else %}
-                            <div class="netflix-card locked">
+                            {% if companion.get('min_referrals', 0) > 0 %}
+                                <a href="/referrals" class="netflix-card locked">
+                            {% else %}
+                                <a href="/subscription?tier=gold" class="netflix-card locked">
+                            {% endif %}
                                 <div class="netflix-poster">
                                     <img src="{{ companion.image_url }}" alt="{{ companion.name }}" />
                                     <div class="netflix-overlay">
                                         <div class="unlock-status locked">🔒 LOCKED</div>
-                                        <div class="unlock-requirement">Upgrade to access</div>
+                                        {% if companion.get('min_referrals', 0) > 0 %}
+                                            <div class="unlock-requirement">{{ companion.min_referrals }} referrals needed</div>
+                                        {% else %}
+                                            <div class="unlock-requirement">Upgrade to access</div>
+                                        {% endif %}
                                     </div>
                                 </div>
                                 <div class="netflix-info">
                                     <h3>{{ companion.name }}</h3>
-                                    <p class="unlock-tier">Requires {{ companion.tier|title }} tier</p>
+                                    {% if companion.get('min_referrals', 0) > 0 %}
+                                        <p class="unlock-tier">Requires {{ companion.min_referrals }} referrals</p>
+                                    {% else %}
+                                        <p class="unlock-tier">Requires {{ companion.tier|title }} tier</p>
+                                    {% endif %}
                                     <div class="netflix-badges">
                                         <span class="badge {{ companion.tier }}">🥇 Gold</span>
                                     </div>
                                 </div>
-                            </div>
+                            </a>
                         {% endif %}
                     {% endfor %}
                 </div>
@@ -585,22 +609,22 @@
                                 </div>
                             </a>
                         {% else %}
-                            <div class="netflix-card locked">
+                            <a href="/referrals" class="netflix-card locked">
                                 <div class="netflix-poster">
                                     <img src="{{ companion.image_url }}" alt="{{ companion.name }}" />
                                     <div class="netflix-overlay">
                                         <div class="unlock-status locked">🔒 LOCKED</div>
-                                        <div class="unlock-requirement">Upgrade to access</div>
+                                        <div class="unlock-requirement">{{ companion.min_referrals }} referrals needed</div>
                                     </div>
                                 </div>
                                 <div class="netflix-info">
                                     <h3>{{ companion.name }}</h3>
-                                    <p class="unlock-tier">Requires {{ companion.tier|title }} tier</p>
+                                    <p class="unlock-tier">Requires {{ companion.min_referrals }} referrals</p>
                                     <div class="netflix-badges">
                                         <span class="badge {{ companion.tier }}">🎁 Referral</span>
                                     </div>
                                 </div>
-                            </div>
+                            </a>
                         {% endif %}
                     {% endfor %}
                 </div>
