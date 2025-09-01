@@ -412,8 +412,11 @@ async function sendMessage() {
     try {
         isProcessing = true;
         
-        // DEBUG: Log what character we're sending to API
-        console.log('🐛 DEBUG: Sending character to API:', currentCharacter);
+        // Get companion ID from URL or session
+        const companionId = window.location.pathname.match(/\/chat\/(.+)$/)?.[1] || 'claude_bronze';
+        
+        // DEBUG: Log what companion_id we're sending to API
+        console.log('🐛 DEBUG: Sending companion_id to API:', companionId);
         
         const response = await fetch('/api/chat', {
             method: 'POST',
@@ -422,8 +425,7 @@ async function sendMessage() {
             },
             body: JSON.stringify({
                 message: message,
-                character: currentCharacter,
-                tier_features: getTierFeatures(currentCharacter)
+                companion_id: companionId
             })
         });
         

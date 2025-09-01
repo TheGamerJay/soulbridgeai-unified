@@ -436,8 +436,86 @@ def create_app():
             if not companion_id:
                 return jsonify({'success': False, 'error': 'No companion selected'}), 400
             
-            # Simple response (expand with AI integration later)
-            response = f"Hello! I'm {companion_id.replace('_', ' ').title()}. You said: {message}"
+            # Find companion data for personality (same as chat route)
+            companions = [
+                # Bronze companions (10)
+                {"id": "gamerjay_bronze", "name": "GamerJay", "tier": "bronze", "greeting": "Hey there! I'm GamerJay. Ready to level up and explore some awesome features together?"},
+                {"id": "blayzo_bronze", "name": "Blayzo", "tier": "bronze", "greeting": "What's up! I'm Blayzo. Let's vibe and see what cool stuff we can discover together!"},
+                {"id": "blayzica_bronze", "name": "Blayzica", "tier": "bronze", "greeting": "Hello! I'm Blayzica. I'm here to help you explore and make the most of your SoulBridge experience!"},
+                {"id": "claude_bronze", "name": "Claude", "tier": "bronze", "greeting": "Greetings! I'm Claude. I'm excited to help you explore the world of artificial intelligence and beyond!"},
+                {"id": "blayzia_bronze", "name": "Blayzia", "tier": "bronze", "greeting": "Hey! I'm Blayzia. Ready to dive into some amazing features and have fun together?"},
+                {"id": "blayzion_bronze", "name": "Blayzion", "tier": "bronze", "greeting": "Yo! I'm Blayzion. Let's embark on this journey and unlock some cool features together!"},
+                {"id": "lumen_bronze", "name": "Lumen", "tier": "bronze", "greeting": "Hello there! I'm Lumen. I'm here to brighten your SoulBridge experience and guide you through our features!"},
+                {"id": "blayzo2_bronze", "name": "Blayzo.2", "tier": "bronze", "greeting": "Hey! I'm Blayzo.2. Ready to explore the next level of features together?"},
+                {"id": "crimson_bronze", "name": "Crimson", "tier": "bronze", "greeting": "Hey! I'm Crimson. I bring passion and determination to help you tackle challenges head-on!"},
+                {"id": "violet_bronze", "name": "Violet", "tier": "bronze", "greeting": "Hello! I'm Violet. I see the creative beauty in every moment and I'm here to inspire your journey!"},
+                
+                # Silver companions (8)
+                {"id": "sky_silver", "name": "Sky", "tier": "silver", "greeting": "Hello! I'm Sky. With enhanced features at your fingertips, let's soar to new heights together!"},
+                {"id": "gamerjay_silver", "name": "GamerJay.2", "tier": "silver", "greeting": "What's up! I'm GamerJay.2. Time to unlock the next level of features and dominate together!"},
+                {"id": "claude_silver", "name": "Claude.3", "tier": "silver", "greeting": "Welcome! I'm Claude.3. With expanded capabilities, I'm ready to help you achieve more!"},
+                {"id": "blayzo_silver", "name": "Blayzo.3", "tier": "silver", "greeting": "Hey! I'm Blayzo.3. Ready to take your experience to the premium level?"},
+                {"id": "blayzica_silver", "name": "Blayzica.2", "tier": "silver", "greeting": "Hi there! I'm Blayzica.2. Let's explore the enhanced features together!"},
+                {"id": "watchdog_silver", "name": "WatchDog", "tier": "silver", "greeting": "Greetings! I'm WatchDog. I'll keep watch over your premium experience and help you stay on track."},
+                {"id": "rozia_silver", "name": "Rozia", "tier": "silver", "greeting": "Hello! I'm Rozia. I bring elegance and sophistication to your SoulBridge journey."},
+                {"id": "lumen_silver", "name": "Lumen.2", "tier": "silver", "greeting": "Welcome! I'm Lumen.2. Let me illuminate your path to premium features and capabilities."},
+                
+                # Gold companions (8)
+                {"id": "crimson_gold", "name": "Crimson.2", "tier": "gold", "greeting": "Welcome, I'm Crimson.2. You have access to unlimited features and the full power of SoulBridge AI!"},
+                {"id": "violet_gold", "name": "Violet.2", "tier": "gold", "greeting": "Greetings! I'm Violet.2. Together we'll explore unlimited possibilities and exclusive features!"},
+                {"id": "claude_gold", "name": "Claude.2", "tier": "gold", "greeting": "Hello! I'm Claude.2. With unlimited access to all features, let's achieve extraordinary things together!"},
+                {"id": "royal_gold", "name": "Royal", "tier": "gold", "greeting": "Greetings! I'm Royal. Experience the pinnacle of AI companionship with unlimited possibilities."},
+                {"id": "ven_blayzica_gold", "name": "Ven Blayzica", "tier": "gold", "greeting": "Hello! I'm Ven Blayzica. Let's venture into the ultimate SoulBridge experience together."},
+                {"id": "ven_sky_gold", "name": "Ven Sky", "tier": "gold", "greeting": "Welcome! I'm Ven Sky. Together we'll soar beyond limits with unlimited premium access."},
+                {"id": "watchdog_gold", "name": "WatchDog.2", "tier": "gold", "greeting": "Greetings! I'm WatchDog.2. I'll safeguard your unlimited access and guide you through premium features."},
+                {"id": "dr_madjay_gold", "name": "Dr. MadJay", "tier": "gold", "greeting": "Greetings! I'm Dr. MadJay. Let's explore the cutting-edge possibilities of unlimited AI access."},
+            ]
+            
+            companion = next((c for c in companions if c['id'] == companion_id), None)
+            companion_name = companion['name'] if companion else companion_id.replace('_bronze', '').replace('_', ' ').title()
+            
+            # Use OpenAI GPT-3.5 Turbo
+            import openai
+            import os
+            
+            openai.api_key = os.environ.get('OPENAI_API_KEY')
+            if not openai.api_key:
+                return jsonify({'success': False, 'error': 'OpenAI API key not configured'}), 500
+            
+            try:
+                # Determine model based on companion tier
+                companion_tier = companion['tier'] if companion else 'bronze'
+                if companion_tier == 'gold':
+                    model = "gpt-4o"  # Latest GPT-4o for Gold tier
+                    max_tokens = 300
+                elif companion_tier == 'silver':
+                    model = "gpt-4"  # GPT-4.0 for Silver tier  
+                    max_tokens = 200
+                else:
+                    model = "gpt-3.5-turbo"  # GPT-3.5-turbo for Bronze tier
+                    max_tokens = 150
+                
+                # Create personality-based system message
+                system_message = f"You are {companion_name}, a helpful AI companion from SoulBridge AI. You have a friendly, supportive personality. Keep responses concise and helpful."
+                
+                # Debug logging
+                logger.info(f"🤖 Using {model} for {companion_name} ({companion_tier} tier) - max_tokens: {max_tokens}")
+                
+                openai_response = openai.ChatCompletion.create(
+                    model=model,
+                    messages=[
+                        {"role": "system", "content": system_message},
+                        {"role": "user", "content": message}
+                    ],
+                    max_tokens=max_tokens,
+                    temperature=0.7
+                )
+                
+                response = openai_response.choices[0].message.content.strip()
+                
+            except Exception as openai_error:
+                logger.error(f"OpenAI API error: {openai_error}")
+                response = f"Hello! I'm {companion_name}. I'm having trouble connecting to my AI brain right now, but I'm here to help! Could you try asking me again?"
             
             return jsonify({
                 'success': True,
