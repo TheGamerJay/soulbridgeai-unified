@@ -365,7 +365,9 @@ function showWelcomeMessage() {
         'Sapphire': "Welcome, traveler. I'm Sapphire, your navigation assistant here to guide you through the features and pathways of SoulBridge AI. How may I assist your journey today?"
     };
     
-    const greeting = greetings[currentCharacter] || `Hello! I'm ${currentCharacter}, ready to chat and help you with whatever you need.`;
+    // Try to get greeting from server first (from template data)
+    const serverGreeting = document.querySelector('[data-greeting]')?.dataset.greeting;
+    const greeting = serverGreeting || greetings[currentCharacter] || `Hello! I'm ${currentCharacter}, ready to chat and help you with whatever you need.`;
     
     const welcomeDiv = document.createElement('div');
     welcomeDiv.className = 'welcome-message';

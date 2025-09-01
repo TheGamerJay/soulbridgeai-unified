@@ -1346,3 +1346,121 @@ body.theme-blayzion .message.assistant .message-content {
         max-width: 100%;
     }
 }
+
+/* ========================================
+   TIER-BASED THEMES
+   ======================================== */
+
+/* BRONZE TIER - Black and Cyan Theme */
+body.tier-bronze {
+    background: linear-gradient(135deg, #000000 0%, #0a1a1a 50%, #001a1a 100%);
+}
+
+body.tier-bronze::before {
+    background: 
+        radial-gradient(circle at 20% 20%, rgba(0, 255, 255, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(0, 200, 255, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 40% 60%, rgba(0, 255, 255, 0.08) 0%, transparent 50%);
+}
+
+body.tier-bronze .chat-header {
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.9) 0%, rgba(0, 40, 40, 0.8) 100%);
+    border-bottom: 2px solid rgba(0, 255, 255, 0.3);
+}
+
+body.tier-bronze .status-indicator {
+    background: #00ffff;
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+}
+
+body.tier-bronze .send-button {
+    background: linear-gradient(135deg, #00ffff, #00bfbf);
+    color: #000000;
+}
+
+body.tier-bronze .send-button:hover {
+    background: linear-gradient(135deg, #00bfbf, #009999);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 255, 255, 0.3);
+}
+
+body.tier-bronze .message.assistant {
+    background: linear-gradient(135deg, rgba(0, 255, 255, 0.1), rgba(0, 200, 200, 0.05));
+    border-left: 4px solid #00ffff;
+}
+
+/* SILVER TIER - Black and Silver Theme */
+body.tier-silver {
+    background: linear-gradient(135deg, #000000 0%, #1a1a1a 50%, #2a2a2a 100%);
+}
+
+body.tier-silver::before {
+    background: 
+        radial-gradient(circle at 20% 20%, rgba(192, 192, 192, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(169, 169, 169, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 40% 60%, rgba(211, 211, 211, 0.08) 0%, transparent 50%);
+}
+
+body.tier-silver .chat-header {
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.9) 0%, rgba(40, 40, 40, 0.8) 100%);
+    border-bottom: 2px solid rgba(192, 192, 192, 0.3);
+}
+
+body.tier-silver .status-indicator {
+    background: #c0c0c0;
+    box-shadow: 0 0 10px rgba(192, 192, 192, 0.5);
+}
+
+body.tier-silver .send-button {
+    background: linear-gradient(135deg, #c0c0c0, #a0a0a0);
+    color: #000000;
+}
+
+body.tier-silver .send-button:hover {
+    background: linear-gradient(135deg, #d3d3d3, #b0b0b0);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(192, 192, 192, 0.3);
+}
+
+body.tier-silver .message.assistant {
+    background: linear-gradient(135deg, rgba(192, 192, 192, 0.1), rgba(169, 169, 169, 0.05));
+    border-left: 4px solid #c0c0c0;
+}
+
+/* GOLD TIER - Black and Gold Theme */
+body.tier-gold {
+    background: linear-gradient(135deg, #000000 0%, #1a1a0a 50%, #2a2200 100%);
+}
+
+body.tier-gold::before {
+    background: 
+        radial-gradient(circle at 20% 20%, rgba(255, 215, 0, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(255, 193, 7, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 40% 60%, rgba(255, 223, 0, 0.08) 0%, transparent 50%);
+}
+
+body.tier-gold .chat-header {
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.9) 0%, rgba(40, 30, 0, 0.8) 100%);
+    border-bottom: 2px solid rgba(255, 215, 0, 0.3);
+}
+
+body.tier-gold .status-indicator {
+    background: #ffd700;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+body.tier-gold .send-button {
+    background: linear-gradient(135deg, #ffd700, #ffb300);
+    color: #000000;
+}
+
+body.tier-gold .send-button:hover {
+    background: linear-gradient(135deg, #ffe135, #ffc107);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+}
+
+body.tier-gold .message.assistant {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 193, 7, 0.05));
+    border-left: 4px solid #ffd700;
+}
