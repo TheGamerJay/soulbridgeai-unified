@@ -58,59 +58,10 @@ class CommunityService:
                     'companion': self._add_cache_busting(companion_data)
                 }
             
-            # Try to get from database if available - CRITICAL fallback for persistence
-            if self.database:
-                try:
-                    logger.info(f"👤 Checking database for avatar persistence for user {user_id}")
-                    conn = self.database.get_connection()
-                    cursor = conn.cursor()
-                    
-                    # Check if user has companion data stored
-                    if self.database.use_postgres:
-                        cursor.execute("SELECT companion_data FROM users WHERE id = %s", (user_id,))
-                    else:
-                        cursor.execute("SELECT companion_data FROM users WHERE id = ?", (user_id,))
-                    
-                    result = cursor.fetchone()
-                    conn.close()
-                    
-                    if result and result[0]:
-                        import json
-                        logger.info(f"✅ Found database companion_data for user {user_id}: {result[0]}")
-                        try:
-                            companion_info = json.loads(result[0]) if isinstance(result[0], str) else result[0]
-                            logger.info(f"👤 Parsed companion_info from database: {companion_info}")
-                            if companion_info and isinstance(companion_info, dict) and 'id' in companion_info:
-                                # Get fresh companion data from companion manager for up-to-date info
-                                if self.companion_manager:
-                                    companion_data = self.companion_manager.get_companion_by_id(companion_info['id'])
-                                    if companion_data:
-                                        logger.info(f"✅ SUCCESS: Using database companion {companion_info['id']} for user {user_id}")
-                                        return {
-                                            'success': True,
-                                            'companion': {
-                                                'name': companion_info.get('name', companion_data.get('name', 'Soul')),
-                                                'companion_id': companion_info['id'],
-                                                'avatar_url': companion_data.get('image_url', '/static/logos/New IntroLogo.png'),
-                                                'image_url': companion_data.get('image_url', '/static/logos/New IntroLogo.png'),
-                                                'tier': companion_data.get('tier', 'bronze')
-                                            }
-                                        }
-                                    else:
-                                        logger.error(f"❌ Companion manager couldn't find companion {companion_info['id']}")
-                                else:
-                                    logger.error("❌ No companion manager available for database lookup")
-                            else:
-                                logger.warning(f"⚠️ Invalid companion_info structure from database: {companion_info}")
-                        except (json.JSONDecodeError, TypeError) as e:
-                            logger.error(f"❌ Failed to parse companion_data from database: {e}")
-                    else:
-                        logger.info(f"ℹ️ No companion_data found in database for user {user_id}")
-                        
-                except Exception as db_error:
-                    logger.error(f"❌ CRITICAL: Database lookup failed for avatar user {user_id}: {db_error}")
-            else:
-                logger.warning("⚠️ No database available for avatar lookup")
+            # If no session data, this is likely a refresh - use database fallback  
+            logger.warning(f"⚠️ No session data found for user {user_id} - trying database fallback")
+            
+            # Database fallback failed above, so no avatar data found
             
             # Default companion if none set
             default_companion = {
@@ -451,15 +402,16 @@ class CommunityService:
         return self.content_types
     
     def _get_companion_from_database(self, user_id: int) -> Optional[Dict[str, Any]]:
-        """Get companion data from database with enhanced error handling"""
+        """Get companion data from database with enhanced error handling and debugging"""
         try:
             if not self.database:
+                logger.warning("❌ Database not available for companion retrieval")
                 return None
                 
             conn = self.database.get_connection()
             cursor = conn.cursor()
             
-            # Get both companion_data and last_avatar_update for better persistence
+            # Get companion data with debugging
             if self.database.use_postgres:
                 cursor.execute("""
                     SELECT companion_data, updated_at 
@@ -474,16 +426,22 @@ class CommunityService:
             result = cursor.fetchone()
             conn.close()
             
+            logger.info(f"🔍 Database query result for user {user_id}: {result}")
+            
             if result and result[0]:
                 try:
                     companion_info = json.loads(result[0]) if isinstance(result[0], str) else result[0]
                     last_update = result[1]  # Use updated_at timestamp
                     
+                    logger.info(f"🔍 Parsed companion_info: {companion_info}")
+                    logger.info(f"🔍 Last update: {last_update}")
+                    
                     if companion_info and isinstance(companion_info, dict) and 'id' in companion_info:
-                        # Get fresh companion data from companion manager
+                        # Get fresh companion data from companion manager if available
                         if self.companion_manager:
                             companion_data = self.companion_manager.get_companion_by_id(companion_info['id'])
                             if companion_data:
+                                logger.info(f"✅ Found companion data from manager: {companion_data.get('name')}")
                                 return {
                                     'name': companion_info.get('name', companion_data.get('name', 'Soul')),
                                     'companion_id': companion_info['id'],
@@ -492,25 +450,33 @@ class CommunityService:
                                     'tier': companion_data.get('tier', 'bronze'),
                                     'last_update': last_update.isoformat() if last_update else None
                                 }
+                            else:
+                                logger.warning(f"⚠️ Companion manager couldn't find companion {companion_info['id']}")
                         
-                        # Fallback if companion manager unavailable
+                        # Fallback: use stored companion info directly
+                        logger.info("✅ Using stored companion info directly")
                         return {
                             'name': companion_info.get('name', 'Soul'),
                             'companion_id': companion_info['id'],
                             'avatar_url': companion_info.get('image_url', '/static/logos/New IntroLogo.png'),
-                            'image_url': companion_info.get('image_url', '/static/logos/New IntroLogo.png'),
+                            'image_url': companion_info.get('image_url', '/static/logos/New IntroLogo.png'), 
                             'tier': companion_info.get('tier', 'bronze'),
                             'last_update': last_update.isoformat() if last_update else None
                         }
                         
                 except (json.JSONDecodeError, TypeError) as e:
                     logger.error(f"❌ Failed to parse companion_data from database: {e}")
+                    logger.error(f"❌ Raw data: {result[0]}")
                     return None
+            else:
+                logger.info(f"ℹ️ No companion_data found in database for user {user_id}")
             
             return None
             
         except Exception as e:
             logger.error(f"❌ Database companion retrieval failed: {e}")
+            import traceback
+            logger.error(f"❌ Traceback: {traceback.format_exc()}")
             return None
     
     def _add_cache_busting(self, companion_data: Dict[str, Any]) -> Dict[str, Any]:
