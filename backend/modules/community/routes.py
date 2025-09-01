@@ -857,9 +857,7 @@ def community_set_avatar():
         if not is_logged_in():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
-        if not community_service:
-            return jsonify({"success": False, "error": "Service unavailable"}), 503
-        
+        # DIRECT DATABASE SAVE - No service dependencies
         data = request.get_json()
         companion_id = data.get('companion_id')
         
@@ -867,168 +865,77 @@ def community_set_avatar():
             return jsonify({"success": False, "error": "Companion ID required"}), 400
         
         user_id = session.get('user_id')
-        user_plan = session.get('user_plan', 'bronze')
-        trial_active = session.get('trial_active', False)
         
-        # Verify trial status with database to prevent stale session access
+        # Simple companion mapping
+        companion_map = {
+            'luna': {'name': 'Luna', 'image_url': '/static/images/avatars/f_luna_mystic.png', 'tier': 'silver'},
+            'seraphina': {'name': 'Seraphina', 'image_url': '/static/images/avatars/f_seraphina_angel.png', 'tier': 'silver'},
+            'zara': {'name': 'Zara', 'image_url': '/static/images/avatars/f_zara_cosmic.png', 'tier': 'gold'},
+            'kai': {'name': 'Kai', 'image_url': '/static/images/avatars/m_kai_warrior.png', 'tier': 'bronze'},
+            'phoenix': {'name': 'Phoenix', 'image_url': '/static/images/avatars/m_phoenix_fire.png', 'tier': 'gold'}
+        }
+        
+        if companion_id not in companion_map:
+            return jsonify({"success": False, "error": f"Unknown companion: {companion_id}"}), 400
+        
+        companion = companion_map[companion_id]
+        
+        # BULLETPROOF DATABASE SAVE
         try:
-            db_instance = get_database()
-            if db_instance:
-                conn = db_instance.get_connection()
-                cursor = conn.cursor()
-                if db_instance.use_postgres:
-                    cursor.execute("SELECT user_plan, trial_active FROM users WHERE id = %s", (user_id,))
-                else:
-                    cursor.execute("SELECT user_plan, trial_active FROM users WHERE id = ?", (user_id,))
-                result = cursor.fetchone()
-                if result:
-                    db_user_plan, db_trial_active = result
-                    # Use database values if they differ from session
-                    if db_user_plan != user_plan or bool(db_trial_active) != trial_active:
-                        logger.warning(f"🔧 AVATAR SET: Session mismatch - using database values")
-                        user_plan = db_user_plan
-                        trial_active = bool(db_trial_active)
-                        session['user_plan'] = user_plan
-                        session['trial_active'] = trial_active
-                        session.modified = True
-                conn.close()
-        except Exception as e:
-            logger.error(f"Error verifying trial status in avatar set: {e}")
-        
-        # Find companion data
-        companion_data = None
-        for c in COMPANIONS_NEW:
-            if c['id'] == companion_id:
-                companion_data = {
-                    'companion_id': c['id'],
-                    'name': c['name'],
-                    'avatar_url': c['image_url'],
-                    'tier': c['tier']
-                }
-                break
-        
-        if not companion_data:
-            return jsonify({"success": False, "error": "Invalid companion ID"}), 400
-        
-        # CRITICAL FIX: Save directly to database to ensure persistence
-        try:
-            import json
-            from datetime import datetime
-            
-            # Create companion info for database
+            # Create companion info with correct field names
             companion_info = {
-                'id': companion_data['companion_id'],
-                'name': companion_data['name'], 
-                'image_url': companion_data['avatar_url'],
-                'tier': companion_data['tier'],
-                'saved_at': datetime.now().isoformat()
+                'id': companion_id,
+                'name': companion['name'],
+                'image_url': companion['image_url'],  # This is what server-side expects!
+                'tier': companion['tier'],
+                'saved_at': datetime.now(timezone.utc).isoformat()
             }
+            
+            logger.info(f"💾 SAVING AVATAR for user {user_id}: {companion_info}")
             
             db = get_database()
             if not db:
-                logger.error("❌ Database not available for avatar save")
                 return jsonify({"success": False, "error": "Database not available"}), 503
-                
+            
             conn = db.get_connection()
             cursor = conn.cursor()
             
-            companion_json = json.dumps(companion_info)
-            logger.info(f"💾 DIRECT SAVE: Saving to database for user {user_id}: {companion_json}")
-            logger.info(f"🔧 Database type: {db.__class__.__name__}, use_postgres: {db.use_postgres}")
-            
-            # First check if user exists
+            # Simple, direct PostgreSQL save
             if db.use_postgres:
-                cursor.execute("SELECT id FROM users WHERE id = %s", (user_id,))
-            else:
-                cursor.execute("SELECT id FROM users WHERE id = ?", (user_id,))
-            
-            user_exists = cursor.fetchone()
-            logger.info(f"👤 User {user_id} exists check: {user_exists is not None}")
-            
-            if not user_exists:
-                conn.close()
-                return jsonify({"success": False, "error": f"User {user_id} not found in database"}), 404
-            
-            # Now do the UPDATE with enhanced PostgreSQL debugging
-            if db.use_postgres:
-                logger.info(f"🐘 Using PostgreSQL UPDATE for user {user_id}")
-                
-                # Check current companion_data before update
-                cursor.execute("SELECT companion_data FROM users WHERE id = %s", (user_id,))
-                before_data = cursor.fetchone()
-                logger.info(f"🔍 BEFORE UPDATE: companion_data = {before_data[0] if before_data else 'No result'}")
-                
-                # Try the update with explicit casting for PostgreSQL
-                try:
-                    cursor.execute("""
-                        UPDATE users 
-                        SET companion_data = %s::jsonb
-                        WHERE id = %s
-                    """, (json.dumps(companion_info), user_id))
-                    
-                    rows_affected = cursor.rowcount
-                    logger.info(f"💾 PostgreSQL UPDATE: {rows_affected} rows affected")
-                    
-                    if rows_affected == 0:
-                        logger.error(f"❌ PostgreSQL UPDATE affected 0 rows for user {user_id}")
-                        conn.rollback()
-                        return jsonify({"success": False, "error": "Update failed - no rows affected"}), 500
-                    
-                except Exception as pg_error:
-                    logger.error(f"❌ PostgreSQL UPDATE failed: {pg_error}")
-                    conn.rollback()
-                    return jsonify({"success": False, "error": f"PostgreSQL error: {str(pg_error)}"}), 500
-            else:
-                logger.info(f"🪶 Using SQLite UPDATE for user {user_id}")
                 cursor.execute("""
                     UPDATE users 
-                    SET companion_data = ?, updated_at = CURRENT_TIMESTAMP
+                    SET companion_data = %s::jsonb
+                    WHERE id = %s
+                """, (json.dumps(companion_info), user_id))
+            else:
+                cursor.execute("""
+                    UPDATE users 
+                    SET companion_data = ?
                     WHERE id = ?
-                """, (companion_json, user_id))
-            
-            rows_affected = cursor.rowcount
-            logger.info(f"💾 PRE-COMMIT: {rows_affected} rows affected for user {user_id}")
+                """, (json.dumps(companion_info), user_id))
             
             conn.commit()
-            logger.info(f"✅ COMMIT SUCCESSFUL for user {user_id}")
-            
-            # Verify the save worked
-            if db.use_postgres:
-                cursor.execute("SELECT companion_data FROM users WHERE id = %s", (user_id,))
-            else:
-                cursor.execute("SELECT companion_data FROM users WHERE id = ?", (user_id,))
-            
-            verify_result = cursor.fetchone()
-            logger.info(f"🔍 VERIFICATION: Data saved = {verify_result[0] is not None if verify_result else 'No result'}")
-            
             conn.close()
             
-            if rows_affected == 0:
-                return jsonify({"success": False, "error": "Update failed - no rows affected"}), 500
+            logger.info(f"✅ AVATAR SAVED: {companion['name']} for user {user_id}")
+            
+            # Update session
+            session['companion_info'] = {
+                'name': companion['name'],
+                'id': companion_id,
+                'image_url': companion['image_url']
+            }
+            session.modified = True
+            
+            return jsonify({
+                "success": True,
+                "message": "Avatar updated successfully",
+                "companion": companion
+            })
                 
         except Exception as save_error:
-            logger.error(f"❌ DIRECT SAVE FAILED: {save_error}")
+            logger.error(f"❌ AVATAR SAVE FAILED: {save_error}")
             return jsonify({"success": False, "error": f"Save failed: {str(save_error)}"}), 500
-        
-        # Also try the community service (secondary)
-        if community_service:
-            set_result = community_service.set_user_avatar(user_id, companion_data)
-            logger.info(f"🔄 Community service result: {set_result}")
-        else:
-            logger.warning("⚠️ Community service not available")
-        
-        # Update session with new companion info
-        session['companion_info'] = {
-            'name': companion_data['name'],
-            'id': companion_data['companion_id'],
-            'image_url': companion_data['avatar_url']
-        }
-        session.modified = True
-        
-        return jsonify({
-            "success": True,
-            "message": "Avatar updated successfully"
-        })
         
     except Exception as e:
         logger.error(f"Community set avatar error: {e}")
