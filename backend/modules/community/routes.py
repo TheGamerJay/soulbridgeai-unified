@@ -972,6 +972,45 @@ def force_avatar_refresh():
         logger.error(f"Force avatar refresh error: {e}")
         return jsonify({"success": False, "error": str(e)}), 500
 
+@community_bp.route("/community/debug-avatar", methods=["GET"])
+def debug_avatar_persistence():
+    """Debug endpoint to check avatar persistence in database"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        user_id = session.get('user_id')
+        
+        # Check database directly
+        db = get_database()
+        if not db:
+            return jsonify({"debug": "Database not available"}), 500
+            
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        
+        if db.use_postgres:
+            cursor.execute("SELECT id, companion_data FROM users WHERE id = %s", (user_id,))
+        else:
+            cursor.execute("SELECT id, companion_data FROM users WHERE id = ?", (user_id,))
+            
+        result = cursor.fetchone()
+        conn.close()
+        
+        debug_info = {
+            "user_id": user_id,
+            "session_companion": session.get('companion_info'),
+            "database_user_exists": result is not None,
+            "database_companion_data": result[1] if result and result[1] else None,
+            "database_raw": str(result) if result else None
+        }
+        
+        return jsonify({"success": True, "debug": debug_info})
+        
+    except Exception as e:
+        logger.error(f"Debug avatar error: {e}")
+        return jsonify({"success": False, "error": str(e), "debug": "Debug failed"}), 500
+
 # =============================================================================
 # WELLNESS GALLERY API ENDPOINTS
 # =============================================================================
