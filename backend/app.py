@@ -176,7 +176,20 @@ def register_blueprints(app):
         
         # Community system
         from modules.community import community_bp
+        from modules.community.routes import init_community_services
         app.register_blueprint(community_bp)
+        
+        # CRITICAL: Initialize community services with database connection
+        from database_utils import get_database
+        openai_client = None
+        try:
+            import openai
+            openai_client = openai.OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+        except:
+            pass
+        
+        init_community_services(database=get_database(), openai_client=openai_client)
+        logger.info("✅ Community services initialized with database")
         logger.info("✅ Community system registered")
         
         # Payment system
