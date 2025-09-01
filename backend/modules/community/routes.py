@@ -818,6 +818,95 @@ def community_avatar_cooldown():
         logger.error(f"Community avatar cooldown error: {e}")
         return jsonify({"success": False, "error": "Failed to check cooldown"}), 500
 
+@community_bp.route("/community/avatar/test-persistence", methods=["GET"])
+def test_avatar_persistence():
+    """Test endpoint to verify avatar persistence across refreshes"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        user_id = session.get('user_id')
+        
+        # Test database persistence
+        try:
+            from ...avatar_persistence_helper import load_user_avatar_persistent
+            db_result = load_user_avatar_persistent(user_id, get_database())
+        except ImportError:
+            db_result = {'success': False, 'error': 'Avatar persistence helper not available'}
+        
+        # Test session persistence  
+        session_companion = session.get('companion_info')
+        
+        # Test community service persistence
+        service_result = None
+        if community_service:
+            service_result = community_service.get_user_avatar(user_id)
+        
+        return jsonify({
+            "success": True,
+            "persistence_test": {
+                "database": {
+                    "available": db_result['success'],
+                    "data": db_result.get('data') if db_result['success'] else None,
+                    "error": db_result.get('error') if not db_result['success'] else None
+                },
+                "session": {
+                    "available": session_companion is not None,
+                    "data": session_companion
+                },
+                "service": {
+                    "available": service_result is not None and service_result.get('success', False),
+                    "data": service_result.get('companion') if service_result and service_result.get('success') else None,
+                    "error": service_result.get('error') if service_result and not service_result.get('success') else None
+                },
+                "recommendations": [
+                    "Database persistence is the most reliable for production",
+                    "Session storage will be lost on refresh/restart", 
+                    "Always use database + cache busting for persistent avatars",
+                    "Consider cloud storage for uploaded custom images"
+                ]
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Avatar persistence test error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@community_bp.route("/community/avatar/force-refresh", methods=["POST"])
+def force_avatar_refresh():
+    """Force refresh avatar from database with new cache buster"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        if not community_service:
+            return jsonify({"success": False, "error": "Service unavailable"}), 503
+        
+        user_id = session.get('user_id')
+        
+        # Clear session cache
+        session.pop('companion_info', None)
+        session.modified = True
+        
+        # Force reload from database
+        avatar_result = community_service.get_user_avatar(user_id)
+        
+        if avatar_result['success']:
+            return jsonify({
+                "success": True,
+                "message": "Avatar refreshed successfully",
+                "companion": avatar_result['companion']
+            })
+        else:
+            return jsonify({
+                "success": False,
+                "error": avatar_result.get('error', 'Failed to refresh avatar')
+            }), 500
+        
+    except Exception as e:
+        logger.error(f"Force avatar refresh error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
 # =============================================================================
 # WELLNESS GALLERY API ENDPOINTS
 # =============================================================================

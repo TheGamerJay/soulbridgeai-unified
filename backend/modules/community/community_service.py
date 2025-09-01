@@ -26,26 +26,36 @@ class CommunityService:
         ]
     
     def get_user_avatar(self, user_id: int) -> Dict[str, Any]:
-        """Get user's current community avatar/companion"""
+        """Get user's current community avatar/companion with cache busting"""
         try:
             from flask import session
+            import time
             
-            # Get companion info from session first
+            # ALWAYS check database first for persistent storage
+            database_companion = self._get_companion_from_database(user_id)
+            if database_companion:
+                logger.info(f"👤 Using database companion for user {user_id}")
+                return {
+                    'success': True,
+                    'companion': self._add_cache_busting(database_companion)
+                }
+            
+            # Fallback to session if database unavailable
             companion_info = session.get('companion_info')
-            logger.info(f"👤 Session companion_info: {companion_info}")
+            logger.info(f"👤 Session companion_info fallback: {companion_info}")
             
             if companion_info and 'id' in companion_info:
                 logger.info(f"👤 Using session companion: {companion_info['id']}")
-                # Return companion info from session
+                companion_data = {
+                    'name': companion_info.get('name', 'Soul'),
+                    'companion_id': companion_info.get('id', 'soul'),
+                    'avatar_url': companion_info.get('image_url', '/static/logos/New IntroLogo.png'),
+                    'image_url': companion_info.get('image_url', '/static/logos/New IntroLogo.png'),
+                    'tier': companion_info.get('tier', 'bronze')
+                }
                 return {
                     'success': True,
-                    'companion': {
-                        'name': companion_info.get('name', 'Soul'),
-                        'companion_id': companion_info.get('id', 'soul'),
-                        'avatar_url': companion_info.get('image_url', '/static/logos/New IntroLogo.png'),
-                        'image_url': companion_info.get('image_url', '/static/logos/New IntroLogo.png'),
-                        'tier': companion_info.get('tier', 'bronze')
-                    }
+                    'companion': self._add_cache_busting(companion_data)
                 }
             
             # Try to get from database if available - CRITICAL fallback for persistence
@@ -167,28 +177,32 @@ class CommunityService:
             session.modified = True
             logger.info(f"👤 Saved companion to session: {companion_info}")
             
-            # Also save to database if available - CRITICAL for persistence
+            # CRITICAL: Save to database with timestamp for cache busting and persistence
             if self.database:
                 try:
                     conn = self.database.get_connection()
                     cursor = conn.cursor()
                     
-                    # Save companion info as JSON in companion_data column
+                    # Save companion info as JSON with timestamp
                     import json
+                    from datetime import datetime
+                    
+                    # Add timestamp to companion info for cache busting
+                    companion_info['last_updated'] = datetime.now().isoformat()
                     companion_json = json.dumps(companion_info)
-                    logger.info(f"👤 Attempting to save companion_data to database: {companion_json}")
+                    logger.info(f"👤 Saving avatar with timestamp: {companion_json}")
                     
                     if self.database.use_postgres:
                         cursor.execute("""
                             UPDATE users 
-                            SET companion_data = %s 
+                            SET companion_data = %s, updated_at = CURRENT_TIMESTAMP
                             WHERE id = %s
                         """, (companion_json, user_id))
                         rows_affected = cursor.rowcount
                     else:
                         cursor.execute("""
                             UPDATE users 
-                            SET companion_data = ? 
+                            SET companion_data = ?, updated_at = CURRENT_TIMESTAMP
                             WHERE id = ?
                         """, (companion_json, user_id))
                         rows_affected = cursor.rowcount
@@ -197,15 +211,23 @@ class CommunityService:
                     conn.close()
                     
                     if rows_affected > 0:
-                        logger.info(f"✅ Successfully saved avatar to database for user {user_id} (rows affected: {rows_affected})")
+                        logger.info(f"✅ Avatar persisted to database for user {user_id} with timestamp")
                     else:
-                        logger.error(f"❌ No rows affected when saving avatar for user {user_id} - user may not exist!")
+                        logger.error(f"❌ No rows affected - user {user_id} may not exist in database!")
+                        # This is critical - return error if user doesn't exist
+                        return {
+                            'success': False,
+                            'error': 'User not found in database'
+                        }
                     
                 except Exception as db_error:
-                    logger.error(f"❌ CRITICAL: Failed to save avatar to database for user {user_id}: {db_error}")
-                    # Don't fail the whole operation, but log it as critical
+                    logger.error(f"❌ CRITICAL: Database persistence failed for user {user_id}: {db_error}")
+                    return {
+                        'success': False,
+                        'error': f'Failed to persist avatar: {str(db_error)}'
+                    }
             else:
-                logger.warning("⚠️ No database available for avatar persistence")
+                logger.warning("⚠️ No database available - avatar won't persist across restarts!")
             
             avatar_data = {
                 'user_id': user_id,
@@ -427,6 +449,99 @@ class CommunityService:
     def get_content_types(self) -> List[str]:
         """Get available content types"""
         return self.content_types
+    
+    def _get_companion_from_database(self, user_id: int) -> Optional[Dict[str, Any]]:
+        """Get companion data from database with enhanced error handling"""
+        try:
+            if not self.database:
+                return None
+                
+            conn = self.database.get_connection()
+            cursor = conn.cursor()
+            
+            # Get both companion_data and last_avatar_update for better persistence
+            if self.database.use_postgres:
+                cursor.execute("""
+                    SELECT companion_data, updated_at 
+                    FROM users WHERE id = %s
+                """, (user_id,))
+            else:
+                cursor.execute("""
+                    SELECT companion_data, updated_at 
+                    FROM users WHERE id = ?
+                """, (user_id,))
+            
+            result = cursor.fetchone()
+            conn.close()
+            
+            if result and result[0]:
+                try:
+                    companion_info = json.loads(result[0]) if isinstance(result[0], str) else result[0]
+                    last_update = result[1]  # Use updated_at timestamp
+                    
+                    if companion_info and isinstance(companion_info, dict) and 'id' in companion_info:
+                        # Get fresh companion data from companion manager
+                        if self.companion_manager:
+                            companion_data = self.companion_manager.get_companion_by_id(companion_info['id'])
+                            if companion_data:
+                                return {
+                                    'name': companion_info.get('name', companion_data.get('name', 'Soul')),
+                                    'companion_id': companion_info['id'],
+                                    'avatar_url': companion_data.get('image_url', '/static/logos/New IntroLogo.png'),
+                                    'image_url': companion_data.get('image_url', '/static/logos/New IntroLogo.png'),
+                                    'tier': companion_data.get('tier', 'bronze'),
+                                    'last_update': last_update.isoformat() if last_update else None
+                                }
+                        
+                        # Fallback if companion manager unavailable
+                        return {
+                            'name': companion_info.get('name', 'Soul'),
+                            'companion_id': companion_info['id'],
+                            'avatar_url': companion_info.get('image_url', '/static/logos/New IntroLogo.png'),
+                            'image_url': companion_info.get('image_url', '/static/logos/New IntroLogo.png'),
+                            'tier': companion_info.get('tier', 'bronze'),
+                            'last_update': last_update.isoformat() if last_update else None
+                        }
+                        
+                except (json.JSONDecodeError, TypeError) as e:
+                    logger.error(f"❌ Failed to parse companion_data from database: {e}")
+                    return None
+            
+            return None
+            
+        except Exception as e:
+            logger.error(f"❌ Database companion retrieval failed: {e}")
+            return None
+    
+    def _add_cache_busting(self, companion_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Add cache busting parameters to avatar URLs"""
+        try:
+            import time
+            from datetime import datetime
+            
+            # Generate cache buster based on last update or current time
+            if 'last_update' in companion_data and companion_data['last_update']:
+                try:
+                    update_time = datetime.fromisoformat(companion_data['last_update'].replace('Z', '+00:00'))
+                    cache_buster = int(update_time.timestamp())
+                except:
+                    cache_buster = int(time.time())
+            else:
+                cache_buster = int(time.time())
+            
+            # Add cache buster to all image URLs
+            for url_field in ['avatar_url', 'image_url']:
+                if url_field in companion_data and companion_data[url_field]:
+                    url = companion_data[url_field]
+                    # Add timestamp parameter for cache busting
+                    separator = '&' if '?' in url else '?'
+                    companion_data[url_field] = f"{url}{separator}t={cache_buster}"
+            
+            return companion_data
+            
+        except Exception as e:
+            logger.error(f"Failed to add cache busting: {e}")
+            return companion_data
     
     def format_community_content(self, content_item: Dict[str, Any]) -> Dict[str, Any]:
         """Format community content for display"""
