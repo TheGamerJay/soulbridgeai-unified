@@ -1455,6 +1455,15 @@ body.tier-bronze .message-input:focus {
     outline: none;
 }
 
+/* Button icon styling */
+.btn-icon {
+    width: 20px;
+    height: 20px;
+    object-fit: cover;
+    margin-right: 8px;
+    border-radius: 4px;
+}
+
 /* SILVER TIER - Black and Silver Theme */
 body.tier-silver {
     background: linear-gradient(135deg, #000000 0%, #1a1a1a 50%, #2a2a2a 100%);

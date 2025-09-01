@@ -79,15 +79,15 @@
                 <!-- TIER ISOLATED FEATURES - Show to ALL users with their tier limits -->
                 <!-- Free: 3/2/3, Growth: 15/8/10, Max: ∞ -->
                 <a href="/decoder" class="action-btn tier-btn" data-feature="decoder">
-                    <i class="fas fa-brain"></i>
+                    <img src="/static/logos/Agent The decoder.png" alt="Decoder" class="btn-icon">
                     Decoder
                 </a>
                 <a href="/fortune" class="action-btn tier-btn" data-feature="fortune">
-                    <i class="fas fa-crystal-ball"></i>
+                    <img src="/static/logos/Fortune Teller Sky.png" alt="Fortune" class="btn-icon">
                     Fortune
                 </a>
                 <a href="/horoscope" class="action-btn tier-btn" data-feature="horoscope">
-                    <i class="fas fa-star"></i>
+                    <img src="/static/logos/horoscope sky.png" alt="Horoscope" class="btn-icon">
                     Horoscope
                 </a>
                 
@@ -123,10 +123,14 @@
                 </a>
                 {% endif %}
                 <a href="/creative-writing" class="action-btn creative-btn tier-btn" data-feature="creative_writer" title="Creative Writing Assistant">
-                    <i class="fas fa-feather-alt"></i>
-                    <div class="btn-content">
-                        <span class="btn-title">Write</span>
-                    </div>
+                    {% if companion_tier == 'gold' %}
+                        <img src="/static/logos/Gold Creative Writing.png" alt="Creative Writing" class="btn-icon">
+                    {% elif companion_tier == 'silver' %}
+                        <img src="/static/logos/Silver Creative Writing.png" alt="Creative Writing" class="btn-icon">
+                    {% else %}
+                        <img src="/static/logos/Bronze Creative Writing .png" alt="Creative Writing" class="btn-icon">
+                    {% endif %}
+                    Write
                 </a>
                 
                 <!-- DUPLICATE SECTION REMOVED - Using isolated tier blocks above -->
