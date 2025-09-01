@@ -1523,6 +1523,97 @@ def api_community_access():
         logger.error(f"Community access validation error: {e}")
         return jsonify({"success": False, "error": "Failed to validate access"}), 500
 
+@community_bp.route("/community/debug-current-user", methods=["GET"])
+def debug_current_user():
+    """Debug current logged in user information"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Not logged in"}), 401
+        
+        user_id = session.get('user_id')
+        user_email = session.get('email')
+        user_plan = session.get('user_plan')
+        
+        # Get user data from database
+        db = get_database()
+        if not db:
+            return jsonify({"success": False, "error": "Database not available"}), 503
+            
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        
+        if db.use_postgres:
+            cursor.execute("SELECT id, email, display_name, companion_data FROM users WHERE id = %s", (user_id,))
+        else:
+            cursor.execute("SELECT id, email, display_name, companion_data FROM users WHERE id = ?", (user_id,))
+        
+        user_row = cursor.fetchone()
+        conn.close()
+        
+        return jsonify({
+            "success": True,
+            "session": {
+                "user_id": user_id,
+                "email": user_email,
+                "user_plan": user_plan
+            },
+            "database": {
+                "user_exists": user_row is not None,
+                "user_data": {
+                    "id": user_row[0] if user_row else None,
+                    "email": user_row[1] if user_row else None,
+                    "display_name": user_row[2] if user_row else None,
+                    "has_companion_data": user_row[3] is not None if user_row else False,
+                    "companion_data": user_row[3] if user_row and user_row[3] else None
+                } if user_row else None
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"❌ Debug current user error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@community_bp.route("/community/debug-users", methods=["GET"])
+def debug_users():
+    """TEMPORARY: Debug what users exist in the database"""
+    try:
+        db = get_database()
+        if not db:
+            return jsonify({"success": False, "error": "Database not available"}), 503
+        
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        
+        # Get recent users
+        if db.use_postgres:
+            cursor.execute("SELECT id, email, display_name, companion_data FROM users ORDER BY id DESC LIMIT 10")
+        else:
+            cursor.execute("SELECT id, email, display_name, companion_data FROM users ORDER BY id DESC LIMIT 10")
+        
+        users = cursor.fetchall()
+        conn.close()
+        
+        user_list = []
+        for user in users:
+            user_info = {
+                "id": user[0],
+                "email": user[1],
+                "display_name": user[2],
+                "has_companion_data": user[3] is not None,
+                "companion_data": user[3] if user[3] else None
+            }
+            user_list.append(user_info)
+        
+        return jsonify({
+            "success": True,
+            "database_type": "PostgreSQL" if db.use_postgres else "SQLite",
+            "users": user_list
+        })
+        
+    except Exception as e:
+        logger.error(f"❌ Debug users error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
 @community_bp.route("/community/test-avatar-save", methods=["POST"])
 def test_avatar_save():
     """TEMPORARY: Test avatar save without authentication for debugging"""
