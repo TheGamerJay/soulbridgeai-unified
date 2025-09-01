@@ -949,14 +949,35 @@ def community_set_avatar():
                 conn.close()
                 return jsonify({"success": False, "error": f"User {user_id} not found in database"}), 404
             
-            # Now do the UPDATE
+            # Now do the UPDATE with enhanced PostgreSQL debugging
             if db.use_postgres:
                 logger.info(f"🐘 Using PostgreSQL UPDATE for user {user_id}")
-                cursor.execute("""
-                    UPDATE users 
-                    SET companion_data = %s::jsonb, updated_at = CURRENT_TIMESTAMP
-                    WHERE id = %s
-                """, (companion_json, user_id))
+                
+                # Check current companion_data before update
+                cursor.execute("SELECT companion_data FROM users WHERE id = %s", (user_id,))
+                before_data = cursor.fetchone()
+                logger.info(f"🔍 BEFORE UPDATE: companion_data = {before_data[0] if before_data else 'No result'}")
+                
+                # Try the update with explicit casting for PostgreSQL
+                try:
+                    cursor.execute("""
+                        UPDATE users 
+                        SET companion_data = %s::jsonb
+                        WHERE id = %s
+                    """, (json.dumps(companion_info), user_id))
+                    
+                    rows_affected = cursor.rowcount
+                    logger.info(f"💾 PostgreSQL UPDATE: {rows_affected} rows affected")
+                    
+                    if rows_affected == 0:
+                        logger.error(f"❌ PostgreSQL UPDATE affected 0 rows for user {user_id}")
+                        conn.rollback()
+                        return jsonify({"success": False, "error": "Update failed - no rows affected"}), 500
+                    
+                except Exception as pg_error:
+                    logger.error(f"❌ PostgreSQL UPDATE failed: {pg_error}")
+                    conn.rollback()
+                    return jsonify({"success": False, "error": f"PostgreSQL error: {str(pg_error)}"}), 500
             else:
                 logger.info(f"🪶 Using SQLite UPDATE for user {user_id}")
                 cursor.execute("""
