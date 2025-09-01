@@ -430,6 +430,32 @@ def mini_assistant_status():
             "error": str(e)
         }), 500
 
+# Theme Endpoints
+@api_bp.route('/get-theme')
+@requires_login
+def get_theme():
+    """Get user theme preferences - simple endpoint for compatibility"""
+    try:
+        # Return a simple default theme for now
+        return jsonify({
+            "success": True,
+            "theme": {
+                "name": "default",
+                "primary": "#6366f1",
+                "secondary": "#8b5cf6", 
+                "accent": "#06b6d4",
+                "background": "#ffffff",
+                "text": "#1f2937"
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Error getting theme: {e}")
+        return jsonify({
+            "success": False,
+            "error": "Failed to get theme"
+        }), 500
+
 # Set up API blueprint middleware
 @api_bp.before_request
 def log_api_request():

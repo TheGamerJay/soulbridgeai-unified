@@ -16,7 +16,8 @@
       "Bash(set DATABASE_URL=postgresql://postgres:sDCOyvWZKSxyJvnJBZNSJemzZKbbSjIT@postgres-wj-8.railway.internal:5432/railway)",
       "Bash(npm run lint)",
       "Bash(npm run typecheck:*)",
-      "Bash(timeout:*)"
+      "Bash(timeout:*)",
+      "Bash(sed:*)"
     ],
     "deny": [],
     "ask": [],

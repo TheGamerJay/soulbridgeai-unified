@@ -739,6 +739,11 @@ def register_blueprints(app):
         app.register_blueprint(api_bp, url_prefix='/api')
         logger.info("✅ Consolidated API registered")
         
+        # V1 API system (new RESTful API)
+        from v1_api import v1_api
+        app.register_blueprint(v1_api)
+        logger.info("✅ V1 API system registered")
+        
         # Mini Studio (if available)
         try:
             from modules.studio import studio_bp
