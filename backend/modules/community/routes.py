@@ -692,18 +692,74 @@ def community_get_avatar():
         if not is_logged_in():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
-        if not community_service:
-            return jsonify({"success": False, "error": "Service unavailable"}), 503
-        
         user_id = session.get('user_id')
-        avatar_result = community_service.get_user_avatar(user_id)
         
-        if not avatar_result['success']:
-            return jsonify({"success": False, "error": avatar_result['error']}), 500
+        # CRITICAL FIX: Direct database check for avatar persistence
+        try:
+            db = get_database()
+            if db:
+                conn = db.get_connection()
+                cursor = conn.cursor()
+                
+                # Check database for saved companion
+                if db.use_postgres:
+                    cursor.execute("SELECT companion_data FROM users WHERE id = %s", (user_id,))
+                else:
+                    cursor.execute("SELECT companion_data FROM users WHERE id = ?", (user_id,))
+                
+                result = cursor.fetchone()
+                conn.close()
+                
+                if result and result[0]:
+                    import json
+                    try:
+                        companion_data = json.loads(result[0])
+                        logger.info(f"✅ Found saved avatar for user {user_id}: {companion_data.get('name', 'Unknown')}")
+                        
+                        # Add cache busting
+                        import time
+                        cache_buster = int(time.time())
+                        avatar_url = companion_data.get('image_url', '/static/logos/New IntroLogo.png')
+                        if '?' not in avatar_url:
+                            avatar_url += f"?t={cache_buster}"
+                        
+                        return jsonify({
+                            "success": True,
+                            "companion": {
+                                "name": companion_data.get('name', 'Soul'),
+                                "companion_id": companion_data.get('id', 'soul'),
+                                "avatar_url": avatar_url,
+                                "image_url": avatar_url,
+                                "tier": companion_data.get('tier', 'bronze')
+                            }
+                        })
+                    except json.JSONDecodeError:
+                        logger.error(f"❌ Invalid JSON in companion_data for user {user_id}")
+                        
+        except Exception as db_error:
+            logger.error(f"❌ Database avatar lookup failed: {db_error}")
         
+        # Fallback to community service if available
+        if community_service:
+            avatar_result = community_service.get_user_avatar(user_id)
+            if avatar_result['success']:
+                return jsonify({
+                    "success": True,
+                    "companion": avatar_result['companion']
+                })
+        
+        # Final fallback - default avatar
+        import time
+        cache_buster = int(time.time())
         return jsonify({
             "success": True,
-            "companion": avatar_result['companion']
+            "companion": {
+                "name": "Soul",
+                "companion_id": "soul",
+                "avatar_url": f"/static/logos/New IntroLogo.png?t={cache_buster}",
+                "image_url": f"/static/logos/New IntroLogo.png?t={cache_buster}",
+                "tier": "bronze"
+            }
         })
         
     except Exception as e:
