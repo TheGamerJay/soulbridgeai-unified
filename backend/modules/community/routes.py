@@ -293,24 +293,22 @@ def react_to_post(post_id):
         session[user_reactions_key] = user_reactions
         session.modified = True
         
-        # Mock reaction counts (in real app, would aggregate from database)
+        # Initialize empty reaction counts (clean slate for demo)
         reaction_counts = {
-            "❤️": 5,
-            "✨": 3, 
-            "🌿": 2,
-            "🔥": 8,
-            "🙏": 1,
+            "❤️": 0,
+            "✨": 0, 
+            "🌿": 0,
+            "🔥": 0,
+            "🙏": 0,
             "⭐": 0,
-            "👏": 4,
-            "🫶": 2
+            "👏": 0,
+            "🫶": 0
         }
         
-        # Adjust count based on action
-        if emoji in reaction_counts:
-            if action == 'added':
-                reaction_counts[emoji] += 1
-            else:
-                reaction_counts[emoji] = max(0, reaction_counts[emoji] - 1)
+        # Set count to 1 only for the user's current reaction (if any)
+        current_reaction = user_reactions.get(str(post_id))
+        if current_reaction:
+            reaction_counts[current_reaction] = 1
         
         logger.info(f"[COMMUNITY] User {user_id} reacted to post {post_id} with {emoji}")
         
