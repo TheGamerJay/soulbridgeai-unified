@@ -827,6 +827,23 @@ body.theme-blayzion .message.assistant .message-content {
 
 .message.assistant {
     align-self: flex-start;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.message.assistant .companion-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    object-fit: cover;
+    background: transparent;
+    border: none;
+}
+
+.message.assistant .message-content {
+    flex: 1;
 }
 
 .message-content {

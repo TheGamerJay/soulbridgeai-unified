@@ -370,9 +370,16 @@ function showWelcomeMessage() {
     const greeting = serverGreeting || greetings[currentCharacter] || `Hello! I'm ${currentCharacter}, ready to chat and help you with whatever you need.`;
     
     const welcomeDiv = document.createElement('div');
-    welcomeDiv.className = 'welcome-message';
+    welcomeDiv.className = 'message assistant welcome-message';
+    
+    // Get companion avatar from template data
+    const companionAvatarUrl = document.querySelector('.character-avatar')?.src || '/static/logos/New IntroLogo.png';
+    
     welcomeDiv.innerHTML = `
-        <p>${greeting}</p>
+        <img src="${companionAvatarUrl}" alt="Companion" class="companion-avatar">
+        <div class="message-content">
+            ${greeting}
+        </div>
     `;
     
     messagesContainer.appendChild(welcomeDiv);
@@ -466,12 +473,25 @@ function addMessage(content, sender, isError = false) {
     
     const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     
-    messageDiv.innerHTML = `
-        <div class="message-content ${isError ? 'error' : ''}">
-            ${content}
-            <div class="message-timestamp">${timestamp}</div>
-        </div>
-    `;
+    // Get companion avatar from template data
+    const companionAvatarUrl = document.querySelector('.character-avatar')?.src || '/static/logos/New IntroLogo.png';
+    
+    if (sender === 'assistant') {
+        messageDiv.innerHTML = `
+            <img src="${companionAvatarUrl}" alt="Companion" class="companion-avatar">
+            <div class="message-content ${isError ? 'error' : ''}">
+                ${content}
+                <div class="message-timestamp">${timestamp}</div>
+            </div>
+        `;
+    } else {
+        messageDiv.innerHTML = `
+            <div class="message-content ${isError ? 'error' : ''}">
+                ${content}
+                <div class="message-timestamp">${timestamp}</div>
+            </div>
+        `;
+    }
     
     messagesContainer.appendChild(messageDiv);
     
@@ -564,12 +584,25 @@ function addMessageToUI(content, sender, isError, timestamp) {
     const displayTime = timestamp ? new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 
                        new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     
-    messageDiv.innerHTML = `
-        <div class="message-content ${isError ? 'error' : ''}">
-            ${content}
-            <div class="message-timestamp">${displayTime}</div>
-        </div>
-    `;
+    // Get companion avatar from template data
+    const companionAvatarUrl = document.querySelector('.character-avatar')?.src || '/static/logos/New IntroLogo.png';
+    
+    if (sender === 'assistant') {
+        messageDiv.innerHTML = `
+            <img src="${companionAvatarUrl}" alt="Companion" class="companion-avatar">
+            <div class="message-content ${isError ? 'error' : ''}">
+                ${content}
+                <div class="message-timestamp">${displayTime}</div>
+            </div>
+        `;
+    } else {
+        messageDiv.innerHTML = `
+            <div class="message-content ${isError ? 'error' : ''}">
+                ${content}
+                <div class="message-timestamp">${displayTime}</div>
+            </div>
+        `;
+    }
     
     messagesContainer.appendChild(messageDiv);
 }
