@@ -1060,6 +1060,16 @@
     </div>
 
     <script>
+        // CONSOLE DEBUG TEST - Check if JavaScript is working
+        console.log('🔥 SOULBRIDGE COMMUNITY SCRIPT LOADED!');
+        console.log('🧪 Console is working - JavaScript active');
+        
+        // Global error handler to catch all JS errors
+        window.onerror = function(msg, url, line, col, error) {
+            console.error('🚨 GLOBAL JS ERROR:', msg, 'at', url, 'line:', line);
+            return false;
+        };
+        
         // Global Variables - API Configuration
         const API_BASE = '/community';
         const REACTIONS = ['❤️', '✨', '🌿', '🔥', '🙏', '⭐', '👏', '🫶'];
@@ -1074,6 +1084,9 @@
 
         // Initialize the page
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('📋 DOM LOADED - Starting initialization');
+            console.log('🔄 About to call: initializeComposer, loadUserReactions, loadWeeklyEvent, loadFeed');
+            
             initializeComposer();
             loadUserReactions();
             loadWeeklyEvent();
@@ -2177,18 +2190,25 @@
 
         // Weekly Events Functions
         async function loadWeeklyEvent() {
+            console.log('🏆 LOADING WEEKLY EVENT - Starting fetch');
             try {
+                console.log('📡 Fetching from:', `${API_BASE}/weekly-event`);
                 const response = await fetch(`${API_BASE}/weekly-event`);
+                console.log('📨 Response status:', response.status, response.statusText);
+                
                 const data = await response.json();
+                console.log('📋 Weekly event data:', data);
                 
                 if (data.success && data.event) {
+                    console.log('✅ Weekly event found, showing section');
                     displayWeeklyEvent(data);
                     document.getElementById('weekly-event-section').style.display = 'block';
                 } else {
+                    console.log('❌ No weekly event, hiding section');
                     document.getElementById('weekly-event-section').style.display = 'none';
                 }
             } catch (error) {
-                console.error('Error loading weekly event:', error);
+                console.error('🚨 Error loading weekly event:', error);
                 document.getElementById('weekly-event-section').style.display = 'none';
             }
         }
