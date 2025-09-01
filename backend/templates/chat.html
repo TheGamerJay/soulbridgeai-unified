@@ -52,8 +52,8 @@
             
             <div class="header-actions">
                 <!-- BASIC FEATURES - Available to all users -->
-                <a href="/tiers" class="action-btn">
-                    <i class="fas fa-exchange-alt"></i>
+                <a href="/companion-selection" class="action-btn">
+                    <i class="fas fa-users"></i>
                     Switch
                 </a>
                 
@@ -80,21 +80,15 @@
                 <!-- Free: 3/2/3, Growth: 15/8/10, Max: ∞ -->
                 <a href="/decoder" class="action-btn tier-btn" data-feature="decoder">
                     <i class="fas fa-brain"></i>
-                    <div class="btn-content">
-                        <span class="btn-title">🧠 Decoder</span>
-                    </div>
+                    Decoder
                 </a>
                 <a href="/fortune" class="action-btn tier-btn" data-feature="fortune">
                     <i class="fas fa-crystal-ball"></i>
-                    <div class="btn-content">
-                        <span class="btn-title">🔮 Fortune</span>
-                    </div>
+                    Fortune
                 </a>
                 <a href="/horoscope" class="action-btn tier-btn" data-feature="horoscope">
                     <i class="fas fa-star"></i>
-                    <div class="btn-content">
-                        <span class="btn-title">⭐ Horoscope</span>
-                    </div>
+                    Horoscope
                 </a>
                 
                 <!-- COMPANION-TIER ARCHITECTURE: Each companion shows features based on its tier -->
@@ -2922,6 +2916,72 @@ Where emotion meets expression.
         
         // Close theme panel when clicking outside (handled by backdrop onclick)
         // Removed click outside handler as backdrop handles this now
+        
+        // Save conversation to library function
+        async function saveConversationToLibrary() {
+            try {
+                const messagesContainer = document.getElementById('chatMessages');
+                if (!messagesContainer || messagesContainer.children.length === 0) {
+                    alert('No conversation to save!');
+                    return;
+                }
+                
+                // Gather all messages
+                const messages = Array.from(messagesContainer.children).map(msg => {
+                    const content = msg.querySelector('.message-content');
+                    const isAssistant = msg.classList.contains('assistant');
+                    const isWelcome = msg.classList.contains('welcome-message');
+                    
+                    if (content && !isWelcome) {
+                        const text = content.textContent.replace(/\d{1,2}:\d{2}$/, '').trim(); // Remove timestamp
+                        return {
+                            role: isAssistant ? 'assistant' : 'user',
+                            content: text
+                        };
+                    }
+                    return null;
+                }).filter(msg => msg && msg.content);
+                
+                if (messages.length === 0) {
+                    alert('No conversation messages to save!');
+                    return;
+                }
+                
+                const companionName = document.querySelector('[data-character]')?.dataset.character || 'AI Assistant';
+                const timestamp = new Date().toISOString();
+                const title = `Chat with ${companionName} - ${new Date().toLocaleDateString()}`;
+                
+                // Save to library
+                const response = await fetch('/api/library/save-conversation', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        title: title,
+                        content: messages,
+                        companion: companionName,
+                        timestamp: timestamp,
+                        type: 'conversation'
+                    })
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success) {
+                        alert('✅ Conversation saved to library!');
+                    } else {
+                        alert('❌ Failed to save: ' + (result.error || 'Unknown error'));
+                    }
+                } else {
+                    alert('❌ Failed to save conversation to library');
+                }
+            } catch (error) {
+                console.error('Save conversation error:', error);
+                alert('❌ Error saving conversation: ' + error.message);
+            }
+        }
     </script>
     
     <script src="{{ url_for('static', filename='js/chat.js') }}?v={{ range(1000000) | random }}"></script>
