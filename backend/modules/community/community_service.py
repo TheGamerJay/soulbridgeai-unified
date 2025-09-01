@@ -48,9 +48,10 @@ class CommunityService:
                     }
                 }
             
-            # Try to get from database if available
+            # Try to get from database if available - CRITICAL fallback for persistence
             if self.database:
                 try:
+                    logger.info(f"👤 Checking database for avatar persistence for user {user_id}")
                     conn = self.database.get_connection()
                     cursor = conn.cursor()
                     
@@ -65,16 +66,16 @@ class CommunityService:
                     
                     if result and result[0]:
                         import json
-                        logger.info(f"👤 Found database companion_data: {result[0]}")
+                        logger.info(f"✅ Found database companion_data for user {user_id}: {result[0]}")
                         try:
                             companion_info = json.loads(result[0]) if isinstance(result[0], str) else result[0]
-                            logger.info(f"👤 Parsed companion_info: {companion_info}")
+                            logger.info(f"👤 Parsed companion_info from database: {companion_info}")
                             if companion_info and isinstance(companion_info, dict) and 'id' in companion_info:
                                 # Get fresh companion data from companion manager for up-to-date info
                                 if self.companion_manager:
                                     companion_data = self.companion_manager.get_companion_by_id(companion_info['id'])
                                     if companion_data:
-                                        logger.info(f"👤 Using database companion: {companion_info['id']}")
+                                        logger.info(f"✅ SUCCESS: Using database companion {companion_info['id']} for user {user_id}")
                                         return {
                                             'success': True,
                                             'companion': {
@@ -85,13 +86,21 @@ class CommunityService:
                                                 'tier': companion_data.get('tier', 'bronze')
                                             }
                                         }
+                                    else:
+                                        logger.error(f"❌ Companion manager couldn't find companion {companion_info['id']}")
+                                else:
+                                    logger.error("❌ No companion manager available for database lookup")
+                            else:
+                                logger.warning(f"⚠️ Invalid companion_info structure from database: {companion_info}")
                         except (json.JSONDecodeError, TypeError) as e:
-                            logger.warning(f"Failed to parse companion_data from database: {e}")
+                            logger.error(f"❌ Failed to parse companion_data from database: {e}")
                     else:
-                        logger.info("👤 No companion_data found in database")
+                        logger.info(f"ℹ️ No companion_data found in database for user {user_id}")
                         
                 except Exception as db_error:
-                    logger.warning(f"Database lookup failed for avatar: {db_error}")
+                    logger.error(f"❌ CRITICAL: Database lookup failed for avatar user {user_id}: {db_error}")
+            else:
+                logger.warning("⚠️ No database available for avatar lookup")
             
             # Default companion if none set
             default_companion = {
@@ -158,7 +167,7 @@ class CommunityService:
             session.modified = True
             logger.info(f"👤 Saved companion to session: {companion_info}")
             
-            # Also save to database if available
+            # Also save to database if available - CRITICAL for persistence
             if self.database:
                 try:
                     conn = self.database.get_connection()
@@ -167,6 +176,7 @@ class CommunityService:
                     # Save companion info as JSON in companion_data column
                     import json
                     companion_json = json.dumps(companion_info)
+                    logger.info(f"👤 Attempting to save companion_data to database: {companion_json}")
                     
                     if self.database.use_postgres:
                         cursor.execute("""
@@ -174,19 +184,28 @@ class CommunityService:
                             SET companion_data = %s 
                             WHERE id = %s
                         """, (companion_json, user_id))
+                        rows_affected = cursor.rowcount
                     else:
                         cursor.execute("""
                             UPDATE users 
                             SET companion_data = ? 
                             WHERE id = ?
                         """, (companion_json, user_id))
+                        rows_affected = cursor.rowcount
                     
                     conn.commit()
                     conn.close()
-                    logger.info(f"👤 Saved avatar to database for user {user_id}")
+                    
+                    if rows_affected > 0:
+                        logger.info(f"✅ Successfully saved avatar to database for user {user_id} (rows affected: {rows_affected})")
+                    else:
+                        logger.error(f"❌ No rows affected when saving avatar for user {user_id} - user may not exist!")
                     
                 except Exception as db_error:
-                    logger.warning(f"Failed to save avatar to database: {db_error}")
+                    logger.error(f"❌ CRITICAL: Failed to save avatar to database for user {user_id}: {db_error}")
+                    # Don't fail the whole operation, but log it as critical
+            else:
+                logger.warning("⚠️ No database available for avatar persistence")
             
             avatar_data = {
                 'user_id': user_id,
