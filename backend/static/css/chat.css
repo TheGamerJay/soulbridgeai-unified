@@ -1455,13 +1455,15 @@ body.tier-bronze .message-input:focus {
     outline: none;
 }
 
-/* Button icon styling */
+/* Button icon styling - free background like companion avatars */
 .btn-icon {
     width: 20px;
     height: 20px;
     object-fit: cover;
     margin-right: 8px;
-    border-radius: 4px;
+    background: transparent;
+    border: none;
+    border-radius: 0;
 }
 
 /* SILVER TIER - Black and Silver Theme */
