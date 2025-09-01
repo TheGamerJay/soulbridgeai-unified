@@ -32,6 +32,7 @@ class CompanionManager:
             {"id":"violet_bronze","name":"Violet","tier":"bronze","image_url":"/static/logos/Violet_Free.png","min_referrals":0,"greeting":"Hi! I'm Violet. Let's discover new possibilities and grow together on this journey!"},
             {"id":"crimson_bronze","name":"Crimson","tier":"bronze","image_url":"/static/logos/Crimson_Free.png","min_referrals":0,"greeting":"Hello! I'm Crimson. I'm here to add some energy and excitement to your SoulBridge adventure!"},
             {"id":"lumen_bronze","name":"Lumen","tier":"bronze","image_url":"/static/logos/Lumen_Bronze.png","min_referrals":0,"greeting":"Hello! I'm Lumen. Ready to illuminate your SoulBridge experience?"},
+            {"id":"blayzo2_bronze","name":"Blayzo.2","tier":"bronze","image_url":"/static/logos/blayzo_free_tier.png","min_referrals":0,"greeting":"What's good! I'm Blayzo.2, the upgraded free version. Let's vibe and explore together!"},
             
             # Silver tier companions
             {"id":"gamerjay_silver","name":"GamerJay Silver","tier":"silver","image_url":"/static/logos/GamerJay_Silver.png","min_referrals":0,"greeting":"Hey there, Silver member! I'm GamerJay Silver. Ready to unlock some premium gaming experiences?"},
