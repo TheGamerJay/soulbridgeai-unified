@@ -25,7 +25,6 @@ def companion_selection():
     """Companion selection page"""
     try:
         from flask import session
-        from ..auth.session_manager import get_user_plan, get_user_limits
         
         access_info = get_user_companion_access()
         companions = get_all_companions()
@@ -34,17 +33,15 @@ def companion_selection():
         user_plan = session.get('user_plan', 'bronze')
         tier_display = user_plan.title()
         
-        # Get user limits for display
-        try:
-            limits = get_user_limits()
-        except:
-            # Fallback limits if function not available
-            limits = {
-                'decoder': 3 if user_plan == 'bronze' else (15 if user_plan == 'silver' else 999),
-                'fortune': 2 if user_plan == 'bronze' else (8 if user_plan == 'silver' else 999),
-                'horoscope': 3 if user_plan == 'bronze' else (10 if user_plan == 'silver' else 999),
-                'creative_writer': 2 if user_plan == 'bronze' else (20 if user_plan == 'silver' else 999)
-            }
+        # Fallback limits based on tier
+        limits = {
+            'decoder': 3 if user_plan == 'bronze' else (15 if user_plan == 'silver' else 999),
+            'fortune': 2 if user_plan == 'bronze' else (8 if user_plan == 'silver' else 999),
+            'horoscope': 3 if user_plan == 'bronze' else (10 if user_plan == 'silver' else 999),
+            'creative_writer': 2 if user_plan == 'bronze' else (20 if user_plan == 'silver' else 999)
+        }
+        
+        logger.info(f"Companion selection: user_plan={user_plan}, companions={len(companions)}, access_info keys={list(access_info.keys()) if access_info else 'None'}")
         
         return render_template("companion_selection.html", 
                              companions=companions,
@@ -55,6 +52,8 @@ def companion_selection():
         
     except Exception as e:
         logger.error(f"Error in companion selection: {e}")
+        import traceback
+        logger.error(f"Full traceback: {traceback.format_exc()}")
         return render_template("error.html", error="Unable to load companion selection")
 
 @companions_bp.route("/chat")
