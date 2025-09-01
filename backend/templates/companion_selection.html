@@ -383,7 +383,7 @@
         
         <div class="tier-header">
             <h1 class="tier-title">Choose Your AI Companion</h1>
-            <p style="font-size: 0.9rem; opacity: 0.8; text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);">Select the companion you most resonate with</p>
+            <p style="font-size: 1.2rem; opacity: 0.8; text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);">Select the companion you most resonate with</p>
         </div>
         
         <div class="tier-limits">
@@ -436,7 +436,7 @@
                                         <span class="badge {{ companion.tier }}">🥉 Bronze</span>
                                     </div>
                                 </div>
-                            </a>
+                            </div>
                         {% else %}
                             <div class="netflix-card locked" onclick="confirmUpgrade('{{ companion.name }}', 'bronze')">
                                 <div class="netflix-poster">
@@ -453,7 +453,7 @@
                                         <span class="badge {{ companion.tier }}">🥉 Bronze</span>
                                     </div>
                                 </div>
-                            </a>
+                            </div>
                         {% endif %}
                     {% endfor %}
                 </div>
@@ -485,12 +485,12 @@
                                         <span class="badge {{ companion.tier }}">🥈 Silver</span>
                                     </div>
                                 </div>
-                            </a>
+                            </div>
                         {% else %}
                             {% if companion.get('min_referrals', 0) > 0 %}
-                                <a href="/referrals" class="netflix-card locked">
+                                <div class="netflix-card locked" onclick="confirmReferral('{{ companion.name }}', {{ companion.min_referrals }})">
                             {% else %}
-                                <a href="/subscription?tier=silver" class="netflix-card locked">
+                                <div class="netflix-card locked" onclick="confirmUpgrade('{{ companion.name }}', 'silver')">
                             {% endif %}
                                 <div class="netflix-poster">
                                     <img src="{{ companion.image_url }}" alt="{{ companion.name }}" />
@@ -514,7 +514,7 @@
                                         <span class="badge {{ companion.tier }}">🥈 Silver</span>
                                     </div>
                                 </div>
-                            </a>
+                            </div>
                         {% endif %}
                     {% endfor %}
                 </div>
@@ -546,12 +546,12 @@
                                         <span class="badge {{ companion.tier }}">🥇 Gold</span>
                                     </div>
                                 </div>
-                            </a>
+                            </div>
                         {% else %}
                             {% if companion.get('min_referrals', 0) > 0 %}
-                                <a href="/referrals" class="netflix-card locked">
+                                <div class="netflix-card locked" onclick="confirmReferral('{{ companion.name }}', {{ companion.min_referrals }})">
                             {% else %}
-                                <a href="/subscription?tier=gold" class="netflix-card locked">
+                                <div class="netflix-card locked" onclick="confirmUpgrade('{{ companion.name }}', 'gold')">
                             {% endif %}
                                 <div class="netflix-poster">
                                     <img src="{{ companion.image_url }}" alt="{{ companion.name }}" />
@@ -575,7 +575,7 @@
                                         <span class="badge {{ companion.tier }}">🥇 Gold</span>
                                     </div>
                                 </div>
-                            </a>
+                            </div>
                         {% endif %}
                     {% endfor %}
                 </div>
@@ -607,9 +607,9 @@
                                         <span class="badge {{ companion.tier }}">🎁 Referral</span>
                                     </div>
                                 </div>
-                            </a>
+                            </div>
                         {% else %}
-                            <a href="/referrals" class="netflix-card locked">
+                            <div class="netflix-card locked" onclick="confirmReferral('{{ companion.name }}', {{ companion.min_referrals }})">
                                 <div class="netflix-poster">
                                     <img src="{{ companion.image_url }}" alt="{{ companion.name }}" />
                                     <div class="netflix-overlay">
@@ -624,7 +624,7 @@
                                         <span class="badge {{ companion.tier }}">🎁 Referral</span>
                                     </div>
                                 </div>
-                            </a>
+                            </div>
                         {% endif %}
                     {% endfor %}
                 </div>
