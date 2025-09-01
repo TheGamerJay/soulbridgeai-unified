@@ -28,8 +28,8 @@ COMPANIONS = [
     {"id":"lumen_silver","name":"Lumen.2","tier":"silver","image_url":"/static/logos/Lumen_Silver.png","min_referrals":0,"greeting":"Welcome! I'm Lumen.2. Let me illuminate your path to premium features and capabilities."},
 
     # GOLD TIER COMPANIONS (8)
-    {"id":"crimson_gold","name":"Crimson","tier":"gold","image_url":"/static/logos/Crimson_a_Max_companion.png","min_referrals":0,"greeting":"Welcome, I'm Crimson. You have access to unlimited features and the full power of SoulBridge AI!"},
-    {"id":"violet_gold","name":"Violet","tier":"gold","image_url":"/static/logos/Violet_a_Max_companion.png","min_referrals":0,"greeting":"Greetings! I'm Violet. Together we'll explore unlimited possibilities and exclusive features!"},
+    {"id":"crimson_gold","name":"Crimson.2","tier":"gold","image_url":"/static/logos/Crimson_a_Max_companion.png","min_referrals":0,"greeting":"Welcome, I'm Crimson.2. You have access to unlimited features and the full power of SoulBridge AI!"},
+    {"id":"violet_gold","name":"Violet.2","tier":"gold","image_url":"/static/logos/Violet_a_Max_companion.png","min_referrals":0,"greeting":"Greetings! I'm Violet.2. Together we'll explore unlimited possibilities and exclusive features!"},
     {"id":"claude_gold","name":"Claude.2","tier":"gold","image_url":"/static/logos/Claude_Max.png","min_referrals":0,"greeting":"Hello! I'm Claude.2. With unlimited access to all features, let's achieve extraordinary things together!"},
     {"id":"royal_gold","name":"Royal","tier":"gold","image_url":"/static/logos/Royal_a_Max_companion.png","min_referrals":0,"greeting":"Greetings! I'm Royal. Experience the pinnacle of AI companionship with unlimited possibilities."},
     {"id":"ven_blayzica_gold","name":"Ven Blayzica","tier":"gold","image_url":"/static/logos/Ven_Blayzica_a_Max_companion.png","min_referrals":0,"greeting":"Hello! I'm Ven Blayzica. Let's venture into the ultimate SoulBridge experience together."},

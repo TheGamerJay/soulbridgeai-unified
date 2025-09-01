@@ -47,8 +47,8 @@ class CompanionManager:
             {"id":"watchdog_silver","name":"WatchDog","tier":"silver","image_url":"/static/logos/WatchDog_a_Premium_companion.png","min_referrals":0,"greeting":"Hello! I'm WatchDog. I'll keep watch over your Silver experience!"},
             
             # Gold tier - 8 companions
-            {"id":"crimson_gold","name":"Crimson","tier":"gold","image_url":"/static/logos/Crimson_a_Max_companion.png","min_referrals":0,"greeting":"Welcome, I'm Crimson. You have access to unlimited features and the full power of SoulBridge AI!"},
-            {"id":"violet_gold","name":"Violet","tier":"gold","image_url":"/static/logos/Violet_a_Max_companion.png","min_referrals":0,"greeting":"Greetings! I'm Violet. Together we'll explore unlimited possibilities and exclusive features!"},
+            {"id":"crimson_gold","name":"Crimson.2","tier":"gold","image_url":"/static/logos/Crimson_a_Max_companion.png","min_referrals":0,"greeting":"Welcome, I'm Crimson.2. You have access to unlimited features and the full power of SoulBridge AI!"},
+            {"id":"violet_gold","name":"Violet.2","tier":"gold","image_url":"/static/logos/Violet_a_Max_companion.png","min_referrals":0,"greeting":"Greetings! I'm Violet.2. Together we'll explore unlimited possibilities and exclusive features!"},
             {"id":"claude_gold","name":"Claude.2","tier":"gold","image_url":"/static/logos/Claude_Max.png","min_referrals":0,"greeting":"Hello! I'm Claude.2. With unlimited access to all features, let's achieve extraordinary things together!"},
             {"id":"royal_gold","name":"Royal","tier":"gold","image_url":"/static/logos/Royal_a_Max_companion.png","min_referrals":0,"greeting":"Greetings! I'm Royal. Experience the pinnacle of AI companionship with unlimited possibilities."},
             {"id":"ven_blayzica_gold","name":"Ven Blayzica","tier":"gold","image_url":"/static/logos/Ven_Blayzica_a_Max_companion.png","min_referrals":0,"greeting":"Hello! I'm Ven Blayzica. Let's venture into the ultimate SoulBridge experience together."},
