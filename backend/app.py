@@ -217,6 +217,7 @@ def register_blueprints(app):
         except ImportError:
             logger.info("⚠️ Mini Studio not available")
         
+        
         logger.info("🎯 All module blueprints registered successfully")
         
     except Exception as e:

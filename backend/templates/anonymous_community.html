@@ -1070,9 +1070,9 @@
         let currentPostToMute = null;
         
         // Rate limiting for reactions
-        let reactionCooldowns = new Map(); // postId -> timestamp
+        let lastReactionTime = 0; // Global timestamp for last reaction
         let userReactions = new Map(); // postId -> emoji (one reaction per post max)
-        const REACTION_COOLDOWN = 3000; // 3 seconds between reactions per post
+        const REACTION_COOLDOWN = 3000; // 3 seconds between reactions to any post
 
         // Initialize the page
         document.addEventListener('DOMContentLoaded', function() {
@@ -1545,13 +1545,12 @@
                 return;
             }
             
-            // Check rate limiting between posts
+            // Check global rate limiting between ANY posts  
             const now = Date.now();
-            const lastReaction = reactionCooldowns.get(postId);
             
-            if (lastReaction && (now - lastReaction) < REACTION_COOLDOWN) {
-                const remainingTime = Math.ceil((REACTION_COOLDOWN - (now - lastReaction)) / 1000);
-                showMessage(`Please wait ${remainingTime} seconds before reacting to this post`, 'error');
+            if (lastReactionTime && (now - lastReactionTime) < REACTION_COOLDOWN) {
+                const remainingTime = Math.ceil((REACTION_COOLDOWN - (now - lastReactionTime)) / 1000);
+                showMessage(`Please wait ${remainingTime} seconds before reacting to another post`, 'error');
                 startReactionCountdown(postElement, remainingTime);
                 return;
             }
@@ -1569,12 +1568,13 @@
                 userReactions.delete(postId);
                 action = 'removed';
                 newReaction = null;
+                lastReactionTime = now; // Update timestamp for all reactions
             } else {
                 // Add new reaction
                 userReactions.set(postId, emoji);
                 action = 'added';  
                 newReaction = emoji;
-                reactionCooldowns.set(postId, now);
+                lastReactionTime = now; // Update timestamp for all reactions
             }
             
             try {

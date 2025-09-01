@@ -14,6 +14,7 @@ class WeeklyEventsService:
     
     def __init__(self, database=None):
         self.database = database
+        self._ensure_tables_exist()
         
     def get_current_weekly_event(self) -> Optional[Dict[str, Any]]:
         """Get the current active weekly event"""
@@ -624,3 +625,36 @@ class WeeklyEventsService:
         except Exception as e:
             logger.error(f"Error getting event history: {e}")
             return []
+    
+    def _ensure_tables_exist(self):
+        """Ensure weekly events tables exist, create them if they don't"""
+        if not self.database:
+            return
+        
+        try:
+            logger.info("🏆 Checking weekly events tables...")
+            from database_migrations.weekly_events_migration import migrate_weekly_events_tables
+            
+            conn = self.database.get_connection()
+            cursor = conn.cursor()
+            
+            # Check if tables exist by trying to query them
+            try:
+                if self.database.use_postgres:
+                    cursor.execute("SELECT 1 FROM weekly_events LIMIT 1")
+                else:
+                    cursor.execute("SELECT 1 FROM weekly_events LIMIT 1")
+                logger.info("✅ Weekly events tables already exist")
+            except Exception:
+                logger.info("🏗️ Weekly events tables don't exist, creating them...")
+                # Tables don't exist, run migration
+                success = migrate_weekly_events_tables(cursor, use_postgres=self.database.use_postgres)
+                if success:
+                    logger.info("✅ Weekly events migration completed successfully!")
+                else:
+                    logger.error("❌ Weekly events migration failed!")
+            
+            conn.close()
+                
+        except Exception as e:
+            logger.error(f"❌ Error ensuring tables exist: {e}")

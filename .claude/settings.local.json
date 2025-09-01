@@ -12,7 +12,8 @@
       "Bash(dir:*)",
       "Bash(find:*)",
       "Bash(grep:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(set DATABASE_URL=postgresql://postgres:sDCOyvWZKSxyJvnJBZNSJemzZKbbSjIT@postgres-wj-8.railway.internal:5432/railway)"
     ],
     "deny": [],
     "ask": [],
