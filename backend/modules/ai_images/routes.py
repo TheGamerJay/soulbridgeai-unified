@@ -25,7 +25,7 @@ def init_ai_images_routes(app, openai_client, credits_manager, database):
     ai_image_service = AIImageService(openai_client, credits_manager)
     gallery_manager = GalleryManager(database)
     
-    app.register_blueprint(ai_images_bp)
+    # Blueprint already registered in main app - just initialize services
     logger.info("✅ AI Images routes initialized")
 
 def is_logged_in():

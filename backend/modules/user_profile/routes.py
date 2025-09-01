@@ -27,7 +27,7 @@ def init_profile_routes(app, database):
     theme_manager = ThemeManager(database)
     image_manager = ProfileImageManager(database)
     
-    app.register_blueprint(profile_bp)
+    # Blueprint already registered in main app - just initialize services
     logger.info("✅ Profile routes initialized")
 
 def is_logged_in():

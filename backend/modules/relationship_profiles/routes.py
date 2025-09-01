@@ -25,7 +25,7 @@ def init_relationship_routes(app, database, credits_manager, openai_client=None)
     relationship_service = RelationshipService(database, credits_manager)
     profile_analyzer = ProfileAnalyzer(openai_client)
     
-    app.register_blueprint(relationship_bp)
+    # Blueprint already registered in main app - just initialize services
     logger.info("✅ Relationship profiles routes initialized")
 
 def is_logged_in():
