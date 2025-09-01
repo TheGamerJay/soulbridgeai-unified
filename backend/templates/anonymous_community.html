@@ -1069,10 +1069,8 @@
         let currentPostToReport = null;
         let currentPostToMute = null;
         
-        // Rate limiting for reactions
-        let lastReactionTime = 0; // Global timestamp for last reaction
-        let userReactions = new Map(); // postId -> emoji (one reaction per post max)
-        const REACTION_COOLDOWN = 3000; // 3 seconds between reactions to any post
+        // Permanent reactions system - no cooldown, no removal
+        let userReactions = new Map(); // postId -> emoji (one reaction per post max, permanent)
 
         // Initialize the page
         document.addEventListener('DOMContentLoaded', function() {
@@ -1530,52 +1528,33 @@
             `;
         }
 
-        // Toggle reaction on a post
+        // Add permanent reaction to a post with confirmation
         async function toggleReaction(postId, emoji) {
             const postElement = document.querySelector(`[data-post-id="${postId}"]`);
             const reactionButtons = postElement.querySelectorAll('.reaction-btn');
-            const clickedButton = postElement.querySelector(`[data-reaction="${emoji}"]`);
             
-            // Check if user already reacted to this post
+            // Check if user already has a permanent reaction on this post
             const existingReaction = userReactions.get(postId);
             
-            if (existingReaction && existingReaction !== emoji) {
-                // User trying to add different reaction - not allowed
-                showMessage(`You can only react once per post. Click your ${existingReaction} reaction to remove it first.`, 'error');
+            if (existingReaction) {
+                showMessage(`You've already reacted with ${existingReaction}. Reactions are permanent and cannot be changed!`, 'info');
                 return;
             }
             
-            // Check global rate limiting between ANY posts  
-            const now = Date.now();
-            
-            if (lastReactionTime && (now - lastReactionTime) < REACTION_COOLDOWN) {
-                const remainingTime = Math.ceil((REACTION_COOLDOWN - (now - lastReactionTime)) / 1000);
-                showMessage(`Please wait ${remainingTime} seconds before reacting to another post`, 'error');
-                startReactionCountdown(postElement, remainingTime);
+            // Show confirmation dialog for permanent reaction
+            const confirmed = await showReactionConfirmation(emoji);
+            if (!confirmed) {
                 return;
             }
             
-            // Disable all buttons immediately to prevent double-clicking
+            // Disable all buttons during processing
             reactionButtons.forEach(btn => {
                 btn.disabled = true;
                 btn.style.opacity = '0.6';
             });
             
-            // Determine action and update local state immediately
-            let action, newReaction;
-            if (existingReaction === emoji) {
-                // Remove existing reaction
-                userReactions.delete(postId);
-                action = 'removed';
-                newReaction = null;
-                lastReactionTime = now; // Update timestamp for all reactions
-            } else {
-                // Add new reaction
-                userReactions.set(postId, emoji);
-                action = 'added';  
-                newReaction = emoji;
-                lastReactionTime = now; // Update timestamp for all reactions
-            }
+            // Add permanent reaction
+            userReactions.set(postId, emoji);
             
             try {
                 const response = await fetch(`${API_BASE}/posts/${postId}/react`, {
@@ -1589,9 +1568,6 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    // Update UI based on local state to prevent inconsistencies
-                    const currentUserReaction = userReactions.get(postId);
-                    
                     // Update all reaction buttons
                     reactionButtons.forEach(btn => {
                         const btnEmoji = btn.dataset.reaction;
@@ -1600,38 +1576,24 @@
                         // Update button display
                         btn.innerHTML = count > 0 ? `${btnEmoji} ${count}` : btnEmoji;
                         
-                        // Style active reaction (user's current reaction only)
-                        if (btnEmoji === currentUserReaction) {
+                        // Highlight user's permanent reaction
+                        if (btnEmoji === emoji) {
                             btn.classList.add('active');
-                            btn.style.background = 'rgba(0, 255, 255, 0.2)';
-                            btn.style.border = '1px solid rgba(0, 255, 255, 0.4)';
-                        } else {
-                            btn.classList.remove('active');
-                            btn.style.background = '';
-                            btn.style.border = '';
+                            btn.style.background = 'rgba(0, 255, 255, 0.3)';
+                            btn.style.border = '2px solid #00ffff';
                         }
                     });
                     
-                    // Show confirmation message
-                    if (action === 'added') {
-                        showMessage(`Added ${emoji} reaction`, 'success');
-                    } else {
-                        showMessage(`Removed ${emoji} reaction`, 'success');
-                    }
+                    showMessage(`Permanently reacted with ${emoji}!`, 'success');
                 } else {
-                    throw new Error(data.error || 'Failed to react');
+                    // Revert on failure
+                    userReactions.delete(postId);
+                    showMessage(data.error || 'Failed to react', 'error');
                 }
                 
             } catch (error) {
                 console.error('Error reacting to post:', error);
-                
-                // Revert local state since API call failed
-                if (action === 'added') {
-                    userReactions.delete(postId);
-                } else if (action === 'removed') {
-                    userReactions.set(postId, emoji);
-                }
-                
+                userReactions.delete(postId);
                 showMessage('Failed to react to post. Please try again.', 'error');
             } finally {
                 // Re-enable reaction buttons
@@ -1642,6 +1604,87 @@
                     });
                 }, 500);
             }
+        }
+        
+        // Show confirmation dialog for permanent reactions
+        function showReactionConfirmation(emoji) {
+            return new Promise((resolve) => {
+                const modal = document.createElement('div');
+                modal.className = 'modal-overlay';
+                modal.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.7);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 9999;
+                `;
+                
+                modal.innerHTML = `
+                    <div class="modal-content" style="
+                        background: linear-gradient(135deg, #1a1a2e, #16213e);
+                        border: 1px solid #00ffff;
+                        border-radius: 15px;
+                        padding: 30px;
+                        max-width: 400px;
+                        text-align: center;
+                        box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
+                    ">
+                        <h3 style="color: #00ffff; margin-bottom: 15px;">Confirm Permanent Reaction</h3>
+                        <div style="font-size: 48px; margin: 20px 0;">${emoji}</div>
+                        <p style="color: #fff; margin-bottom: 10px;">Are you sure you want to react with ${emoji}?</p>
+                        <p style="color: #ffd700; font-weight: bold; margin-bottom: 25px;">⚠️ This reaction is permanent and cannot be changed or removed!</p>
+                        <div style="display: flex; gap: 15px; justify-content: center;">
+                            <button class="cancel-btn" style="
+                                padding: 12px 24px;
+                                background: transparent;
+                                color: #ccc;
+                                border: 1px solid #666;
+                                border-radius: 8px;
+                                cursor: pointer;
+                                font-size: 14px;
+                            ">Cancel</button>
+                            <button class="confirm-btn" style="
+                                padding: 12px 24px;
+                                background: linear-gradient(45deg, #00ffff, #0066cc);
+                                color: #000;
+                                border: none;
+                                border-radius: 8px;
+                                cursor: pointer;
+                                font-weight: bold;
+                                font-size: 14px;
+                            ">Yes, React ${emoji}</button>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(modal);
+                
+                const cancelBtn = modal.querySelector('.cancel-btn');
+                const confirmBtn = modal.querySelector('.confirm-btn');
+                
+                cancelBtn.onclick = () => {
+                    document.body.removeChild(modal);
+                    resolve(false);
+                };
+                
+                confirmBtn.onclick = () => {
+                    document.body.removeChild(modal);
+                    resolve(true);
+                };
+                
+                // Close on overlay click
+                modal.onclick = (e) => {
+                    if (e.target === modal) {
+                        document.body.removeChild(modal);
+                        resolve(false);
+                    }
+                };
+            });
         }
 
         // Report a post
@@ -2114,59 +2157,6 @@
             return names[category] || 'General';
         }
         
-        function startReactionCountdown(postElement, seconds) {
-            // Remove any existing countdown
-            const existingCountdown = postElement.querySelector('.reaction-countdown');
-            if (existingCountdown) {
-                existingCountdown.remove();
-            }
-            
-            // Create countdown overlay
-            const countdown = document.createElement('div');
-            countdown.className = 'reaction-countdown';
-            countdown.style.cssText = `
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background: rgba(0, 0, 0, 0.8);
-                color: #00ffff;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 1.5rem;
-                font-weight: bold;
-                z-index: 100;
-                border-radius: 8px;
-            `;
-            
-            // Add countdown to reaction buttons container
-            const reactionsContainer = postElement.querySelector('.post-reactions');
-            reactionsContainer.style.position = 'relative';
-            reactionsContainer.appendChild(countdown);
-            
-            // Start countdown
-            let remaining = seconds;
-            countdown.textContent = `⏱️ ${remaining}s`;
-            
-            const timer = setInterval(() => {
-                remaining--;
-                if (remaining > 0) {
-                    countdown.textContent = `⏱️ ${remaining}s`;
-                } else {
-                    countdown.remove();
-                    clearInterval(timer);
-                    
-                    // Re-enable reaction buttons
-                    const reactionButtons = postElement.querySelectorAll('.reaction-btn');
-                    reactionButtons.forEach(btn => {
-                        btn.disabled = false;
-                        btn.style.opacity = '1';
-                    });
-                }
-            }, 1000);
-        }
 
         function formatTimeAgo(dateString) {
             const now = new Date();

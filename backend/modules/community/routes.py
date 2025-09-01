@@ -269,23 +269,17 @@ def react_to_post(post_id):
         user_reactions_key = f'user_reactions_{user_id}'
         user_reactions = session.get(user_reactions_key, {})
         
-        # Check existing reaction for this post
+        # Check existing reaction for this post (reactions are permanent)
         existing_reaction = user_reactions.get(str(post_id))
-        action = 'removed'
         
         if existing_reaction:
-            if existing_reaction == emoji:
-                # Remove same reaction
-                del user_reactions[str(post_id)]
-                action = 'removed'
-            else:
-                # User trying to change reaction - not allowed
-                return jsonify({
-                    'success': False, 
-                    'error': f'You can only react once per post. Remove your {existing_reaction} reaction first.'
-                }), 400
+            # User already has a permanent reaction on this post
+            return jsonify({
+                'success': False, 
+                'error': f'You have already reacted with {existing_reaction}. Reactions are permanent!'
+            }), 400
         else:
-            # Add new reaction
+            # Add new permanent reaction
             user_reactions[str(post_id)] = emoji
             action = 'added'
         
