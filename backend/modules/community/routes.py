@@ -866,13 +866,23 @@ def community_set_avatar():
         
         user_id = session.get('user_id')
         
-        # Simple companion mapping
+        # Real companion mapping from your actual companion_data.py
         companion_map = {
-            'luna': {'name': 'Luna', 'image_url': '/static/images/avatars/f_luna_mystic.png', 'tier': 'silver'},
-            'seraphina': {'name': 'Seraphina', 'image_url': '/static/images/avatars/f_seraphina_angel.png', 'tier': 'silver'},
-            'zara': {'name': 'Zara', 'image_url': '/static/images/avatars/f_zara_cosmic.png', 'tier': 'gold'},
-            'kai': {'name': 'Kai', 'image_url': '/static/images/avatars/m_kai_warrior.png', 'tier': 'bronze'},
-            'phoenix': {'name': 'Phoenix', 'image_url': '/static/images/avatars/m_phoenix_fire.png', 'tier': 'gold'}
+            # BRONZE
+            'gamerjay_bronze': {'name': 'GamerJay', 'image_url': '/static/logos/GamerJay_Free_companion.png', 'tier': 'bronze'},
+            'blayzo_bronze': {'name': 'Blayzo', 'image_url': '/static/logos/Blayzo.png', 'tier': 'bronze'},
+            'claude_bronze': {'name': 'Claude', 'image_url': '/static/logos/Claude_Free.png', 'tier': 'bronze'},
+            'lumen_bronze': {'name': 'Lumen', 'image_url': '/static/logos/Lumen_Bronze.png', 'tier': 'bronze'},
+            # SILVER  
+            'sky_silver': {'name': 'Sky', 'image_url': '/static/logos/Sky_a_premium_companion.png', 'tier': 'silver'},
+            'gamerjay_silver': {'name': 'GamerJay.2', 'image_url': '/static/logos/GamerJay_premium_companion.png', 'tier': 'silver'},
+            'claude_silver': {'name': 'Claude.3', 'image_url': '/static/logos/Claude_Growth.png', 'tier': 'silver'},
+            'rozia_silver': {'name': 'Rozia', 'image_url': '/static/logos/Rozia_Silver.png', 'tier': 'silver'},
+            # GOLD
+            'crimson_gold': {'name': 'Crimson', 'image_url': '/static/logos/Crimson_a_Max_companion.png', 'tier': 'gold'},
+            'violet_gold': {'name': 'Violet', 'image_url': '/static/logos/Violet_a_Max_companion.png', 'tier': 'gold'},
+            'claude_gold': {'name': 'Claude.2', 'image_url': '/static/logos/Claude_Max.png', 'tier': 'gold'},
+            'royal_gold': {'name': 'Royal', 'image_url': '/static/logos/Royal_a_Max_companion.png', 'tier': 'gold'}
         }
         
         if companion_id not in companion_map:
