@@ -40,7 +40,7 @@ class CompanionManager:
             {"id":"blayzica_silver","name":"Blayzica Silver","tier":"silver","image_url":"/static/logos/Blayzica_Silver.png","min_referrals":0,"greeting":"Hello, Silver member! I'm Blayzica Silver. Ready to explore premium features with style?"},
             {"id":"claude_silver","name":"Claude Silver","tier":"silver","image_url":"/static/logos/Claude_Silver.png","min_referrals":0,"greeting":"Greetings, Silver member! I'm Claude Silver. Let's unlock advanced AI capabilities together!"},
             {"id":"sky_silver","name":"Sky","tier":"silver","image_url":"/static/logos/Sky_a_premium_companion.png","min_referrals":0,"greeting":"Hello! I'm Sky. Ready to soar to new heights with your Silver experience?"},
-            {"id":"lumen_silver","name":"Lumen Silver","tier":"silver","image_url":"/static/logos/Lumen_Silver.png","min_referrals":0,"greeting":"Hello! I'm Lumen Silver. Let me illuminate your premium experience!"},
+            {"id":"lumen2_silver","name":"Lumen.2","tier":"silver","image_url":"/static/logos/Lumen_Silver.png","min_referrals":0,"greeting":"Hello! I'm Lumen.2, the upgraded version. Let me illuminate your premium experience!"},
             {"id":"rozia_silver","name":"Rozia","tier":"silver","image_url":"/static/logos/Rozia_Silver.png","min_referrals":0,"greeting":"Hello! I'm Rozia. Ready for an elegant Silver-tier experience?"},
             {"id":"watchdog_silver","name":"WatchDog","tier":"silver","image_url":"/static/logos/WatchDog_a_Premium_companion.png","min_referrals":0,"greeting":"Hello! I'm WatchDog. I'll keep watch over your Silver experience!"},
             
@@ -49,10 +49,10 @@ class CompanionManager:
             {"id":"blayzo_gold","name":"Blayzo Gold","tier":"gold","image_url":"/static/logos/Blayzo_Gold.png","min_referrals":0,"greeting":"What's up, Gold! I'm Blayzo Gold. Let's unlock the full potential of your premium experience!"},
             {"id":"blayzica_gold","name":"Blayzica Gold","tier":"gold","image_url":"/static/logos/Blayzica_Gold.png","min_referrals":0,"greeting":"Hello, Gold member! I'm Blayzica Gold. Ready for the ultimate premium experience?"},
             {"id":"claude_gold","name":"Claude Gold","tier":"gold","image_url":"/static/logos/Claude_Gold.png","min_referrals":0,"greeting":"Greetings, Gold member! I'm Claude Gold. Let's explore unlimited AI capabilities together!"},
+            {"id":"lumen3_gold","name":"Lumen.3","tier":"gold","image_url":"/static/logos/Lumen_Silver.png","min_referrals":0,"greeting":"Hello! I'm Lumen.3, the ultimate version. Let me illuminate your Gold experience!"},
             {"id":"royal_gold","name":"Royal","tier":"gold","image_url":"/static/logos/Royal_a_Max_companion.png","min_referrals":0,"greeting":"Hello! I'm Royal. Welcome to the ultimate royal Gold experience!"},
             {"id":"ven_blayzica_gold","name":"Ven Blayzica","tier":"gold","image_url":"/static/logos/Ven_Blayzica_a_Max_companion.png","min_referrals":0,"greeting":"Hello! I'm Ven Blayzica. Ready for the ultimate Ven experience?"},
             {"id":"ven_sky_gold","name":"Ven Sky","tier":"gold","image_url":"/static/logos/Ven_Sky_a_Max_companion.png","min_referrals":0,"greeting":"Hello! I'm Ven Sky. Let's reach the ultimate heights together!"},
-            {"id":"watchdog_gold","name":"WatchDog Max","tier":"gold","image_url":"/static/logos/WatchDog_a_Max_Companion.png","min_referrals":0,"greeting":"Hello! I'm WatchDog Max. Ultimate protection for your Gold experience!"},
             
             # Referral-locked companions
             {"id":"blayzike","name":"Blayzike","tier":"silver","image_url":"/static/referral/blayzike.png","min_referrals":2},
