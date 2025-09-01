@@ -108,6 +108,57 @@ def create_app():
             logger.info(f"Set-Cookie on login: {sc}")
         return resp
 
+    # ===== WORKING COMPANION SELECTION ROUTE (using blueprint as guide) =====
+    @app.route("/companion-selection")
+    def companion_selection():
+        """Working companion selection page - rebuilt from blueprint guide"""
+        try:
+            from flask import render_template
+            
+            # Check if user is logged in (simple check)
+            if not session.get('logged_in'):
+                return redirect('/auth/login?return_to=companion-selection')
+            
+            # Use blueprint logic as guide
+            user_plan = session.get('user_plan', 'bronze')
+            tier_display = user_plan.title()
+            
+            # Simple companion data (using blueprint as guide)
+            companions = [
+                {"id": "gamerjay_bronze", "name": "GamerJay", "tier": "bronze", "image_url": "/static/logos/GamerJay_Free_companion.png"},
+                {"id": "blayzo_bronze", "name": "Blayzo", "tier": "bronze", "image_url": "/static/logos/Blayzo.png"},
+                {"id": "blayzica_bronze", "name": "Blayzica", "tier": "bronze", "image_url": "/static/logos/Blayzica.png"},
+                {"id": "claude_bronze", "name": "Claude", "tier": "bronze", "image_url": "/static/logos/Claude_Free.png"},
+            ]
+            
+            # Simple limits based on tier
+            limits = {
+                'decoder': 3 if user_plan == 'bronze' else (15 if user_plan == 'silver' else 999),
+                'fortune': 2 if user_plan == 'bronze' else (8 if user_plan == 'silver' else 999),
+                'horoscope': 3 if user_plan == 'bronze' else (10 if user_plan == 'silver' else 999),
+                'creative_writer': 2 if user_plan == 'bronze' else (20 if user_plan == 'silver' else 999)
+            }
+            
+            # Simple access info
+            access_info = {
+                'user_plan': user_plan,
+                'trial_active': session.get('trial_active', False),
+                'unlock_state': {comp['id']: {'can_access': True, 'reason': 'unlocked'} for comp in companions}
+            }
+            
+            logger.info(f"✅ Companion selection loaded: user_plan={user_plan}, companions={len(companions)}")
+            
+            return render_template("companion_selection.html",
+                                 companions=companions,
+                                 access_info=access_info,
+                                 tier=user_plan,
+                                 tier_display=tier_display,
+                                 limits=limits)
+        
+        except Exception as e:
+            logger.error(f"❌ Error in companion selection: {e}")
+            return render_template("error.html", error="Unable to load companion selection")
+
     logger.info("🚀 SoulBridge AI application created successfully")
     return app
 
