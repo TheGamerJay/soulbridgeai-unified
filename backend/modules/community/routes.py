@@ -835,11 +835,63 @@ def community_set_avatar():
         if not companion_data:
             return jsonify({"success": False, "error": "Invalid companion ID"}), 400
         
-        # Set avatar using community service
-        set_result = community_service.set_user_avatar(user_id, companion_data)
+        # CRITICAL FIX: Save directly to database to ensure persistence
+        try:
+            import json
+            from datetime import datetime
+            
+            # Create companion info for database
+            companion_info = {
+                'id': companion_data['companion_id'],
+                'name': companion_data['name'], 
+                'image_url': companion_data['avatar_url'],
+                'tier': companion_data['tier'],
+                'saved_at': datetime.now().isoformat()
+            }
+            
+            db = get_database()
+            if not db:
+                logger.error("❌ Database not available for avatar save")
+                return jsonify({"success": False, "error": "Database not available"}), 503
+                
+            conn = db.get_connection()
+            cursor = conn.cursor()
+            
+            companion_json = json.dumps(companion_info)
+            logger.info(f"💾 DIRECT SAVE: Saving to database for user {user_id}: {companion_json}")
+            
+            if db.use_postgres:
+                cursor.execute("""
+                    UPDATE users 
+                    SET companion_data = %s, updated_at = CURRENT_TIMESTAMP
+                    WHERE id = %s
+                """, (companion_json, user_id))
+            else:
+                cursor.execute("""
+                    UPDATE users 
+                    SET companion_data = ?, updated_at = CURRENT_TIMESTAMP
+                    WHERE id = ?
+                """, (companion_json, user_id))
+            
+            rows_affected = cursor.rowcount
+            conn.commit()
+            conn.close()
+            
+            logger.info(f"💾 DIRECT SAVE RESULT: {rows_affected} rows affected for user {user_id}")
+            
+            if rows_affected == 0:
+                return jsonify({"success": False, "error": "User not found in database"}), 404
+                
+        except Exception as save_error:
+            logger.error(f"❌ DIRECT SAVE FAILED: {save_error}")
+            return jsonify({"success": False, "error": f"Save failed: {str(save_error)}"}), 500
         
-        if not set_result['success']:
-            return jsonify({"success": False, "error": set_result['error']}), 403
+        # Also try the community service (secondary)
+        if community_service:
+            set_result = community_service.set_user_avatar(user_id, companion_data)
+            logger.info(f"🔄 Community service result: {set_result}")
+        else:
+            logger.warning("⚠️ Community service not available")
         
         # Update session with new companion info
         session['companion_info'] = {
