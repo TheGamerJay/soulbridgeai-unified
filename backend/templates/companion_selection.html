@@ -421,7 +421,7 @@
                     {% for companion in bronze_companions %}
                         {% set can_access = access_info.unlock_state.get(companion.id, {}).get('can_access', False) %}
                         {% if can_access %}
-                            <a href="/chat/{{ companion.tier }}/{{ companion.id }}" class="netflix-card">
+                            <a href="/chat/{{ companion.id }}" class="netflix-card">
                                 <div class="netflix-poster">
                                     <img src="{{ companion.image_url }}" alt="{{ companion.name }}" />
                                     <div class="netflix-overlay">
@@ -470,7 +470,7 @@
                     {% for companion in silver_companions %}
                         {% set can_access = access_info.unlock_state.get(companion.id, {}).get('can_access', False) %}
                         {% if can_access %}
-                            <a href="/chat/{{ companion.tier }}/{{ companion.id }}" class="netflix-card">
+                            <a href="/chat/{{ companion.id }}" class="netflix-card">
                                 <div class="netflix-poster">
                                     <img src="{{ companion.image_url }}" alt="{{ companion.name }}" />
                                     <div class="netflix-overlay">
@@ -531,7 +531,7 @@
                     {% for companion in gold_companions %}
                         {% set can_access = access_info.unlock_state.get(companion.id, {}).get('can_access', False) %}
                         {% if can_access %}
-                            <a href="/chat/{{ companion.tier }}/{{ companion.id }}" class="netflix-card">
+                            <a href="/chat/{{ companion.id }}" class="netflix-card">
                                 <div class="netflix-poster">
                                     <img src="{{ companion.image_url }}" alt="{{ companion.name }}" />
                                     <div class="netflix-overlay">
@@ -592,7 +592,7 @@
                     {% for companion in referral_companions %}
                         {% set can_access = access_info.unlock_state.get(companion.id, {}).get('can_access', False) %}
                         {% if can_access %}
-                            <a href="/chat/{{ companion.tier }}/{{ companion.id }}" class="netflix-card">
+                            <a href="/chat/{{ companion.id }}" class="netflix-card">
                                 <div class="netflix-poster">
                                     <img src="{{ companion.image_url }}" alt="{{ companion.name }}" />
                                     <div class="netflix-overlay">
