@@ -320,8 +320,8 @@ def create_app():
         from flask import render_template
         return render_template('chat.html', companion={'name': selected_companion})
     
-    @app.route("/chat/<tier>/<companion_id>")
-    def companion_specific_chat(tier, companion_id):
+    @app.route("/chat/<companion_id>")
+    def companion_specific_chat(companion_id):
         """Chat with specific companion - from companions blueprint"""
         try:
             if not session.get('logged_in'):
@@ -350,7 +350,7 @@ def create_app():
             companion = next((c for c in companions if c['id'] == companion_id), None)
             if not companion:
                 # Fallback companion data
-                companion = {"id": companion_id, "name": companion_id.replace('_bronze', '').replace('_', ' ').title(), "tier": tier}
+                companion = {"id": companion_id, "name": companion_id.replace('_bronze', '').replace('_', ' ').title(), "tier": "bronze"}
             
             logger.info(f"✅ Loading chat for companion: {companion_id}")
             
@@ -614,10 +614,10 @@ def register_blueprints(app):
         app.register_blueprint(auth_bp, url_prefix='/auth')
         logger.info("✅ Auth system registered")
         
-        # Main chat system
-        from modules.chat import chat_bp
-        app.register_blueprint(chat_bp)
-        logger.info("✅ Chat system registered")
+        # Main chat system - temporarily disabled to use working app.py routes
+        # from modules.chat import chat_bp
+        # app.register_blueprint(chat_bp)
+        # logger.info("✅ Chat system registered")
         
         # Companion system
         from modules.companions import companions_bp
