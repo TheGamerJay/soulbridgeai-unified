@@ -279,6 +279,28 @@ def initialize_systems(app):
         from modules.legal.routes import init_legal_services
         init_legal_services(database_manager)
         
+        # Initialize profile system
+        from modules.user_profile.routes import init_profile_routes
+        init_profile_routes(app, database_manager)
+        
+        # Initialize meditation system
+        from modules.meditations.routes import init_meditation_services
+        init_meditation_services(database_manager, openai_client)
+        
+        # Initialize relationship profiles
+        from modules.relationship_profiles.routes import init_relationship_routes
+        # Get credits manager if available
+        try:
+            from modules.credits import get_credits_manager
+            credits_manager = get_credits_manager()
+        except:
+            credits_manager = None
+        init_relationship_routes(app, database_manager, credits_manager, openai_client)
+        
+        # Initialize AI images system
+        from modules.ai_images.routes import init_ai_images_routes
+        init_ai_images_routes(app, openai_client, credits_manager, database_manager)
+        
         logger.info("🔧 All systems initialized successfully")
         
     except Exception as e:
