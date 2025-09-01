@@ -115,7 +115,6 @@
             border-radius: 50%;
             border: 2px solid #fbbf24;
             box-shadow: 0 0 15px rgba(251, 191, 36, 0.4);
-            background-color: rgba(30, 27, 75, 0.9);
         }
 
         .usage-indicator {
@@ -620,7 +619,7 @@ async function refreshFortuneLimits() {
         const { companion_tier, usage_today, daily_limit, companion_id, user_plan, trial_active } = data;
         
         const hasUnlimited = user_plan === "gold" && !trial_active;  // Only if REAL Gold tier (not trial)
-        const displayLimit = hasUnlimited ? "∞" : daily_limit;
+        const displayLimit = hasUnlimited ? "∞" : (daily_limit || "?");
 
         const usage = usage_today ?? 0;
 

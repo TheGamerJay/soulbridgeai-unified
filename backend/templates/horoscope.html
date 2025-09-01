@@ -114,7 +114,6 @@
             border-radius: 50%;
             border: 2px solid #ffd700;
             box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
-            background-color: rgba(15, 15, 35, 0.9);
         }
 
         .usage-indicator {
@@ -661,9 +660,9 @@ async function refreshHoroscopeLimits() {
             const planDesc = document.getElementById('plan-description');
             
             if (usageCount) usageCount.textContent = userUsage || 0;
-            if (usageLimit) usageLimit.textContent = dailyLimit === null ? '∞' : dailyLimit;
+            if (usageLimit) usageLimit.textContent = (dailyLimit === null || dailyLimit === undefined) ? '∞' : (dailyLimit || "?");
             if (planDesc) {
-                const limitDisplay = dailyLimit === null ? '∞' : dailyLimit;
+                const limitDisplay = (dailyLimit === null || dailyLimit === undefined) ? '∞' : (dailyLimit || "?");
                 planDesc.textContent = `⭐ Daily Horoscopes: ${userUsage || 0} / ${limitDisplay} used`;
             }
         }
