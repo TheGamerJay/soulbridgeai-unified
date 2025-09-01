@@ -1351,42 +1351,85 @@ body.theme-blayzion .message.assistant .message-content {
    TIER-BASED THEMES
    ======================================== */
 
-/* BRONZE TIER - Black and Cyan Theme */
+/* BRONZE TIER - Black Background with Cyan Elements */
 body.tier-bronze {
-    background: linear-gradient(135deg, #000000 0%, #0a1a1a 50%, #001a1a 100%);
+    background: #000000 !important;
 }
 
 body.tier-bronze::before {
-    background: 
-        radial-gradient(circle at 20% 20%, rgba(0, 255, 255, 0.15) 0%, transparent 50%),
-        radial-gradient(circle at 80% 80%, rgba(0, 200, 255, 0.1) 0%, transparent 50%),
-        radial-gradient(circle at 40% 60%, rgba(0, 255, 255, 0.08) 0%, transparent 50%);
+    display: none; /* Remove animated background effects */
 }
 
 body.tier-bronze .chat-header {
-    background: linear-gradient(135deg, rgba(0, 0, 0, 0.9) 0%, rgba(0, 40, 40, 0.8) 100%);
-    border-bottom: 2px solid rgba(0, 255, 255, 0.3);
+    background: #00ffff;
+    color: #000000;
+    border-bottom: none;
 }
 
 body.tier-bronze .status-indicator {
-    background: #00ffff;
-    box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+    background: #000000;
+    color: #00ffff;
+    box-shadow: none;
 }
 
 body.tier-bronze .send-button {
-    background: linear-gradient(135deg, #00ffff, #00bfbf);
-    color: #000000;
+    background: #00ffff !important;
+    color: #000000 !important;
+    border: none;
 }
 
 body.tier-bronze .send-button:hover {
-    background: linear-gradient(135deg, #00bfbf, #009999);
+    background: #00e6e6 !important;
+    color: #000000 !important;
     transform: translateY(-2px);
     box-shadow: 0 4px 15px rgba(0, 255, 255, 0.3);
 }
 
 body.tier-bronze .message.assistant {
-    background: linear-gradient(135deg, rgba(0, 255, 255, 0.1), rgba(0, 200, 200, 0.05));
-    border-left: 4px solid #00ffff;
+    background: #00ffff !important;
+    color: #000000 !important;
+    border: none;
+    border-radius: 8px;
+}
+
+body.tier-bronze .message.user {
+    background: #00ffff !important;
+    color: #000000 !important;
+    border: none;
+    border-radius: 8px;
+}
+
+/* All buttons get cyan background with black text */
+body.tier-bronze .action-btn,
+body.tier-bronze .clear-btn,
+body.tier-bronze button {
+    background: #00ffff !important;
+    color: #000000 !important;
+    border: none;
+}
+
+body.tier-bronze .action-btn:hover,
+body.tier-bronze .clear-btn:hover,
+body.tier-bronze button:hover {
+    background: #00e6e6 !important;
+    color: #000000 !important;
+}
+
+/* Input field styling */
+body.tier-bronze .message-input {
+    background: #00ffff !important;
+    color: #000000 !important;
+    border: 2px solid #00ffff;
+}
+
+body.tier-bronze .message-input::placeholder {
+    color: #004040 !important;
+}
+
+body.tier-bronze .message-input:focus {
+    background: #00e6e6 !important;
+    border-color: #00ffff;
+    outline: none;
 }
 
 /* SILVER TIER - Black and Silver Theme */
