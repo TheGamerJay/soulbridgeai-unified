@@ -436,7 +436,7 @@
                                         <span class="badge {{ companion.tier }}">🥉 Bronze</span>
                                     </div>
                                 </div>
-                            </div>
+                            </a>
                         {% else %}
                             <div class="netflix-card locked" onclick="confirmUpgrade('{{ companion.name }}', 'bronze')">
                                 <div class="netflix-poster">
@@ -485,7 +485,7 @@
                                         <span class="badge {{ companion.tier }}">🥈 Silver</span>
                                     </div>
                                 </div>
-                            </div>
+                            </a>
                         {% else %}
                             {% if companion.get('min_referrals', 0) > 0 %}
                                 <div class="netflix-card locked" onclick="confirmReferral('{{ companion.name }}', {{ companion.min_referrals }})">
@@ -546,7 +546,7 @@
                                         <span class="badge {{ companion.tier }}">🥇 Gold</span>
                                     </div>
                                 </div>
-                            </div>
+                            </a>
                         {% else %}
                             {% if companion.get('min_referrals', 0) > 0 %}
                                 <div class="netflix-card locked" onclick="confirmReferral('{{ companion.name }}', {{ companion.min_referrals }})">
@@ -607,7 +607,7 @@
                                         <span class="badge {{ companion.tier }}">🎁 Referral</span>
                                     </div>
                                 </div>
-                            </div>
+                            </a>
                         {% else %}
                             <div class="netflix-card locked" onclick="confirmReferral('{{ companion.name }}', {{ companion.min_referrals }})">
                                 <div class="netflix-poster">
