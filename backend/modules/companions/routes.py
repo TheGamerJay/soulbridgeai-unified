@@ -24,12 +24,34 @@ companions_bp = Blueprint('companions', __name__)
 def companion_selection():
     """Companion selection page"""
     try:
+        from flask import session
+        from ..auth.session_manager import get_user_plan, get_user_limits
+        
         access_info = get_user_companion_access()
         companions = get_all_companions()
         
+        # Get user tier info for template
+        user_plan = session.get('user_plan', 'bronze')
+        tier_display = user_plan.title()
+        
+        # Get user limits for display
+        try:
+            limits = get_user_limits()
+        except:
+            # Fallback limits if function not available
+            limits = {
+                'decoder': 3 if user_plan == 'bronze' else (15 if user_plan == 'silver' else 999),
+                'fortune': 2 if user_plan == 'bronze' else (8 if user_plan == 'silver' else 999),
+                'horoscope': 3 if user_plan == 'bronze' else (10 if user_plan == 'silver' else 999),
+                'creative_writer': 2 if user_plan == 'bronze' else (20 if user_plan == 'silver' else 999)
+            }
+        
         return render_template("companion_selection.html", 
                              companions=companions,
-                             access_info=access_info)
+                             access_info=access_info,
+                             tier=user_plan,
+                             tier_display=tier_display,
+                             limits=limits)
         
     except Exception as e:
         logger.error(f"Error in companion selection: {e}")

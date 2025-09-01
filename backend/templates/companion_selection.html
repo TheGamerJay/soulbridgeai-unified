@@ -113,6 +113,17 @@
         .back-link:hover {
             text-decoration: underline;
         }
+        
+        .companion-card.locked {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background: linear-gradient(135deg, #555 0%, #333 100%);
+        }
+        
+        .companion-card.locked:hover {
+            transform: none;
+            box-shadow: none;
+        }
     </style>
 </head>
 <body>
@@ -146,18 +157,34 @@
         {% if companions %}
             <div class="companion-grid">
                 {% for companion in companions %}
-                    <a href="/chat/{{ tier }}/{{ companion.id }}" class="companion-card {{ companion.tier }}-card">
-                        <img src="{{ companion.image_url }}" alt="{{ companion.name }}" class="companion-avatar">
-                        <div class="companion-name">{{ companion.name }}</div>
-                        <div class="companion-tier-badge">
-                            {% if companion.tier == 'bronze' %}🥉 Bronze
-                            {% elif companion.tier == 'silver' %}🥈 Silver
-                            {% elif companion.tier == 'gold' %}🥇 Gold
-                            {% elif companion.tier == 'referral' %}🎁 Referral
-                            {% endif %}
+                    {% set can_access = access_info.unlock_state.get(companion.id, {}).get('can_access', False) %}
+                    {% if can_access %}
+                        <a href="/chat/{{ companion.tier }}/{{ companion.id }}" class="companion-card {{ companion.tier }}-card">
+                            <img src="{{ companion.image_url }}" alt="{{ companion.name }}" class="companion-avatar">
+                            <div class="companion-name">{{ companion.name }}</div>
+                            <div class="companion-tier-badge">
+                                {% if companion.tier == 'bronze' %}🥉 Bronze
+                                {% elif companion.tier == 'silver' %}🥈 Silver
+                                {% elif companion.tier == 'gold' %}🥇 Gold
+                                {% elif companion.tier == 'referral' %}🎁 Referral
+                                {% endif %}
+                            </div>
+                            <p>Start chatting with {{ companion.name }} now!</p>
+                        </a>
+                    {% else %}
+                        <div class="companion-card {{ companion.tier }}-card locked">
+                            <img src="{{ companion.image_url }}" alt="{{ companion.name }}" class="companion-avatar" style="filter: grayscale(100%) opacity(50%);">
+                            <div class="companion-name">{{ companion.name }}</div>
+                            <div class="companion-tier-badge">
+                                {% if companion.tier == 'bronze' %}🥉 Bronze
+                                {% elif companion.tier == 'silver' %}🥈 Silver
+                                {% elif companion.tier == 'gold' %}🥇 Gold
+                                {% elif companion.tier == 'referral' %}🎁 Referral
+                                {% endif %}
+                            </div>
+                            <p>🔒 Upgrade to access</p>
                         </div>
-                        <p>Start chatting with {{ companion.name }} now!</p>
-                    </a>
+                    {% endif %}
                 {% endfor %}
             </div>
         {% else %}
