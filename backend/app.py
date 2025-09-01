@@ -413,6 +413,86 @@ def create_app():
         from flask import render_template
         return render_template('meditations.html')
     
+    @app.route("/emotional-meditations")
+    def emotional_meditations():
+        """Emotional meditations - from meditations blueprint"""
+        if not session.get('logged_in'):
+            return redirect('/auth/login?return_to=emotional-meditations')
+        
+        from flask import render_template
+        return render_template('emotional_meditations.html')
+    
+    # VOICE ROUTES (from voice module blueprint)
+    @app.route("/voice-journaling")
+    def voice_journaling():
+        """Voice journaling page - from voice blueprint"""
+        if not session.get('logged_in'):
+            return redirect('/auth/login?return_to=voice-journaling')
+        
+        from flask import render_template
+        return render_template('voice_journaling.html')
+    
+    @app.route("/voice-chat")
+    def voice_chat():
+        """Voice chat page - from voice blueprint"""
+        if not session.get('logged_in'):
+            return redirect('/auth/login?return_to=voice-chat')
+        
+        from flask import render_template
+        return render_template('voice_chat.html')
+    
+    # STUDIO ROUTES (from studio module blueprint)
+    @app.route("/mini-studio")
+    def mini_studio():
+        """Mini Studio page - from studio blueprint"""
+        if not session.get('logged_in'):
+            return redirect('/auth/login?return_to=mini-studio')
+        
+        user_plan = session.get('user_plan', 'bronze')
+        if user_plan != 'gold':
+            return redirect('/tiers?error=Gold tier required for Mini Studio')
+        
+        from flask import render_template
+        return render_template('mini_studio.html')
+    
+    # RELATIONSHIP ROUTES (from relationship_profiles module blueprint)
+    @app.route("/relationship-profiles")
+    def relationship_profiles():
+        """Relationship profiles page - from relationship_profiles blueprint"""
+        if not session.get('logged_in'):
+            return redirect('/auth/login?return_to=relationship-profiles')
+        
+        user_plan = session.get('user_plan', 'bronze')
+        if user_plan == 'bronze':
+            return redirect('/tiers?error=Silver or Gold tier required for Relationship Profiles')
+        
+        from flask import render_template
+        return render_template('relationship_profiles.html')
+    
+    # AI IMAGES ROUTES (from ai_images module blueprint)
+    @app.route("/ai-image-generation")
+    def ai_image_generation():
+        """AI image generation page - from ai_images blueprint"""
+        if not session.get('logged_in'):
+            return redirect('/auth/login?return_to=ai-image-generation')
+        
+        user_plan = session.get('user_plan', 'bronze')
+        if user_plan == 'bronze':
+            return redirect('/tiers?error=Silver or Gold tier required for AI Images')
+        
+        from flask import render_template
+        return render_template('ai_image_generation.html')
+    
+    # CREATIVE WRITING ROUTES (from creative module blueprint)
+    @app.route("/creative-writing")
+    def creative_writing():
+        """Creative writing page - from creative blueprint"""
+        if not session.get('logged_in'):
+            return redirect('/auth/login?return_to=creative-writing')
+        
+        from flask import render_template
+        return render_template('creative_writing.html')
+    
     # HEALTH ROUTES (from health module blueprint)
     @app.route("/health")
     def health():
