@@ -16,7 +16,7 @@ library_bp = Blueprint('library', __name__, url_prefix='/library')
 
 def _get_current_user():
     """Get current user info from session"""
-    if not session.get('user_authenticated'):
+    if not session.get('logged_in'):
         return None
     
     return {

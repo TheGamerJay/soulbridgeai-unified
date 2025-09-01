@@ -583,15 +583,8 @@ def create_app():
         from flask import render_template
         return render_template('horoscope.html')
     
-    # LIBRARY ROUTES (from library module blueprint)
-    @app.route("/library")
-    def library():
-        """Library page - from library blueprint"""
-        if not session.get('logged_in'):
-            return redirect('/auth/login?return_to=library')
-        
-        from flask import render_template
-        return render_template('library.html')
+    # LIBRARY ROUTES (handled by library module blueprint)
+    # @app.route("/library") - DISABLED: Using blueprint instead
     
     # MEDITATION ROUTES (from meditations module blueprint)
     @app.route("/meditations")
