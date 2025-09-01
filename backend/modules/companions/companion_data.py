@@ -5,7 +5,7 @@ Extracted from app.py monolith for modular architecture
 
 # All 29 AI companions with their metadata
 COMPANIONS = [
-    # BRONZE TIER COMPANIONS (8)
+    # BRONZE TIER COMPANIONS (10)
     {"id":"gamerjay_bronze","name":"GamerJay","tier":"bronze","image_url":"/static/logos/GamerJay_Free_companion.png","min_referrals":0,"greeting":"Hey there! I'm GamerJay. Ready to level up and explore some awesome features together?"},
     {"id":"blayzo_bronze","name":"Blayzo","tier":"bronze","image_url":"/static/logos/Blayzo.png","min_referrals":0,"greeting":"What's up! I'm Blayzo. Let's vibe and see what cool stuff we can discover together!"},
     {"id":"blayzica_bronze","name":"Blayzica","tier":"bronze","image_url":"/static/logos/Blayzica.png","min_referrals":0,"greeting":"Hello! I'm Blayzica. I'm here to help you explore and make the most of your SoulBridge experience!"},
@@ -14,6 +14,8 @@ COMPANIONS = [
     {"id":"blayzion_bronze","name":"Blayzion","tier":"bronze","image_url":"/static/logos/Blayzion.png","min_referrals":0,"greeting":"Yo! I'm Blayzion. Let's embark on this journey and unlock some cool features together!"},
     {"id":"lumen_bronze","name":"Lumen","tier":"bronze","image_url":"/static/logos/Lumen_Bronze.png","min_referrals":0,"greeting":"Hello there! I'm Lumen. I'm here to brighten your SoulBridge experience and guide you through our features!"},
     {"id":"blayzo2_bronze","name":"Blayzo.2","tier":"bronze","image_url":"/static/logos/blayzo_free_tier.png","min_referrals":0,"greeting":"Hey! I'm Blayzo.2. Ready to explore the next level of features together?"},
+    {"id":"crimson_bronze","name":"Crimson","tier":"bronze","image_url":"/static/logos/Crimson_Free.png","min_referrals":0,"greeting":"Hey! I'm Crimson. I bring passion and determination to help you tackle challenges head-on!"},
+    {"id":"violet_bronze","name":"Violet","tier":"bronze","image_url":"/static/logos/Violet_Free.png","min_referrals":0,"greeting":"Hello! I'm Violet. I see the creative beauty in every moment and I'm here to inspire your journey!"},
 
     # SILVER TIER COMPANIONS (8) 
     {"id":"sky_silver","name":"Sky","tier":"silver","image_url":"/static/logos/Sky_a_premium_companion.png","min_referrals":0,"greeting":"Hello! I'm Sky. With enhanced features at your fingertips, let's soar to new heights together!"},
