@@ -1137,6 +1137,57 @@ def debug_avatar_persistence():
         logger.error(f"Debug avatar error: {e}")
         return jsonify({"success": False, "error": str(e), "debug": "Debug failed"}), 500
 
+@community_bp.route("/community/debug-database", methods=["GET"])
+def debug_database_schema():
+    """Debug endpoint to check database schema for companion_data column"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        db = get_database()
+        if not db:
+            return jsonify({"debug": "Database not available"}), 500
+            
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        
+        schema_info = {}
+        
+        if db.use_postgres:
+            # Check PostgreSQL schema
+            cursor.execute("""
+                SELECT column_name, data_type 
+                FROM information_schema.columns 
+                WHERE table_name = 'users' 
+                ORDER BY ordinal_position
+            """)
+            columns = cursor.fetchall()
+            schema_info = {
+                "database_type": "PostgreSQL",
+                "users_table_columns": [{"name": col[0], "type": col[1]} for col in columns],
+                "has_companion_data": any(col[0] == 'companion_data' for col in columns)
+            }
+        else:
+            # Check SQLite schema
+            cursor.execute("PRAGMA table_info(users)")
+            columns = cursor.fetchall()
+            schema_info = {
+                "database_type": "SQLite", 
+                "users_table_columns": [{"name": col[1], "type": col[2]} for col in columns],
+                "has_companion_data": any(col[1] == 'companion_data' for col in columns)
+            }
+        
+        conn.close()
+        
+        return jsonify({
+            "success": True,
+            "schema": schema_info
+        })
+        
+    except Exception as e:
+        logger.error(f"Database schema debug error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
 # =============================================================================
 # WELLNESS GALLERY API ENDPOINTS
 # =============================================================================
