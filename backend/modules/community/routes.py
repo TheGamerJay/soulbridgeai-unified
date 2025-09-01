@@ -1573,6 +1573,22 @@ def debug_current_user():
         logger.error(f"❌ Debug current user error: {e}")
         return jsonify({"success": False, "error": str(e)}), 500
 
+@community_bp.route("/debug-db", methods=["GET"])
+def simple_db_debug():
+    """Simple database debug without auth"""
+    try:
+        db = get_database()
+        if not db:
+            return jsonify({"error": "No database"}), 500
+            
+        return jsonify({
+            "success": True,
+            "database_type": "PostgreSQL" if db.use_postgres else "SQLite",
+            "message": "Database connection successful"
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 @community_bp.route("/community/debug-schema", methods=["GET"])
 def debug_schema():
     """Debug database schema to check columns"""
