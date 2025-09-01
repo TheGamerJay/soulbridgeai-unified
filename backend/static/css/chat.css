@@ -1403,9 +1403,15 @@ body.tier-bronze .send-button:hover {
 }
 
 body.tier-bronze .message.assistant {
+    background: #000000 !important;
+    color: #00ffff !important;
+    border: 2px solid #00ffff;
+    border-radius: 8px;
+}
+
+body.tier-bronze .message.assistant .message-content {
     background: #00ffff !important;
     color: #000000 !important;
-    border: none;
     border-radius: 8px;
 }
 
