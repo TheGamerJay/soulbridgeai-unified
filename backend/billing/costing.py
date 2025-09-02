@@ -229,6 +229,35 @@ def cleanup_old_spend_files(keep_months: int = 6) -> int:
         logger.error(f"Error cleaning up spend files: {e}")
         return 0
 
+def track_horoscope_cost(user_id: int, feature_type: str, result: Dict[str, Any]) -> bool:
+    """
+    Track costs for horoscope features
+    
+    Args:
+        user_id: User ID 
+        feature_type: Type of horoscope (daily, monthly, compatibility)
+        result: Result from horoscope generation
+        
+    Returns:
+        bool: Success status
+    """
+    try:
+        # Since horoscope is deterministic and not using AI/tokens, cost is minimal
+        # Track a nominal cost for usage tracking
+        nominal_cost = 0.001  # $0.001 per horoscope reading
+        
+        success = add_spend(nominal_cost)
+        if success:
+            logger.debug(f"Tracked horoscope cost: user={user_id}, type={feature_type}, cost=${nominal_cost:.3f}")
+        else:
+            logger.warning(f"Failed to track horoscope cost for user {user_id}")
+            
+        return success
+        
+    except Exception as e:
+        logger.error(f"Error tracking horoscope cost: {e}")
+        return False
+
 if __name__ == "__main__":
     # Test the costing system
     print("Testing Cost Estimation and Spend Tracking...")

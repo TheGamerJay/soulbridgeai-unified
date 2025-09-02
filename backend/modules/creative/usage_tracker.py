@@ -4,7 +4,20 @@ Extracted from app.py monolith using strategic bulk extraction
 """
 import logging
 from datetime import datetime, date
-import pytz
+try:
+    import pytz
+    PYTZ_AVAILABLE = True
+except ImportError:
+    # Fall back to built-in zoneinfo (Python 3.9+)
+    try:
+        from zoneinfo import ZoneInfo
+        PYTZ_AVAILABLE = False
+    except ImportError:
+        # Ultimate fallback - use UTC
+        import datetime as dt
+        PYTZ_AVAILABLE = False
+        ZoneInfo = None
+
 from ..shared.database import get_database
 from .features_config import get_feature_limit
 
@@ -15,13 +28,29 @@ class CreativeUsageTracker:
     
     def __init__(self):
         self.db = get_database()
-        self.est_tz = pytz.timezone('US/Eastern')
+        if PYTZ_AVAILABLE:
+            self.est_tz = pytz.timezone('US/Eastern')
+        elif ZoneInfo:
+            self.est_tz = ZoneInfo('US/Eastern')
+        else:
+            # Fallback to UTC
+            self.est_tz = None
     
     def get_est_date(self) -> date:
         """Get current date in Eastern Time (resets at 12 EST)"""
-        utc_now = datetime.now(pytz.UTC)
-        est_now = utc_now.astimezone(self.est_tz)
-        return est_now.date()
+        if PYTZ_AVAILABLE:
+            utc_now = datetime.now(pytz.UTC)
+            est_now = utc_now.astimezone(self.est_tz)
+            return est_now.date()
+        elif ZoneInfo and self.est_tz:
+            from datetime import timezone
+            utc_now = datetime.now(timezone.utc)
+            est_now = utc_now.astimezone(self.est_tz)
+            return est_now.date()
+        else:
+            # Fallback to UTC date
+            logger.warning("Using UTC date as fallback - Eastern Time zone not available")
+            return datetime.utcnow().date()
     
     def get_usage_today(self, user_id: int, feature: str) -> int:
         """Get user's usage count for a feature today"""
