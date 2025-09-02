@@ -52,7 +52,7 @@ class CreativeService:
                 
                 # Get app context URL
                 with current_app.test_request_context():
-                    chat_url = f"{os.environ.get('APP_URL', 'http://localhost:5000')}/api/chat"
+                    chat_url = f"{os.environ.get('APP_URL', 'http://localhost:8080')}/api/chat"
                 
                 # Choose character and context based on mode
                 if mode == "lyrics":
@@ -254,7 +254,7 @@ Make it positive, insightful, and encouraging. Keep it concise but meaningful.""
                 
                 # Get app context URL
                 with current_app.test_request_context():
-                    chat_url = f"{os.environ.get('APP_URL', 'http://localhost:5000')}/api/chat"
+                    chat_url = f"{os.environ.get('APP_URL', 'http://localhost:8080')}/api/chat"
                 
                 writing_prompt = f"""Create a {style} based on this prompt: "{prompt}"
 
