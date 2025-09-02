@@ -233,6 +233,120 @@ def api_fortune():
         logger.error(f"Error in fortune API: {e}")
         return jsonify({"success": False, "error": "Fortune reading failed"}), 500
 
+@creative_bp.route("/api/v2/fortune/spreads", methods=["GET"])
+def api_fortune_spreads():
+    """Get available tarot spreads"""
+    spreads = {
+        "1 Card": 1,
+        "3 Card": 3, 
+        "5 Card": 5,
+        "Celtic Cross": 10
+    }
+    return jsonify({"spreads": spreads})
+
+@creative_bp.route("/api/v2/fortune/enhanced", methods=["POST"])
+@requires_login  
+def api_fortune_enhanced():
+    """Enhanced tarot reading with multiple spreads"""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"success": False, "error": "No data provided"}), 400
+
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+
+        # Get parameters
+        spread_type = data.get('spread_type', 'three')
+        question = data.get('question', '')
+        reversals = bool(data.get('reversals', True))
+        clarifiers = int(data.get('clarifiers', 0))
+        interpretation = bool(data.get('interpretation', True))
+        
+        # Check usage limits
+        from .usage_tracker import CreativeUsageTracker
+        usage_tracker = CreativeUsageTracker()
+        
+        if not usage_tracker.can_use_feature(user_id, 'fortune'):
+            limit = usage_tracker.get_usage_limit(user_id, 'fortune')
+            return jsonify({
+                "success": False, 
+                "error": f"Daily fortune limit reached ({limit} uses). Upgrade for unlimited readings."
+            }), 429
+
+        # Generate enhanced reading
+        result = creative_service.generate_fortune(
+            question=question,
+            user_id=user_id,
+            spread_type=spread_type
+        )
+        
+        if result['success']:
+            # Add reversals and clarifiers to cards if requested
+            if reversals:
+                for card in result['cards']:
+                    if random.choice([True, False]):
+                        card['orientation'] = 'Reversed'
+                        # Swap meaning if reversed (simplified)
+                        card['meaning'] = f"Reversed: {card['meaning']}"
+                    else:
+                        card['orientation'] = 'Upright'
+            
+            # Track usage
+            usage_tracker.record_usage(user_id, 'fortune')
+            
+            # Auto-save to library  
+            auto_saved = False
+            try:
+                from ..library.content_service import ContentService
+                content_service = ContentService()
+                
+                # Create enhanced content for library
+                cards_summary = []
+                for card in result['cards']:
+                    position = card.get('position', 'Card')
+                    orientation = card.get('orientation', 'Upright')
+                    cards_summary.append(f"**{position}**: {card['name']} ({orientation})")
+                
+                enhanced_content = f"""**{result['spread_description']} Reading**
+**Question**: {question or 'General reading'}
+**Cards**: {', '.join([card['name'] for card in result['cards']])}
+
+**Card Details**:
+{chr(10).join(cards_summary)}
+
+**Reading**: {result['reading']}"""
+                
+                content_id = content_service.save_fortune_reading(
+                    user_id=user_id,
+                    question=question or 'Enhanced Tarot Reading',
+                    card=f"{len(result['cards'])}-card {spread_type} spread",
+                    interpretation=enhanced_content
+                )
+                auto_saved = bool(content_id)
+                logger.info(f"🔮 Auto-saved enhanced tarot reading to library for user {user_id}")
+            except Exception as e:
+                logger.error(f"Failed to auto-save enhanced reading: {e}")
+                auto_saved = False
+            
+            return jsonify({
+                "success": True,
+                "reading": result['reading'],
+                "cards": result['cards'],
+                "spread_type": spread_type,
+                "spread_description": result.get('spread_description', ''),
+                "question": question,
+                "auto_saved": auto_saved,
+                "saved_message": "✅ Automatically saved to your library" if auto_saved else ""
+            })
+        else:
+            return jsonify(result), 500
+            
+    except Exception as e:
+        logger.error(f"Error in enhanced fortune API: {e}")
+        return jsonify({"success": False, "error": "Enhanced tarot reading failed"}), 500
+
 @creative_bp.route("/api/v2/horoscope", methods=["POST"])
 @requires_login
 def api_horoscope():

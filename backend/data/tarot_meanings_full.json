@@ -1,0 +1,392 @@
+{
+  "The Fool": {
+    "upright": "Beginnings, openness, spontaneity, a leap into the unknown with trust.",
+    "reversed": "Recklessness, naivety, hesitation, risky choices without grounding.",
+    "symbols": "Cliff (risk), small white dog (instinct/companion), knapsack (light baggage), white rose (purity), sun (optimism), feather (spirit)."
+  },
+  "The Magician": {
+    "upright": "Manifestation, willpower, focused intention, turning ideas into reality.",
+    "reversed": "Manipulation, scattered energy, untapped potential, misdirection.",
+    "symbols": "Infinity sign (mastery), wand raised and hand lowered (as above, so below), table with wand/cup/sword/pentacle (four elements), roses and lilies (desire and purity)."
+  },
+  "The High Priestess": {
+    "upright": "Intuition, mystery, inner voice, sacred knowledge beneath the surface.",
+    "reversed": "Secrets, blocked intuition, withdrawal, ignoring inner truth.",
+    "symbols": "Pillars B and J (duality), veil with pomegranates (fertility/hidden wisdom), moon at feet (subconscious), scroll/torah (esoteric lore)."
+  },
+  "The Empress": {
+    "upright": "Abundance, nurture, sensuality, creativity and growth.",
+    "reversed": "Smothering, dependence, creative block, neglect of self-care.",
+    "symbols": "Venus glyph (love/beauty), crown of stars (divine femininity), wheat/field/river (fertility/flow)."
+  },
+  "The Emperor": {
+    "upright": "Structure, leadership, stability, strategic protection.",
+    "reversed": "Rigidity, domination, control issues, inflexibility.",
+    "symbols": "Ram heads (Aries/authority), armor and throne (order/defense), mountains (endurance), orb/ankh (power/life)."
+  },
+  "The Hierophant": {
+    "upright": "Tradition, spiritual guidance, shared beliefs, institutions.",
+    "reversed": "Nonconformity, personal belief, challenge to orthodoxy.",
+    "symbols": "Triple crown and scepter (office), crossed keys (esoteric access), acolytes (teaching), blessing hand (initiation)."
+  },
+  "The Lovers": {
+    "upright": "Union, values alignment, meaningful choice, devotion.",
+    "reversed": "Disharmony, misalignment, temptation, tough decisions.",
+    "symbols": "Angel (higher love), two figures (choice/duality), tree of knowledge with serpent (temptation), sun (blessing), mountain (challenges ahead)."
+  },
+  "The Chariot": {
+    "upright": "Determination, self-control, victory through direction and will.",
+    "reversed": "Aggression, lack of control, aimlessness, derailment.",
+    "symbols": "Black/white sphinxes (opposing forces), armor (will), star canopy (guidance), city behind (leaving comfort)."
+  },
+  "Strength": {
+    "upright": "Courage, gentle influence, compassion, inner resilience.",
+    "reversed": "Self-doubt, insecurity, short temper, reactivity.",
+    "symbols": "Woman taming lion (soft mastery), infinity sign (enduring calm), garland (grace)."
+  },
+  "The Hermit": {
+    "upright": "Introspection, solitude, inner guidance, seeking truth.",
+    "reversed": "Isolation, withdrawal, losing the path, avoidance.",
+    "symbols": "Lantern with star (inner light), staff (support), mountain (spiritual climb), cloak (privacy)."
+  },
+  "Wheel of Fortune": {
+    "upright": "Cycles, fate, turning point, movement and change.",
+    "reversed": "Resistance to change, setbacks, clinging to control.",
+    "symbols": "Wheel with letters and glyphs (rota/tarot & elements), sphinx atop (riddle of fate), snake/Anubis (descent/ascent), winged creatures (fixed signs/knowledge)."
+  },
+  "Justice": {
+    "upright": "Truth, fairness, cause and effect, accountability.",
+    "reversed": "Bias, dishonesty, avoidance of responsibility.",
+    "symbols": "Scales (balance), upright sword (truth), square crown (logic), pillars/veil (order)."
+  },
+  "The Hanged Man": {
+    "upright": "Surrender, new perspective, pause to realign.",
+    "reversed": "Stalling, indecision, resisting release.",
+    "symbols": "Halo (enlightenment), inverted stance (paradox), crossed leg (stability through sacrifice), tau-shaped tree (initiation)."
+  },
+  "Death": {
+    "upright": "Endings and transformation, clearing for renewal.",
+    "reversed": "Stagnation, fear of change, refusing closure.",
+    "symbols": "White rose on black flag (purified change), rising sun (renewal), river (passage), fallen figures (inevitability)."
+  },
+  "Temperance": {
+    "upright": "Balance, moderation, healing, blending opposites.",
+    "reversed": "Excess, discord, misalignment, impatience.",
+    "symbols": "Angel mixing two cups (alchemy), one foot on land/one in water (practical/spiritual), path to sun (purpose), triangle in square (spirit in matter)."
+  },
+  "The Devil": {
+    "upright": "Attachment, materialism, temptation, shadow patterns.",
+    "reversed": "Release, detachment, reclaiming power.",
+    "symbols": "Chains (bondage), inverted pentagram (matter over spirit), torch (obsession), bat wings (base desire)."
+  },
+  "The Tower": {
+    "upright": "Sudden upheaval, revelation, collapse of false structures.",
+    "reversed": "Avoiding disaster, prolonged crisis, fear of change.",
+    "symbols": "Lightning (divine shock), falling figures (ego drop), burning crown (toppling authority)."
+  },
+  "The Star": {
+    "upright": "Hope, renewal, calm, faith after turmoil.",
+    "reversed": "Doubt, discouragement, fading faith.",
+    "symbols": "Large eight-pointed star with seven smaller (guidance/chakras), two jugs pouring (give/receive), foot on land and water (healing flow)."
+  },
+  "The Moon": {
+    "upright": "Dreams, intuition, illusion, navigating the unknown.",
+    "reversed": "Fear, confusion lifts, clarifying shadows.",
+    "symbols": "Moon between towers (threshold), dog and wolf (tame/wild instincts), crayfish (emerging unconscious), winding path (uncertainty)."
+  },
+  "The Sun": {
+    "upright": "Joy, vitality, clarity, success and warmth.",
+    "reversed": "Clouded joy, low confidence, temporary delays.",
+    "symbols": "Radiant sun (life force), child on white horse (innocent success), red banner (vitality), sunflowers (growth)."
+  },
+  "Judgement": {
+    "upright": "Awakening, reckoning, renewal, answering a call.",
+    "reversed": "Self-doubt, ignoring the call, stagnation.",
+    "symbols": "Angel’s trumpet (summons), rising figures (rebirth), mountains (new horizon)."
+  },
+  "The World": {
+    "upright": "Completion, wholeness, achievement, integration.",
+    "reversed": "Lack of closure, delays, unfinished cycles.",
+    "symbols": "Laurel wreath (completion), dancer (balance in motion), four living creatures (fixed signs/elements)."
+  },
+  "Ace of Wands": {
+    "upright": "Spark, inspiration, new drive",
+    "reversed": "False start, delays, wavering will",
+    "symbols": "Hand from cloud with sprouting wand; distant castle; fertile landscape."
+  },
+  "Two of Wands": {
+    "upright": "Planning, dominion, looking outward",
+    "reversed": "Fear of change, limited view",
+    "symbols": "Figure holding globe; one wand fixed to wall; looks over battlements/sea."
+  },
+  "Three of Wands": {
+    "upright": "Expansion, foresight, ships coming in",
+    "reversed": "Obstacles, waiting without action",
+    "symbols": "Figure on cliff watching ships; three rooted staves."
+  },
+  "Four of Wands": {
+    "upright": "Celebration, homecoming, milestone",
+    "reversed": "Instability, private celebration",
+    "symbols": "Garlanded canopy; floral wreaths; people rejoicing before a structure."
+  },
+  "Five of Wands": {
+    "upright": "Competition, testing, spirited clash",
+    "reversed": "Avoidance, inner conflict, scattered effort",
+    "symbols": "Group wielding staves in mock battle; crossed wands."
+  },
+  "Six of Wands": {
+    "upright": "Recognition, victory, public acclaim",
+    "reversed": "Fall from grace, doubt, hollow win",
+    "symbols": "Rider with laurel wreath and wand; procession; raised staff with wreath."
+  },
+  "Seven of Wands": {
+    "upright": "Defense, standing ground, courage",
+    "reversed": "Overwhelmed, giving in, exhaustion",
+    "symbols": "Figure on hill defending with staff against unseen challengers below."
+  },
+  "Eight of Wands": {
+    "upright": "Swift movement, messages, momentum",
+    "reversed": "Delays, misdirected energy, stalls",
+    "symbols": "Eight staves flying across open sky; no figures; sense of speed."
+  },
+  "Nine of Wands": {
+    "upright": "Resilience, last stand, vigilance",
+    "reversed": "Paranoia, fatigue, letting guards drop",
+    "symbols": "Wounded guard with bandage; wooden palisade of staves behind."
+  },
+  "Ten of Wands": {
+    "upright": "Burden, overload, responsibilities",
+    "reversed": "Release, delegation, dropping weight",
+    "symbols": "Man struggling under weight of ten staves toward town."
+  },
+  "Page of Wands": {
+    "upright": "Curiosity, messenger, fresh passion",
+    "reversed": "Restless, aimless, superficial zeal",
+    "symbols": "Youth holding flowering staff; desert dunes; salamander motifs."
+  },
+  "Knight of Wands": {
+    "upright": "Adventure, bold action, charisma",
+    "reversed": "Impulsive, hot-headed, scattered",
+    "symbols": "Armored rider on rearing horse; salamander patterns; desert pyramids."
+  },
+  "Queen of Wands": {
+    "upright": "Warmth, confidence, magnetic charm",
+    "reversed": "Jealousy, demanding, insecurity",
+    "symbols": "Queen with sunflower and wand; black cat at feet; lions on throne."
+  },
+  "King of Wands": {
+    "upright": "Vision, leadership, entrepreneurship",
+    "reversed": "Tyranny, haste, overbearing",
+    "symbols": "King with flowering staff; salamander cloak; lions/salamanders on throne."
+  },
+  "Ace of Cups": {
+    "upright": "Emotional opening, love, grace",
+    "reversed": "Blocked emotions, emptiness, numbness",
+    "symbols": "Hand with overflowing chalice; dove; five streams; lotus pool."
+  },
+  "Two of Cups": {
+    "upright": "Partnership, harmony, mutuality",
+    "reversed": "Imbalance, breakup, poor communication",
+    "symbols": "Two figures exchanging cups; caduceus with lion head above."
+  },
+  "Three of Cups": {
+    "upright": "Friendship, community, celebration",
+    "reversed": "Overindulgence, gossip, isolation",
+    "symbols": "Three women dancing with raised cups; harvest fruits."
+  },
+  "Four of Cups": {
+    "upright": "Apathy, contemplation, reevaluation",
+    "reversed": "New interest, acceptance, reengaging",
+    "symbols": "Figure under tree; hand offers a cup from cloud; three cups on ground."
+  },
+  "Five of Cups": {
+    "upright": "Grief, regret, focusing on loss",
+    "reversed": "Perspective shift, forgiveness, moving on",
+    "symbols": "Cloaked figure with three spilled cups; two upright behind; bridge and river."
+  },
+  "Six of Cups": {
+    "upright": "Nostalgia, kindness, innocent joy",
+    "reversed": "Stuck in past, rose-tinted view",
+    "symbols": "Children with flower-filled cups; courtyard; guard walking away."
+  },
+  "Seven of Cups": {
+    "upright": "Choices, fantasies, imagination",
+    "reversed": "Clarity, realism, avoiding illusion",
+    "symbols": "Cloud with seven cups holding symbols (jewels, wreath, dragon, castle, etc.)."
+  },
+  "Eight of Cups": {
+    "upright": "Departure, deeper search, letting go",
+    "reversed": "Fear of change, aimless drifting",
+    "symbols": "Figure leaves stacked cups; gap in stack; moonlit path through hills."
+  },
+  "Nine of Cups": {
+    "upright": "Contentment, satisfaction, wish card",
+    "reversed": "Smugness, dissatisfaction, overindulgence",
+    "symbols": "Seated figure with arms crossed; nine cups on raised shelf like trophies."
+  },
+  "Ten of Cups": {
+    "upright": "Harmony, family bliss, blessing",
+    "reversed": "Tensions at home, misaligned ideals",
+    "symbols": "Family beneath rainbow of ten cups; house, river, green field."
+  },
+  "Page of Cups": {
+    "upright": "Creative message, intuitive spark",
+    "reversed": "Immaturity, moodiness, daydreaming",
+    "symbols": "Youth with cup and fish popping out; waves behind; floral tunic."
+  },
+  "Knight of Cups": {
+    "upright": "Romance, idealism, invitation",
+    "reversed": "Unrealistic, fickle, mood swings",
+    "symbols": "Armored rider with winged helmet and cup; calm river landscape."
+  },
+  "Queen of Cups": {
+    "upright": "Empathy, compassion, psychic depth",
+    "reversed": "Overly sensitive, insecure, martyrdom",
+    "symbols": "Queen gazing at ornate covered cup; seashell throne; water all around."
+  },
+  "King of Cups": {
+    "upright": "Emotional balance, diplomacy, wise heart",
+    "reversed": "Emotional detachment, volatility, repression",
+    "symbols": "King on stone throne floating on sea; ship and fish; calm face amid waves."
+  },
+  "Ace of Swords": {
+    "upright": "Breakthrough, clarity, decisive truth",
+    "reversed": "Confusion, hostility, clouded judgment",
+    "symbols": "Hand from cloud with upright crowned sword; mountains below."
+  },
+  "Two of Swords": {
+    "upright": "Stalemate, difficult choice, balance",
+    "reversed": "Indecision, information blocked, overload",
+    "symbols": "Blindfolded woman with crossed swords seated by sea under moon."
+  },
+  "Three of Swords": {
+    "upright": "Heartache, sorrow, painful truth",
+    "reversed": "Releasing pain, forgiveness, recovery",
+    "symbols": "Heart pierced by three swords; storm clouds and rain."
+  },
+  "Four of Swords": {
+    "upright": "Rest, recovery, quiet mind",
+    "reversed": "Restlessness, burnout, refusal to slow down",
+    "symbols": "Recumbent figure on tomb; three swords on wall; one beneath figure."
+  },
+  "Five of Swords": {
+    "upright": "Pyrrhic victory, conflict, mind games",
+    "reversed": "Making amends, walking away, lesson learned",
+    "symbols": "Smirking figure gathers swords; losers retreat by sea; wind-swept sky."
+  },
+  "Six of Swords": {
+    "upright": "Transition, passage, healing journey",
+    "reversed": "Stuck in the past, unresolved baggage",
+    "symbols": "Boat crosses water; cloaked figure and child; ferryman; six swords in boat."
+  },
+  "Seven of Swords": {
+    "upright": "Strategy, stealth, working alone",
+    "reversed": "Caught out, regret, need for honesty",
+    "symbols": "Figure sneaks off carrying swords from camp; tents in background."
+  },
+  "Eight of Swords": {
+    "upright": "Restriction, feeling trapped, anxiety",
+    "reversed": "Open path, release, new perspective",
+    "symbols": "Blindfolded woman bound within a ring of swords; muddy ground; tide nearby."
+  },
+  "Nine of Swords": {
+    "upright": "Anxiety, sleeplessness, inner torment",
+    "reversed": "Perspective, solace, asking for help",
+    "symbols": "Figure sits up in bed with head in hands; nine swords on wall."
+  },
+  "Ten of Swords": {
+    "upright": "Finality, collapse, rock bottom",
+    "reversed": "Recovery, dawn after ending, release",
+    "symbols": "Prone figure with ten swords in back; sunrise over water."
+  },
+  "Page of Swords": {
+    "upright": "Curiosity, vigilance, new ideas",
+    "reversed": "Gossip, defensiveness, scattered talk",
+    "symbols": "Youth with sword at the ready; gusty hills; clouds racing."
+  },
+  "Knight of Swords": {
+    "upright": "Swift action, tenacity, bold words",
+    "reversed": "Reckless, tactless, burnout",
+    "symbols": "Armored rider charges with sword; trees bent by wind; storm clouds."
+  },
+  "Queen of Swords": {
+    "upright": "Clear boundaries, keen perception, truth",
+    "reversed": "Coldness, criticism, bitterness",
+    "symbols": "Queen with raised sword and open hand; butterfly crown; clouds behind."
+  },
+  "King of Swords": {
+    "upright": "Reason, authority, ethical judgment",
+    "reversed": "Rigid thinking, misuse of power",
+    "symbols": "King with upright sword; butterflies and angels; throne of butterflies."
+  },
+  "Ace of Pentacles": {
+    "upright": "Opportunity, prosperity seed, tangible start",
+    "reversed": "Missed chance, scarcity mindset",
+    "symbols": "Hand with large coin over garden arch; mountain path."
+  },
+  "Two of Pentacles": {
+    "upright": "Adaptability, juggling priorities, flow",
+    "reversed": "Overwhelm, imbalance, dropped balls",
+    "symbols": "Juggler with lemniscate loop; ships rise and fall on waves."
+  },
+  "Three of Pentacles": {
+    "upright": "Collaboration, craftsmanship, planning",
+    "reversed": "Poor teamwork, lack of quality",
+    "symbols": "Artisan works in cathedral with monk and patron; three-coins arch."
+  },
+  "Four of Pentacles": {
+    "upright": "Security, saving, holding on",
+    "reversed": "Greed, stagnation, fear of loss",
+    "symbols": "Figure clamps coin to chest; one on crown and under each foot; city behind."
+  },
+  "Five of Pentacles": {
+    "upright": "Hardship, exclusion, illness/poverty",
+    "reversed": "Assistance, recovery, spiritual refuge",
+    "symbols": "Two figures in snow outside stained-glass window with five coins."
+  },
+  "Six of Pentacles": {
+    "upright": "Giving and receiving, charity, balance",
+    "reversed": "Strings attached, inequity, debt",
+    "symbols": "Wealthy man with scales gives coins to two beggars."
+  },
+  "Seven of Pentacles": {
+    "upright": "Patience, assessment, long view",
+    "reversed": "Impatience, poor return, refocus",
+    "symbols": "Gardener rests on tool; pentacles grow on vine/trellis."
+  },
+  "Eight of Pentacles": {
+    "upright": "Skill building, apprenticeship, dedication",
+    "reversed": "Monotony, perfectionism, stalled learning",
+    "symbols": "Craftsman hammers coins on bench; town in distance."
+  },
+  "Nine of Pentacles": {
+    "upright": "Self-sufficiency, refinement, comfort",
+    "reversed": "Overdependence, setbacks, indulgence",
+    "symbols": "Elegant woman in vineyard with falcon; carved grapes; walled garden."
+  },
+  "Ten of Pentacles": {
+    "upright": "Legacy, family wealth, long-term home",
+    "reversed": "Temporary issues, family rifts, short-term focus",
+    "symbols": "Elder with dogs at feet; archway; couple and child; heraldic shields."
+  },
+  "Page of Pentacles": {
+    "upright": "Study, opportunity, practical news",
+    "reversed": "Procrastination, daydreaming, short focus",
+    "symbols": "Youth studies coin in field; tilled earth; trees/mountain."
+  },
+  "Knight of Pentacles": {
+    "upright": "Steadfastness, routine, reliability",
+    "reversed": "Stagnation, drudgery, resistance to change",
+    "symbols": "Rider holds coin; plowed fields; still horse; rows of furrows."
+  },
+  "Queen of Pentacles": {
+    "upright": "Grounded care, resourcefulness, body wisdom",
+    "reversed": "Work/life imbalance, overgiving",
+    "symbols": "Queen with coin; rabbit at feet; lush garden and throne carvings."
+  },
+  "King of Pentacles": {
+    "upright": "Prosperity, stability, stewardship",
+    "reversed": "Stubbornness, materialism, rigidity",
+    "symbols": "King on carved throne of bulls and vines; castle; grapes and ivy."
+  }
+}

@@ -597,12 +597,28 @@ def create_app():
     
     @app.route("/fortune")
     def fortune():
-        """Fortune tool - from creative blueprint"""
+        """Enhanced Fortune/Tarot tool with multiple spreads"""
         if not session.get('logged_in'):
             return redirect('/auth/login?return_to=fortune')
         
         from flask import render_template
-        return render_template('fortune.html')
+        
+        # Check if user has ad-free subscription
+        user_id = session.get('user_id')
+        ad_free = False
+        if user_id:
+            try:
+                from modules.user_profile.profile_service import ProfileService
+                profile_service = ProfileService()
+                user_profile = profile_service.get_profile(user_id)
+                ad_free = user_profile.get('ad_free', False) if user_profile else False
+            except Exception as e:
+                logger.error(f"Error checking ad-free status: {e}")
+                ad_free = False
+        
+        return render_template('fortune_enhanced.html', 
+                             ad_free=ad_free,
+                             user_session=session)
     
     @app.route("/horoscope")
     def horoscope():

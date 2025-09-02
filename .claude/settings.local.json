@@ -18,7 +18,8 @@
       "Bash(npm run typecheck:*)",
       "Bash(timeout:*)",
       "Bash(sed:*)",
-      "Bash(git restore:*)"
+      "Bash(git restore:*)",
+      "Bash(explorer:*)"
     ],
     "deny": [],
     "ask": [],
