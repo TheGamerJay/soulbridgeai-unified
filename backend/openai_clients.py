@@ -90,9 +90,20 @@ class OpenAIClient:
             
             # Adjust parameters based on plan
             max_tokens = self.max_tokens
-            if user_plan == "bronze":
-                # Special handling for decoder/fortune/horoscope - need longer responses for ads model
-                if context in ['decoder_mode', 'fortune_reading', 'daily_horoscope', 'love_compatibility', 'yearly_horoscope']:
+            
+            # Special decoder token limits by tier
+            if context == 'decoder_mode':
+                if user_plan == "bronze":
+                    max_tokens = 800    # Bronze: 800 tokens for complete dream analysis
+                elif user_plan == "silver":
+                    max_tokens = 1000   # Silver: 1000 tokens for detailed insights
+                elif user_plan == "gold":
+                    max_tokens = 1500   # Gold: 1500 tokens for comprehensive analysis
+                else:
+                    max_tokens = 800    # Default to Bronze level
+            elif user_plan == "bronze":
+                # Other special features still get longer responses for ads
+                if context in ['fortune_reading', 'daily_horoscope', 'love_compatibility', 'yearly_horoscope']:
                     max_tokens = 400  # Longer responses for special features (users watch ads)
                 else:
                     max_tokens = 50  # Very short responses for free chat (save costs)
