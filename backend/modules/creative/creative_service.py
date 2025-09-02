@@ -123,14 +123,22 @@ Be supportive, insightful, and avoid negative interpretations."""
             }
     
     def generate_fortune(self, question: str = None, user_id: int = None) -> dict:
-        """Generate fortune reading using AI"""
+        """Generate fortune reading using AI - Uses same system as decoder"""
         try:
             # Get random tarot cards
             cards = get_random_tarot_cards(3)
             
-            if self.ai_service and question:
-                # Use AI for personalized reading
-                prompt = f"""You are a wise tarot reader. The user asks: "{question}"
+            # Use the working chat endpoint internally for OpenAI integration (same as decoder)
+            try:
+                import requests
+                import os
+                from flask import current_app
+                
+                # Get app context URL
+                with current_app.test_request_context():
+                    chat_url = f"{os.environ.get('APP_URL', 'http://localhost:8080')}/api/chat"
+                
+                prompt = f"""You are a wise tarot reader. The user asks: "{question or 'General reading'}"
 
 The cards drawn are:
 1. {cards[0]['name']} - {cards[0]['meaning']}
@@ -139,20 +147,28 @@ The cards drawn are:
 
 Provide an insightful, positive reading that connects these cards to their question. Be encouraging and wise."""
 
-                result = self.ai_service.generate_response(
-                    message=prompt,
-                    character="Fortune Teller",
-                    context="tarot reading",
-                    user_id=user_id
-                )
+                response = requests.post(chat_url, json={
+                    "message": prompt,
+                    "character": "Fortune Teller",
+                    "context": "tarot_reading",
+                    "user_tier": "bronze"
+                })
                 
-                if result and result.get('success'):
-                    return {
-                        "success": True,
-                        "reading": result['response'],
-                        "cards": cards,
-                        "question": question
-                    }
+                if response.status_code == 200:
+                    result = response.json()
+                    logger.info(f"🤖 Chat endpoint response for fortune: {result}")
+                    if result.get('success'):
+                        return {
+                            "success": True,
+                            "reading": result['response'],
+                            "cards": cards,
+                            "question": question or "General reading"
+                        }
+                else:
+                    logger.error(f"❌ Chat endpoint returned status {response.status_code}: {response.text}")
+            except Exception as e:
+                logger.error(f"Failed to call chat endpoint for fortune: {e}")
+                pass
             
             # Fallback reading
             card_names = [card['name'] for card in cards]
@@ -183,8 +199,16 @@ Provide an insightful, positive reading that connects these cards to their quest
             
             sign = zodiac_sign.lower()
             
-            if self.ai_service:
-                # Use AI for personalized horoscope
+            # Use the working chat endpoint internally for OpenAI integration (same as decoder)
+            try:
+                import requests
+                import os
+                from flask import current_app
+                
+                # Get app context URL
+                with current_app.test_request_context():
+                    chat_url = f"{os.environ.get('APP_URL', 'http://localhost:8080')}/api/chat"
+                
                 prompt = f"""Create a daily horoscope for {sign.title()}. Include:
 
 1. General outlook for today
@@ -195,22 +219,30 @@ Provide an insightful, positive reading that connects these cards to their quest
 
 Make it positive, insightful, and encouraging. Keep it concise but meaningful."""
 
-                result = self.ai_service.generate_response(
-                    message=prompt,
-                    character="Astrologer",
-                    context="horoscope reading",
-                    user_id=user_id
-                )
+                response = requests.post(chat_url, json={
+                    "message": prompt,
+                    "character": "Astrologer",
+                    "context": "horoscope_reading",
+                    "user_tier": "bronze"
+                })
                 
-                if result and result.get('success'):
-                    return {
-                        "success": True,
-                        "horoscope": result['response'],
-                        "sign": sign.title(),
-                        "date": datetime.now().strftime("%Y-%m-%d"),
-                        "lucky_numbers": random.sample(range(1, 50), 5),
-                        "lucky_color": random.choice(['blue', 'green', 'purple', 'gold', 'red'])
-                    }
+                if response.status_code == 200:
+                    result = response.json()
+                    logger.info(f"🤖 Chat endpoint response for horoscope: {result}")
+                    if result.get('success'):
+                        return {
+                            "success": True,
+                            "horoscope": result['response'],
+                            "sign": sign.title(),
+                            "date": datetime.now().strftime("%Y-%m-%d"),
+                            "lucky_numbers": random.sample(range(1, 50), 5),
+                            "lucky_color": random.choice(['blue', 'green', 'purple', 'gold', 'red'])
+                        }
+                else:
+                    logger.error(f"❌ Chat endpoint returned status {response.status_code}: {response.text}")
+            except Exception as e:
+                logger.error(f"Failed to call chat endpoint for horoscope: {e}")
+                pass
             
             # Fallback horoscope
             outlooks = [
