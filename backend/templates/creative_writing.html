@@ -363,7 +363,7 @@
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        mode: mode,
+                        style: mode,
                         prompt: prompt,
                         mood: mood
                     })
@@ -372,7 +372,7 @@
                 const result = await response.json();
 
                 if (result.success) {
-                    resultContent.textContent = result.response;
+                    resultContent.textContent = result.content;
                     
                     // Update usage counter
                     const usageElement = document.querySelector('.usage-count');

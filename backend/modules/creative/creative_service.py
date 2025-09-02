@@ -18,21 +18,25 @@ class CreativeService:
         self._initialize_ai_service()
     
     def _initialize_ai_service(self):
-        """Initialize AI service for creative generation"""
+        """Initialize OpenAI service for creative generation"""
         try:
-            from premium_free_ai_service import get_premium_free_ai_service
-            self.ai_service = get_premium_free_ai_service()
-        except ImportError:
-            try:
-                from simple_ai_service import get_premium_free_ai_service
-                self.ai_service = get_premium_free_ai_service()
-                logger.info("Using Simple AI Service for creative features")
-            except ImportError:
-                logger.warning("No AI service available, using fallback responses")
+            import os
+            from openai import OpenAI
+            if os.environ.get("OPENAI_API_KEY"):
+                self.client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+                self.ai_service = True
+                logger.info("OpenAI client initialized for creative features")
+            else:
+                self.client = None
                 self.ai_service = None
+                logger.warning("No OpenAI API key available")
+        except Exception as e:
+            logger.error(f"Failed to initialize OpenAI client: {e}")
+            self.client = None
+            self.ai_service = None
     
     def decode_dream(self, dream_text: str, user_id: int = None) -> dict:
-        """Decode dream using AI"""
+        """Decode dream using AI - Uses same system as creative writing"""
         try:
             if not dream_text or len(dream_text.strip()) < 10:
                 return {
@@ -40,8 +44,16 @@ class CreativeService:
                     "error": "Please provide a dream description of at least 10 characters"
                 }
             
-            if self.ai_service:
-                # Use AI service for dream decoding
+            # Use the working chat endpoint internally for OpenAI integration (same as creative writing)
+            try:
+                import requests
+                import os
+                from flask import current_app
+                
+                # Get app context URL
+                with current_app.test_request_context():
+                    chat_url = f"{os.environ.get('APP_URL', 'http://localhost:5000')}/api/chat"
+                
                 prompt = f"""You are a professional dream interpreter. Analyze this dream and provide insights:
 
 Dream: {dream_text}
@@ -55,20 +67,24 @@ Please provide:
 
 Be supportive, insightful, and avoid negative interpretations."""
 
-                result = self.ai_service.generate_response(
-                    message=prompt,
-                    character="Dream Decoder",
-                    context="dream interpretation",
-                    user_id=user_id
-                )
+                response = requests.post(chat_url, json={
+                    "message": prompt,
+                    "character": "Dream Decoder",
+                    "context": "dream_interpretation"
+                })
                 
-                if result and result.get('success'):
-                    return {
-                        "success": True,
-                        "interpretation": result['response'],
-                        "symbols_found": self._extract_symbols(dream_text),
-                        "mood": self._analyze_dream_mood(dream_text)
-                    }
+                if response.status_code == 200:
+                    result = response.json()
+                    if result.get('success'):
+                        return {
+                            "success": True,
+                            "interpretation": result['response'],
+                            "symbols_found": self._extract_symbols(dream_text),
+                            "mood": self._analyze_dream_mood(dream_text)
+                        }
+            except Exception as e:
+                logger.error(f"Failed to call chat endpoint: {e}")
+                pass
             
             # Fallback interpretation
             return {
@@ -201,7 +217,7 @@ Make it positive, insightful, and encouraging. Keep it concise but meaningful.""
             }
     
     def generate_creative_writing(self, prompt: str, style: str = "story", user_id: int = None) -> dict:
-        """Generate creative writing using AI"""
+        """Generate creative writing using AI - Uses same system as decoder"""
         try:
             if not prompt or len(prompt.strip()) < 5:
                 return {
@@ -209,27 +225,39 @@ Make it positive, insightful, and encouraging. Keep it concise but meaningful.""
                     "error": "Please provide a writing prompt of at least 5 characters"
                 }
             
-            if self.ai_service:
-                # Use AI for creative writing
+            # Use the working chat endpoint internally for OpenAI integration (same as decoder)
+            try:
+                import requests
+                import os
+                from flask import current_app
+                
+                # Get app context URL
+                with current_app.test_request_context():
+                    chat_url = f"{os.environ.get('APP_URL', 'http://localhost:5000')}/api/chat"
+                
                 writing_prompt = f"""Create a {style} based on this prompt: "{prompt}"
 
 Make it creative, engaging, and well-written. Keep it to about 200-300 words."""
 
-                result = self.ai_service.generate_response(
-                    message=writing_prompt,
-                    character="Creative Writer",
-                    context="creative writing",
-                    user_id=user_id
-                )
+                response = requests.post(chat_url, json={
+                    "message": writing_prompt,
+                    "character": "Creative Writer",
+                    "context": "creative_writing"
+                })
                 
-                if result and result.get('success'):
-                    return {
-                        "success": True,
-                        "content": result['response'],
-                        "style": style,
-                        "prompt": prompt,
-                        "word_count": len(result['response'].split())
-                    }
+                if response.status_code == 200:
+                    result = response.json()
+                    if result.get('success'):
+                        return {
+                            "success": True,
+                            "content": result['response'],
+                            "style": style,
+                            "prompt": prompt,
+                            "word_count": len(result['response'].split())
+                        }
+            except Exception as e:
+                logger.error(f"Failed to call chat endpoint: {e}")
+                pass
             
             # Fallback creative content
             content = f"Based on your prompt '{prompt}', here's a {style}: Once upon a time, in a world where {prompt.lower()}, extraordinary things began to happen. The story unfolds with mystery and wonder, leading to unexpected discoveries and meaningful connections."
