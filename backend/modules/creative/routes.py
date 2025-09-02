@@ -92,6 +92,7 @@ def creative_writing_page():
         
         return render_template("creative_writing.html",
                              daily_limit=limit,
+                             current_usage=usage_today,
                              usage_today=usage_today,
                              unlimited=limit >= 999)
         
