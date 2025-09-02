@@ -64,7 +64,17 @@ def library_page(content_type="all"):
         return render_template("library.html", 
                              content_type=content_type,
                              user_plan=user['plan'],
-                             stats=stats)
+                             stats=stats,
+                             content_data={
+                                 'chat_conversations': [],
+                                 'decoder_readings': [],
+                                 'fortune_readings': [],
+                                 'horoscope_readings': [],
+                                 'creative_writings': [],
+                                 'ai_images': [],
+                                 'voice_journals': [],
+                                 'music_tracks': []
+                             })
         
     except Exception as e:
         logger.error(f"Library page error: {e}")
