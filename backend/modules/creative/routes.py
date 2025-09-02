@@ -590,6 +590,70 @@ def save_creative_content():
         logger.error(f"Error saving creative content: {e}")
         return jsonify({"success": False, "error": "Failed to save content"}), 500
 
+@creative_bp.route("/api/reset-usage", methods=["POST"])
+@requires_login
+def reset_user_usage():
+    """Reset current user's daily usage for testing"""
+    try:
+        from datetime import datetime
+        from ..shared.database import get_database
+        
+        user_id = get_user_id()
+        today = datetime.now().strftime('%Y-%m-%d')
+        
+        db = get_database()
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        
+        # Create table if it doesn't exist
+        if db.use_postgres:
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS feature_usage (
+                    id SERIAL PRIMARY KEY,
+                    user_id INTEGER NOT NULL,
+                    feature_name TEXT NOT NULL,
+                    usage_date DATE NOT NULL,
+                    usage_count INTEGER DEFAULT 1,
+                    last_used_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(user_id, feature_name, usage_date)
+                )
+            ''')
+        else:
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS feature_usage (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id INTEGER NOT NULL,
+                    feature_name TEXT NOT NULL,
+                    usage_date DATE NOT NULL,
+                    usage_count INTEGER DEFAULT 1,
+                    last_used_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(user_id, feature_name, usage_date)
+                )
+            ''')
+        
+        # Reset usage for all features for current user today
+        if db.use_postgres:
+            cursor.execute('DELETE FROM feature_usage WHERE user_id = %s AND usage_date = %s', (user_id, today))
+        else:
+            cursor.execute('DELETE FROM feature_usage WHERE user_id = ? AND usage_date = ?', (user_id, today))
+        
+        rows_deleted = cursor.rowcount
+        conn.commit()
+        conn.close()
+        
+        logger.info(f"🔄 Reset usage for user {user_id} - deleted {rows_deleted} records")
+        
+        return jsonify({
+            "success": True, 
+            "message": f"Usage reset successful - cleared {rows_deleted} records for today",
+            "user_id": user_id,
+            "date": today
+        })
+        
+    except Exception as e:
+        logger.error(f"Error resetting usage: {e}")
+        return jsonify({"success": False, "error": f"Failed to reset usage: {str(e)}"}), 500
+
 # Enhanced Tarot endpoints for advanced frontend
 @creative_bp.route("/api/fortune/tarot", methods=["POST"])
 @requires_login
