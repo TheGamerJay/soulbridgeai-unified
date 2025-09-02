@@ -661,7 +661,7 @@ function updateModeDescription() {
 
 function checkUsageLimit() {
     if (dailyLimit === null || dailyLimit === -1) {
-        // Unlimited for Max tier
+        // Unlimited for Gold tier
         return true;
     }
     
@@ -725,7 +725,7 @@ async function decodeText() {
                 console.log('Decoder reading saved to library: Decoder Reading - undefined');
             }
             
-            // Show save button for premium users (Growth/Max tiers) OR trial users
+            // Show save button for premium users (Growth/Gold tiers) OR trial users
             if (userPlan === 'growth' || userPlan === 'max' || result.trial_active) {
                 document.getElementById('save-button').style.display = 'block';
             }
