@@ -33,12 +33,13 @@ def companion_selection():
         user_plan = session.get('user_plan', 'bronze')
         tier_display = user_plan.title()
         
-        # Fallback limits based on tier
+        # Get limits from creative features configuration
+        from ..creative.features_config import CREATIVE_LIMITS
         limits = {
-            'decoder': 3 if user_plan == 'bronze' else (15 if user_plan == 'silver' else 999),
-            'fortune': 2 if user_plan == 'bronze' else (8 if user_plan == 'silver' else 999),
-            'horoscope': 3 if user_plan == 'bronze' else (10 if user_plan == 'silver' else 999),
-            'creative_writer': 2 if user_plan == 'bronze' else (20 if user_plan == 'silver' else 999)
+            'decoder': CREATIVE_LIMITS['decoder'][user_plan],
+            'fortune': CREATIVE_LIMITS['fortune'][user_plan],
+            'horoscope': CREATIVE_LIMITS['horoscope'][user_plan],
+            'creative_writer': CREATIVE_LIMITS['creative_writing'][user_plan]
         }
         
         logger.info(f"Companion selection: user_plan={user_plan}, companions={len(companions)}, access_info keys={list(access_info.keys()) if access_info else 'None'}")
