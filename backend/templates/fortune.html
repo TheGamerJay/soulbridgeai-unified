@@ -726,15 +726,13 @@ async function getFortune() {
         const config = fortuneTypes[type];
         const fullPrompt = config.prompt + '\n\n' + inputText;
         
-        const response = await fetch('/api/chat', {
+        const response = await fetch('/api/v2/fortune', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                message: fullPrompt,
-                companion: 'Fortune Teller',
-                context: 'fortune_reading'
+                question: inputText
             })
         });
         
@@ -747,7 +745,22 @@ async function getFortune() {
             
             // Show result with animation
             outputBox.className = 'output-box show';
-            outputBox.innerHTML = result.response;
+            
+            // Display the tarot cards and reading
+            let cardsHtml = '';
+            if (result.cards) {
+                cardsHtml = '<div class="tarot-cards" style="margin-bottom: 20px;">';
+                cardsHtml += '<h3>🃏 Cards Drawn:</h3>';
+                result.cards.forEach((card, index) => {
+                    cardsHtml += `<div class="tarot-card" style="margin: 10px 0; padding: 10px; border: 1px solid #fbbf24; border-radius: 8px;">`;
+                    cardsHtml += `<strong>${index + 1}. ${card.name}</strong> (${card.suit})<br>`;
+                    cardsHtml += `<em>${card.meaning}</em>`;
+                    cardsHtml += `</div>`;
+                });
+                cardsHtml += '</div>';
+            }
+            
+            outputBox.innerHTML = cardsHtml + '<div class="reading-text">' + result.reading + '</div>';
             
             // Display auto-save message if available
             if (result.auto_saved) {
