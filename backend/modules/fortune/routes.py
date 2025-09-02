@@ -40,7 +40,6 @@ def fortune_page():
                          user_session=session)
 
 @fortune_bp.route('/api/fortune/spreads', methods=['GET'])
-@requires_login
 def get_spreads():
     """Get available tarot spreads"""
     try:
@@ -51,7 +50,6 @@ def get_spreads():
         return jsonify({"success": False, "error": str(e)}), 500
 
 @fortune_bp.route('/api/fortune/reading', methods=['POST'])
-@requires_login
 def generate_reading():
     """Generate deterministic tarot reading"""
     try:
@@ -60,22 +58,25 @@ def generate_reading():
             return jsonify({"success": False, "error": "No data provided"}), 400
 
         user_id = session.get('user_id')
-        if not user_id:
-            return jsonify({"success": False, "error": "Authentication required"}), 401
-
-        # Check usage limits
-        from ..user_profile.profile_service import ProfileService
-        profile_service = ProfileService()
-        user_profile = profile_service.get_profile(user_id)
-        user_plan = user_profile.get('plan', 'bronze') if user_profile else 'bronze'
-        trial_active = user_profile.get('trial_active', False) if user_profile else False
         
-        if not usage_tracker.can_use_feature(user_id, 'fortune', user_plan, trial_active):
-            limit = get_feature_limit('fortune', user_plan, trial_active)
-            return jsonify({
-                "success": False, 
-                "error": f"Daily fortune limit reached ({limit} uses). Upgrade for more readings."
-            }), 429
+        # Check usage limits only if user is logged in
+        if user_id:
+            from ..user_profile.profile_service import ProfileService
+            profile_service = ProfileService()
+            user_profile = profile_service.get_profile(user_id)
+            user_plan = user_profile.get('plan', 'bronze') if user_profile else 'bronze'
+            trial_active = user_profile.get('trial_active', False) if user_profile else False
+            
+            if not usage_tracker.can_use_feature(user_id, 'fortune', user_plan, trial_active):
+                limit = get_feature_limit('fortune', user_plan, trial_active)
+                return jsonify({
+                    "success": False, 
+                    "error": f"Daily fortune limit reached ({limit} uses). Upgrade for more readings."
+                }), 429
+        else:
+            # Default for logged out users
+            user_plan = 'bronze'
+            trial_active = False
 
         # Get parameters
         question = data.get('question', '').strip()
@@ -87,20 +88,21 @@ def generate_reading():
         # Generate reading
         result = fortune_service.generate_fortune(
             question=question,
-            user_id=user_id,
+            user_id=user_id or 0,  # Use 0 for logged out users
             spread_type=spread_type
         )
         
         if result.get('success', False):
-            # Record usage
-            usage_tracker.record_usage(user_id, 'fortune')
-            
-            # Track cost (minimal for deterministic readings)
-            try:
-                from ...billing.costing import track_horoscope_cost
-                track_horoscope_cost(user_id, 'fortune', result)
-            except Exception as cost_error:
-                logger.warning(f"Cost tracking failed: {cost_error}")
+            # Record usage only if user is logged in
+            if user_id:
+                usage_tracker.record_usage(user_id, 'fortune')
+                
+                # Track cost (minimal for deterministic readings)
+                try:
+                    from ...billing.costing import track_horoscope_cost
+                    track_horoscope_cost(user_id, 'fortune', result)
+                except Exception as cost_error:
+                    logger.warning(f"Cost tracking failed: {cost_error}")
             
             return jsonify(result), 200
         else:
@@ -134,13 +136,19 @@ def interpret_reading():
         return jsonify({"success": False, "error": str(e)}), 500
 
 @fortune_bp.route('/api/fortune/limits', methods=['GET'])
-@requires_login
 def get_limits():
     """Get user's fortune usage limits"""
     try:
         user_id = session.get('user_id')
         if not user_id:
-            return jsonify({"success": False, "error": "Authentication required"}), 401
+            return jsonify({
+                "success": True,
+                "daily_limit": 5,
+                "usage_today": 0,
+                "remaining": 5,
+                "unlimited": False,
+                "message": "Login to track your usage"
+            }), 200
             
         from ..user_profile.profile_service import ProfileService
         profile_service = ProfileService()

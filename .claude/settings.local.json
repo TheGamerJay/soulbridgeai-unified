@@ -19,7 +19,8 @@
       "Bash(timeout:*)",
       "Bash(sed:*)",
       "Bash(git restore:*)",
-      "Bash(explorer:*)"
+      "Bash(explorer:*)",
+      "Bash(set PORT=8080)"
     ],
     "deny": [],
     "ask": [],
