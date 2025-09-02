@@ -136,11 +136,29 @@ def api_decoder():
             # Track usage
             usage_tracker.record_usage(user_id, 'decoder')
             
+            # Auto-save to library
+            auto_saved = False
+            try:
+                from ..library.content_service import ContentService
+                content_service = ContentService()
+                content_id = content_service.save_decoder_session(
+                    user_id=user_id,
+                    input_text=dream_text,
+                    decoded_text=result['interpretation']
+                )
+                auto_saved = bool(content_id)
+                logger.info(f"🔓 Auto-saved decoder session to library for user {user_id}")
+            except Exception as e:
+                logger.error(f"Failed to auto-save decoder session: {e}")
+                auto_saved = False
+            
             return jsonify({
                 "success": True,
                 "interpretation": result['interpretation'],
                 "symbols": result.get('symbols_found', []),
-                "mood": result.get('mood', 'neutral')
+                "mood": result.get('mood', 'neutral'),
+                "auto_saved": auto_saved,
+                "saved_message": "✅ Automatically saved to your library" if auto_saved else ""
             })
         else:
             return jsonify(result), 500
@@ -179,11 +197,30 @@ def api_fortune():
             # Track usage
             usage_tracker.record_usage(user_id, 'fortune')
             
+            # Auto-save to library
+            auto_saved = False
+            try:
+                from ..library.content_service import ContentService
+                content_service = ContentService()
+                content_id = content_service.save_fortune_reading(
+                    user_id=user_id,
+                    question=result['question'],
+                    card=[card['name'] for card in result['cards']][0] if result['cards'] else 'Unknown',
+                    interpretation=result['reading']
+                )
+                auto_saved = bool(content_id)
+                logger.info(f"🔮 Auto-saved fortune reading to library for user {user_id}")
+            except Exception as e:
+                logger.error(f"Failed to auto-save fortune reading: {e}")
+                auto_saved = False
+            
             return jsonify({
                 "success": True,
                 "reading": result['reading'],
                 "cards": result['cards'],
-                "question": result['question']
+                "question": result['question'],
+                "auto_saved": auto_saved,
+                "saved_message": "✅ Automatically saved to your library" if auto_saved else ""
             })
         else:
             return jsonify(result), 500
@@ -227,13 +264,31 @@ def api_horoscope():
             # Track usage
             usage_tracker.record_usage(user_id, 'horoscope')
             
+            # Auto-save to library
+            auto_saved = False
+            try:
+                from ..library.content_service import ContentService
+                content_service = ContentService()
+                content_id = content_service.save_horoscope_reading(
+                    user_id=user_id,
+                    sign=result['sign'],
+                    horoscope_text=result['horoscope']
+                )
+                auto_saved = bool(content_id)
+                logger.info(f"⭐ Auto-saved horoscope reading to library for user {user_id}")
+            except Exception as e:
+                logger.error(f"Failed to auto-save horoscope reading: {e}")
+                auto_saved = False
+            
             return jsonify({
                 "success": True,
                 "horoscope": result['horoscope'],
                 "sign": result['sign'],
                 "date": result['date'],
                 "lucky_numbers": result['lucky_numbers'],
-                "lucky_color": result['lucky_color']
+                "lucky_color": result['lucky_color'],
+                "auto_saved": auto_saved,
+                "saved_message": "✅ Automatically saved to your library" if auto_saved else ""
             })
         else:
             return jsonify(result), 500
@@ -279,12 +334,31 @@ def api_creative_writing():
             # Track usage
             usage_tracker.record_usage(user_id, 'creative_writing')
             
+            # Auto-save to library
+            auto_saved = False
+            try:
+                from ..library.content_service import ContentService
+                content_service = ContentService()
+                content_id = content_service.save_creative_writing(
+                    user_id=user_id,
+                    prompt=result['prompt'],
+                    generated_text=result['content'],
+                    style=result['style']
+                )
+                auto_saved = bool(content_id)
+                logger.info(f"✍️ Auto-saved creative writing to library for user {user_id}")
+            except Exception as e:
+                logger.error(f"Failed to auto-save creative writing: {e}")
+                auto_saved = False
+            
             return jsonify({
                 "success": True,
                 "content": result['content'],
                 "style": result['style'],
                 "prompt": result['prompt'],
-                "word_count": result['word_count']
+                "word_count": result['word_count'],
+                "auto_saved": auto_saved,
+                "saved_message": "✅ Automatically saved to your library" if auto_saved else ""
             })
         else:
             return jsonify(result), 500

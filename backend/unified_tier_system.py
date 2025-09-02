@@ -36,20 +36,73 @@ def ensure_database_schema():
         
         logger.info("📊 SCHEMA: Starting database schema migration")
         
-        # Create feature_usage table if it doesn't exist
+        # Create feature_usage table with correct schema for creative usage tracker
         try:
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS feature_usage (
                     id SERIAL PRIMARY KEY,
                     user_id INTEGER NOT NULL,
-                    feature VARCHAR(50) NOT NULL,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    feature_name VARCHAR(50) NOT NULL,
+                    usage_date DATE NOT NULL,
+                    usage_count INTEGER DEFAULT 1,
+                    last_used_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(user_id, feature_name, usage_date)
                 )
             """)
             conn.commit()
             logger.info("📊 SCHEMA: feature_usage table created/verified")
         except Exception as e:
             logger.error(f"📊 SCHEMA ERROR creating feature_usage: {e}")
+            conn.rollback()
+        
+        # Migrate existing feature_usage table to new schema if needed
+        try:
+            # Check if old columns exist and migrate
+            cur.execute("""
+                SELECT column_name FROM information_schema.columns 
+                WHERE table_name = 'feature_usage'
+            """)
+            columns = [row[0] for row in cur.fetchall()]
+            
+            # If we have old schema, drop and recreate
+            if 'feature' in columns and 'feature_name' not in columns:
+                logger.info("📊 SCHEMA: Migrating feature_usage table to new schema")
+                cur.execute("DROP TABLE IF EXISTS feature_usage_old")
+                cur.execute("ALTER TABLE feature_usage RENAME TO feature_usage_old")
+                
+                # Create new table with correct schema
+                cur.execute("""
+                    CREATE TABLE feature_usage (
+                        id SERIAL PRIMARY KEY,
+                        user_id INTEGER NOT NULL,
+                        feature_name VARCHAR(50) NOT NULL,
+                        usage_date DATE NOT NULL,
+                        usage_count INTEGER DEFAULT 1,
+                        last_used_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        UNIQUE(user_id, feature_name, usage_date)
+                    )
+                """)
+                
+                # Migrate data if possible (group by user_id, feature, date and count)
+                cur.execute("""
+                    INSERT INTO feature_usage (user_id, feature_name, usage_date, usage_count, last_used_at)
+                    SELECT 
+                        user_id, 
+                        feature as feature_name,
+                        DATE(created_at) as usage_date,
+                        COUNT(*) as usage_count,
+                        MAX(created_at) as last_used_at
+                    FROM feature_usage_old 
+                    GROUP BY user_id, feature, DATE(created_at)
+                    ON CONFLICT (user_id, feature_name, usage_date) DO NOTHING
+                """)
+                
+                cur.execute("DROP TABLE feature_usage_old")
+                conn.commit()
+                logger.info("📊 SCHEMA: feature_usage migration completed")
+            
+        except Exception as e:
+            logger.error(f"📊 SCHEMA ERROR migrating feature_usage: {e}")
             conn.rollback()
         
         # Add missing columns to users table one by one

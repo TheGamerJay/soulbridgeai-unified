@@ -23,6 +23,7 @@ class LibraryManager:
             'fortune': 'fortune_readings',
             'horoscope': 'horoscope_readings',
             'decoder': 'decoder_sessions',
+            'ai_image': 'ai_images',
             'mini_studio': 'studio_tracks'
         }
     

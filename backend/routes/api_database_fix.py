@@ -51,8 +51,11 @@ def fix_database_schema():
                 CREATE TABLE IF NOT EXISTS feature_usage (
                     id SERIAL PRIMARY KEY,
                     user_id INTEGER NOT NULL,
-                    feature VARCHAR(50) NOT NULL,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    feature_name VARCHAR(50) NOT NULL,
+                    usage_date DATE NOT NULL,
+                    usage_count INTEGER DEFAULT 1,
+                    last_used_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(user_id, feature_name, usage_date)
                 )
             """)
             results.append("✅ Created/verified feature_usage table")

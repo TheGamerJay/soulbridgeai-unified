@@ -136,6 +136,25 @@ def generate_image():
             usage_key = f'ai_image_usage_{current_month}'
             session[usage_key] = session.get(usage_key, 0) + 1
             
+            # Auto-save to library for Silver/Gold users only
+            auto_saved = False
+            if user_plan in ['silver', 'gold']:
+                try:
+                    from ..library.content_service import ContentService
+                    content_service = ContentService()
+                    content_id = content_service.save_ai_image(
+                        user_id=user_id,
+                        prompt=result['original_prompt'],
+                        image_url=result['image_url'],
+                        style=result['style'],
+                        size=result['size']
+                    )
+                    auto_saved = bool(content_id)
+                    logger.info(f"🎨 Auto-saved AI image to library for {user_plan} user {user_id}")
+                except Exception as e:
+                    logger.error(f"Failed to auto-save AI image: {e}")
+                    auto_saved = False
+            
             logger.info(f"✅ Generated AI image for user {user_id}")
             
             return jsonify({
@@ -146,7 +165,9 @@ def generate_image():
                 "revisedPrompt": result.get('revised_prompt', ''),
                 "style": result['style'],
                 "size": result['size'],
-                "generationTime": result['generation_time']
+                "generationTime": result['generation_time'],
+                "auto_saved": auto_saved,
+                "saved_message": f"✅ Automatically saved to your library ({user_plan} tier)" if auto_saved else ""
             })
         else:
             return jsonify(result), 500

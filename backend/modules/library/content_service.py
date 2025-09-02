@@ -182,6 +182,41 @@ class ContentService:
             logger.error(f"Failed to save creative writing: {e}")
             return None
     
+    def save_ai_image(self, user_id: int, prompt: str, image_url: str, 
+                     style: str = "photorealistic", size: str = "1024x1024") -> Optional[int]:
+        """Save AI generated image to library"""
+        try:
+            title = f"AI Image - {prompt[:40]}{'...' if len(prompt) > 40 else ''}"
+            
+            # Prepare AI image data
+            image_data = {
+                'prompt': prompt,
+                'image_url': image_url,
+                'style': style,
+                'size': size,
+                'generated_date': datetime.now().isoformat()
+            }
+            
+            # Create readable content
+            content = f"Prompt: {prompt}\n\nStyle: {style}\nSize: {size}\nImage URL: {image_url}"
+            
+            content_id = self.library_manager.add_content(
+                user_id=user_id,
+                content_type='ai_image',
+                title=title,
+                content=content,
+                metadata=image_data
+            )
+            
+            if content_id:
+                logger.info(f"🎨 Saved AI image to library for user {user_id}")
+            
+            return content_id
+            
+        except Exception as e:
+            logger.error(f"Failed to save AI image: {e}")
+            return None
+    
     def get_chat_conversations(self, user_id: int, limit: int = 50) -> List[Dict[str, Any]]:
         """Get user's saved chat conversations"""
         return self.library_manager.get_user_library(user_id, 'chat', limit)

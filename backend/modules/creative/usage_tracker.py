@@ -4,6 +4,7 @@ Extracted from app.py monolith using strategic bulk extraction
 """
 import logging
 from datetime import datetime, date
+import pytz
 from ..shared.database import get_database
 from .features_config import get_feature_limit
 
@@ -14,6 +15,13 @@ class CreativeUsageTracker:
     
     def __init__(self):
         self.db = get_database()
+        self.est_tz = pytz.timezone('US/Eastern')
+    
+    def get_est_date(self) -> date:
+        """Get current date in Eastern Time (resets at 12 EST)"""
+        utc_now = datetime.now(pytz.UTC)
+        est_now = utc_now.astimezone(self.est_tz)
+        return est_now.date()
     
     def get_usage_today(self, user_id: int, feature: str) -> int:
         """Get user's usage count for a feature today"""
@@ -24,7 +32,7 @@ class CreativeUsageTracker:
             conn = self.db.get_connection()
             cursor = conn.cursor()
             
-            today = date.today()
+            today = self.get_est_date()
             
             if self.db.use_postgres:
                 cursor.execute("""
@@ -71,7 +79,7 @@ class CreativeUsageTracker:
             conn = self.db.get_connection()
             cursor = conn.cursor()
             
-            today = date.today()
+            today = self.get_est_date()
             now = datetime.now()
             
             # Check if record exists for today
@@ -172,7 +180,7 @@ class CreativeUsageTracker:
             conn = self.db.get_connection()
             cursor = conn.cursor()
             
-            today = date.today()
+            today = self.get_est_date()
             
             if feature:
                 # Reset specific feature
