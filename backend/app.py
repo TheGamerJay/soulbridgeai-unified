@@ -76,6 +76,11 @@ def create_app():
         from modules.shared.database import init_database_system
         init_database_system(app)
         logger.info("✅ Database system initialized")
+        
+        # Ensure database schema is up to date
+        from unified_tier_system import ensure_database_schema
+        ensure_database_schema()
+        logger.info("✅ Database schema initialized")
     except Exception as e:
         logger.error(f"❌ Database initialization failed: {e}")
     
