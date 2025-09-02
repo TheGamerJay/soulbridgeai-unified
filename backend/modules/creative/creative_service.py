@@ -72,8 +72,7 @@ Please provide:
 Be supportive, insightful, and avoid negative interpretations."""
                     else:
                         # Use the full prompt as-is (for lyrics/tone modes)
-                        # Add language instruction to respond in same language as input
-                        user_message = dream_text + "\n\nIMPORTANT: Please respond in the same language as the content being analyzed."
+                        user_message = dream_text
 
                     logger.info(f"🤖 Making direct OpenAI call for {mode} mode")
                     
