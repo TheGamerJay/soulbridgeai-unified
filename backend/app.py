@@ -476,22 +476,22 @@ def create_app():
             companion = next((c for c in companions if c['id'] == companion_id), None)
             companion_name = companion['name'] if companion else companion_id.replace('_bronze', '').replace('_', ' ').title()
             
-            # Use OpenAI GPT-3.5 Turbo
-            import openai
+            # Use OpenAI API with new client
+            from openai import OpenAI
             import os
             
-            openai.api_key = os.environ.get('OPENAI_API_KEY')
-            if not openai.api_key:
+            client = OpenAI(api_key=os.environ.get('OPENAI_API_KEY'))
+            if not os.environ.get('OPENAI_API_KEY'):
                 return jsonify({'success': False, 'error': 'OpenAI API key not configured'}), 500
             
             try:
                 # Determine model based on companion tier
                 companion_tier = companion['tier'] if companion else 'bronze'
                 if companion_tier == 'gold':
-                    model = "gpt-5"  # Latest GPT-5 for Gold tier (August 2025)
+                    model = "gpt-4"  # GPT-4 for Gold tier (GPT-5 not yet available)
                     max_tokens = 400
                 elif companion_tier == 'silver':
-                    model = "gpt-4"  # GPT-4.0 for Silver tier  
+                    model = "gpt-4"  # GPT-4 for Silver tier  
                     max_tokens = 200
                 else:
                     model = "gpt-3.5-turbo"  # GPT-3.5-turbo for Bronze tier
@@ -503,7 +503,7 @@ def create_app():
                 # Debug logging
                 logger.info(f"🤖 Using {model} for {companion_name} ({companion_tier} tier) - max_tokens: {max_tokens}")
                 
-                openai_response = openai.ChatCompletion.create(
+                openai_response = client.chat.completions.create(
                     model=model,
                     messages=[
                         {"role": "system", "content": system_message},
