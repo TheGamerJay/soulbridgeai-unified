@@ -57,6 +57,12 @@ SPREADS: Dict[str, List[str]] = {
         "External influences",
         "Hopes & fears",
         "Outcome (Trajectory)"
+    ],
+    "21 Card Grand Spread": [
+        "Core Self", "Life Purpose", "Hidden Influences", "Recent Past", "Possible Future",
+        "Distant Past", "Your Approach", "External Influences", "Inner Feelings", "Hopes & Fears",
+        "Final Outcome", "Love & Relationships", "Work & Career", "Family & Home", "Health & Vitality", 
+        "Spirituality", "Travel & Change", "Hidden Enemies", "Friends & Allies", "Money & Resources", "Ultimate Destiny"
     ]
 }
 
@@ -203,7 +209,8 @@ class FortuneService:
             "one": {"cards": 1, "name": "1 Card", "description": "Single card guidance"},
             "three": {"cards": 3, "name": "3 Card", "description": "Past, Present, Future"},  
             "five": {"cards": 5, "name": "5 Card", "description": "Comprehensive life reading"},
-            "celtic": {"cards": 10, "name": "Celtic Cross", "description": "Full Celtic Cross spread"}
+            "celtic": {"cards": 10, "name": "Celtic Cross", "description": "Full Celtic Cross spread"},
+            "grand": {"cards": 21, "name": "21 Card Grand Spread", "description": "Complete life analysis"}
         }
     
     def generate_fortune(self, question: str = None, user_id: int = None, spread_type: str = "three") -> dict:

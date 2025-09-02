@@ -150,11 +150,16 @@ def get_limits():
                 "message": "Login to track your usage"
             }), 200
             
-        from ..user_profile.profile_service import ProfileService
-        profile_service = ProfileService()
-        user_profile = profile_service.get_profile(user_id)
-        user_plan = user_profile.get('plan', 'bronze') if user_profile else 'bronze'
-        trial_active = user_profile.get('trial_active', False) if user_profile else False
+        try:
+            from ..user_profile.profile_service import ProfileService
+            profile_service = ProfileService()
+            user_profile = profile_service.get_profile(user_id)
+            user_plan = user_profile.get('plan', 'bronze') if user_profile else 'bronze'
+            trial_active = user_profile.get('trial_active', False) if user_profile else False
+        except Exception:
+            # Fallback to default values if profile service fails
+            user_plan = 'bronze'
+            trial_active = False
         
         limit = get_feature_limit('fortune', user_plan, trial_active)
         usage_today = usage_tracker.get_usage_today(user_id, 'fortune')
