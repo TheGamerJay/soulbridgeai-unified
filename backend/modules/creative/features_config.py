@@ -13,7 +13,7 @@ CREATIVE_LIMITS = {
     },
     "fortune": {
         "bronze": 5,    # 5 daily uses (increased for better UX)
-        "silver": 8,    # 8 daily uses
+        "silver": 10,   # 10 daily uses
         "gold": 999     # Unlimited
     },
     "horoscope": {
