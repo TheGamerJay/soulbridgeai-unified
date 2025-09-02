@@ -637,26 +637,26 @@ async function refreshFortuneLimits() {
             usageFill.style.width = Math.min(percentage, 100) + '%';
         }
 
-        // Update tier-specific plan message based on companion tier
+        // Update tier-specific plan message based on user plan
         const planNotice = document.getElementById("max-plan-message");
         const planDesc = document.getElementById("plan-description");
 
-        if (companion_tier === "gold") {
-            // 🔴 Gold companion - show 999 limit
+        if (user_plan === "gold") {
+            // 🔴 Gold tier - show unlimited or limit
             if (planNotice) planNotice.style.display = "none";
             if (planDesc) {
                 planDesc.style.display = "block";
                 planDesc.textContent = `🔮 Daily Fortunes: ${usage} / ${displayLimit} used`;
             }
-        } else if (companion_tier === "silver") {
-            // 🔵 Silver companion
+        } else if (user_plan === "silver") {
+            // 🔵 Silver tier
             if (planNotice) planNotice.style.display = "none";
             if (planDesc) {
                 planDesc.style.display = "block";
                 planDesc.textContent = `🔮 Daily Fortunes: ${usage} / ${displayLimit} used`;
             }
         } else {
-            // 🟢 Bronze companion
+            // 🟢 Bronze tier
             if (planNotice) planNotice.style.display = "none";
             if (planDesc) {
                 planDesc.style.display = "block";
@@ -666,10 +666,10 @@ async function refreshFortuneLimits() {
 
         // Update global variables
         userUsage = usage;
-        userPlan = companion_tier;
+        userPlan = user_plan;
         dailyLimit = daily_limit;
 
-        console.log(`🔮 Refreshed fortune limits: companion_tier=${companion_tier}, usage=${usage}, limit=${displayLimit}`);
+        console.log(`🔮 Refreshed fortune limits: user_plan=${user_plan}, effective_plan=${effective_plan}, usage=${usage}, limit=${displayLimit}`);
 
     } catch (err) {
         console.error("❌ Failed to refresh fortune limits:", err);

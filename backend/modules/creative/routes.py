@@ -303,7 +303,7 @@ def check_decoder_limit():
         trial_active = session.get('trial_active', False)
         
         # Get effective plan for display (trial users show higher tier access)
-        from ..tiers.artistic_time import get_effective_plan
+        from ..companions.access_control import get_effective_plan
         effective_plan = get_effective_plan(user_plan, trial_active)
         
         limit = get_feature_limit('decoder', user_plan, trial_active)
@@ -335,7 +335,7 @@ def check_fortune_limit():
         trial_active = session.get('trial_active', False)
         
         # Get effective plan for display (trial users show higher tier access)
-        from ..tiers.artistic_time import get_effective_plan
+        from ..companions.access_control import get_effective_plan
         effective_plan = get_effective_plan(user_plan, trial_active)
         
         limit = get_feature_limit('fortune', user_plan, trial_active)
@@ -367,7 +367,7 @@ def check_horoscope_limit():
         trial_active = session.get('trial_active', False)
         
         # Get effective plan for display (trial users show higher tier access)
-        from ..tiers.artistic_time import get_effective_plan
+        from ..companions.access_control import get_effective_plan
         effective_plan = get_effective_plan(user_plan, trial_active)
         
         limit = get_feature_limit('horoscope', user_plan, trial_active)
