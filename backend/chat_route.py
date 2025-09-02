@@ -221,7 +221,7 @@ def api_chat():
             top_p=0.9,  # Nucleus sampling for more diverse responses
             frequency_penalty=0.3,  # Reduce repetition of common phrases
             presence_penalty=0.1,  # Encourage new topics/ideas
-            max_tokens=800  # Increased for longer responses like stories
+            max_tokens=1200  # Generous limit for complete stories and responses
         )
         
         # REAL VERIFICATION: Log what OpenAI actually returned

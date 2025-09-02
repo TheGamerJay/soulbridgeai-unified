@@ -489,13 +489,13 @@ def create_app():
                 companion_tier = companion['tier'] if companion else 'bronze'
                 if companion_tier == 'gold':
                     model = "gpt-5"  # GPT-5 for Gold tier (latest model)
-                    max_tokens = 400
+                    max_tokens = 800   # Gold: 800 tokens for complete responses
                 elif companion_tier == 'silver':
                     model = "gpt-4"  # GPT-4 for Silver tier  
-                    max_tokens = 200
+                    max_tokens = 600   # Silver: 600 tokens for detailed responses
                 else:
                     model = "gpt-3.5-turbo"  # GPT-3.5-turbo for Bronze tier
-                    max_tokens = 150
+                    max_tokens = 400   # Bronze: 400 tokens for complete responses
                 
                 # Create personality-based system message
                 system_message = f"You are {companion_name}, a helpful AI companion from SoulBridge AI. You have a friendly, supportive personality. Keep responses concise and helpful."
