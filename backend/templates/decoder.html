@@ -703,7 +703,9 @@ async function decodeText() {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                dream: inputText
+                dream: fullPrompt,
+                mode: mode,
+                original_text: inputText
             })
         });
         

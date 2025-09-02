@@ -35,13 +35,13 @@ class CreativeService:
             self.client = None
             self.ai_service = None
     
-    def decode_dream(self, dream_text: str, user_id: int = None) -> dict:
-        """Decode dream using AI - Uses same system as creative writing"""
+    def decode_dream(self, dream_text: str, user_id: int = None, mode: str = "dream") -> dict:
+        """Decode content using AI - Handles dreams, lyrics, symbolism, tone analysis"""
         try:
             if not dream_text or len(dream_text.strip()) < 10:
                 return {
                     "success": False,
-                    "error": "Please provide a dream description of at least 10 characters"
+                    "error": "Please provide text of at least 10 characters to decode"
                 }
             
             # Use the working chat endpoint internally for OpenAI integration (same as creative writing)
@@ -54,7 +54,21 @@ class CreativeService:
                 with current_app.test_request_context():
                     chat_url = f"{os.environ.get('APP_URL', 'http://localhost:5000')}/api/chat"
                 
-                prompt = f"""You are a professional dream interpreter. Analyze this dream and provide insights:
+                # Choose character and context based on mode
+                if mode == "lyrics":
+                    character = "Symbolism Decoder"
+                    context = "lyrics_analysis"
+                elif mode == "tone":
+                    character = "Communication Analyzer"
+                    context = "tone_analysis"
+                else:
+                    character = "Dream Decoder"
+                    context = "dream_interpretation"
+                
+                # For modes like lyrics/tone, the dream_text already contains the full prompt
+                # For traditional dream mode, we add our own prompt
+                if mode == "dream" and not dream_text.startswith("Analyze this dream"):
+                    prompt = f"""You are a professional dream interpreter. Analyze this dream and provide insights:
 
 Dream: {dream_text}
 
@@ -66,11 +80,14 @@ Please provide:
 5. Guidance or advice
 
 Be supportive, insightful, and avoid negative interpretations."""
+                else:
+                    # Use the full prompt as-is (for lyrics/tone modes)
+                    prompt = dream_text
 
                 response = requests.post(chat_url, json={
                     "message": prompt,
-                    "character": "Dream Decoder",
-                    "context": "dream_interpretation",
+                    "character": character,
+                    "context": context,
                     "user_tier": "bronze"
                 })
                 

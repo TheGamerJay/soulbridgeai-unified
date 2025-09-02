@@ -111,8 +111,9 @@ def api_decoder():
             return jsonify({"success": False, "error": "No data provided"}), 400
         
         dream_text = data.get('dream', '').strip()
+        mode = data.get('mode', 'dream').strip()
         if not dream_text:
-            return jsonify({"success": False, "error": "Dream text is required"}), 400
+            return jsonify({"success": False, "error": "Text is required"}), 400
         
         # Check usage limits
         user_id = get_user_id()
@@ -128,9 +129,9 @@ def api_decoder():
                 "limit_reached": True
             }), 429
         
-        # Generate dream interpretation
+        # Generate interpretation based on mode
         creative_service = CreativeService()
-        result = creative_service.decode_dream(dream_text, user_id)
+        result = creative_service.decode_dream(dream_text, user_id, mode)
         
         if result['success']:
             # Track usage
@@ -145,7 +146,7 @@ def api_decoder():
                 content_service = ContentService()
                 content_id = content_service.save_decoder_session(
                     user_id=user_id,
-                    input_text=dream_text,
+                    input_text=data.get('original_text', dream_text),
                     decoded_text=result['interpretation']
                 )
                 auto_saved = bool(content_id)
