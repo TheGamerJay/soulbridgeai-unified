@@ -109,6 +109,24 @@ def create_app():
             keys=list(session.keys()),
             permanent=session.permanent,
         )
+    
+    @app.route("/_debug/fix-schema")
+    def _debug_fix_schema():
+        """Manual schema creation endpoint"""
+        try:
+            from unified_tier_system import ensure_database_schema
+            result = ensure_database_schema()
+            return jsonify({
+                "success": True,
+                "result": result,
+                "message": "Schema creation attempted"
+            })
+        except Exception as e:
+            return jsonify({
+                "success": False,
+                "error": str(e),
+                "message": "Schema creation failed"
+            }), 500
 
     @app.after_request
     def _log_set_cookie(resp):
