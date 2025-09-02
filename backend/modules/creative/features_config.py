@@ -7,22 +7,22 @@ Decoder, Fortune, Horoscope, Creative Writing system
 # Feature limits by tier
 CREATIVE_LIMITS = {
     "decoder": {
-        "bronze": 3,    # 3 daily uses
+        "bronze": 5,    # 5 daily uses (increased for better UX)
         "silver": 15,   # 15 daily uses  
         "gold": 999     # Unlimited (999 = unlimited display)
     },
     "fortune": {
-        "bronze": 3,    # 3 daily uses
+        "bronze": 5,    # 5 daily uses (increased for better UX)
         "silver": 8,    # 8 daily uses
         "gold": 999     # Unlimited
     },
     "horoscope": {
-        "bronze": 3,    # 3 daily uses
+        "bronze": 5,    # 5 daily uses (increased for better UX)
         "silver": 10,   # 10 daily uses
         "gold": 999     # Unlimited
     },
     "creative_writing": {
-        "bronze": 3,    # 3 daily uses
+        "bronze": 5,    # 5 daily uses (increased for better UX)
         "silver": 20,   # 20 daily uses
         "gold": 999     # Unlimited
     }

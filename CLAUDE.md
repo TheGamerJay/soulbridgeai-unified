@@ -5,10 +5,10 @@
 ### 🥉 BRONZE TIER (Default)
 **Status**: Always available, runs with ads
 **Features**: Basic features only  
-- Decoder: 3 daily uses
-- Fortune: 2 daily uses  
-- Horoscope: 3 daily uses
-- Creative Writer: 2 daily uses
+- Decoder: 5 daily uses
+- Fortune: 5 daily uses  
+- Horoscope: 5 daily uses
+- Creative Writer: 5 daily uses
 - Artistic Time: 0 monthly
 - Premium features: LOCKED (AI images, voice journaling, etc.)
 - Mini Studio: LOCKED
@@ -23,7 +23,7 @@
 - ✅ **Unlocks Silver tier access** - can use Silver companions & features for 5 hours
 - ✅ **Unlocks Gold tier access** - can use Gold companions & features for 5 hours
 - ✅ **Silver/Gold limits stay the same** - their features/limits don't change
-- ❌ **Bronze tier stays the same** - still 3/2/3 limits, still has ads, still "bronze" plan
+- ❌ **Bronze tier stays the same** - still 5/5/5 limits, still has ads, still "bronze" plan
 - ❌ **No extra monthly credits** - only the 60 trial credits
 
 **Trial Behavior**:
