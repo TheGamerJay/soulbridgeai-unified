@@ -47,9 +47,19 @@ def library_page(content_type="all"):
         if not user:
             return redirect("/login?return_to=library")
         
-        # Get library statistics
-        services = _get_services()
-        stats = services['library_manager'].get_library_stats(user['id'])
+        # Simplified version - just render the template with minimal data
+        try:
+            # Get library statistics
+            services = _get_services()
+            stats = services['library_manager'].get_library_stats(user['id'])
+        except Exception as stats_error:
+            logger.warning(f"Failed to load library stats: {stats_error}")
+            # Use empty stats as fallback
+            stats = {
+                'total_items': 0,
+                'by_type': {},
+                'recent_items': []
+            }
         
         return render_template("library.html", 
                              content_type=content_type,
@@ -59,7 +69,7 @@ def library_page(content_type="all"):
     except Exception as e:
         logger.error(f"Library page error: {e}")
         return render_template('error.html', 
-                             error="Failed to load library"), 500
+                             error=f"Failed to load library: {str(e)}"), 500
 
 @library_bp.route('/music')
 def music_library_page():

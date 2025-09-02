@@ -31,10 +31,17 @@ def get_database():
     except:
         pass
     
-    # Fallback to database_utils
+    # Fallback to database_utils - use correct import path
     try:
+        import sys
+        import os
+        # Add the backend directory to the path to find database_utils
+        backend_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+        if backend_dir not in sys.path:
+            sys.path.insert(0, backend_dir)
+        
         from database_utils import get_database as get_db_fallback
         return get_db_fallback()
-    except ImportError:
-        logger.error("No database connection available")
+    except Exception as e:
+        logger.error(f"No database connection available: {e}")
         return None
