@@ -1029,41 +1029,44 @@
                 // Filter Options
                 { id: 'all', name: 'All Companions', avatar: '', tier: 'special', description: 'Show conversations from all companions', available: true },
                 
-                // Bronze/Free Tier (8 companions)
-                { id: 'Blayzo', name: 'Blayzo', avatar: '/static/logos/Blayzo.png', tier: 'bronze', description: 'Your supportive AI companion', available: true },
-                { id: 'Blayzica', name: 'Blayzica', avatar: '/static/logos/Blayzica.png', tier: 'bronze', description: 'Your caring AI companion', available: true },
-                { id: 'GamerJay', name: 'GamerJay', avatar: '/static/logos/GamerJay_Free_companion.png', tier: 'bronze', description: 'Gaming-focused companion', available: true },
-                { id: 'Blayzion', name: 'Blayzion', avatar: '/static/logos/Blayzion.png', tier: 'bronze', description: 'Advanced Blayzo variant', available: true },
-                { id: 'Lumen', name: 'Lumen', avatar: '/static/logos/Lumen_Bronze.png', tier: 'bronze', description: 'Light-focused companion', available: true },
-                { id: 'Blayzo.2', name: 'Blayzo.2', avatar: '/static/logos/blayzo_free_tier.png', tier: 'bronze', description: 'Enhanced Blayzo version', available: true },
-                { id: 'Claude', name: 'Claude', avatar: '/static/logos/Claude_Free.png', tier: 'bronze', description: 'AI assistant companion', available: true },
-                { id: 'Blayzia', name: 'Blayzia', avatar: '/static/logos/Blayzia.png', tier: 'bronze', description: 'Blayzo family companion', available: true },
+                // Bronze Tier Companions (10) - Updated to match companion_data.py
+                { id: 'gamerjay_bronze', name: 'GamerJay', avatar: '/static/logos/GamerJay_Free_companion.png', tier: 'bronze', description: 'Gaming-focused companion', available: true },
+                { id: 'blayzo_bronze', name: 'Blayzo', avatar: '/static/logos/Blayzo.png', tier: 'bronze', description: 'Your supportive AI companion', available: true },
+                { id: 'blayzica_bronze', name: 'Blayzica', avatar: '/static/logos/Blayzica.png', tier: 'bronze', description: 'Your caring AI companion', available: true },
+                { id: 'claude_bronze', name: 'Claude', avatar: '/static/logos/Claude_Free.png', tier: 'bronze', description: 'AI assistant companion', available: true },
+                { id: 'blayzia_bronze', name: 'Blayzia', avatar: '/static/logos/Blayzia.png', tier: 'bronze', description: 'Blayzo family companion', available: true },
+                { id: 'blayzion_bronze', name: 'Blayzion', avatar: '/static/logos/Blayzion.png', tier: 'bronze', description: 'Advanced Blayzo variant', available: true },
+                { id: 'lumen_bronze', name: 'Lumen', avatar: '/static/logos/Lumen_Bronze.png', tier: 'bronze', description: 'Light-focused companion', available: true },
+                { id: 'blayzo2_bronze', name: 'Blayzo.2', avatar: '/static/logos/blayzo_free_tier.png', tier: 'bronze', description: 'Enhanced Blayzo version', available: true },
+                { id: 'crimson_bronze', name: 'Crimson', avatar: '/static/logos/Crimson_Free.png', tier: 'bronze', description: 'Passion and determination companion', available: true },
+                { id: 'violet_bronze', name: 'Violet', avatar: '/static/logos/Violet_Free.png', tier: 'bronze', description: 'Creative beauty companion', available: true },
                 
-                // Silver Tier (8 companions)  
-                { id: 'SilverSky', name: 'Sky', avatar: '/static/logos/Sky_a_premium_companion.png', tier: 'silver', description: 'Mystical horoscope companion', available: false },
-                { id: 'SilverGamerJay', name: 'GamerJay', avatar: '/static/logos/GamerJay_premium_companion.png', tier: 'silver', description: 'Enhanced gaming companion', available: false },
-                { id: 'SilverClaude', name: 'Claude', avatar: '/static/logos/Claude Growth.png', tier: 'silver', description: 'AI assistant companion', available: false },
-                { id: 'SilverBlayzo', name: 'Blayzo', avatar: '/static/logos/Blayzo_premium_companion.png', tier: 'silver', description: 'Enhanced Blayzo experience', available: false },
-                { id: 'SilverBlayzica', name: 'Blayzica', avatar: '/static/logos/Blayzica_Pro.png', tier: 'silver', description: 'Advanced Blayzica features', available: false },
-                { id: 'SilverWatchDog', name: 'WatchDog', avatar: '/static/logos/WatchDog a Premium companion.png', tier: 'silver', description: 'Security-focused companion', available: false },
-                { id: 'SilverRozia', name: 'Rozia', avatar: '/static/logos/Rozia_Silver.png', tier: 'silver', description: 'Elegant silver companion', available: false },
-                { id: 'SilverLumen', name: 'Lumen', avatar: '/static/logos/Lumen_Silver.png', tier: 'silver', description: 'Enhanced light companion', available: false },
+                // Silver Tier Companions (8) - Updated to match companion_data.py
+                { id: 'sky_silver', name: 'Sky', avatar: '/static/logos/Sky_a_premium_companion.png', tier: 'silver', description: 'Mystical horoscope companion', available: false },
+                { id: 'gamerjay_silver', name: 'GamerJay.2', avatar: '/static/logos/GamerJay_premium_companion.png', tier: 'silver', description: 'Enhanced gaming companion', available: false },
+                { id: 'claude_silver', name: 'Claude.3', avatar: '/static/logos/Claude_Growth.png', tier: 'silver', description: 'Enhanced AI assistant', available: false },
+                { id: 'blayzo_silver', name: 'Blayzo.3', avatar: '/static/logos/Blayzo_premium_companion.png', tier: 'silver', description: 'Premium Blayzo experience', available: false },
+                { id: 'blayzica_silver', name: 'Blayzica.2', avatar: '/static/logos/Blayzica_Pro.png', tier: 'silver', description: 'Advanced Blayzica features', available: false },
+                { id: 'watchdog_silver', name: 'WatchDog', avatar: '/static/logos/WatchDog_a_Premium_companion.png', tier: 'silver', description: 'Security-focused companion', available: false },
+                { id: 'rozia_silver', name: 'Rozia', avatar: '/static/logos/Rozia_Silver.png', tier: 'silver', description: 'Elegant silver companion', available: false },
+                { id: 'lumen_silver', name: 'Lumen.2', avatar: '/static/logos/Lumen_Silver.png', tier: 'silver', description: 'Enhanced light companion', available: false },
                 
-                // Gold Tier (7 companions)  
-                { id: 'GoldCrimson', name: 'Crimson', avatar: '/static/logos/Crimson_a_Max_companion.png', tier: 'gold', description: 'Elite companion experience', available: false },
-                { id: 'GoldViolet', name: 'Violet', avatar: '/static/logos/Violet_Max.png', tier: 'gold', description: 'Premium companion features', available: false },
-                { id: 'GoldClaude', name: 'Claude', avatar: '/static/logos/Claude Max.png', tier: 'gold', description: 'Ultimate AI assistant', available: false },
-                { id: 'GoldRoyal', name: 'Royal', avatar: '/static/logos/Royal_Max.png', tier: 'gold', description: 'Ultimate companion experience', available: false },
-                { id: 'GoldVen Blayzica', name: 'Ven Blayzica', avatar: '/static/logos/Ven_Blayzica_Max.png', tier: 'gold', description: 'Advanced Blayzica variant', available: false },
-                { id: 'GoldVen Sky', name: 'Ven Sky', avatar: '/static/logos/Ven_Sky_Max.png', tier: 'gold', description: 'Advanced Sky variant', available: false },
-                { id: 'GoldWatchDog', name: 'WatchDog', avatar: '/static/logos/WatchDog a Max Companion.png', tier: 'gold', description: 'Elite security companion', available: false },
+                // Gold Tier Companions (8) - Updated to match companion_data.py
+                { id: 'crimson_gold', name: 'Crimson.2', avatar: '/static/logos/Crimson_a_Max_companion.png', tier: 'gold', description: 'Elite companion experience', available: false },
+                { id: 'violet_gold', name: 'Violet.2', avatar: '/static/logos/Violet_a_Max_companion.png', tier: 'gold', description: 'Premium companion features', available: false },
+                { id: 'claude_gold', name: 'Claude.2', avatar: '/static/logos/Claude_Max.png', tier: 'gold', description: 'Ultimate AI assistant', available: false },
+                { id: 'royal_gold', name: 'Royal', avatar: '/static/logos/Royal_a_Max_companion.png', tier: 'gold', description: 'Ultimate companion experience', available: false },
+                { id: 'ven_blayzica_gold', name: 'Ven Blayzica', avatar: '/static/logos/Ven_Blayzica_a_Max_companion.png', tier: 'gold', description: 'Advanced Blayzica variant', available: false },
+                { id: 'ven_sky_gold', name: 'Ven Sky', avatar: '/static/logos/Ven_Sky_a_Max_companion.png', tier: 'gold', description: 'Advanced Sky variant', available: false },
+                { id: 'watchdog_gold', name: 'WatchDog.2', avatar: '/static/logos/WatchDog_a_Max_Companion.png', tier: 'gold', description: 'Elite security companion', available: false },
+                { id: 'dr_madjay_gold', name: 'Dr. MadJay', avatar: '/static/logos/Dr. MadJay.png', tier: 'gold', description: 'Cutting-edge AI companion', available: false },
                 
-                // Referral Tier (5 companions) - Locked, earned through referrals only
-                { id: 'Blayzike', name: 'Blayzike', avatar: '/static/logos/Blayzike.png', tier: 'referral', description: 'Exclusive referral companion', available: false },
-                { id: 'Nyxara', name: 'Nyxara', avatar: '/static/logos/Nyxara.png', tier: 'referral', description: 'Mystical referral companion', available: false },
-                { id: 'Blazelian', name: 'Blazelian', avatar: '/static/logos/Blazelian.png', tier: 'referral', description: 'Elite referral companion', available: false },
-                { id: 'Claude Referral', name: 'Claude Referral', avatar: '/static/logos/Claude Referral.png', tier: 'referral', description: 'Ultimate referral companion', available: false },
-                { id: 'Blayzo Referral', name: 'Blayzo Referral', avatar: '/static/logos/Blayzo Referral.png', tier: 'referral', description: 'Special Blayzo referral variant', available: false },
+                // Referral Tier Companions (5) - Updated to match companion_data.py
+                { id: 'blayzike', name: 'Blayzike', avatar: '/static/referral/blayzike.png', tier: 'referral', description: 'Exclusive referral companion (2 referrals)', available: false },
+                { id: 'nyxara', name: 'Nyxara', avatar: '/static/logos/Nyxara.png', tier: 'referral', description: 'Mystical referral companion (3 referrals)', available: false },
+                { id: 'blazelian', name: 'Blazelian', avatar: '/static/referral/blazelian.png', tier: 'referral', description: 'Elite referral companion (5 referrals)', available: false },
+                { id: 'claude_referral', name: 'Claude Referral', avatar: '/static/referral/claude_referral.png', tier: 'referral', description: 'Ultimate referral companion (8 referrals)', available: false },
+                { id: 'blayzo_referral', name: 'Blayzo Referral', avatar: '/static/logos/Blayzo_Referral.png', tier: 'referral', description: 'Special Blayzo referral variant (10 referrals)', available: false },
                 
                 // Special companions (content specialists - always available for filtering)
                 { id: 'Fortune Teller', name: 'Fortune Teller', avatar: '/static/logos/Fortune Teller Sky.png', tier: 'special', description: 'Fortune reading specialist', available: true },
