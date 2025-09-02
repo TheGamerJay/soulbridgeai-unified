@@ -1,0 +1,309 @@
+{
+  "aries": {
+    "name": "Aries",
+    "symbol": "♈",
+    "element": "Fire",
+    "ruling_planet": "Mars",
+    "dates": "March 21 - April 19",
+    "traits": {
+      "positive": ["Bold", "Energetic", "Leadership", "Pioneering", "Courageous", "Independent"],
+      "challenges": ["Impatient", "Impulsive", "Short-tempered", "Competitive"]
+    },
+    "meanings": {
+      "general": "The Ram - A natural leader with fierce determination and pioneering spirit. Aries energy is about new beginnings, courage, and taking action.",
+      "love": "Passionate and direct in love. You pursue what you want with intensity and aren't afraid to make the first move.",
+      "career": "Natural leadership abilities shine. You excel in roles that allow independence and the ability to initiate new projects.",
+      "health": "High energy levels require physical outlets. Focus on activities that challenge you and keep you moving."
+    },
+    "daily_themes": [
+      "Leadership opportunities are calling your name",
+      "Your pioneering spirit opens new doors", 
+      "Bold action brings unexpected rewards",
+      "Trust your instincts - they're sharper than usual",
+      "A new adventure awaits your courage",
+      "Your energy inspires others to follow"
+    ]
+  },
+  "taurus": {
+    "name": "Taurus", 
+    "symbol": "♉",
+    "element": "Earth",
+    "ruling_planet": "Venus",
+    "dates": "April 20 - May 20",
+    "traits": {
+      "positive": ["Reliable", "Patient", "Practical", "Devoted", "Stable", "Sensual"],
+      "challenges": ["Stubborn", "Possessive", "Resistant to change", "Materialistic"]
+    },
+    "meanings": {
+      "general": "The Bull - Grounded, reliable, and deeply connected to the physical world. Taurus energy is about stability, beauty, and enjoying life's pleasures.",
+      "love": "Loyal and sensual in relationships. You value stability and show love through consistent actions and physical affection.",
+      "career": "Steady progress and reliability make you invaluable. You excel in roles requiring patience and attention to detail.",
+      "health": "Focus on maintaining routines and enjoying physical pleasures mindfully. Your body is your temple."
+    },
+    "daily_themes": [
+      "Slow and steady progress brings lasting results",
+      "Beauty and comfort surround you today",
+      "Your reliability earns others' deep trust",
+      "Material security grows through wise choices", 
+      "Patience reveals hidden opportunities",
+      "Sensual pleasures bring joy and renewal"
+    ]
+  },
+  "gemini": {
+    "name": "Gemini",
+    "symbol": "♊", 
+    "element": "Air",
+    "ruling_planet": "Mercury",
+    "dates": "May 21 - June 20",
+    "traits": {
+      "positive": ["Adaptable", "Curious", "Witty", "Communicative", "Versatile", "Social"],
+      "challenges": ["Inconsistent", "Indecisive", "Superficial", "Restless"]
+    },
+    "meanings": {
+      "general": "The Twins - Quick-witted, adaptable, and endlessly curious. Gemini energy is about communication, learning, and connecting diverse ideas.",
+      "love": "Intellectual connection is key. You need mental stimulation and variety to keep relationships exciting and engaging.",
+      "career": "Versatility and communication skills are your superpowers. You thrive in dynamic environments with variety.",
+      "health": "Mental stimulation is as important as physical health. Keep your mind active and engaged."
+    },
+    "daily_themes": [
+      "Curiosity opens doors to new knowledge",
+      "Your words have special power today",
+      "Connections and networking bring opportunities",
+      "Adaptability helps you navigate changes",
+      "Learning something new sparks excitement",
+      "Social interactions energize your spirit"
+    ]
+  },
+  "cancer": {
+    "name": "Cancer",
+    "symbol": "♋",
+    "element": "Water", 
+    "ruling_planet": "Moon",
+    "dates": "June 21 - July 22",
+    "traits": {
+      "positive": ["Nurturing", "Intuitive", "Protective", "Emotional", "Loyal", "Imaginative"],
+      "challenges": ["Moody", "Oversensitive", "Clingy", "Pessimistic"]
+    },
+    "meanings": {
+      "general": "The Crab - Deeply intuitive, nurturing, and protective of loved ones. Cancer energy is about emotions, home, and caring for others.",
+      "love": "Deeply emotional and nurturing in relationships. You create safe spaces where love can grow and flourish.",
+      "career": "Your empathy and intuition guide success. You excel in roles involving care, creativity, or working with people.",
+      "health": "Emotional wellbeing directly impacts physical health. Honor your feelings and create nurturing environments."
+    },
+    "daily_themes": [
+      "Trust your intuitive feelings today", 
+      "Home and family bring special comfort",
+      "Your nurturing nature heals others",
+      "Emotional depth reveals hidden truths",
+      "Protective instincts guide you wisely",
+      "Memory and nostalgia hold important messages"
+    ]
+  },
+  "leo": {
+    "name": "Leo",
+    "symbol": "♌",
+    "element": "Fire",
+    "ruling_planet": "Sun", 
+    "dates": "July 23 - August 22",
+    "traits": {
+      "positive": ["Confident", "Creative", "Generous", "Dramatic", "Loyal", "Warm-hearted"],
+      "challenges": ["Arrogant", "Demanding attention", "Stubborn", "Self-centered"]
+    },
+    "meanings": {
+      "general": "The Lion - Radiant, creative, and naturally magnetic. Leo energy is about self-expression, creativity, and sharing your light with the world.",
+      "love": "Passionate and generous in love. You bring warmth, romance, and drama to relationships in the best possible way.",
+      "career": "Natural performers and leaders. You shine in roles that allow creative expression and recognition of your talents.",
+      "health": "Your heart - both physical and emotional - needs attention. Joy and creativity are essential for your wellbeing."
+    },
+    "daily_themes": [
+      "Your natural charisma draws positive attention",
+      "Creative self-expression brings joy and success", 
+      "Generosity creates a circle of abundance",
+      "Your confidence inspires others to shine",
+      "Drama and flair add excitement to routine",
+      "Recognition for your talents is coming"
+    ]
+  },
+  "virgo": {
+    "name": "Virgo",
+    "symbol": "♍",
+    "element": "Earth",
+    "ruling_planet": "Mercury",
+    "dates": "August 23 - September 22", 
+    "traits": {
+      "positive": ["Analytical", "Helpful", "Reliable", "Precise", "Modest", "Practical"],
+      "challenges": ["Overly critical", "Perfectionist", "Worrying", "Overthinking"]
+    },
+    "meanings": {
+      "general": "The Virgin - Analytical, helpful, and dedicated to improvement. Virgo energy is about service, precision, and making things better.",
+      "love": "Devoted and practical in love. You show care through helpful actions and attention to your partner's needs.",
+      "career": "Detail-oriented excellence sets you apart. You excel in roles requiring analysis, organization, and problem-solving.",
+      "health": "Pay attention to the connection between mind and body. Stress management and routine are key to your wellness."
+    },
+    "daily_themes": [
+      "Attention to details brings important insights",
+      "Your helpful nature makes a real difference",
+      "Organization and planning lead to success",
+      "Practical solutions solve complex problems", 
+      "Service to others brings deep satisfaction",
+      "Perfectionism serves when balanced with self-compassion"
+    ]
+  },
+  "libra": {
+    "name": "Libra",
+    "symbol": "♎",
+    "element": "Air",
+    "ruling_planet": "Venus",
+    "dates": "September 23 - October 22",
+    "traits": {
+      "positive": ["Diplomatic", "Fair", "Social", "Cooperative", "Artistic", "Charming"],
+      "challenges": ["Indecisive", "People-pleasing", "Superficial", "Conflict-avoidant"]
+    },
+    "meanings": {
+      "general": "The Scales - Seeking balance, harmony, and justice in all things. Libra energy is about relationships, beauty, and finding the middle ground.",
+      "love": "Partnership-oriented and romantic. You thrive in harmonious relationships and have a gift for creating beauty together.",
+      "career": "Diplomatic skills and aesthetic sense are valuable assets. You excel in roles involving teamwork, mediation, or the arts.",
+      "health": "Balance is essential in all areas of life. Pay attention to finding equilibrium between work, rest, and social time."
+    },
+    "daily_themes": [
+      "Balance and harmony guide your decisions",
+      "Diplomatic skills resolve important conflicts",
+      "Beauty and aesthetics inspire your choices",
+      "Partnerships and cooperation bring success",
+      "Justice and fairness are highlighted", 
+      "Social connections enrich your experience"
+    ]
+  },
+  "scorpio": {
+    "name": "Scorpio",
+    "symbol": "♏", 
+    "element": "Water",
+    "ruling_planet": "Pluto",
+    "dates": "October 23 - November 21",
+    "traits": {
+      "positive": ["Intense", "Passionate", "Determined", "Transformative", "Loyal", "Intuitive"],
+      "challenges": ["Jealous", "Secretive", "Vengeful", "Obsessive"]
+    },
+    "meanings": {
+      "general": "The Scorpion - Intense, transformative, and deeply perceptive. Scorpio energy is about depth, mystery, and profound change.",
+      "love": "All-or-nothing approach to love. You seek deep, transformative connections and are fiercely loyal to those you trust.",
+      "career": "Investigative abilities and psychological insight are your strengths. You excel in roles requiring depth and transformation.",
+      "health": "Emotional intensity needs healthy outlets. Focus on activities that help you process and transform energy."
+    },
+    "daily_themes": [
+      "Hidden truths are ready to be revealed",
+      "Your intensity creates powerful transformations",
+      "Intuitive insights guide important decisions",
+      "Deep connections bring profound meaning",
+      "Mystery and investigation capture your interest",
+      "Regeneration and renewal are highlighted"
+    ]
+  },
+  "sagittarius": {
+    "name": "Sagittarius",
+    "symbol": "♐",
+    "element": "Fire", 
+    "ruling_planet": "Jupiter",
+    "dates": "November 22 - December 21",
+    "traits": {
+      "positive": ["Optimistic", "Adventurous", "Philosophical", "Free-spirited", "Honest", "Generous"],
+      "challenges": ["Restless", "Tactless", "Irresponsible", "Impatient"]
+    },
+    "meanings": {
+      "general": "The Archer - Optimistic, adventurous, and always seeking greater meaning. Sagittarius energy is about exploration, wisdom, and expansion.",
+      "love": "Freedom-loving but generous in relationships. You need a partner who shares your love of adventure and growth.",
+      "career": "Your broad perspective and optimism open many doors. You excel in roles involving travel, teaching, or cultural exchange.",
+      "health": "Physical activity and mental stimulation are both essential. Adventure and new experiences energize your wellbeing."
+    },
+    "daily_themes": [
+      "Adventure calls and expansion beckons",
+      "Optimism opens doors to new possibilities", 
+      "Higher learning and wisdom are highlighted",
+      "Freedom and independence guide your choices",
+      "Cultural connections bring enriching experiences",
+      "Truth-seeking leads to important discoveries"
+    ]
+  },
+  "capricorn": {
+    "name": "Capricorn",
+    "symbol": "♑",
+    "element": "Earth",
+    "ruling_planet": "Saturn",
+    "dates": "December 22 - January 19",
+    "traits": {
+      "positive": ["Ambitious", "Disciplined", "Practical", "Patient", "Responsible", "Persistent"],
+      "challenges": ["Pessimistic", "Workaholic", "Stubborn", "Unforgiving"]
+    },
+    "meanings": {
+      "general": "The Goat - Ambitious, disciplined, and committed to long-term success. Capricorn energy is about achievement, structure, and mastery.",
+      "love": "Serious and committed in relationships. You build love through consistent actions and shared goals for the future.",
+      "career": "Natural leadership and business acumen drive success. You excel in roles requiring long-term planning and responsibility.",
+      "health": "Structure and routine support your wellbeing. Don't forget to balance work with rest and enjoyment."
+    },
+    "daily_themes": [
+      "Steady progress toward goals brings satisfaction",
+      "Responsibility and leadership are recognized",
+      "Long-term planning pays dividends",
+      "Structure and organization support success",
+      "Authority and expertise are valued",
+      "Patience and persistence overcome obstacles"
+    ]
+  },
+  "aquarius": {
+    "name": "Aquarius",
+    "symbol": "♒",
+    "element": "Air",
+    "ruling_planet": "Uranus",
+    "dates": "January 20 - February 18",
+    "traits": {
+      "positive": ["Independent", "Original", "Humanitarian", "Intellectual", "Innovative", "Friendly"],
+      "challenges": ["Detached", "Unpredictable", "Rebellious", "Emotionally aloof"]
+    },
+    "meanings": {
+      "general": "The Water Bearer - Independent, innovative, and focused on the future. Aquarius energy is about progress, friendship, and humanitarian ideals.",
+      "love": "Friendship is the foundation of your romantic relationships. You value intellectual connection and shared ideals.",
+      "career": "Innovation and humanitarian instincts guide your path. You excel in roles involving technology, social causes, or group work.",
+      "health": "Mental stimulation and social connection are vital for your wellbeing. Don't neglect your need for community."
+    },
+    "daily_themes": [
+      "Innovation and originality set you apart",
+      "Friendships and group connections are highlighted",
+      "Humanitarian causes capture your attention", 
+      "Independence and freedom guide decisions",
+      "Technology and progress play important roles",
+      "Your unique perspective is valued by others"
+    ]
+  },
+  "pisces": {
+    "name": "Pisces", 
+    "symbol": "♓",
+    "element": "Water",
+    "ruling_planet": "Neptune",
+    "dates": "February 19 - March 20",
+    "traits": {
+      "positive": ["Compassionate", "Intuitive", "Artistic", "Gentle", "Wise", "Musical"],
+      "challenges": ["Overly emotional", "Escapist", "Idealistic", "Secretive"]
+    },
+    "meanings": {
+      "general": "The Fish - Deeply intuitive, compassionate, and connected to the spiritual realm. Pisces energy is about empathy, creativity, and transcendence.",
+      "love": "Romantic and deeply empathetic in love. You seek soul connections and give your heart completely to those you care about.",
+      "career": "Creativity and compassion are your greatest assets. You excel in artistic, healing, or spiritually-oriented roles.",
+      "health": "Emotional and spiritual wellbeing are closely connected to physical health. Creative expression and meditation are healing."
+    },
+    "daily_themes": [
+      "Intuitive insights provide important guidance",
+      "Compassion and empathy create healing connections",
+      "Creative and artistic expression flows freely",
+      "Dreams and imagination hold special significance",
+      "Spiritual and transcendent experiences beckon", 
+      "Your gentle nature brings peace to others"
+    ]
+  },
+  "meta": {
+    "version": "1.0",
+    "created_for": "SoulBridge AI Horoscope System",
+    "total_signs": 12,
+    "daily_themes_per_sign": 6,
+    "description": "Complete zodiac meanings, traits, and daily forecast themes for personalized horoscope generation"
+  }
+}

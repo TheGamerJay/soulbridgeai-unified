@@ -622,12 +622,28 @@ def create_app():
     
     @app.route("/horoscope")
     def horoscope():
-        """Horoscope tool - from creative blueprint"""
+        """Enhanced Horoscope tool with interpretations and compatibility"""
         if not session.get('logged_in'):
             return redirect('/auth/login?return_to=horoscope')
         
         from flask import render_template
-        return render_template('horoscope.html')
+        
+        # Check if user has ad-free subscription
+        user_id = session.get('user_id')
+        ad_free = False
+        if user_id:
+            try:
+                from modules.user_profile.profile_service import ProfileService
+                profile_service = ProfileService()
+                user_profile = profile_service.get_profile(user_id)
+                ad_free = user_profile.get('ad_free', False) if user_profile else False
+            except Exception as e:
+                logger.error(f"Error checking ad-free status: {e}")
+                ad_free = False
+        
+        return render_template('horoscope.html', 
+                             ad_free=ad_free,
+                             user_session=session)
     
     # LIBRARY ROUTES (handled by library module blueprint)
     # @app.route("/library") - DISABLED: Using blueprint instead
@@ -805,6 +821,11 @@ def register_blueprints(app):
         from modules.meditations import meditations_bp
         app.register_blueprint(meditations_bp)
         logger.info("✅ Meditations system registered")
+        
+        # Horoscope system
+        from routes.horoscope import bp as horoscope_bp
+        app.register_blueprint(horoscope_bp)
+        logger.info("✅ Horoscope system registered")
         
         # Library management
         from modules.library import library_bp

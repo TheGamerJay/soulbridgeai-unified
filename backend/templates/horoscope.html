@@ -1,744 +1,521 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Horoscope Readings - SoulBridge AI</title>
-    
-    <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-    
-    <!-- Ad-Free Detection Script -->
-    <script>
-        window.__AD_FREE__ = {{ 'true' if ad_free else 'false' }};
-    </script>
-    
-    <!-- Conditional AdSense Loading (Only for non-ad-free users) -->
-    <script>
-        (function() {
-            var adFree = (window.__AD_FREE__ === true || window.__AD_FREE__ === 'true');
-            if (!adFree) {
-                var s = document.createElement('script');
-                s.async = true;
-                s.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3869471953521437";
-                s.crossOrigin = "anonymous";
-                document.head.appendChild(s);
-                console.log('📺 AdSense loaded for horoscope page');
-            } else {
-                console.log('🚫 AdSense blocked - user has ad-free subscription');
-            }
-        })();
-    </script>
-    
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            background: linear-gradient(135deg, #0f0f23 0%, #1a1a3e 50%, #2d1b4e 100%);
-            color: #e2e8f0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        .back-btn {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: rgba(255, 215, 0, 0.8);
-            color: #1a202c;
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-weight: 600;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            z-index: 100;
-        }
-
-        .back-btn:hover {
-            background: rgba(255, 215, 0, 1);
-            transform: translateY(-2px);
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-
-        .header h1 {
-            font-size: 3rem;
-            color: #ffd700;
-            margin-bottom: 16px;
-            text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
-        }
-
-        .header p {
-            font-size: 1.2rem;
-            color: #c7d2fe;
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        .horoscope-interface {
-            background: rgba(15, 15, 35, 0.8);
-            border: 2px solid rgba(255, 215, 0, 0.3);
-            border-radius: 20px;
-            padding: 40px;
-            margin-bottom: 40px;
-            backdrop-filter: blur(10px);
-            position: relative;
-        }
-
-        .horoscope-interface::before {
-            content: '';
-            position: absolute;
-            top: -35px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 70px;
-            height: 70px;
-            background: url('/static/logos/horoscope sky.png') center/contain;
-            background-repeat: no-repeat;
-            border-radius: 50%;
-            border: 2px solid #ffd700;
-            box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
-        }
-
-        .usage-indicator {
-            background: rgba(15, 15, 35, 0.4);
-            border: 1px solid rgba(255, 215, 0, 0.3);
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 30px;
-            text-align: center;
-        }
-
-        .section {
-            margin-bottom: 40px;
-            padding: 30px;
-            background: rgba(255, 215, 0, 0.05);
-            border: 1px solid rgba(255, 215, 0, 0.2);
-            border-radius: 15px;
-        }
-
-        .section h2 {
-            color: #ffd700;
-            font-size: 1.5rem;
-            margin-bottom: 15px;
-            text-align: center;
-        }
-
-        .section p {
-            color: #c7d2fe;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        .zodiac-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .zodiac-sign {
-            background: rgba(255, 215, 0, 0.1);
-            border: 2px solid rgba(255, 215, 0, 0.3);
-            border-radius: 12px;
-            padding: 15px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .zodiac-sign:hover {
-            background: rgba(255, 215, 0, 0.2);
-            border-color: #ffd700;
-            transform: translateY(-2px);
-        }
-
-        .zodiac-sign.selected {
-            background: rgba(255, 215, 0, 0.3);
-            border-color: #ffd700;
-            box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
-        }
-
-        .zodiac-sign .emoji {
-            font-size: 2rem;
-            margin-bottom: 8px;
-            display: block;
-        }
-
-        .zodiac-sign .name {
-            font-weight: 600;
-            color: #ffd700;
-        }
-
-        .compatibility-section {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-            margin: 20px 0;
-        }
-
-        .sign-selector {
-            text-align: center;
-        }
-
-        .sign-selector h3 {
-            color: #ffd700;
-            margin-bottom: 15px;
-        }
-
-        .generate-btn {
-            width: 100%;
-            padding: 18px;
-            background: linear-gradient(135deg, #ffd700, #ffed4e);
-            color: #1a202c;
-            border: none;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 1.1rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 20px;
-        }
-
-        .generate-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4);
-        }
-
-        .generate-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .output-box {
-            background: rgba(0, 0, 0, 0.4);
-            border: 2px solid rgba(255, 215, 0, 0.3);
-            border-radius: 12px;
-            padding: 25px;
-            margin-top: 20px;
-            min-height: 150px;
-            line-height: 1.6;
-            display: none;
-        }
-
-        .output-box.show {
-            display: block;
-        }
-
-
-        /* Mobile responsive */
-        @media (max-width: 768px) {
-            .container {
-                padding: 10px;
-            }
-            
-            .header h1 {
-                font-size: 2rem;
-            }
-            
-            .horoscope-interface {
-                padding: 20px;
-            }
-
-            .compatibility-section {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
+  <meta charset="utf-8"/>
+  <title>Horoscope Sky - SoulBridge AI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  
+  <!-- Ad-Free Detection Script -->
+  <script>
+      window.__AD_FREE__ = {{ 'true' if ad_free else 'false' }};
+  </script>
+  
+  <!-- Conditional AdSense Loading (Only for non-ad-free users) -->
+  <script>
+      (function() {
+          var adFree = (window.__AD_FREE__ === true || window.__AD_FREE__ === 'true');
+          if (!adFree) {
+              var s = document.createElement('script');
+              s.async = true;
+              s.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3869471953521437";
+              s.crossOrigin = "anonymous";
+              document.head.appendChild(s);
+              console.log('📺 AdSense loaded for horoscope page');
+          } else {
+              console.log('🚫 AdSense blocked - user has ad-free subscription');
+          }
+      })();
+  </script>
+  
+  <style>
+    :root { --w: 1100px; --gap: 14px; }
+    body { 
+      font-family: Georgia, 'Times New Roman', serif; 
+      margin:0; 
+      background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 40%, #2e1065 100%);
+      color: #d4af37; 
+      min-height: 100vh;
+    }
+    .back-btn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: rgba(255, 215, 0, 0.8);
+      color: #1a202c;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      z-index: 100;
+    }
+    .back-btn:hover {
+      background: rgba(255, 215, 0, 1);
+      transform: translateY(-2px);
+    }
+    header { 
+      background: rgba(0,0,0,0.8); 
+      color: #d4af37; 
+      padding: 24px; 
+      text-align: center;
+      backdrop-filter: blur(10px);
+      border-bottom: 2px solid #d4af37;
+    }
+    header h1 {
+      font-size: 2.8rem;
+      margin: 0;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+      font-weight: bold;
+    }
+    .subtitle {
+      font-size: 1.2rem;
+      margin-top: 8px;
+      opacity: 0.9;
+      font-style: italic;
+    }
+    main { max-width: var(--w); margin: 0 auto; padding: 20px; }
+    .row { display:flex; flex-wrap:wrap; gap:12px; align-items:end; margin-bottom: 20px; }
+    .panel { 
+      background: rgba(20, 20, 40, 0.9); 
+      border: 1px solid #d4af37; 
+      border-radius: 15px; 
+      padding: 16px;
+      backdrop-filter: blur(5px);
+      box-shadow: 0 4px 15px rgba(212, 175, 55, 0.2);
+    }
+    .panel label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: bold;
+      color: #d4af37;
+    }
+    select, input, button { 
+      padding: 10px 12px; 
+      border: 1px solid #d4af37; 
+      border-radius: 10px; 
+      background: rgba(0,0,0,0.7);
+      color: #d4af37;
+      font-family: inherit;
+    }
+    select option {
+      background: #1a1a2e;
+      color: #d4af37;
+    }
+    button { 
+      background: linear-gradient(45deg, #d4af37, #ffd700); 
+      color: #0f0f23; 
+      cursor: pointer; 
+      font-weight: bold;
+      border: none;
+      transition: all 0.3s ease;
+    }
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4);
+    }
+    .grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(350px,1fr)); gap: var(--gap); margin-top:20px; }
+    .card { 
+      background: rgba(20, 20, 40, 0.95); 
+      border: 2px solid #d4af37; 
+      border-radius: 20px; 
+      padding: 20px; 
+      display: flex; 
+      gap: 16px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 25px rgba(212, 175, 55, 0.3);
+      transition: all 0.3s ease;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 35px rgba(212, 175, 55, 0.4);
+    }
+    .icon { 
+      width: 80px; 
+      height: 80px; 
+      border-radius: 15px; 
+      background: linear-gradient(45deg, #d4af37, #ffd700); 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      font-size: 42px; 
+      color: #0f0f23;
+      box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+    }
+    .icon img {
+      border-radius: 15px;
+    }
+    .meta { font-size: 14px; color: #a0a0c0; }
+    .pill { 
+      display: inline-block; 
+      padding: 4px 12px; 
+      border-radius: 20px; 
+      background: rgba(212, 175, 55, 0.2); 
+      border: 1px solid #d4af37;
+      font-size: 12px; 
+      margin-right: 8px;
+      color: #d4af37;
+      margin-bottom: 4px;
+    }
+    .lucky { 
+      font-size: 14px; 
+      color: #ffd700; 
+      background: rgba(255, 215, 0, 0.1);
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid #ffd700;
+      margin-top: 10px;
+    }
+    .card-title {
+      font-size: 1.3rem;
+      font-weight: bold;
+      margin-bottom: 8px;
+      color: #ffd700;
+    }
+    .card-content {
+      line-height: 1.6;
+      color: #e0e0e0;
+    }
+    footer { 
+      color: #a0a0c0; 
+      font-size: 12px; 
+      text-align: center; 
+      padding: 20px;
+      margin-top: 40px;
+      border-top: 1px solid rgba(212, 175, 55, 0.3);
+    }
+    .compat-result {
+      background: rgba(20, 20, 40, 0.95);
+      border: 2px solid #d4af37;
+      border-radius: 20px;
+      padding: 20px;
+      margin-top: 15px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 25px rgba(212, 175, 55, 0.3);
+    }
+    .compat-score {
+      font-size: 2.5rem;
+      font-weight: bold;
+      color: #ffd700;
+      text-align: center;
+      margin: 10px 0;
+    }
+    .loading {
+      text-align: center;
+      color: #ffd700;
+      font-style: italic;
+      padding: 20px;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid rgba(212, 175, 55, 0.3);
+      margin: 30px 0;
+    }
+  </style>
 </head>
-
 <body>
-    <a href="javascript:history.back()" class="back-btn">← Back to Chat</a>
-
-    <div class="container">
-        <div class="header">
-            <h1>⭐ Horoscope Readings</h1>
-            <p>Get simple, personalized cosmic guidance for your zodiac sign</p>
-        </div>
-
-        <div class="horoscope-interface">
-            <!-- Usage Indicator -->
-            <div class="usage-indicator">
-                <span id="plan-description">⭐ Daily Horoscopes: <span id="usage-count">{{ current_usage or 0 }}</span> / <span id="usage-limit">{{ daily_limit if daily_limit else 3 }}</span> used</span>
-            </div>
-
-            <!-- Daily Horoscope Section -->
-            <div class="section">
-                <h2>🌟 Daily Horoscope</h2>
-                <p>Click your zodiac sign to get today's reading</p>
-                
-                <div class="zodiac-grid" id="daily-zodiac-grid">
-                    <!-- Will be populated by JavaScript -->
-                </div>
-                
-                <button id="daily-btn" class="generate-btn" disabled>
-                    ⭐ Get My Daily Horoscope
-                </button>
-                
-                <div id="daily-output" class="output-box"></div>
-            </div>
-
-            <!-- Compatibility Section -->
-            <div class="section">
-                <h2>💕 Compatibility Reading</h2>
-                <p>See how compatible you are with someone else</p>
-                
-                <div class="compatibility-section">
-                    <div class="sign-selector">
-                        <h3>Your Sign</h3>
-                        <div class="zodiac-grid" id="your-sign-grid">
-                            <!-- Will be populated by JavaScript -->
-                        </div>
-                    </div>
-                    
-                    <div class="sign-selector">
-                        <h3>Their Sign</h3>
-                        <div class="zodiac-grid" id="their-sign-grid">
-                            <!-- Will be populated by JavaScript -->
-                        </div>
-                    </div>
-                </div>
-                
-                <button id="compatibility-btn" class="generate-btn" disabled>
-                    💕 Check Our Compatibility
-                </button>
-                
-                <div id="compatibility-output" class="output-box"></div>
-            </div>
-
-            <!-- Monthly Forecast Section -->
-            <div class="section">
-                <h2>📅 Monthly Forecast</h2>
-                <p>Get insights for the current month based on your sign</p>
-                
-                <div class="zodiac-grid" id="monthly-zodiac-grid">
-                    <!-- Will be populated by JavaScript -->
-                </div>
-                
-                <button id="monthly-btn" class="generate-btn" disabled>
-                    📅 Get My Monthly Forecast
-                </button>
-                
-                <div id="monthly-output" class="output-box"></div>
-            </div>
-        </div>
+  <a href="javascript:history.back()" class="back-btn">← Back to Chat</a>
+  
+  <header>
+    <div style="display: flex; align-items: center; justify-content: center; gap: 20px; flex-wrap: wrap;">
+      <img src="/static/logos/horoscope sky.png" alt="Horoscope Sky" style="height: 80px; border-radius: 15px; box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);">
+      <div>
+        <h1 style="margin: 0;">Horoscope Sky</h1>
+        <div class="subtitle">Your Daily Cosmic Guidance</div>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="row">
+      <div class="panel">
+        <label>🌟 Choose Your Zodiac Sign
+          <select id="sign">
+            <option value="">Select your zodiac sign...</option>
+            <option value="aries">Aries (Mar 21 – Apr 19)</option>
+            <option value="taurus">Taurus (Apr 20 – May 20)</option>
+            <option value="gemini">Gemini (May 21 – Jun 20)</option>
+            <option value="cancer">Cancer (Jun 21 – Jul 22)</option>
+            <option value="leo">Leo (Jul 23 – Aug 22)</option>
+            <option value="virgo">Virgo (Aug 23 – Sep 22)</option>
+            <option value="libra">Libra (Sep 23 – Oct 22)</option>
+            <option value="scorpio">Scorpio (Oct 23 – Nov 21)</option>
+            <option value="sagittarius">Sagittarius (Nov 22 – Dec 21)</option>
+            <option value="capricorn">Capricorn (Dec 22 – Jan 19)</option>
+            <option value="aquarius">Aquarius (Jan 20 – Feb 18)</option>
+            <option value="pisces">Pisces (Feb 19 – Mar 20)</option>
+          </select>
+        </label>
+      </div>
+      <div class="panel">
+        <label>📅 Reading Type
+          <select id="period">
+            <option value="daily">Daily Horoscope</option>
+            <option value="weekly">Weekly Forecast</option>
+            <option value="monthly">Monthly Reading</option>
+          </select>
+        </label>
+      </div>
+      <div class="panel">
+        <label>📆 Specific Date (Optional)
+          <input type="date" id="date" />
+        </label>
+        <small style="color: #a0a0c0; font-size: 11px;">Leave blank for today</small>
+      </div>
+      <div class="panel">
+        <button id="go" style="font-size: 1.1rem; padding: 12px 20px;">✨ Get My Horoscope ✨</button>
+      </div>
     </div>
 
+    <div id="out" class="grid"></div>
+
+    <hr style="margin:20px 0; border:none; border-top:1px solid #eee"/>
+
+    <div class="row">
+      <div class="panel">
+        <label>💕 First Sign
+          <select id="compatA">
+            <option value="">Select your zodiac sign...</option>
+            <option value="aries">Aries (Mar 21 – Apr 19)</option>
+            <option value="taurus">Taurus (Apr 20 – May 20)</option>
+            <option value="gemini">Gemini (May 21 – Jun 20)</option>
+            <option value="cancer">Cancer (Jun 21 – Jul 22)</option>
+            <option value="leo">Leo (Jul 23 – Aug 22)</option>
+            <option value="virgo">Virgo (Aug 23 – Sep 22)</option>
+            <option value="libra">Libra (Sep 23 – Oct 22)</option>
+            <option value="scorpio">Scorpio (Oct 23 – Nov 21)</option>
+            <option value="sagittarius">Sagittarius (Nov 22 – Dec 21)</option>
+            <option value="capricorn">Capricorn (Dec 22 – Jan 19)</option>
+            <option value="aquarius">Aquarius (Jan 20 – Feb 18)</option>
+            <option value="pisces">Pisces (Feb 19 – Mar 20)</option>
+          </select>
+        </label>
+      </div>
+      <div class="panel">
+        <label>💕 Second Sign
+          <select id="compatB">
+            <option value="">Select your zodiac sign...</option>
+            <option value="aries">Aries (Mar 21 – Apr 19)</option>
+            <option value="taurus">Taurus (Apr 20 – May 20)</option>
+            <option value="gemini">Gemini (May 21 – Jun 20)</option>
+            <option value="cancer">Cancer (Jun 21 – Jul 22)</option>
+            <option value="leo">Leo (Jul 23 – Aug 22)</option>
+            <option value="virgo">Virgo (Aug 23 – Sep 22)</option>
+            <option value="libra">Libra (Sep 23 – Oct 22)</option>
+            <option value="scorpio">Scorpio (Oct 23 – Nov 21)</option>
+            <option value="sagittarius">Sagittarius (Nov 22 – Dec 21)</option>
+            <option value="capricorn">Capricorn (Dec 22 – Jan 19)</option>
+            <option value="aquarius">Aquarius (Jan 20 – Feb 18)</option>
+            <option value="pisces">Pisces (Feb 19 – Mar 20)</option>
+          </select>
+        </label>
+      </div>
+      <div class="panel">
+        <label>💫 Relationship Type
+          <select id="compatType">
+            <option value="romantic">💖 Romantic Partnership</option>
+            <option value="friendship">👯 Friendship</option>
+          </select>
+        </label>
+      </div>
+      <div class="panel">
+        <button id="compatGo" style="font-size: 1.1rem; padding: 12px 20px;">✨ Check Compatibility ✨</button>
+      </div>
+    </div>
+    <div id="compat"></div>
+  </main>
+  <footer>✨ Horoscope Sky's cosmic guidance • Celestial wisdom for your journey through the stars ✨</footer>
+
 <script>
-// Zodiac signs data
-const zodiacSigns = [
-    { name: 'Aries', emoji: '♈', dates: 'Mar 21 - Apr 19' },
-    { name: 'Taurus', emoji: '♉', dates: 'Apr 20 - May 20' },
-    { name: 'Gemini', emoji: '♊', dates: 'May 21 - Jun 20' },
-    { name: 'Cancer', emoji: '♋', dates: 'Jun 21 - Jul 22' },
-    { name: 'Leo', emoji: '♌', dates: 'Jul 23 - Aug 22' },
-    { name: 'Virgo', emoji: '♍', dates: 'Aug 23 - Sep 22' },
-    { name: 'Libra', emoji: '♎', dates: 'Sep 23 - Oct 22' },
-    { name: 'Scorpio', emoji: '♏', dates: 'Oct 23 - Nov 21' },
-    { name: 'Sagittarius', emoji: '♐', dates: 'Nov 22 - Dec 21' },
-    { name: 'Capricorn', emoji: '♑', dates: 'Dec 22 - Jan 19' },
-    { name: 'Aquarius', emoji: '♒', dates: 'Jan 20 - Feb 18' },
-    { name: 'Pisces', emoji: '♓', dates: 'Feb 19 - Mar 20' }
-];
+const EXT = ".png";
+const ICON = (s) => `/static/horoscope/${s}${EXT}`;
+const pretty = (s) => s[0].toUpperCase()+s.slice(1);
 
-// State variables
-let selectedDailySign = null;
-let selectedYourSign = null;
-let selectedTheirSign = null;
-let selectedMonthlySign = null;
+async function fetchPeriod(sign, period, date){
+  const body = { sign, period };
+  if (date) body.date = date;
+  const r = await fetch("/api/horoscope/period", {
+    method:"POST", headers:{ "Content-Type":"application/json" }, body:JSON.stringify(body)
+  });
+  return await r.json();
+}
 
-// User state from backend
-let userUsage = {{ current_usage or 0 }};
-let userPlan = '{{ user_plan or "free" }}';
-let dailyLimit = {{ daily_limit if daily_limit else "null" }};
+function card(h){
+  const m = h.meta;
+  return `
+  <div class="card">
+    <div class="icon"><img src="${ICON(h.sign)}" onerror="this.style.display='none'; this.parentElement.textContent=m.glyph" alt="${m.name}" width="80" height="80"/></div>
+    <div style="flex: 1;">
+      <div class="card-title">${m.name} ${h.period.charAt(0).toUpperCase() + h.period.slice(1)}</div>
+      <div class="meta">${m.glyph} • ${m.dates}</div>
+      <div style="margin: 10px 0;">
+        <span class="pill">${m.element}</span>
+        <span class="pill">${m.modality}</span>
+        <span class="pill">${m.planet}</span>
+      </div>
+      <div class="card-content">${h.summary}</div>
+      <div class="lucky">
+        ✨ <strong>Cosmic Gifts:</strong> ${h.lucky.color} energy, ${h.lucky.time} power hour, numbers ${h.lucky.numbers.join(", ")}, ${h.lucky.mood} vibes
+      </div>
+      <div style="margin-top: 15px; text-align: center;">
+        <button onclick="interpretReading('${h.sign}', '${h.period}', '${h.date}')" style="font-size: 0.95rem; padding: 8px 16px;">🔮 Interpret My Reading 🔮</button>
+      </div>
+      <div id="interpretation-${h.sign}-${h.period}" style="display: none; margin-top: 15px; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 10px; border-left: 4px solid #d4af37;">
+        <div class="loading">✨ Channeling deeper cosmic insights...</div>
+      </div>
+    </div>
+  </div>`;
+}
 
-// Initialize the page
-document.addEventListener('DOMContentLoaded', function() {
-    createZodiacGrids();
-    refreshHoroscopeLimits();
+async function getHoroscope() {
+  const s = document.getElementById("sign").value;
+  const p = document.getElementById("period").value;
+  const d = document.getElementById("date").value;
+  const out = document.getElementById("out");
+  
+  if (!s) {
+    out.innerHTML = "<div style='color:#ff6b6b; padding: 20px; text-align: center;'>Please select your zodiac sign first!</div>";
+    return;
+  }
+  
+  out.innerHTML = "<div class='loading'>✨ Consulting the cosmic energies...</div>";
+  
+  try {
+    const h = await fetchPeriod(s, p, d || null);
+    if (h.error) { 
+      out.innerHTML = `<div style="color:#ff6b6b; padding: 20px; text-align: center;">${h.error}</div>`; 
+      return; 
+    }
+    out.innerHTML = card(h);
+  } catch (error) {
+    out.innerHTML = `<div style="color:#ff6b6b; padding: 20px; text-align: center;">Connection error. Please try again.</div>`;
+  }
+}
+
+// Simple button-only approach - no auto-triggering
+document.getElementById("go").addEventListener("click", getHoroscope);
+
+async function interpretReading(sign, period, date) {
+  const interpretDiv = document.getElementById(`interpretation-${sign}-${period}`);
+  
+  if (interpretDiv.style.display === 'none') {
+    interpretDiv.style.display = 'block';
+    
+    try {
+      const body = { sign, period };
+      if (date) body.date = date;
+      
+      const r = await fetch("/api/horoscope/interpret", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+      
+      const data = await r.json();
+      
+      if (data.error) {
+        interpretDiv.innerHTML = `<div style="color:#ff6b6b;">${data.error}</div>`;
+        return;
+      }
+      
+      interpretDiv.innerHTML = `
+        <div style="color: #d4af37; font-weight: bold; margin-bottom: 10px; border-bottom: 1px solid #d4af37; padding-bottom: 8px;">
+          🔮 Deeper Cosmic Insights
+        </div>
+        <div style="line-height: 1.7; color: #e8e8e8; font-style: italic;">
+          ${data.interpretation}
+        </div>
+      `;
+    } catch (error) {
+      interpretDiv.innerHTML = `<div style="color:#ff6b6b;">Connection error. Please try again.</div>`;
+    }
+  } else {
+    interpretDiv.style.display = 'none';
+  }
+}
+
+async function interpretCompatibility(a, b, score, type) {
+  const interpretDiv = document.getElementById(`compat-interpretation-${a}-${b}`);
+  
+  if (interpretDiv.style.display === 'none') {
+    interpretDiv.style.display = 'block';
+    
+    try {
+      const body = { a, b, type };
+      
+      const r = await fetch("/api/horoscope/interpret-compat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+      
+      const data = await r.json();
+      
+      if (data.error) {
+        interpretDiv.innerHTML = `<div style="color:#ff6b6b;">${data.error}</div>`;
+        return;
+      }
+      
+      // Convert markdown-style formatting to HTML
+      let interpretation = data.interpretation
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/• /g, '• ');
+      
+      interpretDiv.innerHTML = `
+        <div style="color: #d4af37; font-weight: bold; margin-bottom: 10px; border-bottom: 1px solid #d4af37; padding-bottom: 8px;">
+          💫 Compatibility Analysis
+        </div>
+        <div style="line-height: 1.7; color: #e8e8e8;">
+          ${interpretation}
+        </div>
+      `;
+    } catch (error) {
+      interpretDiv.innerHTML = `<div style="color:#ff6b6b;">Connection error. Please try again.</div>`;
+    }
+  } else {
+    interpretDiv.style.display = 'none';
+  }
+}
+
+document.getElementById("compatGo").addEventListener("click", async () => {
+  const a = document.getElementById("compatA").value;
+  const b = document.getElementById("compatB").value;
+  const type = document.getElementById("compatType").value;
+  const wrap = document.getElementById("compat");
+  
+  if (!a || !b) {
+    wrap.innerHTML = `<div style="color:#ff6b6b; padding: 20px; text-align: center;">Please select both zodiac signs!</div>`;
+    return;
+  }
+  
+  wrap.innerHTML = `<div class="loading">✨ Analyzing cosmic compatibility...</div>`;
+  
+  try {
+    const r = await fetch(`/api/horoscope/compat?a=${a}&b=${b}&type=${type}`);
+    const d = await r.json();
+    if (d.error) { 
+      wrap.innerHTML = `<div style="color:#ff6b6b; padding: 20px; text-align: center;">${d.error}</div>`; 
+      return; 
+    }
+    wrap.innerHTML = `<div class="compat-result">
+      <div class="card-title" style="text-align: center;">${pretty(d.a)} × ${pretty(d.b)} Compatibility</div>
+      <div class="compat-score">${d.score}%</div>
+      <div class="meta" style="text-align: center;">${d.note}</div>
+      <div style="margin-top: 15px; text-align: center;">
+        <button onclick="interpretCompatibility('${d.a}', '${d.b}', ${d.score}, '${d.type}')" style="font-size: 0.95rem; padding: 8px 16px;">💫 Why This Score? 💫</button>
+      </div>
+      <div id="compat-interpretation-${d.a}-${d.b}" style="display: none; margin-top: 15px; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 10px; border-left: 4px solid #d4af37;">
+        <div class="loading">✨ Analyzing cosmic compatibility factors...</div>
+      </div>
+    </div>`;
+  } catch (error) {
+    wrap.innerHTML = `<div style="color:#ff6b6b; padding: 20px; text-align: center;">Connection error. Please try again.</div>`;
+  }
 });
-
-// Create zodiac sign grids
-function createZodiacGrids() {
-    const dailyGrid = document.getElementById('daily-zodiac-grid');
-    const yourGrid = document.getElementById('your-sign-grid');
-    const theirGrid = document.getElementById('their-sign-grid');
-    const monthlyGrid = document.getElementById('monthly-zodiac-grid');
-
-    zodiacSigns.forEach(sign => {
-        // Daily horoscope grid
-        const dailySign = createZodiacElement(sign, 'daily');
-        dailyGrid.appendChild(dailySign);
-
-        // Compatibility grids
-        const yourSign = createZodiacElement(sign, 'your');
-        yourGrid.appendChild(yourSign);
-
-        const theirSign = createZodiacElement(sign, 'their');
-        theirGrid.appendChild(theirSign);
-
-        // Monthly grid
-        const monthlySign = createZodiacElement(sign, 'monthly');
-        monthlyGrid.appendChild(monthlySign);
-    });
-}
-
-function createZodiacElement(sign, type) {
-    const element = document.createElement('div');
-    element.className = 'zodiac-sign';
-    element.innerHTML = `
-        <span class="emoji">${sign.emoji}</span>
-        <div class="name">${sign.name}</div>
-    `;
-    
-    element.addEventListener('click', () => selectZodiacSign(sign, type, element));
-    return element;
-}
-
-function selectZodiacSign(sign, type, element) {
-    // Remove previous selection in this grid
-    const gridId = type === 'daily' ? 'daily-zodiac-grid' :
-                   type === 'your' ? 'your-sign-grid' :
-                   type === 'their' ? 'their-sign-grid' : 'monthly-zodiac-grid';
-    
-    document.querySelectorAll(`#${gridId} .zodiac-sign`).forEach(el => {
-        el.classList.remove('selected');
-    });
-    
-    // Select this sign
-    element.classList.add('selected');
-    
-    // Update state
-    if (type === 'daily') {
-        selectedDailySign = sign;
-        document.getElementById('daily-btn').disabled = false;
-    } else if (type === 'your') {
-        selectedYourSign = sign;
-        updateCompatibilityButton();
-    } else if (type === 'their') {
-        selectedTheirSign = sign;
-        updateCompatibilityButton();
-    } else if (type === 'monthly') {
-        selectedMonthlySign = sign;
-        document.getElementById('monthly-btn').disabled = false;
-    }
-}
-
-function updateCompatibilityButton() {
-    const btn = document.getElementById('compatibility-btn');
-    btn.disabled = !(selectedYourSign && selectedTheirSign);
-}
-
-// Event listeners for buttons
-document.getElementById('daily-btn').addEventListener('click', generateDaily);
-document.getElementById('compatibility-btn').addEventListener('click', generateCompatibility);
-document.getElementById('monthly-btn').addEventListener('click', generateMonthly);
-
-async function generateDaily() {
-    if (!checkUsageLimit()) return;
-    
-    const btn = document.getElementById('daily-btn');
-    const output = document.getElementById('daily-output');
-    
-    btn.disabled = true;
-    btn.textContent = '⭐ Reading the stars...';
-    output.className = 'output-box';
-    output.innerHTML = '✨ Consulting the cosmic energies for your daily guidance...';
-    output.classList.add('show');
-    
-    try {
-        const prompt = `Give me a daily horoscope reading for ${selectedDailySign.name} for today. Include:
-1. **Today's Energy**: What cosmic energies are affecting ${selectedDailySign.name} today?
-2. **Love & Relationships**: Guidance for romantic connections and relationships
-3. **Career & Money**: Professional and financial insights for today
-4. **Health & Wellness**: Physical and emotional wellbeing advice
-5. **Lucky Element**: A lucky color, number, or suggestion for today
-
-Keep it positive, insightful, and practical. Make it personal for someone born under ${selectedDailySign.name}.`;
-
-        const response = await fetch('/api/chat', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                message: prompt,
-                character: 'Blayzo',
-                context: 'daily_horoscope'
-            })
-        });
-
-        const result = await response.json();
-        
-        if (result.success) {
-            output.innerHTML = result.response;
-            userUsage++;
-            refreshHoroscopeLimits();
-            
-            // Auto-save to library
-            await saveHoroscopeToLibrary(
-                `Daily Horoscope - ${selectedDailySign.name}`,
-                result.response,
-                'daily_horoscope',
-                { zodiac_sign: selectedDailySign.name, reading_type: 'daily' }
-            );
-        } else {
-            output.innerHTML = '⚠️ Unable to generate your horoscope right now. Please try again.';
-        }
-    } catch (error) {
-        console.error('Daily horoscope error:', error);
-        output.innerHTML = '⚠️ Something went wrong. Please try again.';
-    } finally {
-        btn.disabled = false;
-        btn.textContent = '⭐ Get My Daily Horoscope';
-    }
-}
-
-async function generateCompatibility() {
-    if (!checkUsageLimit()) return;
-    
-    const btn = document.getElementById('compatibility-btn');
-    const output = document.getElementById('compatibility-output');
-    
-    btn.disabled = true;
-    btn.textContent = '💕 Analyzing compatibility...';
-    output.className = 'output-box';
-    output.innerHTML = '💫 Examining the cosmic connection between your signs...';
-    output.classList.add('show');
-    
-    try {
-        const prompt = `Analyze the compatibility between ${selectedYourSign.name} and ${selectedTheirSign.name}. Include:
-1. **Overall Compatibility**: How well do these signs match? (Give a percentage or rating)
-2. **Strengths**: What makes this pairing work well together?
-3. **Challenges**: What areas might need extra attention or compromise?
-4. **Love & Romance**: How these signs connect romantically
-5. **Communication**: How they understand and communicate with each other
-6. **Advice**: Practical tips for making this relationship thrive
-
-Be balanced, honest, and helpful. Focus on how they can build a strong connection.`;
-
-        const response = await fetch('/api/chat', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                message: prompt,
-                character: 'Blayzo',
-                context: 'compatibility_reading'
-            })
-        });
-
-        const result = await response.json();
-        
-        if (result.success) {
-            output.innerHTML = result.response;
-            userUsage++;
-            refreshHoroscopeLimits();
-            
-            // Auto-save to library
-            await saveHoroscopeToLibrary(
-                `Compatibility Reading - ${selectedYourSign.name} & ${selectedTheirSign.name}`,
-                result.response,
-                'compatibility_reading',
-                { your_sign: selectedYourSign.name, their_sign: selectedTheirSign.name, reading_type: 'compatibility' }
-            );
-        } else {
-            output.innerHTML = '⚠️ Unable to generate compatibility reading right now. Please try again.';
-        }
-    } catch (error) {
-        console.error('Compatibility error:', error);
-        output.innerHTML = '⚠️ Something went wrong. Please try again.';
-    } finally {
-        btn.disabled = selectedYourSign && selectedTheirSign ? false : true;
-        btn.textContent = '💕 Check Our Compatibility';
-    }
-}
-
-async function generateMonthly() {
-    if (!checkUsageLimit()) return;
-    
-    const btn = document.getElementById('monthly-btn');
-    const output = document.getElementById('monthly-output');
-    
-    btn.disabled = true;
-    btn.textContent = '📅 Reading monthly forecast...';
-    output.className = 'output-box';
-    output.innerHTML = '🌙 Gathering insights for your month ahead...';
-    output.classList.add('show');
-    
-    try {
-        const currentMonth = new Date().toLocaleString('default', { month: 'long', year: 'numeric' });
-        
-        const prompt = `Give me a monthly horoscope forecast for ${selectedMonthlySign.name} for ${currentMonth}. Include:
-1. **Month Overview**: What are the main themes and energies for ${selectedMonthlySign.name} this month?
-2. **Key Dates**: Important time periods or cosmic events to watch for
-3. **Love & Relationships**: Romantic prospects and relationship guidance for the month
-4. **Career & Finance**: Professional opportunities and money matters
-5. **Personal Growth**: Areas for self-improvement and spiritual development
-6. **Challenges & Opportunities**: What to be aware of and how to make the most of this month
-
-Make it inspiring, practical, and specifically tailored for ${selectedMonthlySign.name}.`;
-
-        const response = await fetch('/api/chat', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                message: prompt,
-                character: 'Blayzo',
-                context: 'monthly_forecast'
-            })
-        });
-
-        const result = await response.json();
-        
-        if (result.success) {
-            output.innerHTML = result.response;
-            userUsage++;
-            refreshHoroscopeLimits();
-            
-            // Auto-save to library
-            const currentMonth = new Date().toLocaleString('default', { month: 'long', year: 'numeric' });
-            await saveHoroscopeToLibrary(
-                `Monthly Forecast - ${selectedMonthlySign.name} (${currentMonth})`,
-                result.response,
-                'monthly_forecast',
-                { zodiac_sign: selectedMonthlySign.name, month: currentMonth, reading_type: 'monthly' }
-            );
-        } else {
-            output.innerHTML = '⚠️ Unable to generate monthly forecast right now. Please try again.';
-        }
-    } catch (error) {
-        console.error('Monthly forecast error:', error);
-        output.innerHTML = '⚠️ Something went wrong. Please try again.';
-    } finally {
-        btn.disabled = false;
-        btn.textContent = '📅 Get My Monthly Forecast';
-    }
-}
-
-// Usage limit checking
-function checkUsageLimit() {
-    if (dailyLimit !== null && userUsage >= dailyLimit) {
-        alert(`You've reached your daily limit of ${dailyLimit} horoscope readings. Upgrade to get more!`);
-        return false;
-    }
-    return true;
-}
-
-async function refreshHoroscopeLimits() {
-    try {
-        const res = await fetch('/api/horoscope/check-limit');
-        const data = await res.json();
-        
-        if (data.success) {
-            userUsage = data.usage_today;
-            userPlan = data.user_plan;
-            dailyLimit = data.daily_limit;
-            
-            const usageCount = document.getElementById('usage-count');
-            const usageLimit = document.getElementById('usage-limit');
-            const planDesc = document.getElementById('plan-description');
-            
-            if (usageCount) usageCount.textContent = userUsage || 0;
-            if (usageLimit) usageLimit.textContent = (dailyLimit === null || dailyLimit === undefined) ? '∞' : (dailyLimit || "?");
-            if (planDesc) {
-                const limitDisplay = (dailyLimit === null || dailyLimit === undefined) ? '∞' : (dailyLimit || "?");
-                planDesc.textContent = `⭐ Daily Horoscopes: ${userUsage || 0} / ${limitDisplay} used`;
-            }
-        }
-    } catch (error) {
-        console.error('Failed to refresh horoscope limits:', error);
-    }
-}
-
-// Auto-save horoscope readings to library
-async function saveHoroscopeToLibrary(title, content, readingType, metadata) {
-    try {
-        const response = await fetch('/api/save-horoscope', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                title: title,
-                content: content,
-                reading_type: readingType,
-                metadata: metadata
-            })
-        });
-        
-        const result = await response.json();
-        if (result.success) {
-            console.log('Horoscope reading saved to library:', title);
-            // Optional: Show a subtle notification
-            showSaveNotification('✅ Reading saved to your library');
-        } else {
-            console.warn('Failed to save horoscope reading:', result.error);
-        }
-    } catch (error) {
-        console.error('Error saving horoscope to library:', error);
-    }
-}
-
-// Show subtle save notification
-function showSaveNotification(message) {
-    const notification = document.createElement('div');
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: rgba(34, 197, 94, 0.9);
-        color: white;
-        padding: 10px 20px;
-        border-radius: 8px;
-        font-size: 14px;
-        z-index: 10000;
-        animation: slideIn 0.3s ease;
-    `;
-    notification.textContent = message;
-    
-    // Add slide-in animation
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-    `;
-    document.head.appendChild(style);
-    
-    document.body.appendChild(notification);
-    
-    // Remove notification after 3 seconds
-    setTimeout(() => {
-        notification.style.animation = 'slideIn 0.3s ease reverse';
-        setTimeout(() => {
-            document.body.removeChild(notification);
-            document.head.removeChild(style);
-        }, 300);
-    }, 3000);
-}
 </script>
-
 </body>
 </html>
