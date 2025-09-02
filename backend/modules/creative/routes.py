@@ -370,6 +370,80 @@ def api_creative_writing():
         return jsonify({"success": False, "error": "Creative writing failed"}), 500
 
 # Usage checking endpoints
+@creative_bp.route("/api/decoder/debug-table")
+@requires_login
+def debug_feature_usage_table():
+    """Debug endpoint to check feature_usage table state"""
+    try:
+        from ..shared.database import get_database
+        db = get_database()
+        if not db:
+            return jsonify({"error": "No database connection"}), 500
+        
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        
+        # Check if table exists
+        if db.use_postgres:
+            cursor.execute("""
+                SELECT EXISTS (
+                    SELECT FROM information_schema.tables 
+                    WHERE table_name = 'feature_usage'
+                )
+            """)
+        else:
+            cursor.execute("""
+                SELECT name FROM sqlite_master 
+                WHERE type='table' AND name='feature_usage'
+            """)
+        
+        table_exists = bool(cursor.fetchone()[0] if cursor.fetchone() else False)
+        
+        # Get table schema if exists
+        schema_info = "N/A"
+        if table_exists:
+            if db.use_postgres:
+                cursor.execute("""
+                    SELECT column_name, data_type 
+                    FROM information_schema.columns 
+                    WHERE table_name = 'feature_usage'
+                    ORDER BY ordinal_position
+                """)
+            else:
+                cursor.execute("PRAGMA table_info(feature_usage)")
+            schema_info = cursor.fetchall()
+        
+        # Check current user's records
+        user_id = get_user_id()
+        user_records = []
+        if table_exists:
+            if db.use_postgres:
+                cursor.execute("""
+                    SELECT feature_name, usage_date, usage_count, last_used_at
+                    FROM feature_usage WHERE user_id = %s
+                    ORDER BY last_used_at DESC LIMIT 10
+                """, (user_id,))
+            else:
+                cursor.execute("""
+                    SELECT feature_name, usage_date, usage_count, last_used_at
+                    FROM feature_usage WHERE user_id = ?
+                    ORDER BY last_used_at DESC LIMIT 10
+                """, (user_id,))
+            user_records = cursor.fetchall()
+        
+        conn.close()
+        
+        return jsonify({
+            "table_exists": table_exists,
+            "schema_info": schema_info,
+            "user_records": user_records,
+            "user_id": user_id,
+            "database_type": "postgres" if db.use_postgres else "sqlite"
+        })
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 @creative_bp.route("/api/decoder/check-limit")
 @requires_login
 def check_decoder_limit():
