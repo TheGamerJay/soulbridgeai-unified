@@ -2271,7 +2271,7 @@
                 document.getElementById('companion-loading').style.display = 'block';
                 document.getElementById('companion-list').style.display = 'none';
                 
-                const response = await fetch(`${API_BASE}/companions`);
+                const response = await fetch(`${API_BASE}/api/companions`);
                 const data = await response.json();
                 
                 if (data.success && data.companions) {
