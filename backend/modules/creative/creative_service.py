@@ -44,32 +44,23 @@ class CreativeService:
                     "error": "Please provide text of at least 10 characters to decode"
                 }
             
-            # Use the working chat endpoint internally for OpenAI integration (same as creative writing)
-            try:
-                import requests
-                import os
-                
-                # Direct call to chat endpoint
-                chat_url = f"{os.environ.get('APP_URL', 'http://localhost:8080')}/api/chat"
-                logger.info(f"🌐 Making internal call to: {chat_url}")
-                
-                # Choose character and context based on mode
-                if mode == "lyrics":
-                    character = "Symbolism Decoder"
-                    context = "lyrics_analysis"
-                elif mode == "tone":
-                    character = "Communication Analyzer"
-                    context = "tone_analysis"
-                else:
-                    character = "Dream Decoder"
-                    context = "dream_interpretation"
-                
-                # For modes like lyrics/tone, the dream_text already contains the full prompt
-                # For traditional dream mode, we add our own prompt
-                if mode == "dream" and not dream_text.startswith("Analyze this dream"):
-                    prompt = f"""You are a professional dream interpreter. Analyze this dream and provide insights:
+            # Direct OpenAI API call to bypass authentication issues
+            if self.client:
+                try:
+                    # Choose character and context based on mode
+                    if mode == "lyrics":
+                        character_prompt = "You are a Symbolism Decoder, expert at analyzing lyrics, poetry, and artistic content for deeper meanings."
+                    elif mode == "tone":
+                        character_prompt = "You are a Communication Analyzer, expert at reading tone, intent, and subtext in messages."
+                    else:
+                        character_prompt = "You are a Dream Decoder, expert at interpreting dreams and subconscious symbolism."
+                    
+                    # For modes like lyrics/tone, the dream_text already contains the full prompt
+                    # For traditional dream mode, we add our own prompt
+                    if mode == "dream" and not dream_text.startswith("Analyze this dream"):
+                        user_message = f"""Analyze this dream and provide insights:
 
-Dream: {dream_text}
+{dream_text}
 
 Please provide:
 1. Overall meaning and symbolism
@@ -79,35 +70,37 @@ Please provide:
 5. Guidance or advice
 
 Be supportive, insightful, and avoid negative interpretations."""
-                else:
-                    # Use the full prompt as-is (for lyrics/tone modes)
-                    prompt = dream_text
+                    else:
+                        # Use the full prompt as-is (for lyrics/tone modes)
+                        user_message = dream_text
 
-                payload = {
-                    "message": prompt,
-                    "character": character,
-                    "context": context,
-                    "user_tier": "bronze"
-                }
-                logger.info(f"📤 Sending payload: {payload}")
-                
-                response = requests.post(chat_url, json=payload, timeout=30)
-                
-                if response.status_code == 200:
-                    result = response.json()
-                    logger.info(f"🤖 Chat endpoint response: {result}")
-                    if result.get('success'):
+                    logger.info(f"🤖 Making direct OpenAI call for {mode} mode")
+                    
+                    # Direct OpenAI call
+                    response = self.client.chat.completions.create(
+                        model="gpt-3.5-turbo",
+                        messages=[
+                            {"role": "system", "content": character_prompt},
+                            {"role": "user", "content": user_message}
+                        ],
+                        temperature=0.9,
+                        max_tokens=800
+                    )
+                    
+                    if response.choices and response.choices[0].message.content:
+                        ai_response = response.choices[0].message.content.strip()
+                        logger.info(f"✅ Got OpenAI response: {ai_response[:100]}...")
+                        
                         return {
                             "success": True,
-                            "interpretation": result['response'],
+                            "interpretation": ai_response,
                             "symbols_found": self._extract_symbols(dream_text),
                             "mood": self._analyze_dream_mood(dream_text)
                         }
-                else:
-                    logger.error(f"❌ Chat endpoint returned status {response.status_code}: {response.text}")
-            except Exception as e:
-                logger.error(f"Failed to call chat endpoint: {e}")
-                pass
+                    
+                except Exception as e:
+                    logger.error(f"OpenAI API call failed: {e}")
+                    pass
             
             # Fallback interpretation
             return {
@@ -130,15 +123,10 @@ Be supportive, insightful, and avoid negative interpretations."""
             # Get random tarot cards
             cards = get_random_tarot_cards(3)
             
-            # Use the working chat endpoint internally for OpenAI integration (same as decoder)
-            try:
-                import requests
-                import os
-                
-                # Direct call to chat endpoint
-                chat_url = f"{os.environ.get('APP_URL', 'http://localhost:8080')}/api/chat"
-                
-                prompt = f"""You are a wise tarot reader. The user asks: "{question or 'General reading'}"
+            # Direct OpenAI API call to bypass authentication issues
+            if self.client:
+                try:
+                    prompt = f"""You are a wise tarot reader. The user asks: "{question or 'General reading'}"
 
 The cards drawn are:
 1. {cards[0]['name']} - {cards[0]['meaning']}
@@ -147,28 +135,32 @@ The cards drawn are:
 
 Provide an insightful, positive reading that connects these cards to their question. Be encouraging and wise."""
 
-                response = requests.post(chat_url, json={
-                    "message": prompt,
-                    "character": "Fortune Teller",
-                    "context": "tarot_reading",
-                    "user_tier": "bronze"
-                })
-                
-                if response.status_code == 200:
-                    result = response.json()
-                    logger.info(f"🤖 Chat endpoint response for fortune: {result}")
-                    if result.get('success'):
+                    logger.info(f"🔮 Making direct OpenAI call for fortune reading")
+                    
+                    response = self.client.chat.completions.create(
+                        model="gpt-3.5-turbo",
+                        messages=[
+                            {"role": "system", "content": "You are a wise Fortune Teller, expert at tarot reading and spiritual guidance."},
+                            {"role": "user", "content": prompt}
+                        ],
+                        temperature=0.9,
+                        max_tokens=600
+                    )
+                    
+                    if response.choices and response.choices[0].message.content:
+                        ai_response = response.choices[0].message.content.strip()
+                        logger.info(f"✅ Got OpenAI fortune response: {ai_response[:100]}...")
+                        
                         return {
                             "success": True,
-                            "reading": result['response'],
+                            "reading": ai_response,
                             "cards": cards,
                             "question": question or "General reading"
                         }
-                else:
-                    logger.error(f"❌ Chat endpoint returned status {response.status_code}: {response.text}")
-            except Exception as e:
-                logger.error(f"Failed to call chat endpoint for fortune: {e}")
-                pass
+                        
+                except Exception as e:
+                    logger.error(f"OpenAI fortune API call failed: {e}")
+                    pass
             
             # Fallback reading
             card_names = [card['name'] for card in cards]
@@ -199,15 +191,10 @@ Provide an insightful, positive reading that connects these cards to their quest
             
             sign = zodiac_sign.lower()
             
-            # Use the working chat endpoint internally for OpenAI integration (same as decoder)
-            try:
-                import requests
-                import os
-                
-                # Direct call to chat endpoint
-                chat_url = f"{os.environ.get('APP_URL', 'http://localhost:8080')}/api/chat"
-                
-                prompt = f"""Create a daily horoscope for {sign.title()}. Include:
+            # Direct OpenAI API call to bypass authentication issues
+            if self.client:
+                try:
+                    prompt = f"""Create a daily horoscope for {sign.title()}. Include:
 
 1. General outlook for today
 2. Love & relationships
@@ -217,30 +204,34 @@ Provide an insightful, positive reading that connects these cards to their quest
 
 Make it positive, insightful, and encouraging. Keep it concise but meaningful."""
 
-                response = requests.post(chat_url, json={
-                    "message": prompt,
-                    "character": "Astrologer",
-                    "context": "horoscope_reading",
-                    "user_tier": "bronze"
-                })
-                
-                if response.status_code == 200:
-                    result = response.json()
-                    logger.info(f"🤖 Chat endpoint response for horoscope: {result}")
-                    if result.get('success'):
+                    logger.info(f"⭐ Making direct OpenAI call for horoscope")
+                    
+                    response = self.client.chat.completions.create(
+                        model="gpt-3.5-turbo",
+                        messages=[
+                            {"role": "system", "content": "You are an Astrologer, expert at creating insightful and uplifting horoscopes."},
+                            {"role": "user", "content": prompt}
+                        ],
+                        temperature=0.9,
+                        max_tokens=500
+                    )
+                    
+                    if response.choices and response.choices[0].message.content:
+                        ai_response = response.choices[0].message.content.strip()
+                        logger.info(f"✅ Got OpenAI horoscope response: {ai_response[:100]}...")
+                        
                         return {
                             "success": True,
-                            "horoscope": result['response'],
+                            "horoscope": ai_response,
                             "sign": sign.title(),
                             "date": datetime.now().strftime("%Y-%m-%d"),
                             "lucky_numbers": random.sample(range(1, 50), 5),
                             "lucky_color": random.choice(['blue', 'green', 'purple', 'gold', 'red'])
                         }
-                else:
-                    logger.error(f"❌ Chat endpoint returned status {response.status_code}: {response.text}")
-            except Exception as e:
-                logger.error(f"Failed to call chat endpoint for horoscope: {e}")
-                pass
+                        
+                except Exception as e:
+                    logger.error(f"OpenAI horoscope API call failed: {e}")
+                    pass
             
             # Fallback horoscope
             outlooks = [
