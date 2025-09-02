@@ -3,7 +3,7 @@ SoulBridge AI - Enhanced Fortune Routes
 Deterministic tarot readings with multiple spreads
 """
 import logging
-from flask import Blueprint, request, jsonify, session
+from flask import Blueprint, request, jsonify, session, render_template, redirect
 from ..auth.session_manager import requires_login
 from ..creative.usage_tracker import CreativeUsageTracker
 from ..creative.features_config import get_feature_limit
@@ -11,14 +11,35 @@ from .fortune_service import FortuneService
 
 logger = logging.getLogger(__name__)
 
-# Create blueprint
-fortune_bp = Blueprint('fortune', __name__, url_prefix='/api/fortune')
+# Create blueprint - Note: No url_prefix so we can handle both page and API routes
+fortune_bp = Blueprint('fortune', __name__)
 
 # Initialize services
 fortune_service = FortuneService()
 usage_tracker = CreativeUsageTracker()
 
-@fortune_bp.route('/spreads', methods=['GET'])
+@fortune_bp.route('/fortune')
+@requires_login
+def fortune_page():
+    """Main fortune page - Enhanced Tarot tool with multiple spreads"""
+    # Check if user has ad-free subscription
+    user_id = session.get('user_id')
+    ad_free = False
+    if user_id:
+        try:
+            from ..user_profile.profile_service import ProfileService
+            profile_service = ProfileService()
+            user_profile = profile_service.get_profile(user_id)
+            ad_free = user_profile.get('ad_free', False) if user_profile else False
+        except Exception as e:
+            logger.error(f"Error checking ad-free status: {e}")
+            ad_free = False
+    
+    return render_template('fortune_enhanced.html', 
+                         ad_free=ad_free,
+                         user_session=session)
+
+@fortune_bp.route('/api/fortune/spreads', methods=['GET'])
 @requires_login
 def get_spreads():
     """Get available tarot spreads"""
@@ -29,7 +50,7 @@ def get_spreads():
         logger.error(f"Error getting spreads: {e}")
         return jsonify({"success": False, "error": str(e)}), 500
 
-@fortune_bp.route('/reading', methods=['POST'])
+@fortune_bp.route('/api/fortune/reading', methods=['POST'])
 @requires_login
 def generate_reading():
     """Generate deterministic tarot reading"""
@@ -89,7 +110,7 @@ def generate_reading():
         logger.error(f"Error generating fortune reading: {e}")
         return jsonify({"success": False, "error": str(e)}), 500
 
-@fortune_bp.route('/interpret', methods=['POST'])
+@fortune_bp.route('/api/fortune/interpret', methods=['POST'])
 @requires_login
 def interpret_reading():
     """Generate interpretation for an existing reading"""
@@ -112,7 +133,7 @@ def interpret_reading():
         logger.error(f"Error generating interpretation: {e}")
         return jsonify({"success": False, "error": str(e)}), 500
 
-@fortune_bp.route('/limits', methods=['GET'])
+@fortune_bp.route('/api/fortune/limits', methods=['GET'])
 @requires_login
 def get_limits():
     """Get user's fortune usage limits"""
