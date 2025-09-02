@@ -78,9 +78,14 @@ def create_app():
         logger.info("✅ Database system initialized")
         
         # Ensure database schema is up to date
-        from unified_tier_system import ensure_database_schema
-        ensure_database_schema()
-        logger.info("✅ Database schema initialized")
+        try:
+            from unified_tier_system import ensure_database_schema
+            ensure_database_schema()
+            logger.info("✅ Database schema initialized")
+        except Exception as schema_error:
+            logger.error(f"❌ Schema initialization failed: {schema_error}")
+            # Don't let schema failure stop app startup
+            pass
     except Exception as e:
         logger.error(f"❌ Database initialization failed: {e}")
     

@@ -134,7 +134,9 @@ def api_decoder():
         
         if result['success']:
             # Track usage
-            usage_tracker.record_usage(user_id, 'decoder')
+            logger.info(f"🔓 Recording decoder usage for user {user_id}")
+            usage_success = usage_tracker.record_usage(user_id, 'decoder')
+            logger.info(f"🔓 Usage recording result: {usage_success}")
             
             # Auto-save to library
             auto_saved = False
