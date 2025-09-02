@@ -48,11 +48,10 @@ class CreativeService:
             try:
                 import requests
                 import os
-                from flask import current_app
                 
-                # Get app context URL
-                with current_app.test_request_context():
-                    chat_url = f"{os.environ.get('APP_URL', 'http://localhost:8080')}/api/chat"
+                # Direct call to chat endpoint
+                chat_url = f"{os.environ.get('APP_URL', 'http://localhost:8080')}/api/chat"
+                logger.info(f"🌐 Making internal call to: {chat_url}")
                 
                 # Choose character and context based on mode
                 if mode == "lyrics":
@@ -84,12 +83,15 @@ Be supportive, insightful, and avoid negative interpretations."""
                     # Use the full prompt as-is (for lyrics/tone modes)
                     prompt = dream_text
 
-                response = requests.post(chat_url, json={
+                payload = {
                     "message": prompt,
                     "character": character,
                     "context": context,
                     "user_tier": "bronze"
-                })
+                }
+                logger.info(f"📤 Sending payload: {payload}")
+                
+                response = requests.post(chat_url, json=payload, timeout=30)
                 
                 if response.status_code == 200:
                     result = response.json()
@@ -132,11 +134,9 @@ Be supportive, insightful, and avoid negative interpretations."""
             try:
                 import requests
                 import os
-                from flask import current_app
                 
-                # Get app context URL
-                with current_app.test_request_context():
-                    chat_url = f"{os.environ.get('APP_URL', 'http://localhost:8080')}/api/chat"
+                # Direct call to chat endpoint
+                chat_url = f"{os.environ.get('APP_URL', 'http://localhost:8080')}/api/chat"
                 
                 prompt = f"""You are a wise tarot reader. The user asks: "{question or 'General reading'}"
 
@@ -203,11 +203,9 @@ Provide an insightful, positive reading that connects these cards to their quest
             try:
                 import requests
                 import os
-                from flask import current_app
                 
-                # Get app context URL
-                with current_app.test_request_context():
-                    chat_url = f"{os.environ.get('APP_URL', 'http://localhost:8080')}/api/chat"
+                # Direct call to chat endpoint
+                chat_url = f"{os.environ.get('APP_URL', 'http://localhost:8080')}/api/chat"
                 
                 prompt = f"""Create a daily horoscope for {sign.title()}. Include:
 
@@ -282,11 +280,9 @@ Make it positive, insightful, and encouraging. Keep it concise but meaningful.""
             try:
                 import requests
                 import os
-                from flask import current_app
                 
-                # Get app context URL
-                with current_app.test_request_context():
-                    chat_url = f"{os.environ.get('APP_URL', 'http://localhost:8080')}/api/chat"
+                # Direct call to chat endpoint
+                chat_url = f"{os.environ.get('APP_URL', 'http://localhost:8080')}/api/chat"
                 
                 writing_prompt = f"""Create a {style} based on this prompt: "{prompt}"
 
