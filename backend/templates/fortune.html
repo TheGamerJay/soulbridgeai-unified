@@ -610,13 +610,13 @@ let dailyLimit = {{ daily_limit if daily_limit else "null" }};
 // Function to refresh fortune limits from server
 async function refreshFortuneLimits() {
     try {
-        const res = await fetch('/api/fortune/limits');
+        const res = await fetch('/api/fortune/check-limit');
         const data = await res.json();
         
         console.log("🔮 Fortune API response:", data);
 
-        // Updated to use companion-tier system (same as decoder/horoscope)
-        const { companion_tier, usage_today, daily_limit, companion_id, user_plan, trial_active } = data;
+        // Updated to use the correct API response structure
+        const { effective_plan, trial_active, usage_today, daily_limit, user_plan } = data;
         
         const hasUnlimited = user_plan === "gold" && !trial_active;  // Only if REAL Gold tier (not trial)
         const displayLimit = hasUnlimited ? "∞" : (daily_limit || "?");

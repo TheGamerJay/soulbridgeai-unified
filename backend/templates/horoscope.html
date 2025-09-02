@@ -651,7 +651,7 @@ async function refreshHoroscopeLimits() {
         const data = await res.json();
         
         if (data.success) {
-            userUsage = data.usage;
+            userUsage = data.usage_today;
             userPlan = data.user_plan;
             dailyLimit = data.daily_limit;
             

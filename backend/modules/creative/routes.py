@@ -302,16 +302,23 @@ def check_decoder_limit():
         user_plan = session.get('user_plan', 'bronze')
         trial_active = session.get('trial_active', False)
         
+        # Get effective plan for display (trial users show higher tier access)
+        from ..tiers.artistic_time import get_effective_plan
+        effective_plan = get_effective_plan(user_plan, trial_active)
+        
         limit = get_feature_limit('decoder', user_plan, trial_active)
         usage_tracker = CreativeUsageTracker()
         usage_today = usage_tracker.get_usage_today(user_id, 'decoder')
         
         return jsonify({
             "success": True,
-            "limit": limit,
+            "daily_limit": limit,
             "usage_today": usage_today,
             "remaining": max(0, limit - usage_today),
-            "unlimited": limit >= 999
+            "unlimited": limit >= 999,
+            "user_plan": user_plan,
+            "effective_plan": effective_plan,
+            "trial_active": trial_active
         })
         
     except Exception as e:
@@ -327,16 +334,23 @@ def check_fortune_limit():
         user_plan = session.get('user_plan', 'bronze')
         trial_active = session.get('trial_active', False)
         
+        # Get effective plan for display (trial users show higher tier access)
+        from ..tiers.artistic_time import get_effective_plan
+        effective_plan = get_effective_plan(user_plan, trial_active)
+        
         limit = get_feature_limit('fortune', user_plan, trial_active)
         usage_tracker = CreativeUsageTracker()
         usage_today = usage_tracker.get_usage_today(user_id, 'fortune')
         
         return jsonify({
             "success": True,
-            "limit": limit,
+            "daily_limit": limit,
             "usage_today": usage_today,
             "remaining": max(0, limit - usage_today),
-            "unlimited": limit >= 999
+            "unlimited": limit >= 999,
+            "user_plan": user_plan,
+            "effective_plan": effective_plan,
+            "trial_active": trial_active
         })
         
     except Exception as e:
@@ -352,16 +366,23 @@ def check_horoscope_limit():
         user_plan = session.get('user_plan', 'bronze')
         trial_active = session.get('trial_active', False)
         
+        # Get effective plan for display (trial users show higher tier access)
+        from ..tiers.artistic_time import get_effective_plan
+        effective_plan = get_effective_plan(user_plan, trial_active)
+        
         limit = get_feature_limit('horoscope', user_plan, trial_active)
         usage_tracker = CreativeUsageTracker()
         usage_today = usage_tracker.get_usage_today(user_id, 'horoscope')
         
         return jsonify({
             "success": True,
-            "limit": limit,
+            "daily_limit": limit,
             "usage_today": usage_today,
             "remaining": max(0, limit - usage_today),
-            "unlimited": limit >= 999
+            "unlimited": limit >= 999,
+            "user_plan": user_plan,
+            "effective_plan": effective_plan,
+            "trial_active": trial_active
         })
         
     except Exception as e:
