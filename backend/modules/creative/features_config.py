@@ -22,7 +22,7 @@ CREATIVE_LIMITS = {
         "gold": 999     # Unlimited
     },
     "creative_writing": {
-        "bronze": 2,    # 2 daily uses
+        "bronze": 3,    # 3 daily uses
         "silver": 20,   # 20 daily uses
         "gold": 999     # Unlimited
     }

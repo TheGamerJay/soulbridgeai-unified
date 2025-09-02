@@ -488,7 +488,7 @@ def create_app():
                 # Determine model based on companion tier
                 companion_tier = companion['tier'] if companion else 'bronze'
                 if companion_tier == 'gold':
-                    model = "gpt-4"  # GPT-4 for Gold tier (GPT-5 not yet available)
+                    model = "gpt-5"  # GPT-5 for Gold tier (latest model)
                     max_tokens = 400
                 elif companion_tier == 'silver':
                     model = "gpt-4"  # GPT-4 for Silver tier  
