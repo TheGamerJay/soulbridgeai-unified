@@ -726,15 +726,13 @@ async function getFortune() {
         const config = fortuneTypes[type];
         const fullPrompt = config.prompt + '\n\n' + inputText;
         
-        const response = await fetch('/api/chat', {
+        const response = await fetch('/api/v2/fortune', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                message: fullPrompt,
-                companion: 'Fortune Teller',
-                context: 'fortune_reading'
+                question: inputText || 'General fortune reading'
             })
         });
         
@@ -745,17 +743,14 @@ async function getFortune() {
             userUsage++;
             refreshFortuneLimits();
             
-            // Store reading data for potential saving
-            lastFortuneData = {
-                question: inputText,
-                card: result.card || "Unknown Card",  // Assuming API returns card info
-                interpretation: result.response,
-                spread: "one"  // fortune uses single card spread
-            };
-            
             // Show result with animation
             outputBox.className = 'output-box show';
-            outputBox.innerHTML = result.response;
+            outputBox.innerHTML = result.reading;
+            
+            // Display auto-save message if available
+            if (result.auto_saved) {
+                console.log('Fortune reading saved to library');
+            }
             
             // Show save button for premium users (Silver/Gold tiers) OR trial users
             if (userPlan === 'silver' || userPlan === 'gold' || result.trial_active) {

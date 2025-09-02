@@ -473,22 +473,21 @@ async function generateDaily() {
 
 Keep it positive, insightful, and practical. Make it personal for someone born under ${selectedDailySign.name}.`;
 
-        const response = await fetch('/api/chat', {
+        const response = await fetch('/api/v2/horoscope', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                message: prompt,
-                character: 'Blayzo',
-                context: 'daily_horoscope'
+                sign: selectedDailySign.name,
+                type: 'daily'
             })
         });
 
         const result = await response.json();
         
         if (result.success) {
-            output.innerHTML = result.response;
+            output.innerHTML = result.reading;
             userUsage++;
             refreshHoroscopeLimits();
             
@@ -534,22 +533,22 @@ async function generateCompatibility() {
 
 Be balanced, honest, and helpful. Focus on how they can build a strong connection.`;
 
-        const response = await fetch('/api/chat', {
+        const response = await fetch('/api/v2/horoscope', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                message: prompt,
-                character: 'Blayzo',
-                context: 'compatibility_reading'
+                sign: sign1,
+                sign2: sign2,
+                type: 'compatibility'
             })
         });
 
         const result = await response.json();
         
         if (result.success) {
-            output.innerHTML = result.response;
+            output.innerHTML = result.reading;
             userUsage++;
             refreshHoroscopeLimits();
             
@@ -597,22 +596,21 @@ async function generateMonthly() {
 
 Make it inspiring, practical, and specifically tailored for ${selectedMonthlySign.name}.`;
 
-        const response = await fetch('/api/chat', {
+        const response = await fetch('/api/v2/horoscope', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                message: prompt,
-                character: 'Blayzo',
-                context: 'monthly_forecast'
+                sign: selectedMonthlySign.name,
+                type: 'monthly'
             })
         });
 
         const result = await response.json();
         
         if (result.success) {
-            output.innerHTML = result.response;
+            output.innerHTML = result.reading;
             userUsage++;
             refreshHoroscopeLimits();
             
