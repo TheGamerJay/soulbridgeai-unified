@@ -70,11 +70,13 @@ Be supportive, insightful, and avoid negative interpretations."""
                 response = requests.post(chat_url, json={
                     "message": prompt,
                     "character": "Dream Decoder",
-                    "context": "dream_interpretation"
+                    "context": "dream_interpretation",
+                    "user_tier": "bronze"
                 })
                 
                 if response.status_code == 200:
                     result = response.json()
+                    logger.info(f"🤖 Chat endpoint response: {result}")
                     if result.get('success'):
                         return {
                             "success": True,
@@ -82,6 +84,8 @@ Be supportive, insightful, and avoid negative interpretations."""
                             "symbols_found": self._extract_symbols(dream_text),
                             "mood": self._analyze_dream_mood(dream_text)
                         }
+                else:
+                    logger.error(f"❌ Chat endpoint returned status {response.status_code}: {response.text}")
             except Exception as e:
                 logger.error(f"Failed to call chat endpoint: {e}")
                 pass
@@ -242,11 +246,13 @@ Make it creative, engaging, and well-written. Keep it to about 200-300 words."""
                 response = requests.post(chat_url, json={
                     "message": writing_prompt,
                     "character": "Creative Writer",
-                    "context": "creative_writing"
+                    "context": "creative_writing",
+                    "user_tier": "bronze"
                 })
                 
                 if response.status_code == 200:
                     result = response.json()
+                    logger.info(f"🤖 Chat endpoint response for creative writing: {result}")
                     if result.get('success'):
                         return {
                             "success": True,
@@ -255,6 +261,8 @@ Make it creative, engaging, and well-written. Keep it to about 200-300 words."""
                             "prompt": prompt,
                             "word_count": len(result['response'].split())
                         }
+                else:
+                    logger.error(f"❌ Chat endpoint returned status {response.status_code}: {response.text}")
             except Exception as e:
                 logger.error(f"Failed to call chat endpoint: {e}")
                 pass
