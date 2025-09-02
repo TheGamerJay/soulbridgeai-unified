@@ -35,7 +35,7 @@ def fortune_page():
             logger.error(f"Error checking ad-free status: {e}")
             ad_free = False
     
-    return render_template('fortune_enhanced.html', 
+    return render_template('fortune.html', 
                          ad_free=ad_free,
                          user_session=session)
 
