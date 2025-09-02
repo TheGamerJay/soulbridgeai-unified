@@ -117,23 +117,57 @@ Be supportive, insightful, and avoid negative interpretations."""
                 "error": "Dream decoding temporarily unavailable"
             }
     
-    def generate_fortune(self, question: str = None, user_id: int = None) -> dict:
-        """Generate fortune reading using AI - Uses same system as decoder"""
+    def generate_fortune(self, question: str = None, user_id: int = None, spread_type: str = "three") -> dict:
+        """Generate fortune reading using AI - Supports multiple spread types"""
         try:
+            # Define spread configurations
+            spread_configs = {
+                "one": {
+                    "cards": 1,
+                    "positions": ["Guidance"],
+                    "description": "Single card guidance"
+                },
+                "three": {
+                    "cards": 3,
+                    "positions": ["Past", "Present", "Future"],
+                    "description": "Three card spread"
+                },
+                "five": {
+                    "cards": 5,
+                    "positions": ["Situation", "Challenge", "Hidden Influences", "Advice", "Outcome"],
+                    "description": "Five card cross spread"
+                },
+                "celtic": {
+                    "cards": 10,
+                    "positions": ["Present Situation", "Challenge", "Distant Past", "Recent Past", "Possible Outcome", "Near Future", "Your Approach", "External Influences", "Hopes & Fears", "Final Outcome"],
+                    "description": "Celtic Cross - Full life reading"
+                }
+            }
+            
+            # Get spread configuration
+            config = spread_configs.get(spread_type, spread_configs["three"])
+            card_count = config["cards"]
+            positions = config["positions"]
+            
             # Get random tarot cards
-            cards = get_random_tarot_cards(3)
+            cards = get_random_tarot_cards(card_count)
             
             # Direct OpenAI API call to bypass authentication issues
             if self.client:
                 try:
+                    # Build card descriptions with positions
+                    card_descriptions = []
+                    for i, card in enumerate(cards):
+                        position = positions[i] if i < len(positions) else f"Card {i+1}"
+                        card_descriptions.append(f"{position}: {card['name']} - {card['meaning']}")
+                    
                     prompt = f"""You are a wise tarot reader. The user asks: "{question or 'General reading'}"
 
-The cards drawn are:
-1. {cards[0]['name']} - {cards[0]['meaning']}
-2. {cards[1]['name']} - {cards[1]['meaning']}  
-3. {cards[2]['name']} - {cards[2]['meaning']}
+{config['description']} - {card_count} cards drawn:
 
-Provide an insightful, positive reading that connects these cards to their question. Be encouraging and wise."""
+{chr(10).join(card_descriptions)}
+
+Provide an insightful, positive reading that connects these cards to their question. Explain how each position relates to their situation. Be encouraging and wise."""
 
                     logger.info(f"🔮 Making direct OpenAI call for fortune reading")
                     
@@ -151,10 +185,20 @@ Provide an insightful, positive reading that connects these cards to their quest
                         ai_response = response.choices[0].message.content.strip()
                         logger.info(f"✅ Got OpenAI fortune response: {ai_response[:100]}...")
                         
+                        # Add position information to cards
+                        positioned_cards = []
+                        for i, card in enumerate(cards):
+                            position = positions[i] if i < len(positions) else f"Card {i+1}"
+                            positioned_card = card.copy()
+                            positioned_card["position"] = position
+                            positioned_cards.append(positioned_card)
+                        
                         return {
                             "success": True,
                             "reading": ai_response,
-                            "cards": cards,
+                            "cards": positioned_cards,
+                            "spread_type": spread_type,
+                            "spread_description": config["description"],
                             "question": question or "General reading"
                         }
                         

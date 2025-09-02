@@ -177,6 +177,7 @@ def api_fortune():
     try:
         data = request.get_json()
         question = data.get('question', '') if data else ''
+        spread_type = data.get('spread', 'three') if data else 'three'
         
         # Check usage limits
         user_id = get_user_id()
@@ -194,7 +195,7 @@ def api_fortune():
         
         # Generate fortune reading
         creative_service = CreativeService()
-        result = creative_service.generate_fortune(question, user_id)
+        result = creative_service.generate_fortune(question, user_id, spread_type)
         
         if result['success']:
             # Track usage

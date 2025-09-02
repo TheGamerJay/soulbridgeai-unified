@@ -492,6 +492,17 @@
             ></textarea>
         </div>
 
+        <!-- Spread Selection -->
+        <div class="spread-section" style="margin: 20px 0;">
+            <label for="spread-select" style="display: block; margin-bottom: 8px; color: #fbbf24; font-weight: bold;">Choose Your Tarot Spread:</label>
+            <select id="spread-select" style="width: 100%; padding: 12px; background: #1a1a2e; color: #ffffff; border: 2px solid #fbbf24; border-radius: 8px; font-size: 16px;">
+                <option value="one">🃏 Single Card - Quick guidance (1 card)</option>
+                <option value="three" selected>🔮 Past/Present/Future - Classic reading (3 cards)</option>
+                <option value="five">✨ Five Card Cross - Detailed insight (5 cards)</option>
+                <option value="celtic">🌟 Celtic Cross - Complete life reading (10 cards)</option>
+            </select>
+        </div>
+
         <!-- Fortune Button -->
         <button id="fortune-button" class="fortune-button">
             🔮 Reveal My Fortune
@@ -726,13 +737,17 @@ async function getFortune() {
         const config = fortuneTypes[type];
         const fullPrompt = config.prompt + '\n\n' + inputText;
         
+        const spreadSelect = document.getElementById('spread-select');
+        const selectedSpread = spreadSelect ? spreadSelect.value : 'three';
+        
         const response = await fetch('/api/v2/fortune', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                question: inputText
+                question: inputText,
+                spread: selectedSpread
             })
         });
         
@@ -750,11 +765,12 @@ async function getFortune() {
             let cardsHtml = '';
             if (result.cards) {
                 cardsHtml = '<div class="tarot-cards" style="margin-bottom: 20px;">';
-                cardsHtml += '<h3>🃏 Cards Drawn:</h3>';
+                cardsHtml += `<h3>🃏 ${result.spread_description || 'Cards Drawn'}:</h3>`;
                 result.cards.forEach((card, index) => {
-                    cardsHtml += `<div class="tarot-card" style="margin: 10px 0; padding: 10px; border: 1px solid #fbbf24; border-radius: 8px;">`;
-                    cardsHtml += `<strong>${index + 1}. ${card.name}</strong> (${card.suit})<br>`;
-                    cardsHtml += `<em>${card.meaning}</em>`;
+                    cardsHtml += `<div class="tarot-card" style="margin: 10px 0; padding: 15px; border: 2px solid #fbbf24; border-radius: 12px; background: rgba(251, 191, 36, 0.1);">`;
+                    cardsHtml += `<div style="color: #fbbf24; font-weight: bold; margin-bottom: 5px;">${card.position || (index + 1)}</div>`;
+                    cardsHtml += `<strong>${card.name}</strong> <span style="color: #999;">(${card.suit})</span><br>`;
+                    cardsHtml += `<em style="color: #ccc;">${card.meaning}</em>`;
                     cardsHtml += `</div>`;
                 });
                 cardsHtml += '</div>';
