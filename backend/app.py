@@ -827,6 +827,11 @@ def register_blueprints(app):
         app.register_blueprint(horoscope_bp)
         logger.info("✅ Horoscope system registered")
         
+        # Enhanced Fortune system
+        from modules.fortune import routes as fortune_routes
+        app.register_blueprint(fortune_routes.fortune_bp)
+        logger.info("✅ Enhanced Fortune system registered")
+        
         # Library management
         from modules.library import library_bp
         app.register_blueprint(library_bp)

@@ -31,7 +31,11 @@ class CreativeUsageTracker:
         if PYTZ_AVAILABLE:
             self.est_tz = pytz.timezone('US/Eastern')
         elif ZoneInfo:
-            self.est_tz = ZoneInfo('US/Eastern')
+            try:
+                self.est_tz = ZoneInfo('US/Eastern')
+            except Exception:
+                # Fallback if timezone not found
+                self.est_tz = None
         else:
             # Fallback to UTC
             self.est_tz = None
