@@ -263,9 +263,9 @@ def create_app():
             # Simple limits based on tier
             limits = {
                 'decoder': 3 if user_plan == 'bronze' else (15 if user_plan == 'silver' else 999),
-                'fortune': 2 if user_plan == 'bronze' else (8 if user_plan == 'silver' else 999),
+                'fortune': 3 if user_plan == 'bronze' else (8 if user_plan == 'silver' else 999),
                 'horoscope': 3 if user_plan == 'bronze' else (10 if user_plan == 'silver' else 999),
-                'creative_writer': 2 if user_plan == 'bronze' else (20 if user_plan == 'silver' else 999)
+                'creative_writer': 3 if user_plan == 'bronze' else (20 if user_plan == 'silver' else 999)
             }
             
             # Proper tier-based access control

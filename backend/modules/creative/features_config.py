@@ -12,7 +12,7 @@ CREATIVE_LIMITS = {
         "gold": 999     # Unlimited (999 = unlimited display)
     },
     "fortune": {
-        "bronze": 2,    # 2 daily uses
+        "bronze": 3,    # 3 daily uses
         "silver": 8,    # 8 daily uses
         "gold": 999     # Unlimited
     },
