@@ -726,13 +726,15 @@ async function getFortune() {
         const config = fortuneTypes[type];
         const fullPrompt = config.prompt + '\n\n' + inputText;
         
-        const response = await fetch('/api/v2/fortune', {
+        const response = await fetch('/api/chat', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                question: inputText || 'General fortune reading'
+                message: fullPrompt,
+                companion: 'Fortune Teller',
+                context: 'fortune_reading'
             })
         });
         
@@ -745,7 +747,7 @@ async function getFortune() {
             
             // Show result with animation
             outputBox.className = 'output-box show';
-            outputBox.innerHTML = result.reading;
+            outputBox.innerHTML = result.response;
             
             // Display auto-save message if available
             if (result.auto_saved) {

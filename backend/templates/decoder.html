@@ -697,13 +697,15 @@ async function decodeText() {
         const config = decoderModes[mode];
         const fullPrompt = config.prompt + '\n\n' + inputText;
         
-        const response = await fetch('/api/v2/decoder', {
+        const response = await fetch('/api/chat', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                dream: inputText
+                message: fullPrompt,
+                companion: 'Decoder',
+                context: 'decoder_mode'
             })
         });
         
@@ -716,7 +718,7 @@ async function decodeText() {
             
             // Show result with animation
             outputBox.className = 'output-box show';
-            outputBox.innerHTML = result.interpretation;
+            outputBox.innerHTML = result.response;
             
             // Display auto-save message if available
             if (result.auto_saved) {

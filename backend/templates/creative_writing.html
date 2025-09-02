@@ -357,7 +357,7 @@
             resultContent.innerHTML = '<div class="loading">✨ Creating your creative writing...</div>';
 
             try {
-                const response = await fetch('/api/v2/creative-writing', {
+                const response = await fetch('/api/creative-writing', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -372,12 +372,7 @@
                 const result = await response.json();
 
                 if (result.success) {
-                    resultContent.textContent = result.content;
-                    
-                    // Display auto-save message if available
-                    if (result.auto_saved) {
-                        console.log('Creative writing saved to library');
-                    }
+                    resultContent.textContent = result.response;
                     
                     // Update usage counter
                     const usageElement = document.querySelector('.usage-count');

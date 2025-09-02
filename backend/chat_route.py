@@ -253,26 +253,32 @@ def api_chat():
         if "what model" in user_message.lower() or "which ai" in user_message.lower():
             content += f"\n\n(Debug: I'm running on {selected_model} for your {user_tier.title()} tier)"
 
-        # Increment feature usage based on context
+        # Increment feature usage based on context using new modular system
         from flask import session
         if context in ["fortune_mode", "fortune_reading"]:
             try:
-                from app import increment_fortune_usage
-                increment_fortune_usage()
+                from modules.creative.usage_tracker import CreativeUsageTracker
+                from modules.auth.session_manager import get_user_id
+                usage_tracker = CreativeUsageTracker()
+                usage_tracker.record_usage(get_user_id(), 'fortune')
                 logging.info("📊 Incremented fortune usage counter")
             except Exception as e:
                 logging.error(f"Failed to increment fortune usage: {e}")
         elif context in ["horoscope_mode", "horoscope_reading", "daily_horoscope", "compatibility_reading", "birth_chart_reading", "monthly_forecast"]:
             try:
-                from app import increment_horoscope_usage  
-                increment_horoscope_usage()
+                from modules.creative.usage_tracker import CreativeUsageTracker
+                from modules.auth.session_manager import get_user_id
+                usage_tracker = CreativeUsageTracker()
+                usage_tracker.record_usage(get_user_id(), 'horoscope')
                 logging.info("📊 Incremented horoscope usage counter")
             except Exception as e:
                 logging.error(f"Failed to increment horoscope usage: {e}")
         elif context == "decoder_mode":
             try:
-                from app import increment_decoder_usage
-                increment_decoder_usage() 
+                from modules.creative.usage_tracker import CreativeUsageTracker
+                from modules.auth.session_manager import get_user_id
+                usage_tracker = CreativeUsageTracker()
+                usage_tracker.record_usage(get_user_id(), 'decoder')
                 logging.info("📊 Incremented decoder usage counter")
             except Exception as e:
                 logging.error(f"Failed to increment decoder usage: {e}")
