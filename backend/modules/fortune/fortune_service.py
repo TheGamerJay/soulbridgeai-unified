@@ -199,7 +199,165 @@ def generate_tarot_interpretation(reading_data: Dict[str, Any]) -> str:
         
         interpretations.append(interpretation)
     
+    # Add comprehensive summary
+    interpretations.append("---")
+    interpretations.append("**Overall Reading Summary:**\n")
+    
+    # Generate cohesive interpretation based on spread type
+    if spread == "5 Card":
+        summary = generate_five_card_summary(cards)
+    elif spread == "3 Card":
+        summary = generate_three_card_summary(cards)
+    elif spread == "Celtic Cross":
+        summary = generate_celtic_cross_summary(cards)
+    elif spread == "21 Card Grand Spread":
+        summary = generate_grand_spread_summary(cards)
+    else:
+        summary = generate_general_summary(cards)
+    
+    interpretations.append(summary)
+    
     return "\n".join(interpretations)
+
+def generate_five_card_summary(cards: List[Dict[str, Any]]) -> str:
+    """Generate comprehensive summary for 5-card spread"""
+    if len(cards) < 5:
+        return "Incomplete reading - unable to provide summary."
+    
+    situation = cards[0]['card']
+    challenge = cards[1]['card']
+    advice = cards[2]['card']
+    hidden = cards[3]['card']
+    outcome = cards[4]['card']
+    
+    # Create narrative based on card themes
+    situation_theme = get_card_theme(cards[0])
+    challenge_theme = get_card_theme(cards[1])
+    advice_theme = get_card_theme(cards[2])
+    outcome_theme = get_card_theme(cards[4])
+    
+    summary = f"Your current situation shows {situation_theme}, with the main challenge being {challenge_theme}. "
+    summary += f"The cards advise you to focus on {advice_theme}. "
+    summary += f"There are hidden influences of {get_card_theme(cards[3])} at work. "
+    summary += f"If you follow this guidance, the likely outcome points toward {outcome_theme}."
+    
+    return summary
+
+def generate_three_card_summary(cards: List[Dict[str, Any]]) -> str:
+    """Generate comprehensive summary for 3-card spread"""
+    if len(cards) < 3:
+        return "Incomplete reading - unable to provide summary."
+    
+    past_theme = get_card_theme(cards[0])
+    present_theme = get_card_theme(cards[1])
+    future_theme = get_card_theme(cards[2])
+    
+    summary = f"Your journey shows a progression from {past_theme} in the past, "
+    summary += f"through your current experience of {present_theme}, "
+    summary += f"leading toward a future of {future_theme}. "
+    summary += f"This reading suggests embracing the lessons of your past while navigating present challenges toward positive transformation."
+    
+    return summary
+
+def generate_celtic_cross_summary(cards: List[Dict[str, Any]]) -> str:
+    """Generate comprehensive summary for Celtic Cross spread"""
+    if len(cards) < 10:
+        return "Incomplete reading - unable to provide summary."
+    
+    present_theme = get_card_theme(cards[0])
+    challenge_theme = get_card_theme(cards[1])
+    outcome_theme = get_card_theme(cards[9])
+    
+    summary = f"This Celtic Cross reveals a complex situation centered around {present_theme}. "
+    summary += f"The primary challenge you're facing involves {challenge_theme}. "
+    summary += f"Your path forward leads toward {outcome_theme}, "
+    summary += f"guided by the interplay of conscious goals, subconscious drives, and external influences shown in this comprehensive spread."
+    
+    return summary
+
+def generate_grand_spread_summary(cards: List[Dict[str, Any]]) -> str:
+    """Generate comprehensive summary for 21-card Grand spread"""
+    if len(cards) < 21:
+        return "Incomplete reading - unable to provide summary."
+    
+    core_theme = get_card_theme(cards[0])  # Core Self
+    purpose_theme = get_card_theme(cards[1])  # Life Purpose
+    destiny_theme = get_card_theme(cards[20])  # Ultimate Destiny
+    
+    summary = f"This Grand Tarot spread reveals your core essence as {core_theme}, "
+    summary += f"with a life purpose centered on {purpose_theme}. "
+    summary += f"The comprehensive view of your life's areas - relationships, career, health, spirituality - "
+    summary += f"all point toward an ultimate destiny of {destiny_theme}. "
+    summary += f"This reading provides a complete life map for your spiritual and personal journey."
+    
+    return summary
+
+def generate_general_summary(cards: List[Dict[str, Any]]) -> str:
+    """Generate general summary for any spread"""
+    if not cards:
+        return "No cards available for interpretation."
+    
+    themes = [get_card_theme(card) for card in cards[:3]]  # Use first 3 cards
+    
+    summary = f"The cards reveal themes of {', '.join(themes[:-1])} and {themes[-1]}. "
+    summary += f"This reading suggests a time of personal growth and spiritual awareness, "
+    summary += f"encouraging you to trust your intuition while remaining grounded in practical wisdom."
+    
+    return summary
+
+def get_card_theme(card_data: Dict[str, Any]) -> str:
+    """Extract thematic essence from card data"""
+    card_name = card_data.get('card', '').lower()
+    orientation = card_data.get('orientation', 'Upright').lower()
+    
+    # Major Arcana themes
+    major_themes = {
+        'fool': 'new beginnings and fresh starts',
+        'magician': 'manifestation and personal power',
+        'high priestess': 'intuition and inner wisdom',
+        'empress': 'abundance and creativity',
+        'emperor': 'structure and leadership',
+        'hierophant': 'tradition and spiritual guidance',
+        'lovers': 'relationships and choices',
+        'chariot': 'determination and victory',
+        'strength': 'inner courage and resilience',
+        'hermit': 'soul searching and introspection',
+        'wheel': 'cycles of change and destiny',
+        'justice': 'balance and fair judgment',
+        'hanged': 'surrender and new perspective',
+        'death': 'transformation and renewal',
+        'temperance': 'harmony and moderation',
+        'devil': 'temptation and material bondage',
+        'tower': 'sudden change and revelation',
+        'star': 'hope and spiritual guidance',
+        'moon': 'illusion and subconscious fears',
+        'sun': 'joy and positive energy',
+        'judgement': 'rebirth and awakening',
+        'world': 'completion and fulfillment'
+    }
+    
+    # Check for major arcana
+    for key, theme in major_themes.items():
+        if key in card_name:
+            if orientation == 'reversed':
+                return f"blocked or delayed {theme}"
+            return theme
+    
+    # Minor Arcana suit themes
+    if 'cups' in card_name:
+        base_theme = 'emotional fulfillment and relationships'
+    elif 'wands' in card_name:
+        base_theme = 'creative energy and ambition'
+    elif 'swords' in card_name:
+        base_theme = 'mental challenges and communication'
+    elif 'pentacles' in card_name:
+        base_theme = 'material success and practical matters'
+    else:
+        base_theme = 'spiritual growth and personal development'
+    
+    if orientation == 'reversed':
+        return f"obstacles in {base_theme}"
+    return base_theme
 
 class FortuneService:
     """Enhanced Fortune/Tarot Service with deterministic readings"""
