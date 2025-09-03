@@ -865,6 +865,11 @@ def register_blueprints(app):
             logger.info("⚠️ Mini Studio not available")
         
         
+        # API endpoints (user info, session management, etc.)
+        from modules.api.routes import api_bp
+        app.register_blueprint(api_bp, url_prefix='/api')
+        logger.info("✅ API system registered")
+        
         logger.info("🎯 All module blueprints registered successfully")
         
     except Exception as e:
