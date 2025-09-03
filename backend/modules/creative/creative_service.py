@@ -321,8 +321,8 @@ Make it positive, insightful, and encouraging. Keep it concise but meaningful.""
                             "instruction": f"Write a creative short story based on this prompt: '{prompt}'. Include dialogue, vivid descriptions, and emotional depth. Keep it around 250-400 words."
                         },
                         "lyrics": {
-                            "character": "You are a Song Lyricist, expert at writing emotional and meaningful song lyrics with rhythm and flow.",
-                            "instruction": f"Write song lyrics based on this theme: '{prompt}'. Include verses, a chorus, and bridge. Make it emotional and relatable with good rhythm. Format with clear verse/chorus structure."
+                            "character": "You are a Professional Song Lyricist and producer, expert at crafting cinematic, emotionally impactful songs with technical mastery.",
+                            "instruction": f"Create professional song lyrics based on this theme: '{prompt}'. Requirements:\n\n• Structure: Clear verse/chorus/bridge format with dynamic contrast between sections\n• Rhyme schemes: Use complex internal rhymes, multi-syllabic rhymes, and clever wordplay\n• Storytelling: Paint vivid scenes with metaphors and allegories that unfold cinematically\n• Flow: Ensure perfect rhythm and natural syllable placement for smooth delivery\n• Emotional range: Include tone shifts, from introspective verses to anthemic choruses\n• Language: Use double meanings, cultural references, and layered interpretations\n• Sections: Soft intro, powerful chorus, intricate verses, haunting bridge if needed\n• Add a compelling song title\n\nFormat clearly with [Verse 1], [Chorus], [Verse 2], [Bridge], etc. Make it radio-ready and emotionally resonant."
                         },
                         "poem": {
                             "character": "You are a Poet, expert at creating beautiful poetry that captures emotions and imagery.",
@@ -351,7 +351,9 @@ Make it positive, insightful, and encouraging. Keep it concise but meaningful.""
                     
                     logger.info(f"🎨 Making direct OpenAI call for creative writing: {style}")
                     
-                    # Direct OpenAI call
+                    # Direct OpenAI call with increased tokens for lyrics
+                    max_tokens = 1200 if style == "lyrics" else 800
+                    
                     response = self.client.chat.completions.create(
                         model="gpt-3.5-turbo",
                         messages=[
@@ -359,7 +361,7 @@ Make it positive, insightful, and encouraging. Keep it concise but meaningful.""
                             {"role": "user", "content": config["instruction"]}
                         ],
                         temperature=0.9,  # High creativity
-                        max_tokens=800
+                        max_tokens=max_tokens
                     )
                     
                     if response.choices and response.choices[0].message.content:
