@@ -337,18 +337,6 @@ def create_app():
             logger.error(f"❌ Error in companion selection: {e}")
             return render_template("error.html", error="Unable to load companion selection")
     
-    @app.route("/chat")
-    def chat_home():
-        """Main chat page - from companions blueprint"""
-        if not session.get('logged_in'):
-            return redirect('/auth/login?return_to=chat')
-        
-        selected_companion = session.get('selected_companion')
-        if not selected_companion:
-            return redirect('/companion-selection')
-        
-        from flask import render_template
-        return render_template('chat.html', companion={'name': selected_companion})
     
     @app.route("/chat/<companion_id>")
     def companion_specific_chat(companion_id):
