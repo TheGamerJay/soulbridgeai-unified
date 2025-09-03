@@ -29,7 +29,8 @@ def fortune_page():
         try:
             from ..user_profile.profile_service import ProfileService
             profile_service = ProfileService()
-            user_profile = profile_service.get_profile(user_id)
+            user_profile_result = profile_service.get_user_profile(user_id)
+            user_profile = user_profile_result.get('user') if user_profile_result.get('success') else None
             ad_free = user_profile.get('ad_free', False) if user_profile else False
         except Exception as e:
             logger.error(f"Error checking ad-free status: {e}")
@@ -63,7 +64,8 @@ def generate_reading():
         if user_id:
             from ..user_profile.profile_service import ProfileService
             profile_service = ProfileService()
-            user_profile = profile_service.get_profile(user_id)
+            user_profile_result = profile_service.get_user_profile(user_id)
+            user_profile = user_profile_result.get('user') if user_profile_result.get('success') else None
             user_plan = user_profile.get('plan', 'bronze') if user_profile else 'bronze'
             trial_active = user_profile.get('trial_active', False) if user_profile else False
             
@@ -169,7 +171,8 @@ def get_limits():
         try:
             from ..user_profile.profile_service import ProfileService
             profile_service = ProfileService()
-            user_profile = profile_service.get_profile(user_id)
+            user_profile_result = profile_service.get_user_profile(user_id)
+            user_profile = user_profile_result.get('user') if user_profile_result.get('success') else None
             user_plan = user_profile.get('plan', 'bronze') if user_profile else 'bronze'
             trial_active = user_profile.get('trial_active', False) if user_profile else False
         except Exception:
