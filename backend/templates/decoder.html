@@ -753,8 +753,7 @@ async function decodeText() {
                 document.getElementById('save-button').style.display = 'block';
             }
             
-            // Show ad after successful decoding for free users
-            await handleDecoderAd();
+            // Real AdSense ad is already displayed via our ad container integration
             
         } else {
             // Check if this is a usage limit error
@@ -805,105 +804,7 @@ function saveToJournal() {
     alert('💾 Saved to your decoder journal!');
 }
 
-// Ad handling for decoder
-async function handleDecoderAd() {
-    // Check if user is ad-free using server-injected flag
-    if (window.__AD_FREE__ === true || window.__AD_FREE__ === 'true') {
-        console.log('🚫 Skipping decoder ad - user has ad-free subscription');
-        return;
-    }
-    
-    console.log('📺 Showing decoder ad for non-ad-free user');
-    await showDecoderAd();
-}
-
-async function showDecoderAd() {
-    return new Promise((resolve) => {
-        // Create ad container
-        const adContainer = document.createElement('div');
-        adContainer.className = 'ad-container';
-        adContainer.innerHTML = `
-            <div class="ad-header">
-                <span class="ad-label">Advertisement</span>
-                <span class="ad-timer">Please wait <span id="decoderAdTimer">15</span> seconds...</span>
-            </div>
-            <div class="ad-content" id="decoderAdContent">
-                <!-- AdSense ad will be inserted here -->
-                <div class="community-message">
-                    <div class="support-content">
-                        <i class="fas fa-brain"></i>
-                        <p>Thank you for using SoulBridge AI</p>
-                        <p class="support-note">Decode your world with wisdom</p>
-                    </div>
-                </div>
-            </div>
-            <button class="ad-skip-button" id="decoderAdSkip" disabled>Continue (15s)</button>
-        `;
-        
-        // Insert ad after the decoder output
-        const outputBox = document.getElementById('output-box');
-        outputBox.parentNode.insertBefore(adContainer, outputBox.nextSibling);
-        
-        // Scroll to ad
-        adContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        
-        // Start countdown timer
-        let timeLeft = 15;
-        const timerElement = document.getElementById('decoderAdTimer');
-        const skipButton = document.getElementById('decoderAdSkip');
-        
-        const countdown = setInterval(() => {
-            timeLeft--;
-            if (timerElement) {
-                timerElement.textContent = timeLeft;
-            }
-            if (skipButton) {
-                skipButton.textContent = `Continue (${timeLeft}s)`;
-            }
-            
-            if (timeLeft <= 0) {
-                clearInterval(countdown);
-                if (skipButton) {
-                    skipButton.disabled = false;
-                    skipButton.textContent = 'Continue';
-                    skipButton.style.background = '#22d3ee';
-                }
-            }
-        }, 1000);
-        
-        // Handle skip button click
-        skipButton.addEventListener('click', () => {
-            if (!skipButton.disabled) {
-                adContainer.remove();
-                resolve();
-            }
-        });
-        
-        // Load actual AdSense ad (placeholder for now)
-        loadDecoderAdSenseAd('decoderAdContent');
-    });
-}
-
-function loadDecoderAdSenseAd(containerId) {
-    console.log('📺 Loading ad placeholder for decoder:', containerId);
-    
-    // Show a placeholder ad for now (until real AdSense slots are configured)
-    try {
-        const adContainer = document.getElementById(containerId);
-        if (adContainer) {
-            adContainer.innerHTML = `
-                <div style="background: linear-gradient(135deg, #22d3ee, #06b6d4); color: white; padding: 40px; border-radius: 8px; text-align: center; font-family: Arial, sans-serif;">
-                    <h3 style="margin: 0 0 10px 0; font-size: 1.2em;">✨ Support SoulBridge AI ✨</h3>
-                    <p style="margin: 0; opacity: 0.9; font-size: 0.9em;">Thank you for watching this ad! Your support helps keep SoulBridge AI free.</p>
-                    <p style="margin: 10px 0 0 0; opacity: 0.8; font-size: 0.8em;">🧠 Dream decoding powered by AI</p>
-                </div>
-            `;
-            console.log('📺 Decoder ad placeholder loaded');
-        }
-    } catch (error) {
-        console.warn('⚠️ Failed to load decoder ad placeholder:', error);
-    }
-}
+// Removed fake ad system - using real AdSense integration instead
 
 
 
