@@ -63,25 +63,25 @@
         }
         
         .back-btn {
-            position: absolute;
-            top: 24px;
-            right: 24px;
-            padding: 8px 16px;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 16px;
+            background: rgba(245, 158, 11, 0.8);
             color: white;
             text-decoration: none;
             border-radius: 8px;
             font-weight: 500;
             font-size: 14px;
             transition: all 0.3s ease;
-            box-shadow: 0 2px 10px rgba(99, 102, 241, 0.3);
-            cursor: pointer;
-            border: none;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(245, 158, 11, 0.5);
+            z-index: 1000;
         }
         
         .back-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+            background: rgba(245, 158, 11, 1);
+            transform: translateY(-2px);
         }
         
         
@@ -331,7 +331,7 @@
 </head>
 <body>
     <header>
-        <button class="back-btn" onclick="goBack()">← Back</button>
+        <a href="javascript:history.back()" class="back-btn">← Back to Chat</a>
         <h1>✨ SoulBridge AI ✨</h1>
         <div class="subtitle">Mystical Tarot Reading Experience</div>
     </header>
@@ -553,22 +553,6 @@
             }
         }
 
-        function goBack() {
-            // Try to go back to previous page in history
-            if (document.referrer && document.referrer.includes('/chat/')) {
-                // If we came from a chat page, go back there
-                window.history.back();
-            } else if (document.referrer && !document.referrer.includes(window.location.origin)) {
-                // If we came from external site, go to companion selection
-                window.location.href = '/companion-selection';
-            } else if (window.history.length > 1) {
-                // Try browser back if we have history
-                window.history.back();
-            } else {
-                // Fallback to companion selection
-                window.location.href = '/companion-selection';
-            }
-        }
 
         document.getElementById("draw").addEventListener("click", draw);
         loadUsageLimits();
