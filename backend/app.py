@@ -1038,6 +1038,10 @@ def register_blueprints(app):
         from modules.voice.routes import voice_bp
         app.register_blueprint(voice_bp)
         
+        # API endpoints (user info, session management, etc.)
+        from modules.api.routes import api_bp
+        app.register_blueprint(api_bp, url_prefix='/api')
+        
         logger.info("✅ All blueprints registered successfully")
         
     except Exception as e:
