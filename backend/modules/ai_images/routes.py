@@ -136,24 +136,57 @@ def generate_image():
             usage_key = f'ai_image_usage_{current_month}'
             session[usage_key] = session.get(usage_key, 0) + 1
             
-            # Auto-save to library for Silver/Gold users only
+            # 📚 AUTO-SAVE: Save AI image to library for all users with access
             auto_saved = False
-            if user_plan in ['silver', 'gold']:
-                try:
-                    from ..library.content_service import ContentService
-                    content_service = ContentService()
-                    content_id = content_service.save_ai_image(
-                        user_id=user_id,
-                        prompt=result['original_prompt'],
-                        image_url=result['image_url'],
-                        style=result['style'],
-                        size=result['size']
-                    )
-                    auto_saved = bool(content_id)
-                    logger.info(f"🎨 Auto-saved AI image to library for {user_plan} user {user_id}")
-                except Exception as e:
-                    logger.error(f"Failed to auto-save AI image: {e}")
-                    auto_saved = False
+            try:
+                from ..library.library_manager import LibraryManager
+                from ..shared.database import get_database
+                
+                database = get_database()
+                library_manager = LibraryManager(database)
+                
+                # Create readable title from prompt
+                title = f"AI Generated Image: {validation['cleaned_prompt'][:50]}{'...' if len(validation['cleaned_prompt']) > 50 else ''}"
+                
+                # Prepare content for library storage
+                image_content = {
+                    'prompt': result['original_prompt'],
+                    'enhanced_prompt': result['enhanced_prompt'],
+                    'revised_prompt': result.get('revised_prompt', ''),
+                    'image_url': result['image_url'],
+                    'style': result['style'],
+                    'size': result['size'],
+                    'quality': quality,
+                    'generation_time': result['generation_time'],
+                    'generated_at': datetime.now().isoformat()
+                }
+                
+                # Save to library with metadata
+                content_id = library_manager.add_content(
+                    user_id=user_id,
+                    content_type='ai_image',
+                    title=title,
+                    content=str(image_content),  # Store as string for now
+                    metadata={
+                        'style': result['style'],
+                        'size': result['size'],
+                        'quality': quality,
+                        'prompt_length': len(validation['cleaned_prompt']),
+                        'has_enhanced_prompt': bool(result.get('enhanced_prompt')),
+                        'user_tier': user_plan,
+                        'image_url': result['image_url']  # For easy access
+                    }
+                )
+                
+                auto_saved = bool(content_id)
+                if auto_saved:
+                    logger.info(f"🎨 Auto-saved AI image {content_id} to library for user {user_id} ({user_plan} tier)")
+                else:
+                    logger.warning(f"Failed to auto-save AI image to library for user {user_id}")
+                    
+            except Exception as e:
+                logger.error(f"Auto-save AI image error: {e}")
+                auto_saved = False
             
             logger.info(f"✅ Generated AI image for user {user_id}")
             

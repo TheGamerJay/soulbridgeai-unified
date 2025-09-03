@@ -580,15 +580,15 @@
     <div class="library-container">
         <!-- Header -->
         <div class="library-header">
-            <h1 class="library-title">📚 Conversation Library</h1>
-            <p class="library-subtitle">Manage and organize your saved conversations</p>
+            <h1 class="library-title">🌟 Your Creative Library</h1>
+            <p class="library-subtitle">Manage and organize all your AI-generated content</p>
         </div>
 
         <!-- Search and Filters -->
-        <input type="text" id="searchInput" class="input-field search-bar" placeholder="Search conversations..." onkeyup="filterConversations()">
+        <input type="text" id="searchInput" class="input-field search-bar" placeholder="Search your creative library..." onkeyup="filterConversations()">
         
         <div class="filter-options">
-            <div class="filter-btn active" onclick="filterByType('all')" data-filter="all">All Conversations</div>
+            <div class="filter-btn active" onclick="filterByType('all')" data-filter="all">All Content</div>
             
             <!-- Netflix-style Companion Selector Dropdown -->
             <div class="companion-dropdown">
@@ -601,10 +601,15 @@
                 </div>
             </div>
             
-            <div class="filter-btn" onclick="filterByType('horoscope')" data-filter="horoscope">⭐ Horoscope</div>
-            <div class="filter-btn" onclick="filterByType('fortune')" data-filter="fortune">🔮 Fortune</div>
-            <div class="filter-btn" onclick="filterByType('decoder')" data-filter="decoder">🔍 Decoder</div>
-            <div class="filter-btn" onclick="filterByType('favorites')" data-filter="favorites">⭐ Favorites</div>
+            <div class="filter-btn" onclick="filterByType('chat')" data-filter="chat">💬 Conversations</div>
+            <div class="filter-btn" onclick="filterByType('fortune')" data-filter="fortune">🔮 Fortune Readings</div>
+            <div class="filter-btn" onclick="filterByType('horoscope')" data-filter="horoscope">⭐ Horoscopes</div>
+            <div class="filter-btn" onclick="filterByType('decoder')" data-filter="decoder">🔍 Decoder Sessions</div>
+            <div class="filter-btn" onclick="filterByType('creative')" data-filter="creative">✍️ Creative Writing</div>
+            <div class="filter-btn" onclick="filterByType('ai_image')" data-filter="ai_image">🎨 AI Images</div>
+            <div class="filter-btn" onclick="filterByType('mini_studio')" data-filter="mini_studio">🎵 Studio Tracks</div>
+            <div class="filter-btn" onclick="filterByType('voice_journal')" data-filter="voice_journal">🎤 Voice Journals</div>
+            <div class="filter-btn" onclick="filterByType('favorites')" data-filter="favorites">❤️ Favorites</div>
         </div>
 
         <!-- Conversations Grid -->
@@ -614,17 +619,17 @@
 
         <!-- Empty State -->
         <div id="emptyState" class="empty-state" style="display: none;">
-            <div class="empty-state-icon">📭</div>
-            <h3>No conversations found</h3>
-            <p>Start a conversation with your AI companion to see it here.</p>
+            <div class="empty-state-icon">🌟</div>
+            <h3>Your Creative Library is Empty</h3>
+            <p>Start creating with AI companions, generate images, read fortunes, or use any of our creative tools to build your personal collection.</p>
             <div class="btn btn-primary" onclick="goBackToChat()" style="margin-top: 1rem;">
-                Start New Conversation
+                Start Creating Content
             </div>
         </div>
     </div>
 
     <script>
-        let allConversations = [];
+        let allContent = [];
         let currentFilter = 'all';
 
         // Load custom colors if premium user
@@ -643,104 +648,112 @@
             }
         }
 
-        // Load conversations on page load
+        // Load content on page load
         document.addEventListener('DOMContentLoaded', function() {
-            loadConversations();
+            loadContent();
             loadSavedTheme();
             loadCustomColors();
             populateCompanionDropdown();
         });
 
-        async function loadConversations() {
+        async function loadContent() {
             try {
                 // Load from server-side data (unified library)
                 const libraryData = {{ content_data|tojson|safe }};
                 
-                allConversations = [];
+                allContent = [];
                 
-                // Add chat conversations
-                if (libraryData.chat_conversations) {
-                    libraryData.chat_conversations.forEach(conv => {
-                        allConversations.push({
-                            ...conv,
-                            contentType: 'chat',
-                            character: conv.character || 'Blayzo',
-                            isFavorite: false // TODO: Implement favorites from server
+                // Add all content types with proper categorization
+                const contentTypes = [
+                    { 
+                        key: 'chat_conversations', 
+                        type: 'chat', 
+                        character: 'AI Companion',
+                        icon: '💬'
+                    },
+                    { 
+                        key: 'fortune_readings', 
+                        type: 'fortune', 
+                        character: 'Fortune Teller',
+                        icon: '🔮'
+                    },
+                    { 
+                        key: 'horoscope_readings', 
+                        type: 'horoscope', 
+                        character: 'Sky',
+                        icon: '⭐'
+                    },
+                    { 
+                        key: 'decoder_readings', 
+                        type: 'decoder', 
+                        character: 'Agent',
+                        icon: '🔍'
+                    },
+                    { 
+                        key: 'creative_content', 
+                        type: 'creative', 
+                        character: 'Creative AI',
+                        icon: '✍️'
+                    },
+                    { 
+                        key: 'ai_images', 
+                        type: 'ai_image', 
+                        character: 'Image AI',
+                        icon: '🎨'
+                    },
+                    { 
+                        key: 'mini_studio_tracks', 
+                        type: 'mini_studio', 
+                        character: 'Studio AI',
+                        icon: '🎵'
+                    },
+                    { 
+                        key: 'voice_journals', 
+                        type: 'voice_journal', 
+                        character: 'Voice AI',
+                        icon: '🎤'
+                    }
+                ];
+                
+                // Process each content type
+                contentTypes.forEach(contentDef => {
+                    if (libraryData[contentDef.key]) {
+                        libraryData[contentDef.key].forEach(item => {
+                            allContent.push({
+                                ...item,
+                                contentType: contentDef.type,
+                                character: item.character || contentDef.character,
+                                icon: contentDef.icon,
+                                isFavorite: false // TODO: Implement favorites from server
+                            });
                         });
-                    });
-                }
+                    }
+                });
                 
-                // Add horoscope readings
-                if (libraryData.horoscope_readings) {
-                    libraryData.horoscope_readings.forEach(reading => {
-                        allConversations.push({
-                            ...reading,
-                            contentType: 'horoscope',
-                            character: 'Sky', // Horoscopes use Sky character
-                            isFavorite: false
-                        });
-                    });
-                }
-                
-                // Add fortune readings
-                if (libraryData.fortune_readings) {
-                    libraryData.fortune_readings.forEach(reading => {
-                        allConversations.push({
-                            ...reading,
-                            contentType: 'fortune',
-                            character: 'Fortune Teller', // Fortune readings use Fortune Teller
-                            isFavorite: false
-                        });
-                    });
-                }
-                
-                // Add decoder readings
-                if (libraryData.decoder_readings) {
-                    libraryData.decoder_readings.forEach(reading => {
-                        allConversations.push({
-                            ...reading,
-                            contentType: 'decoder',
-                            character: 'Agent', // Decoder readings use Agent character
-                            isFavorite: false
-                        });
-                    });
-                }
-                
-                // Add creative content
-                if (libraryData.creative_content) {
-                    libraryData.creative_content.forEach(creative => {
-                        allConversations.push({
-                            ...creative,
-                            contentType: 'creative',
-                            character: 'Creative AI',
-                            isFavorite: false
-                        });
-                    });
-                }
-                
-                displayConversations(allConversations);
+                displayContent(allContent);
             } catch (error) {
                 console.error('Error loading library data:', error);
                 // Fallback to localStorage for backwards compatibility
                 const savedConversations = JSON.parse(localStorage.getItem('savedConversations') || '[]');
                 const favorites = JSON.parse(localStorage.getItem('favoriteConversations') || '[]');
                 
-                allConversations = savedConversations.map((conv, index) => ({
+                allContent = savedConversations.map((conv, index) => ({
                     ...conv,
                     id: index,
                     contentType: 'chat',
+                    icon: '💬',
                     isFavorite: favorites.includes(index)
                 }));
 
-                displayConversations(allConversations);
+                displayContent(allContent);
             }
         }
 
-        function displayConversations(conversations) {
+        function displayContent(contentItems) {
             const grid = document.getElementById('conversationsGrid');
             const emptyState = document.getElementById('emptyState');
 
-            if (conversations.length === 0) {
+            if (contentItems.length === 0) {
                 grid.style.display = 'none';
                 emptyState.style.display = 'block';
                 return;
@@ -749,61 +762,67 @@
             grid.style.display = 'grid';
             emptyState.style.display = 'none';
 
-            grid.innerHTML = conversations.map(conv => createConversationCard(conv)).join('');
+            grid.innerHTML = contentItems.map(item => createContentCard(item)).join('');
         }
 
-        function createConversationCard(conv) {
-            const preview = extractPreview(conv.content);
-            let characterIcon;
-            if (conv.character === 'Blayzo') {
-                characterIcon = '<img src="/static/logos/Blayzo.png" alt="Blayzo" style="width: 16px; height: 16px; border-radius: 4px; object-fit: contain; margin-right: 4px;">';
-            } else if (conv.character === 'Sky') {
-                characterIcon = '<img src="/static/logos/horoscope sky.png" alt="Sky" style="width: 16px; height: 16px; border-radius: 4px; object-fit: contain; margin-right: 4px;">';
-            } else if (conv.character === 'Fortune Teller') {
-                characterIcon = '<img src="/static/logos/Fortune Teller Sky.png" alt="Fortune Teller" style="width: 16px; height: 16px; border-radius: 4px; object-fit: contain; margin-right: 4px;">';
-            } else if (conv.character === 'Agent') {
-                characterIcon = '<img src="/static/logos/Agent The decoder.png" alt="Agent" style="width: 16px; height: 16px; border-radius: 4px; object-fit: contain; margin-right: 4px;">';
-            } else if (conv.contentType === 'horoscope') {
-                characterIcon = '⭐'; // Fallback for horoscope readings
-            } else if (conv.contentType === 'fortune') {
-                characterIcon = '🔮'; // Fallback for fortune readings
-            } else if (conv.contentType === 'decoder') {
-                characterIcon = '🔍'; // Fallback for decoder readings
-            } else {
-                characterIcon = '<img src="/static/logos/Blayzica.png" alt="Blayzica" style="width: 16px; height: 16px; border-radius: 4px; object-fit: contain; margin-right: 4px;">';
-            }
+        function getContentTypeInfo(contentType) {
+            const typeMap = {
+                'chat': { icon: '💬', displayName: 'Conversation', bgColor: '#22d3ee' },
+                'fortune': { icon: '🔮', displayName: 'Fortune Reading', bgColor: '#a855f7' },
+                'horoscope': { icon: '⭐', displayName: 'Horoscope', bgColor: '#f59e0b' },
+                'decoder': { icon: '🔍', displayName: 'Decoder Session', bgColor: '#10b981' },
+                'creative': { icon: '✍️', displayName: 'Creative Writing', bgColor: '#f97316' },
+                'ai_image': { icon: '🎨', displayName: 'AI Image', bgColor: '#ec4899' },
+                'mini_studio': { icon: '🎵', displayName: 'Studio Track', bgColor: '#8b5cf6' },
+                'voice_journal': { icon: '🎤', displayName: 'Voice Journal', bgColor: '#06b6d4' }
+            };
+            return typeMap[contentType] || { icon: '📄', displayName: 'Content', bgColor: '#6b7280' };
+        }
+
+        function createContentCard(item) {
+            const preview = extractPreview(item.content);
+            
+            // Get content type specific info
+            const contentTypeInfo = getContentTypeInfo(item.contentType);
+            const icon = item.icon || contentTypeInfo.icon;
+            const displayName = contentTypeInfo.displayName;
             
             return `
-                <div class="conversation-card ${conv.isFavorite ? 'favorite' : ''}" data-id="${conv.id}">
+                <div class="conversation-card ${item.isFavorite ? 'favorite' : ''}" data-id="${item.id}" data-type="${item.contentType}">
                     <div class="conversation-header">
-                        <h3 class="conversation-title">${conv.title}</h3>
-                        <span class="favorite-icon ${conv.isFavorite ? 'active' : ''}">⭐</span>
+                        <h3 class="conversation-title">${item.title}</h3>
+                        <span class="favorite-icon ${item.isFavorite ? 'active' : ''}">❤️</span>
                     </div>
                     
                     <div class="conversation-meta">
                         <div class="conversation-character">
-                            ${characterIcon} ${conv.character}
+                            <span style="font-size: 16px; margin-right: 8px;">${icon}</span>
+                            <span style="background: ${contentTypeInfo.bgColor}20; color: ${contentTypeInfo.bgColor}; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; font-weight: 600; margin-right: 8px;">${displayName}</span>
+                            ${item.character}
                         </div>
-                        <div class="conversation-date">${conv.created_at || conv.date || 'Unknown date'}</div>
+                        <div class="conversation-date">${item.created_at || item.date || 'Unknown date'}</div>
                     </div>
                     
                     <div class="conversation-preview">${preview}</div>
                     
                     <div class="conversation-actions">
-                        <button class="action-btn btn-load" onclick="loadConversation(${conv.id})">
-                            📖 Load
+                        <button class="action-btn btn-load" onclick="viewContent(${item.id})">
+                            👁️ View
                         </button>
-                        <button class="action-btn btn-favorite" onclick="toggleFavorite(${conv.id})">
-                            ${conv.isFavorite ? '⭐ Unfavorite' : '⭐ Favorite'}
+                        <button class="action-btn btn-favorite" onclick="toggleFavorite(${item.id})">
+                            ${item.isFavorite ? '❤️ Unfavorite' : '❤️ Favorite'}
                         </button>
-                        <button class="action-btn btn-copy" onclick="copyConversation(${conv.id})">
+                        <button class="action-btn btn-copy" onclick="copyContent(${item.id})">
                             📋 Copy
                         </button>
-                        <button class="action-btn btn-export" onclick="exportConversation(${conv.id})">
+                        <button class="action-btn btn-export" onclick="exportContent(${item.id})">
                             💾 Export
                         </button>
-                        <button class="action-btn btn-delete" onclick="deleteConversation(${conv.id})">
+                        <button class="action-btn btn-delete" onclick="deleteContent(${item.id})">
                             🗑️ Delete
+                        </button>
+                        <button class="action-btn btn-share" onclick="shareContent(${item.id})" style="background: rgba(34, 197, 94, 0.8); color: #000;">
+                            🌐 Share
                         </button>
                     </div>
                 </div>

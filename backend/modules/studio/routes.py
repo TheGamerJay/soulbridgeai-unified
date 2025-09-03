@@ -120,11 +120,65 @@ def api_generate_lyrics():
         result = studio_service.generate_lyrics(user_id, project_id, concept, bpm, key_hint, language)
         
         if result["success"]:
+            # 📚 AUTO-SAVE: Save generated lyrics to library
+            auto_saved = False
+            try:
+                from ..library.library_manager import LibraryManager
+                from ..shared.database import get_database
+                
+                database = get_database()
+                library_manager = LibraryManager(database)
+                
+                # Create readable title from concept
+                title = f"Studio Lyrics: {concept[:50]}{'...' if len(concept) > 50 else ''}"
+                
+                # Prepare content for library storage
+                lyrics_content = {
+                    'asset_id': result["data"]["assetId"],
+                    'project_id': project_id,
+                    'concept': concept,
+                    'bpm': bpm,
+                    'key_hint': key_hint,
+                    'language': language,
+                    'generated_at': datetime.now().isoformat(),
+                    'cost': 5,
+                    'type': 'mini_studio_lyrics'
+                }
+                
+                # Save to library with metadata
+                content_id = library_manager.add_content(
+                    user_id=user_id,
+                    content_type='mini_studio',
+                    title=title,
+                    content=str(lyrics_content),  # Store as string for now
+                    metadata={
+                        'studio_type': 'lyrics',
+                        'asset_id': result["data"]["assetId"],
+                        'concept': concept,
+                        'bpm': bpm,
+                        'language': language,
+                        'cost': 5,
+                        'user_tier': 'gold'  # Mini studio is Gold-only
+                    }
+                )
+                
+                auto_saved = bool(content_id)
+                if auto_saved:
+                    logger.info(f"🎵 Auto-saved studio lyrics {content_id} to library for user {user_id}")
+                else:
+                    logger.warning(f"Failed to auto-save studio lyrics to library for user {user_id}")
+                    
+            except Exception as e:
+                logger.error(f"Auto-save studio lyrics error: {e}")
+                auto_saved = False
+                
             return jsonify({
                 "success": True,
                 "asset_id": result["data"]["assetId"],
                 "cost": 5,
-                "message": "Lyrics generated successfully"
+                "message": "Lyrics generated successfully",
+                "auto_saved": auto_saved,
+                "saved_message": "✅ Automatically saved to your library" if auto_saved else ""
             })
         else:
             return jsonify(result), 402 if "credits" in result.get("error", "") else 500
@@ -160,12 +214,69 @@ def api_compose_beat():
         result = studio_service.compose_beat(user_id, project_id, prompt, bpm, key, seconds, demucs)
         
         if result["success"]:
+            # 📚 AUTO-SAVE: Save generated beat to library
+            auto_saved = False
+            try:
+                from ..library.library_manager import LibraryManager
+                from ..shared.database import get_database
+                
+                database = get_database()
+                library_manager = LibraryManager(database)
+                
+                # Create readable title from prompt
+                title = f"Studio Beat: {prompt[:50]}{'...' if len(prompt) > 50 else ''}"
+                
+                # Prepare content for library storage
+                beat_content = {
+                    'asset_id': result["data"]["assetId"],
+                    'project_id': project_id,
+                    'prompt': prompt,
+                    'bpm': bpm,
+                    'key': key,
+                    'seconds': seconds,
+                    'includes_stems': demucs,
+                    'generated_at': datetime.now().isoformat(),
+                    'cost': 10,
+                    'type': 'mini_studio_beat'
+                }
+                
+                # Save to library with metadata
+                content_id = library_manager.add_content(
+                    user_id=user_id,
+                    content_type='mini_studio',
+                    title=title,
+                    content=str(beat_content),  # Store as string for now
+                    metadata={
+                        'studio_type': 'beat',
+                        'asset_id': result["data"]["assetId"],
+                        'prompt': prompt,
+                        'bpm': bpm,
+                        'key': key,
+                        'duration_seconds': seconds,
+                        'has_stems': demucs,
+                        'cost': 10,
+                        'user_tier': 'gold'  # Mini studio is Gold-only
+                    }
+                )
+                
+                auto_saved = bool(content_id)
+                if auto_saved:
+                    logger.info(f"🥁 Auto-saved studio beat {content_id} to library for user {user_id}")
+                else:
+                    logger.warning(f"Failed to auto-save studio beat to library for user {user_id}")
+                    
+            except Exception as e:
+                logger.error(f"Auto-save studio beat error: {e}")
+                auto_saved = False
+                
             return jsonify({
                 "success": True,
                 "asset_id": result["data"]["assetId"],
                 "cost": 10,
                 "message": "Beat composed successfully",
-                "includes_stems": demucs
+                "includes_stems": demucs,
+                "auto_saved": auto_saved,
+                "saved_message": "✅ Automatically saved to your library" if auto_saved else ""
             })
         else:
             return jsonify(result), 402 if "credits" in result.get("error", "") else 500
@@ -200,11 +311,67 @@ def api_generate_vocals():
         result = studio_service.generate_vocals(user_id, project_id, lyrics_asset_id, beat_asset_id, midi_asset_id, bpm)
         
         if result["success"]:
+            # 📚 AUTO-SAVE: Save generated vocals to library
+            auto_saved = False
+            try:
+                from ..library.library_manager import LibraryManager
+                from ..shared.database import get_database
+                
+                database = get_database()
+                library_manager = LibraryManager(database)
+                
+                # Create readable title
+                title = f"Studio Vocals: Project {project_id}"
+                
+                # Prepare content for library storage
+                vocals_content = {
+                    'asset_id': result["data"]["assetId"],
+                    'project_id': project_id,
+                    'lyrics_asset_id': lyrics_asset_id,
+                    'beat_asset_id': beat_asset_id,
+                    'midi_asset_id': midi_asset_id,
+                    'bpm': bpm,
+                    'generated_at': datetime.now().isoformat(),
+                    'cost': result["data"].get("cost", 10),
+                    'type': 'mini_studio_vocals'
+                }
+                
+                # Save to library with metadata
+                content_id = library_manager.add_content(
+                    user_id=user_id,
+                    content_type='mini_studio',
+                    title=title,
+                    content=str(vocals_content),  # Store as string for now
+                    metadata={
+                        'studio_type': 'vocals',
+                        'asset_id': result["data"]["assetId"],
+                        'project_id': project_id,
+                        'bpm': bpm,
+                        'has_lyrics': bool(lyrics_asset_id),
+                        'has_beat': bool(beat_asset_id),
+                        'has_midi': bool(midi_asset_id),
+                        'cost': result["data"].get("cost", 10),
+                        'user_tier': 'gold'  # Mini studio is Gold-only
+                    }
+                )
+                
+                auto_saved = bool(content_id)
+                if auto_saved:
+                    logger.info(f"🎤 Auto-saved studio vocals {content_id} to library for user {user_id}")
+                else:
+                    logger.warning(f"Failed to auto-save studio vocals to library for user {user_id}")
+                    
+            except Exception as e:
+                logger.error(f"Auto-save studio vocals error: {e}")
+                auto_saved = False
+                
             return jsonify({
                 "success": True,
                 "asset_id": result["data"]["assetId"],
                 "cost": result["data"].get("cost", 10),
-                "message": "Vocals generated successfully"
+                "message": "Vocals generated successfully",
+                "auto_saved": auto_saved,
+                "saved_message": "✅ Automatically saved to your library" if auto_saved else ""
             })
         else:
             return jsonify(result), 402 if "credits" in result.get("error", "") else 500

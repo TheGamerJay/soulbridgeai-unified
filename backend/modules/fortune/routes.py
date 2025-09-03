@@ -121,6 +121,58 @@ def generate_reading():
                     track_horoscope_cost(user_id, 'fortune', result)
                 except Exception as cost_error:
                     logger.warning(f"Cost tracking failed: {cost_error}")
+                
+                # 📚 AUTO-SAVE: Save fortune reading to library
+                try:
+                    from ..library.library_manager import LibraryManager
+                    from ..shared.database import get_database
+                    
+                    database = get_database()
+                    library_manager = LibraryManager(database)
+                    
+                    # Create readable title from question or spread type
+                    if question and len(question.strip()) > 0:
+                        title = f"Fortune Reading: {question[:50]}{'...' if len(question) > 50 else ''}"
+                    else:
+                        title = f"{spread_type.title()} Card Reading"
+                    
+                    # Prepare content for library storage
+                    reading_content = {
+                        'question': question,
+                        'spread_type': spread_type,
+                        'cards': result.get('cards', []),
+                        'interpretation': result.get('interpretation', ''),
+                        'reading_date': result.get('timestamp'),
+                        'reversals_enabled': reversals,
+                        'clarifiers_count': clarifiers
+                    }
+                    
+                    # Save to library with metadata
+                    content_id = library_manager.add_content(
+                        user_id=user_id,
+                        content_type='fortune',
+                        title=title,
+                        content=str(reading_content),  # Store as string for now
+                        metadata={
+                            'spread_type': spread_type,
+                            'cards_count': len(result.get('cards', [])),
+                            'has_interpretation': bool(result.get('interpretation')),
+                            'question_length': len(question) if question else 0,
+                            'user_tier': user_plan
+                        }
+                    )
+                    
+                    if content_id:
+                        logger.info(f"📚 Auto-saved fortune reading {content_id} to library for user {user_id}")
+                        # Add library info to response
+                        result['library_saved'] = True
+                        result['library_id'] = content_id
+                    else:
+                        logger.warning(f"Failed to auto-save fortune reading to library for user {user_id}")
+                        
+                except Exception as save_error:
+                    logger.error(f"Auto-save fortune reading error: {save_error}")
+                    # Don't fail the request if save fails, just log it
             
             return jsonify(result), 200
         else:
