@@ -303,7 +303,7 @@ Make it positive, insightful, and encouraging. Keep it concise but meaningful.""
             }
     
     def generate_creative_writing(self, prompt: str, style: str = "story", user_id: int = None) -> dict:
-        """Generate creative writing using AI - Uses same system as decoder"""
+        """Generate creative writing using direct OpenAI integration"""
         try:
             if not prompt or len(prompt.strip()) < 5:
                 return {
@@ -311,51 +311,76 @@ Make it positive, insightful, and encouraging. Keep it concise but meaningful.""
                     "error": "Please provide a writing prompt of at least 5 characters"
                 }
             
-            # Use the working chat endpoint internally for OpenAI integration (same as decoder)
-            try:
-                import requests
-                import os
-                
-                # Direct call to chat endpoint
-                chat_url = f"{os.environ.get('APP_URL', 'http://localhost:8080')}/api/chat"
-                
-                writing_prompt = f"""Create a {style} based on this prompt: "{prompt}"
-
-Make it creative, engaging, and well-written. Keep it to about 200-300 words."""
-
-                response = requests.post(chat_url, json={
-                    "message": writing_prompt,
-                    "character": "Creative Writer",
-                    "context": "creative_writing",
-                    "user_tier": "bronze"
-                })
-                
-                if response.status_code == 200:
-                    result = response.json()
-                    logger.info(f"🤖 Chat endpoint response for creative writing: {result}")
-                    if result.get('success'):
+            # Direct OpenAI API call like decode_dream does
+            if self.client:
+                try:
+                    # Style-specific character prompts and instructions
+                    style_configs = {
+                        "story": {
+                            "character": "You are a Creative Story Writer, expert at crafting engaging short stories with compelling characters and plot.",
+                            "instruction": f"Write a creative short story based on this prompt: '{prompt}'. Include dialogue, vivid descriptions, and emotional depth. Keep it around 250-400 words."
+                        },
+                        "lyrics": {
+                            "character": "You are a Song Lyricist, expert at writing emotional and meaningful song lyrics with rhythm and flow.",
+                            "instruction": f"Write song lyrics based on this theme: '{prompt}'. Include verses, a chorus, and bridge. Make it emotional and relatable with good rhythm. Format with clear verse/chorus structure."
+                        },
+                        "poem": {
+                            "character": "You are a Poet, expert at creating beautiful poetry that captures emotions and imagery.",
+                            "instruction": f"Write a poem inspired by: '{prompt}'. Use vivid imagery, metaphors, and emotional language. Choose an appropriate style (free verse, rhyming, etc.) that fits the theme."
+                        },
+                        "script": {
+                            "character": "You are a Screenwriter, expert at writing compelling dialogue and dramatic scenes.",
+                            "instruction": f"Write a script/dialogue scene based on: '{prompt}'. Include character names, dialogue, and stage directions. Make it dramatic and engaging with realistic conversation."
+                        },
+                        "essay": {
+                            "character": "You are a Creative Essay Writer, expert at crafting thoughtful and engaging essays.",
+                            "instruction": f"Write a creative essay about: '{prompt}'. Include personal insights, examples, and compelling arguments. Make it engaging and thought-provoking."
+                        },
+                        "letter": {
+                            "character": "You are a Letter Writer, expert at crafting personal and meaningful correspondence.",
+                            "instruction": f"Write a heartfelt letter based on: '{prompt}'. Make it personal, genuine, and emotionally resonant. Include appropriate greetings and closings."
+                        },
+                        "creative": {
+                            "character": "You are a Creative Fiction Writer, expert at experimental and imaginative storytelling.",
+                            "instruction": f"Write a creative fiction piece inspired by: '{prompt}'. Be experimental, imaginative, and unique. Break conventional rules if it serves the story."
+                        }
+                    }
+                    
+                    # Get config for the requested style, default to story
+                    config = style_configs.get(style, style_configs["story"])
+                    
+                    logger.info(f"🎨 Making direct OpenAI call for creative writing: {style}")
+                    
+                    # Direct OpenAI call
+                    response = self.client.chat.completions.create(
+                        model="gpt-3.5-turbo",
+                        messages=[
+                            {"role": "system", "content": config["character"]},
+                            {"role": "user", "content": config["instruction"]}
+                        ],
+                        temperature=0.9,  # High creativity
+                        max_tokens=800
+                    )
+                    
+                    if response.choices and response.choices[0].message.content:
+                        ai_content = response.choices[0].message.content.strip()
+                        logger.info(f"✅ Generated {style}: {ai_content[:100]}...")
+                        
                         return {
                             "success": True,
-                            "content": result['response'],
+                            "content": ai_content,
                             "style": style,
                             "prompt": prompt,
-                            "word_count": len(result['response'].split())
+                            "word_count": len(ai_content.split())
                         }
-                else:
-                    logger.error(f"❌ Chat endpoint returned status {response.status_code}: {response.text}")
-            except Exception as e:
-                logger.error(f"Failed to call chat endpoint: {e}")
-                pass
+                    
+                except Exception as e:
+                    logger.error(f"OpenAI creative writing failed: {e}")
             
-            # Fallback creative content
-            content = f"Based on your prompt '{prompt}', here's a {style}: Once upon a time, in a world where {prompt.lower()}, extraordinary things began to happen. The story unfolds with mystery and wonder, leading to unexpected discoveries and meaningful connections."
-            
+            # Only fall back if OpenAI is completely unavailable
             return {
-                "success": True,
-                "content": content,
-                "style": style,
-                "prompt": prompt,
-                "word_count": len(content.split())
+                "success": False,
+                "error": "Creative writing service temporarily unavailable. Please try again later."
             }
             
         except Exception as e:
