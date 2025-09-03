@@ -417,17 +417,26 @@ async function getHoroscope() {
     out.innerHTML = card(h);
     
     // Show ad after results (only for non-ad-free users)
+    console.log('🔍 Debug: __AD_FREE__ =', window.__AD_FREE__);
     if (window.__AD_FREE__ !== true && window.__AD_FREE__ !== 'true') {
+        console.log('✅ User is NOT ad-free, showing ads');
         const adContainer = document.getElementById('ad-container');
+        console.log('📺 Ad container found:', !!adContainer);
         if (adContainer) {
             adContainer.style.display = 'block';
+            console.log('📺 Ad container displayed');
             // Trigger AdSense
             try {
                 (adsbygoogle = window.adsbygoogle || []).push({});
+                console.log('📺 AdSense push triggered');
             } catch (e) {
-                console.log('AdSense not ready yet');
+                console.log('❌ AdSense error:', e);
             }
+        } else {
+            console.log('❌ Ad container not found!');
         }
+    } else {
+        console.log('🚫 User is ad-free, not showing ads');
     }
     
     // Refresh usage limits after successful horoscope generation
