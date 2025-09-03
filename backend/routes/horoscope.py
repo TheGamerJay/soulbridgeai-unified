@@ -53,14 +53,30 @@ def get_daily_horoscope():
                 "error": "Zodiac sign is required"
             }), 400
 
-        # Check quota limits
-        quota_status = get_quota_status(user_id, 'horoscope')
-        if not quota_status.get('allowed', False):
-            return jsonify({
-                "success": False,
-                "error": "Daily horoscope limit reached",
-                "quota": quota_status
-            }), 429
+        # Check usage limits with unified tier system
+        if user_id:
+            from modules.creative.usage_tracker import CreativeUsageTracker
+            from modules.creative.features_config import get_feature_limit
+            from modules.user_profile.profile_service import ProfileService
+            
+            usage_tracker = CreativeUsageTracker()
+            
+            try:
+                profile_service = ProfileService()
+                user_profile_result = profile_service.get_user_profile(user_id)
+                user_profile = user_profile_result.get('user') if user_profile_result.get('success') else None
+                user_plan = user_profile.get('plan', 'bronze') if user_profile else 'bronze'
+                trial_active = user_profile.get('trial', {}).get('active', False) if user_profile else False
+            except Exception:
+                user_plan = 'bronze'
+                trial_active = False
+            
+            if not usage_tracker.can_use_feature(user_id, 'horoscope', user_plan, trial_active):
+                limit = get_feature_limit('horoscope', user_plan, trial_active)
+                return jsonify({
+                    "success": False,
+                    "error": f"Daily horoscope limit reached ({limit} uses). Upgrade for more readings."
+                }), 429
 
         # Generate horoscope
         result = horoscope_service.generate_daily_horoscope(
@@ -70,6 +86,10 @@ def get_daily_horoscope():
         )
 
         if result.get('success'):
+            # Record usage with unified system
+            if user_id:
+                usage_tracker.record_usage(user_id, 'horoscope')
+            
             # Track usage/cost
             try:
                 track_horoscope_cost(user_id, 'daily', result)
