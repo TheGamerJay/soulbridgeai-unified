@@ -5,29 +5,7 @@ Professional music production endpoints integrated with Docker services
 import logging
 from flask import Blueprint, render_template, request, session, jsonify, redirect, send_file
 from ..auth.session_manager import requires_login, get_user_id
-def require_gold_access(func):
-    """Decorator to require Gold tier access for studio features"""
-    from functools import wraps
-    from flask import session, redirect, flash
-    
-    @wraps(func)
-    def decorated_function(*args, **kwargs):
-        user_plan = session.get('user_plan', 'bronze')
-        trial_active = session.get('trial_active', False)
-        
-        # Gold users have access
-        if user_plan == 'gold':
-            return func(*args, **kwargs)
-            
-        # Trial users get temporary gold access
-        if trial_active and user_plan == 'bronze':
-            return func(*args, **kwargs)
-            
-        # Block access for bronze/silver users
-        flash("Mini Studio requires Gold tier access", "error")
-        return redirect("/intro")
-    
-    return decorated_function
+from ..auth.access_control import require_gold_access
 from .studio_service import StudioService
 from io import BytesIO
 
