@@ -85,6 +85,22 @@ def generate_reading():
         clarifiers = data.get('clarifiers', 0)
         include_interpretation = data.get('interpretation', True)
         
+        # Validate tier access for spreads
+        spread_tier_requirements = {
+            'celtic': 'silver',  # Celtic Cross requires Silver+
+            'grand': 'gold'      # 21-card Grand requires Gold
+        }
+        
+        if spread_type in spread_tier_requirements:
+            required_tier = spread_tier_requirements[spread_type]
+            tier_order = {'bronze': 0, 'silver': 1, 'gold': 2}
+            
+            if tier_order.get(user_plan, 0) < tier_order.get(required_tier, 0):
+                return jsonify({
+                    "success": False, 
+                    "error": f"The {spread_type.title()} spread requires {required_tier.title()} tier or higher. Upgrade to access this premium spread."
+                }), 403
+        
         # Generate reading
         result = fortune_service.generate_fortune(
             question=question,
@@ -169,7 +185,8 @@ def get_limits():
             "daily_limit": limit,
             "usage_today": usage_today,
             "remaining": max(0, limit - usage_today) if limit < 999 else 999,
-            "unlimited": limit >= 999
+            "unlimited": limit >= 999,
+            "user_tier": user_plan
         }), 200
         
     except Exception as e:

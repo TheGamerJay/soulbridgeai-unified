@@ -319,8 +319,8 @@
                         <option value="one">1 Card - Quick Guidance</option>
                         <option value="three" selected>3 Card - Past, Present, Future</option>
                         <option value="five">5 Card - Comprehensive Reading</option>
-                        <option value="celtic">Celtic Cross - Full Analysis</option>
-                        <option value="grand">21 Card - Grand Life Spread</option>
+                        <option value="celtic" data-tier="silver">🥈 Celtic Cross - Full Analysis (Silver+)</option>
+                        <option value="grand" data-tier="gold">🥇 21 Card - Grand Life Spread (Gold Only)</option>
                     </select>
                 </label>
             </div>
@@ -336,15 +336,43 @@
         </div>
         <div id="reading"></div>
     </main>
-    <footer>Click cards to flip them. Your readings are powered by the full 78-card tarot deck with authentic meanings.</footer>
+    <footer>
+        <div style="margin-bottom: 12px;">
+            <a href="/companion-selection" style="display: inline-block; padding: 8px 16px; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); color: white; text-decoration: none; border-radius: 8px; font-weight: 500; transition: all 0.3s ease;">
+                ← Back to Chat
+            </a>
+        </div>
+        Cards reveal automatically based on their orientation. Your readings are powered by the full 78-card tarot deck with authentic meanings.
+    </footer>
 
     <script>
         const API = "/api/fortune";
         const IMG_BASE = "/static/tarot/";
         const BACK_IMG = IMG_BASE + "back.png";
+        
+        let userTier = 'bronze'; // Default to bronze
 
         function cardUrl(slug) {
             return IMG_BASE + slug + ".png";
+        }
+        
+        function updateSpreadOptions() {
+            const spreadSelect = document.getElementById('spread');
+            const options = spreadSelect.querySelectorAll('option[data-tier]');
+            
+            options.forEach(option => {
+                const requiredTier = option.getAttribute('data-tier');
+                const tierOrder = { bronze: 0, silver: 1, gold: 2 };
+                
+                if (tierOrder[userTier] < tierOrder[requiredTier]) {
+                    option.disabled = true;
+                    option.style.color = '#666';
+                    option.textContent = option.textContent.replace('🥈', '🔒').replace('🥇', '🔒');
+                } else {
+                    option.disabled = false;
+                    option.style.color = '';
+                }
+            });
         }
 
         async function loadUsageLimits() {
@@ -353,14 +381,23 @@
                 const data = await response.json();
                 
                 if (data.success) {
+                    // Update user tier from API response
+                    if (data.user_tier) {
+                        userTier = data.user_tier;
+                        updateSpreadOptions();
+                    }
+                    
                     const usageInfo = document.getElementById('usage-info');
+                    const tierDisplay = userTier.charAt(0).toUpperCase() + userTier.slice(1);
+                    const tierEmoji = userTier === 'gold' ? '🥇' : userTier === 'silver' ? '🥈' : '🥉';
+                    
                     if (data.unlimited) {
-                        usageInfo.innerHTML = '⭐ Unlimited fortune readings available';
+                        usageInfo.innerHTML = `${tierEmoji} ${tierDisplay} Tier - Unlimited fortune readings available`;
                         usageInfo.style.background = 'rgba(34, 197, 94, 0.1)';
                         usageInfo.style.borderColor = 'rgba(34, 197, 94, 0.3)';
                     } else {
                         const remaining = data.remaining || 0;
-                        usageInfo.innerHTML = `🔮 ${remaining} fortune readings remaining today (${data.usage_today}/${data.daily_limit} used)`;
+                        usageInfo.innerHTML = `${tierEmoji} ${tierDisplay} Tier - ${remaining} fortune readings remaining today (${data.usage_today}/${data.daily_limit} used)`;
                         
                         if (remaining === 0) {
                             usageInfo.style.background = 'rgba(239, 68, 68, 0.1)';
@@ -373,6 +410,7 @@
             } catch (error) {
                 console.error('Failed to load usage limits:', error);
                 document.getElementById('usage-info').innerHTML = '🔮 Ready for your fortune reading';
+                updateSpreadOptions(); // Still update options with default bronze
             }
         }
 
@@ -383,7 +421,7 @@
             const back = BACK_IMG;
             
             return `<div class="panel" style="padding:12px">
-                <div class="${flipClass}" onclick="this.classList.toggle('flipped')">
+                <div class="${flipClass}">
                     <div class="inner">
                         <div class="face front"><img src="${front}" onerror="this.src='${back}'" alt="${item.card}" /></div>
                         <div class="face back"><img src="${back}" alt="Back" /></div>
@@ -409,6 +447,17 @@
             
             try {
                 const spread = document.getElementById("spread").value;
+                const spreadOption = document.querySelector(`option[value="${spread}"]`);
+                
+                // Check if spread is disabled (tier restriction)
+                if (spreadOption && spreadOption.disabled) {
+                    const requiredTier = spreadOption.getAttribute('data-tier');
+                    alert(`This spread requires ${requiredTier.charAt(0).toUpperCase() + requiredTier.slice(1)} tier or higher. Please upgrade to access this premium spread.`);
+                    button.disabled = false;
+                    button.textContent = originalText;
+                    return;
+                }
+                
                 const reversals = document.getElementById("reversals").checked;
                 const interpretation = document.getElementById("interpretation").checked;
                 
