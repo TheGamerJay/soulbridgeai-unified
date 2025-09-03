@@ -406,6 +406,9 @@ async function getHoroscope() {
       return; 
     }
     out.innerHTML = card(h);
+    
+    // Refresh usage limits after successful horoscope generation
+    loadUsageLimits();
   } catch (error) {
     out.innerHTML = `<div style="color:#ff6b6b; padding: 20px; text-align: center;">Connection error. Please try again.</div>`;
   }

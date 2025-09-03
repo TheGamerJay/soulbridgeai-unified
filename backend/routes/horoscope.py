@@ -410,23 +410,66 @@ def enhanced_compatibility(a: str, b: str, rel_type: str = "romantic") -> Dict[s
 @bp.route('/api/horoscope/period', methods=['POST'])
 def enhanced_period():
     """Enhanced horoscope reading endpoint"""
-    data = request.get_json(silent=True) or {}
-    sign = (data.get("sign") or "").lower().strip()
-    period = (data.get("period") or "daily").lower().strip()
-    date_str = data.get("date")
-    
-    if date_str:
-        try:
-            date = dt.date.fromisoformat(date_str)
-        except Exception:
-            return jsonify({"error":"date must be YYYY-MM-DD"}), 400
-    else:
-        date = dt.date.today()
-    
     try:
+        data = request.get_json(silent=True) or {}
+        sign = (data.get("sign") or "").lower().strip()
+        period = (data.get("period") or "daily").lower().strip()
+        date_str = data.get("date")
+        user_id = session.get('user_id')
+        
+        if not sign:
+            return jsonify({"error": "Zodiac sign is required"}), 400
+        
+        if date_str:
+            try:
+                date = dt.date.fromisoformat(date_str)
+            except Exception:
+                return jsonify({"error":"date must be YYYY-MM-DD"}), 400
+        else:
+            date = dt.date.today()
+        
+        # Check usage limits with unified tier system
+        if user_id:
+            from modules.creative.usage_tracker import CreativeUsageTracker
+            from modules.creative.features_config import get_feature_limit
+            from modules.user_profile.profile_service import ProfileService
+            
+            usage_tracker = CreativeUsageTracker()
+            
+            try:
+                profile_service = ProfileService()
+                user_profile_result = profile_service.get_user_profile(user_id)
+                user_profile = user_profile_result.get('user') if user_profile_result.get('success') else None
+                user_plan = user_profile.get('plan', 'bronze') if user_profile else 'bronze'
+                trial_active = user_profile.get('trial', {}).get('active', False) if user_profile else False
+            except Exception:
+                user_plan = 'bronze'
+                trial_active = False
+            
+            if not usage_tracker.can_use_feature(user_id, 'horoscope', user_plan, trial_active):
+                limit = get_feature_limit('horoscope', user_plan, trial_active)
+                return jsonify({
+                    "error": f"Daily horoscope limit reached ({limit} uses). Upgrade for more readings."
+                }), 429
+        
+        # Generate horoscope
         result = enhanced_generate(sign, date, period)
+        
+        if result and not result.get('error'):
+            # Record usage with unified system
+            if user_id:
+                usage_tracker.record_usage(user_id, 'horoscope')
+            
+            # Track cost
+            try:
+                from billing.costing import track_horoscope_cost
+                track_horoscope_cost(user_id, 'period', result)
+            except Exception as e:
+                logger.error(f"Cost tracking failed for horoscope: {e}")
+        
         return jsonify(result), 200
     except Exception as e:
+        logger.error(f"Error in enhanced_period: {e}")
         return jsonify({"error": str(e)}), 400
 
 @bp.route('/api/horoscope/compat', methods=['GET'])
