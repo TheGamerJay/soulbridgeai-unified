@@ -839,7 +839,7 @@
 
         function filterConversations() {
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            let filtered = allConversations;
+            let filtered = allContent;
 
             // Apply type filter
             if (currentFilter === 'horoscope') {
@@ -864,7 +864,7 @@
                 );
             }
 
-            displayConversations(filtered);
+            displayContent(filtered);
         }
 
         function filterByType(type) {
@@ -879,42 +879,47 @@
             filterConversations();
         }
 
-        function loadConversation(id) {
-            const conversation = allConversations[id];
-            // Store the conversation to load (confirmation removed for production)
-            sessionStorage.setItem('conversationToLoad', JSON.stringify(conversation));
-            // Redirect back to chat
-            window.location.href = '/chat';
+        function viewContent(id) {
+            const content = allContent[id];
+            // Store the content to view (confirmation removed for production)
+            sessionStorage.setItem('contentToView', JSON.stringify(content));
+            // Redirect to appropriate viewer based on content type
+            if (content.contentType === 'chat') {
+                window.location.href = '/chat';
+            } else {
+                // For now, redirect to chat - we can add specific viewers later
+                window.location.href = '/chat';
+            }
         }
 
         function toggleFavorite(id) {
-            const favorites = JSON.parse(localStorage.getItem('favoriteConversations') || '[]');
-            const conversation = allConversations[id];
+            const favorites = JSON.parse(localStorage.getItem('favoriteContent') || '[]');
+            const content = allContent[id];
             
-            if (conversation.isFavorite) {
+            if (content.isFavorite) {
                 // Remove from favorites
                 const index = favorites.indexOf(id);
                 if (index > -1) {
                     favorites.splice(index, 1);
                 }
-                conversation.isFavorite = false;
+                content.isFavorite = false;
             } else {
                 // Add to favorites
                 favorites.push(id);
-                conversation.isFavorite = true;
+                content.isFavorite = true;
             }
             
-            localStorage.setItem('favoriteConversations', JSON.stringify(favorites));
+            localStorage.setItem('favoriteContent', JSON.stringify(favorites));
             filterConversations(); // Refresh display
         }
 
-        function copyConversation(id) {
-            const conversation = allConversations[id];
-            const textContent = extractPreview(conversation.content);
-            const fullText = `${conversation.title}\nCharacter: ${conversation.character}\nDate: ${conversation.date}\n\n${textContent}`;
+        function copyContent(id) {
+            const content = allContent[id];
+            const textContent = extractPreview(content.content);
+            const fullText = `${content.title}\nCharacter: ${content.character}\nDate: ${content.date}\n\n${textContent}`;
             
             navigator.clipboard.writeText(fullText).then(function() {
-                // Conversation copied (alert removed for production)
+                // Content copied (alert removed for production)
             }, function(err) {
                 // Fallback for older browsers
                 const textArea = document.createElement('textarea');
@@ -923,17 +928,18 @@
                 textArea.select();
                 document.execCommand('copy');
                 document.body.removeChild(textArea);
-                // Conversation copied (alert removed for production)
+                // Content copied (alert removed for production)
             });
         }
 
-        function exportConversation(id) {
-            const conversation = allConversations[id];
+        function exportContent(id) {
+            const content = allContent[id];
             const exportData = {
-                title: conversation.title,
-                character: conversation.character,
-                date: conversation.date,
-                content: conversation.content
+                title: content.title,
+                character: content.character,
+                date: content.date,
+                content: content.content,
+                contentType: content.contentType
             };
             
             const dataStr = JSON.stringify(exportData, null, 2);
@@ -941,30 +947,40 @@
             
             const link = document.createElement('a');
             link.href = URL.createObjectURL(dataBlob);
-            link.download = `${conversation.title.replace(/[^a-z0-9]/gi, '_')}_conversation.json`;
+            link.download = `${content.title.replace(/[^a-z0-9]/gi, '_')}_${content.contentType}.json`;
             link.click();
             
-            // Conversation exported (alert removed for production)
+            // Content exported (alert removed for production)
         }
 
-        function deleteConversation(id) {
-            const conversation = allConversations[id];
+        function deleteContent(id) {
+            const content = allContent[id];
             
-            // Remove from saved conversations (confirmation removed for production)
-            const savedConversations = JSON.parse(localStorage.getItem('savedConversations') || '[]');
-            savedConversations.splice(id, 1);
-            localStorage.setItem('savedConversations', JSON.stringify(savedConversations));
+            // Remove from saved content (confirmation removed for production)
+            allContent.splice(id, 1);
+            
             // Remove from favorites if present
-            const favorites = JSON.parse(localStorage.getItem('favoriteConversations') || '[]');
+            const favorites = JSON.parse(localStorage.getItem('favoriteContent') || '[]');
             const favIndex = favorites.indexOf(id);
             if (favIndex > -1) {
                 favorites.splice(favIndex, 1);
                 // Update remaining favorite indices
                 const updatedFavorites = favorites.map(fav => fav > id ? fav - 1 : fav);
-                localStorage.setItem('favoriteConversations', JSON.stringify(updatedFavorites));
+                localStorage.setItem('favoriteContent', JSON.stringify(updatedFavorites));
             }
-            // Conversation deleted (alert removed for production)
-            loadConversations(); // Reload the list
+            
+            // TODO: Call API to delete from server
+            // For now, just refresh display
+            filterConversations(); // Refresh display
+        }
+        
+        // New function for anonymous sharing
+        function shareContent(id) {
+            const content = allContent[id];
+            
+            // TODO: Implement anonymous sharing to community
+            console.log('Sharing content anonymously:', content.title);
+            alert('Anonymous sharing feature coming soon!');
         }
 
         function goBackToChat() {
