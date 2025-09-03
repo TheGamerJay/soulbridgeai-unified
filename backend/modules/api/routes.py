@@ -4,6 +4,7 @@ All remaining API endpoints consolidated into organized routes
 Extracted from monolith app.py with improvements
 """
 import logging
+from datetime import datetime
 from flask import Blueprint, request, jsonify, session
 
 from ..auth.session_manager import requires_login, get_user_id
