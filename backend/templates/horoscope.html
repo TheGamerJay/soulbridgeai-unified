@@ -181,6 +181,17 @@
       line-height: 1.6;
       color: #e0e0e0;
     }
+    .usage-info {
+      background: rgba(212, 175, 55, 0.1);
+      border: 1px solid rgba(212, 175, 55, 0.3);
+      border-radius: 8px;
+      padding: 12px;
+      margin: 16px 0;
+      text-align: center;
+      color: #d4af37;
+      font-size: 14px;
+      font-weight: 500;
+    }
     footer { 
       color: #a0a0c0; 
       font-size: 12px; 
@@ -269,6 +280,10 @@
       <div class="panel">
         <button id="go" style="font-size: 1.1rem; padding: 12px 20px;">✨ Get My Horoscope ✨</button>
       </div>
+    </div>
+    
+    <div id="usage-info" class="usage-info">
+      Loading usage limits...
     </div>
 
     <div id="out" class="grid"></div>
@@ -516,6 +531,35 @@ document.getElementById("compatGo").addEventListener("click", async () => {
     wrap.innerHTML = `<div style="color:#ff6b6b; padding: 20px; text-align: center;">Connection error. Please try again.</div>`;
   }
 });
+
+// Load usage limits on page load
+async function loadUsageLimits() {
+    try {
+        const response = await fetch('/api/horoscope/limits');
+        const data = await response.json();
+        
+        if (data.success) {
+            const usageInfo = document.getElementById('usage-info');
+            const tierDisplay = data.user_tier.charAt(0).toUpperCase() + data.user_tier.slice(1);
+            const tierEmoji = data.user_tier === 'gold' ? '🥇' : data.user_tier === 'silver' ? '🥈' : '🥉';
+            const remaining = data.remaining;
+            
+            if (data.unlimited || remaining >= 999) {
+                usageInfo.innerHTML = `${tierEmoji} ${tierDisplay} Tier - Unlimited horoscope readings available`;
+            } else {
+                usageInfo.innerHTML = `${tierEmoji} ${tierDisplay} Tier - ${remaining} horoscope readings remaining today (${data.usage_today}/${data.daily_limit} used)`;
+            }
+        } else {
+            document.getElementById('usage-info').innerHTML = '🥉 Bronze Tier - 0/5 horoscope readings used today';
+        }
+    } catch (error) {
+        console.error('Failed to load usage limits:', error);
+        document.getElementById('usage-info').innerHTML = '🥉 Bronze Tier - 0/5 horoscope readings used today';
+    }
+}
+
+// Load limits on page load
+document.addEventListener('DOMContentLoaded', loadUsageLimits);
 </script>
 </body>
 </html>

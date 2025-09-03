@@ -614,3 +614,52 @@ def interpret_compatibility():
         return jsonify({"interpretation": interpretation}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 400
+
+@bp.route('/api/horoscope/limits', methods=['GET'])
+def get_limits():
+    """Get user's horoscope usage limits"""
+    try:
+        from flask import session
+        from modules.creative.usage_tracker import CreativeUsageTracker
+        from modules.creative.features_config import get_feature_limit
+        
+        usage_tracker = CreativeUsageTracker()
+        user_id = session.get('user_id')
+        
+        if not user_id:
+            return jsonify({
+                "success": True,
+                "daily_limit": 5,
+                "usage_today": 0,
+                "remaining": 5,
+                "unlimited": False,
+                "message": "Login to track your usage"
+            }), 200
+            
+        try:
+            from modules.user_profile.profile_service import ProfileService
+            profile_service = ProfileService()
+            user_profile_result = profile_service.get_user_profile(user_id)
+            user_profile = user_profile_result.get('user') if user_profile_result.get('success') else None
+            user_plan = user_profile.get('plan', 'bronze') if user_profile else 'bronze'
+            trial_active = user_profile.get('trial', {}).get('active', False) if user_profile else False
+        except Exception:
+            # Fallback to default values if profile service fails
+            user_plan = 'bronze'
+            trial_active = False
+        
+        limit = get_feature_limit('horoscope', user_plan, trial_active)
+        usage_today = usage_tracker.get_usage_today(user_id, 'horoscope')
+        
+        return jsonify({
+            "success": True,
+            "daily_limit": limit,
+            "usage_today": usage_today,
+            "remaining": max(0, limit - usage_today) if limit < 999 else 999,
+            "unlimited": limit >= 999,
+            "user_tier": user_plan
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"Error getting horoscope limits: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
