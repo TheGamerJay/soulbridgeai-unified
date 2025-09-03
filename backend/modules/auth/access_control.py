@@ -17,7 +17,8 @@ def _is_trial_active() -> bool:
 def _effective_has_tier(required: Tier, allow_trial: bool = True) -> bool:
     """
     Users with required tier or higher pass.
-    If allow_trial=True, any trial user temporarily has 'gold' access.
+    If allow_trial=True, Bronze trial users get temporary ACCESS to Silver/Gold features.
+    Their actual tier stays Bronze - they just unlock feature access temporarily.
     """
     if allow_trial and _is_trial_active():
         return True
@@ -44,7 +45,7 @@ def require_tier(required: Tier, *, allow_trial: bool = True, redirect_to: str =
     """
     Decorator enforcing minimum tier.
     - Bronze < Silver < Gold
-    - If allow_trial is True, trial users are allowed as gold.
+    - If allow_trial is True, Bronze trial users get temporary feature access (not tier change).
     - Returns 401 if not logged in (let your requires_login handle first),
       or 403 if logged in but insufficient tier (JSON), or redirects with flash (pages).
     """
