@@ -405,8 +405,11 @@
 
         async function loadUsageLimits() {
             try {
+                console.log('Fetching limits from:', API + "/limits");
                 const response = await fetch(API + "/limits");
+                console.log('Response status:', response.status);
                 const data = await response.json();
+                console.log('Limits data:', data);
                 
                 if (data.success) {
                     // Update user tier from API response
@@ -437,7 +440,8 @@
                 }
             } catch (error) {
                 console.error('Failed to load usage limits:', error);
-                document.getElementById('usage-info').innerHTML = '🔮 Ready for your fortune reading';
+                // Show default Bronze limits if API fails
+                document.getElementById('usage-info').innerHTML = '🥉 Bronze Tier - 0/5 fortune readings used today';
                 updateSpreadOptions(); // Still update options with default bronze
             }
         }
