@@ -145,13 +145,13 @@ def logout():
         session.clear()
         
         logger.info("[LOGOUT] Session cleared successfully")
-        return redirect("/login")
+        return redirect("/auth/login")
         
     except Exception as e:
         logger.error(f"[LOGOUT] Error during logout: {e}")
         # Force clear session even if error
         session.clear()
-        return redirect("/login")
+        return redirect("/auth/login")
 
 @auth_bp.route("/register", methods=["GET", "POST"])
 def register():
