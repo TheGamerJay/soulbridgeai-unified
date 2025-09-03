@@ -372,6 +372,16 @@
             </div>
         </div>
         <div id="reading"></div>
+        
+        <!-- AdSense Ad Placement -->
+        <div id="ad-container" style="text-align: center; margin: 20px 0; display: none;">
+            <ins class="adsbygoogle"
+                 style="display:block"
+                 data-ad-client="ca-pub-3869471953521437"
+                 data-ad-slot="7891234567"
+                 data-ad-format="auto"
+                 data-full-width-responsive="true"></ins>
+        </div>
     </main>
     <footer>
         Cards reveal automatically based on their orientation. Your readings are powered by the full 78-card tarot deck with authentic meanings.
@@ -540,6 +550,20 @@
                 }
                 
                 wrap.innerHTML = html;
+                
+                // Show ad after results (only for non-ad-free users)
+                if (window.__AD_FREE__ !== true && window.__AD_FREE__ !== 'true') {
+                    const adContainer = document.getElementById('ad-container');
+                    if (adContainer) {
+                        adContainer.style.display = 'block';
+                        // Trigger AdSense
+                        try {
+                            (adsbygoogle = window.adsbygoogle || []).push({});
+                        } catch (e) {
+                            console.log('AdSense not ready yet');
+                        }
+                    }
+                }
                 
                 // Refresh usage limits
                 loadUsageLimits();
