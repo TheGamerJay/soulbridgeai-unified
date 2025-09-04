@@ -381,7 +381,7 @@ beat_wizard = EnhancedBeatWizard()
 
 @beat_bp.route('/analyze', methods=['POST'])
 @requires_login
-@require_tier('silver')  # Require Silver tier for beat analysis
+@require_tier('bronze')  # Beat Wizard available to Bronze+ users (part of Creative Writer)
 def analyze_beat():
     """Analyze beat description and return comprehensive results"""
     try:
