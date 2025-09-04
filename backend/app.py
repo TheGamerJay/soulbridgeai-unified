@@ -880,6 +880,14 @@ def register_blueprints(app):
         except ImportError as beat_error:
             logger.error(f"⚠️ Beat Wizard not available: {beat_error}")
         
+        # Beat Brief Strict system (no lyric echo)
+        try:
+            from modules.beat.beat_brief_strict import brief_strict_bp
+            app.register_blueprint(brief_strict_bp)
+            logger.info("✅ Beat Brief Strict system registered")
+        except ImportError as brief_error:
+            logger.error(f"⚠️ Beat Brief Strict not available: {brief_error}")
+        
         
         # API endpoints (user info, session management, etc.)
         from modules.api.routes import api_bp

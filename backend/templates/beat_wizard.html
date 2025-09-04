@@ -448,6 +448,23 @@
                                 <li>Analysis results will provide personalized suggestions</li>
                             </ul>
                         </div>
+                        
+                        <div class="result-card" style="grid-column: 1 / -1;">
+                            <h3>📝 Copy-Ready Beat Brief</h3>
+                            <div style="background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(79, 209, 199, 0.3); border-radius: 10px; padding: 15px; margin-top: 10px;">
+                                <div id="strictBrief" style="font-family: 'Courier New', monospace; font-size: 0.9rem; line-height: 1.4; color: #ffffff;">
+                                    Professional beat description will appear here (no lyric echo)
+                                </div>
+                                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                                    <button onclick="copyBrief()" style="background: var(--primary); color: var(--darker); padding: 8px 16px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.9rem;">
+                                        📋 Copy Brief
+                                    </button>
+                                    <button onclick="regenerateBrief()" style="background: rgba(255,255,255,0.1); color: var(--primary); padding: 8px 16px; border: 1px solid var(--primary); border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.9rem;">
+                                        🔄 Regenerate
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -628,9 +645,137 @@
                 suggestionsList.appendChild(li);
             });
             
+            // Generate strict brief
+            generateStrictBrief(analysis);
+            
             // Show results
             document.getElementById('resultsSection').style.display = 'block';
             document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // Generate strict beat brief (no lyric echo)
+        async function generateStrictBrief(analysis) {
+            const description = document.getElementById('beatDescription').value.trim();
+            const customBPM = document.getElementById('customBPM').value;
+            const selectedGenre = document.getElementById('selectedGenre').value;
+            
+            try {
+                const response = await fetch('/api/beat/brief_strict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'text/plain'
+                    },
+                    body: JSON.stringify({
+                        lyrics: description,           // Used for inference only - never echoed
+                        mood: analysis.mood,
+                        style: selectedGenre || analysis.genre,
+                        bpm: customBPM || analysis.bpm,
+                        key: analysis.key_signature,
+                        time_sig: analysis.time_signature,
+                        duration_sec: 150
+                    })
+                });
+                
+                if (response.ok) {
+                    const brief = await response.text();
+                    document.getElementById('strictBrief').textContent = brief;
+                } else {
+                    document.getElementById('strictBrief').textContent = 'Error generating brief. Please try again.';
+                    console.error('Brief generation failed:', response.status);
+                }
+            } catch (error) {
+                document.getElementById('strictBrief').textContent = 'Network error generating brief.';
+                console.error('Brief generation error:', error);
+            }
+        }
+        
+        // Copy brief to clipboard
+        async function copyBrief() {
+            const brief = document.getElementById('strictBrief').textContent;
+            try {
+                await navigator.clipboard.writeText(brief);
+                
+                // Visual feedback
+                const button = event.target;
+                const originalText = button.textContent;
+                button.textContent = '✅ Copied!';
+                button.style.background = '#10b981';
+                
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.style.background = 'var(--primary)';
+                }, 2000);
+                
+            } catch (error) {
+                console.error('Copy failed:', error);
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = brief;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                
+                alert('Brief copied to clipboard!');
+            }
+        }
+        
+        // Regenerate brief with same parameters
+        async function regenerateBrief() {
+            const description = document.getElementById('beatDescription').value.trim();
+            const customBPM = document.getElementById('customBPM').value;
+            const selectedGenre = document.getElementById('selectedGenre').value;
+            
+            // Get current analysis data from the display
+            const currentGenre = selectedGenre || document.getElementById('detectedGenre').textContent.toLowerCase().replace(' ', '-');
+            const currentMood = document.getElementById('detectedMood').textContent.toLowerCase();
+            const currentBPM = customBPM || document.getElementById('detectedBPM').textContent;
+            const currentKey = document.getElementById('detectedKey').textContent;
+            const currentTime = document.getElementById('detectedTime').textContent;
+            
+            try {
+                const response = await fetch('/api/beat/brief_strict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'text/plain'
+                    },
+                    body: JSON.stringify({
+                        lyrics: description,
+                        mood: currentMood,
+                        style: currentGenre,
+                        bpm: parseInt(currentBPM),
+                        key: currentKey,
+                        time_sig: currentTime,
+                        duration_sec: 150
+                    })
+                });
+                
+                if (response.ok) {
+                    const brief = await response.text();
+                    document.getElementById('strictBrief').textContent = brief;
+                    
+                    // Visual feedback
+                    const button = event.target;
+                    const originalText = button.textContent;
+                    button.textContent = '✅ Updated!';
+                    button.style.background = '#10b981';
+                    button.style.color = '#ffffff';
+                    
+                    setTimeout(() => {
+                        button.textContent = originalText;
+                        button.style.background = 'rgba(255,255,255,0.1)';
+                        button.style.color = 'var(--primary)';
+                    }, 2000);
+                    
+                } else {
+                    document.getElementById('strictBrief').textContent = 'Error regenerating brief. Please try again.';
+                }
+            } catch (error) {
+                document.getElementById('strictBrief').textContent = 'Network error regenerating brief.';
+                console.error('Brief regeneration error:', error);
+            }
         }
         
         // Initialize on page load
