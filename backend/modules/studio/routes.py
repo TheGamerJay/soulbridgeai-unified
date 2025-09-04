@@ -112,7 +112,7 @@ def api_generate_lyrics():
         concept = data.get('concept', 'heartbreak to healing')
         bpm = data.get('bpm', 94)
         key_hint = data.get('key_hint', 'A minor')
-        language = data.get('language', 'spanglish')
+        language = data.get('language', 'english')
         
         if not project_id:
             return jsonify({"success": False, "error": "Project ID required"}), 400
