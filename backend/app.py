@@ -943,6 +943,21 @@ def register_blueprints(app):
         app.register_blueprint(health_bp)
         logger.info("✅ Health checks registered")
         
+        # API Documentation (Swagger UI) - environment controlled
+        # Default to enabled in development, disabled in production
+        is_prod = os.environ.get("ENVIRONMENT") == "production" or bool(os.environ.get("RAILWAY_PROJECT_ID"))
+        docs_default = "0" if is_prod else "1"
+        
+        if os.getenv("DOCS_ENABLED", docs_default) == "1":
+            try:
+                from docs import docs_bp
+                app.register_blueprint(docs_bp)
+                logger.info("✅ API documentation enabled at /docs (OpenAPI at /openapi.yaml)")
+            except Exception as e:
+                logger.error(f"Failed to register docs blueprint: {e}")
+        else:
+            logger.info("📚 API documentation disabled (DOCS_ENABLED=0)")
+        
         logger.info("🎯 All module blueprints registered successfully")
         
         # Dump all registered routes for debugging (behind env toggle)

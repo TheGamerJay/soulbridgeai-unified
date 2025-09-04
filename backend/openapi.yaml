@@ -1,0 +1,655 @@
+openapi: 3.1.0
+info:
+  title: SoulBridge AI — Beat & Lyrics API
+  version: 1.0.0
+  description: |
+    Authenticated endpoints for the Lyrics Analyzer and CPU Beat Studio.
+    All /api/beat/* routes require a valid session and are rate-limited.
+    
+    ## Authentication
+    All endpoints require a valid user session. Authentication is handled via session cookies.
+    
+    ## Rate Limiting
+    Default limits: 120 requests per minute, 2000 requests per hour.
+    MIDI generation endpoints have stricter limits to prevent abuse.
+    
+    ## Security
+    - All endpoints protected by session authentication
+    - Rate limiting prevents abuse
+    - Security headers protect against common attacks
+    - No API keys exposed to clients
+servers:
+  - url: http://localhost:5000
+    description: Local development
+  - url: https://soulbridgeai.com
+    description: Production
+security:
+  - cookieAuth: []
+tags:
+  - name: Health
+    description: System health and monitoring endpoints
+  - name: Lyrics Analysis 
+    description: Comprehensive lyrics analysis and improvement
+  - name: Beat Workshop
+    description: CPU Beat Studio for MIDI generation and analysis
+paths:
+  # Health Check Endpoints
+  /api/beat/ping:
+    get:
+      tags: [Health]
+      summary: Beat Workshop health check
+      description: Verify beat workshop service is operational
+      operationId: pingWorkshop
+      responses:
+        "200":
+          description: Service operational
+          headers:
+            X-RateLimit-Limit: { $ref: "#/components/headers/XRateLimitLimit" }
+            X-RateLimit-Remaining: { $ref: "#/components/headers/XRateLimitRemaining" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PingResponse" }
+              examples:
+                ok:
+                  value: { ok: true, route: "/api/beat/workshop", blueprint: "beat_workshop" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /api/beat/lyrics/ping:
+    get:
+      tags: [Health]
+      summary: Lyrics Analyzer health check  
+      description: Verify lyrics analyzer service is operational
+      operationId: pingLyrics
+      parameters:
+        - in: query
+          name: q
+          required: false
+          schema: { type: string }
+          description: Optional test query parameter
+      responses:
+        "200":
+          description: Service operational
+          headers:
+            X-RateLimit-Limit: { $ref: "#/components/headers/XRateLimitLimit" }
+            X-RateLimit-Remaining: { $ref: "#/components/headers/XRateLimitRemaining" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PingResponse" }
+              examples:
+                ok:
+                  value: { ok: true, route: "/api/beat/lyrics", q: "hello", blueprint: "beat_lyrics" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  # Lyrics Analysis Endpoints
+  /api/beat/lyrics:
+    get:
+      tags: [Lyrics Analysis]
+      summary: Lyrics Analyzer interface
+      description: Serve the lyrics analyzer HTML interface (requires authentication)
+      operationId: getLyricsInterface
+      responses:
+        "200":
+          description: HTML interface for lyrics analysis
+          headers:
+            X-RateLimit-Limit: { $ref: "#/components/headers/XRateLimitLimit" }
+            X-RateLimit-Remaining: { $ref: "#/components/headers/XRateLimitRemaining" }
+          content:
+            text/html:
+              schema: { type: string }
+        "302":
+          description: Redirect to login (unauthenticated)
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "429": { $ref: "#/components/responses/TooManyRequests" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /api/beat/analyze_lyrics:
+    post:
+      tags: [Lyrics Analysis]
+      summary: Comprehensive lyrics analysis
+      description: Analyze lyrics for genre, structure, themes, and provide improvement suggestions
+      operationId: analyzeLyrics
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/LyricsAnalysisRequest" }
+            examples:
+              hip_hop:
+                summary: Hip-hop lyrics example
+                value:
+                  lyrics: |
+                    [Verse 1]
+                    Started from the bottom now we here
+                    Never gave up fighting through the fear
+                    Built this empire brick by brick
+                    Now they all watch our every trick
+
+                    [Chorus] 
+                    We rise up, never fall down
+                    Kings and queens wear the crown
+                    Nothing gonna stop us now
+                    We make it happen somehow
+                  target_genre: "hip-hop"
+      responses:
+        "200":
+          description: Comprehensive analysis results
+          headers:
+            X-RateLimit-Limit: { $ref: "#/components/headers/XRateLimitLimit" }
+            X-RateLimit-Remaining: { $ref: "#/components/headers/XRateLimitRemaining" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LyricsAnalysisResponse" }
+        "400":
+          description: Invalid request (missing lyrics)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "429": { $ref: "#/components/responses/TooManyRequests" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /api/beat/generate_beat_from_lyrics:
+    post:
+      tags: [Lyrics Analysis]
+      summary: Generate beat recommendations from lyrics
+      description: Analyze lyrics and suggest optimal BPM, key, and genre for beat production
+      operationId: generateBeatFromLyrics
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/BeatGenerationRequest" }
+      responses:
+        "200":
+          description: Beat generation recommendations
+          headers:
+            X-RateLimit-Limit: { $ref: "#/components/headers/XRateLimitLimit" }
+            X-RateLimit-Remaining: { $ref: "#/components/headers/XRateLimitRemaining" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BeatGenerationResponse" }
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "429": { $ref: "#/components/responses/TooManyRequests" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  # Beat Workshop Endpoints
+  /api/beat/workshop:
+    get:
+      tags: [Beat Workshop]
+      summary: CPU Beat Studio interface
+      description: Serve the enhanced Beat Workshop HTML interface (requires authentication)
+      operationId: getWorkshopInterface
+      responses:
+        "200":
+          description: HTML interface for beat workshop
+          headers:
+            X-RateLimit-Limit: { $ref: "#/components/headers/XRateLimitLimit" }
+            X-RateLimit-Remaining: { $ref: "#/components/headers/XRateLimitRemaining" }
+          content:
+            text/html:
+              schema: { type: string }
+        "302":
+          description: Redirect to login (unauthenticated)
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "429": { $ref: "#/components/responses/TooManyRequests" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /api/beat/workshop/analyze:
+    post:
+      tags: [Beat Workshop]
+      summary: Workshop lyrics analysis
+      description: Analyze lyrics for beat production with emotion detection and BPM recommendations
+      operationId: workshopAnalyze
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/WorkshopAnalysisRequest" }
+            examples:
+              motivational:
+                summary: Motivational lyrics
+                value:
+                  lyrics: |
+                    Working hard every single day
+                    Building dreams in every way
+                    Never stop until we make it
+                    Success is ours for the taking
+      responses:
+        "200":
+          description: Workshop analysis results
+          headers:
+            X-RateLimit-Limit: { $ref: "#/components/headers/XRateLimitLimit" }
+            X-RateLimit-Remaining: { $ref: "#/components/headers/XRateLimitRemaining" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/WorkshopAnalysisResponse" }
+        "400":
+          description: Invalid request (missing lyrics)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "429": { $ref: "#/components/responses/TooManyRequests" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /api/beat/midi:
+    post:
+      tags: [Beat Workshop]
+      summary: Generate and download MIDI file
+      description: |
+        CPU Beat Studio MIDI export. Generates a multi-track MIDI file based on the provided parameters.
+        **Rate limited to prevent abuse of CPU-intensive generation.**
+      operationId: generateMidi
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/MidiGenerationRequest" }
+            examples:
+              trap_beat:
+                summary: Trap beat example
+                value:
+                  bpm: 92
+                  genre: "trap"
+                  key: "C"
+                  scale: "minor"
+                  lengthBars: 8
+                  include:
+                    drums: true
+                    bass: true
+                    chords: true
+                    arp: false
+              upbeat_house:
+                summary: House beat example
+                value:
+                  bpm: 128
+                  genre: "house"
+                  key: "G"
+                  scale: "major"
+                  lengthBars: 16
+                  include:
+                    drums: true
+                    bass: true
+                    chords: true
+                    arp: true
+      responses:
+        "200":
+          description: Generated MIDI file
+          headers:
+            Content-Disposition:
+              description: Filename for download (e.g., "attachment; filename=beat_92bpm_1234567890.mid")
+              schema: { type: string }
+            X-RateLimit-Limit: { $ref: "#/components/headers/XRateLimitLimit" }
+            X-RateLimit-Remaining: { $ref: "#/components/headers/XRateLimitRemaining" }
+          content:
+            audio/midi:
+              schema: 
+                type: string
+                format: binary
+                description: Binary MIDI file content
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "429": { $ref: "#/components/responses/TooManyRequests" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /api/beat/midi/full:
+    post:
+      tags: [Beat Workshop]
+      summary: Generate full multi-track MIDI (Base64)
+      description: Generate comprehensive MIDI with multiple tracks, returned as Base64 encoded data
+      operationId: generateFullMidi
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/MidiGenerationRequest" }
+      responses:
+        "200":
+          description: MIDI data encoded as Base64
+          headers:
+            X-RateLimit-Limit: { $ref: "#/components/headers/XRateLimitLimit" }
+            X-RateLimit-Remaining: { $ref: "#/components/headers/XRateLimitRemaining" }
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  midi_base64:
+                    type: string
+                    description: Base64 encoded MIDI file data
+                    example: "TVRoZAAAAAYAAQABAOBNVHJrAAAABAD/LwA="
+                required: [midi_base64]
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "429": { $ref: "#/components/responses/TooManyRequests" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: session
+      description: Session-based authentication using HTTP-only cookies
+
+  headers:
+    XRateLimitLimit:
+      description: Request limit for the current window
+      schema: { type: integer, example: 120 }
+    XRateLimitRemaining:
+      description: Requests remaining in the current window
+      schema: { type: integer, example: 95 }
+    RetryAfter:
+      description: Seconds until retry (429 responses)
+      schema: { type: integer, example: 60 }
+
+  schemas:
+    # Health Check Responses
+    PingResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        ok: 
+          type: boolean
+          example: true
+        route: 
+          type: string
+          example: "/api/beat/workshop"
+        q: 
+          type: string
+          nullable: true
+          example: "test"
+        blueprint:
+          type: string
+          example: "beat_workshop"
+      required: [ok, route]
+
+    # Lyrics Analysis Schemas
+    LyricsAnalysisRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        lyrics:
+          type: string
+          description: The lyrics text to analyze
+          minLength: 10
+          maxLength: 10000
+          example: |
+            [Verse 1]
+            Started from the bottom now we here
+            Never gave up fighting through the fear
+        target_genre:
+          type: string
+          description: Optional target genre for analysis
+          enum: ["hip-hop", "trap", "pop", "rock", "country", "r&b", "electronic"]
+          example: "hip-hop"
+      required: [lyrics]
+
+    LyricsAnalysisResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        analysis:
+          type: object
+          properties:
+            detected_genre:
+              type: string
+              example: "hip-hop"
+            confidence_score:
+              type: number
+              format: float
+              minimum: 0
+              maximum: 1
+              example: 0.85
+            sections:
+              type: array
+              items:
+                type: object
+                properties:
+                  type:
+                    type: string
+                    example: "verse"
+                  content:
+                    type: string
+                    example: "Started from the bottom now we here..."
+                  line_count:
+                    type: integer
+                    example: 4
+            themes:
+              type: array
+              items:
+                type: string
+              example: ["success", "perseverance", "achievement"]
+            recommended_bpm:
+              type: integer
+              minimum: 60
+              maximum: 200
+              example: 92
+            mood:
+              type: string
+              example: "motivational"
+            word_count:
+              type: integer
+              example: 48
+            estimated_duration:
+              type: integer
+              description: Estimated duration in seconds
+              example: 180
+      required: [success, analysis]
+
+    # Beat Generation Schemas  
+    BeatGenerationRequest:
+      type: object
+      properties:
+        lyrics:
+          type: string
+          description: Lyrics to analyze for beat generation
+          minLength: 10
+          maxLength: 10000
+        style_preferences:
+          type: object
+          properties:
+            genre:
+              type: string
+              example: "trap"
+            energy_level:
+              type: string
+              enum: ["low", "medium", "high"]
+              example: "high"
+      required: [lyrics]
+
+    BeatGenerationResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        recommendations:
+          type: object
+          properties:
+            bpm:
+              type: integer
+              example: 92
+            key:
+              type: string
+              example: "C"
+            scale:
+              type: string
+              example: "minor"
+            genre:
+              type: string
+              example: "trap"
+            instruments:
+              type: array
+              items:
+                type: string
+              example: ["808", "hi-hat", "snare", "bass"]
+      required: [success, recommendations]
+
+    # Workshop Analysis Schemas
+    WorkshopAnalysisRequest:
+      type: object
+      properties:
+        lyrics:
+          type: string
+          description: Lyrics to analyze in the workshop
+          minLength: 1
+          maxLength: 10000
+      required: [lyrics]
+
+    WorkshopAnalysisResponse:
+      type: object
+      properties:
+        sections:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+                example: "verse"
+              content:
+                type: string
+              emotion_score:
+                type: number
+                format: float
+        detected_emotion:
+          type: string
+          example: "motivated"
+        recommended_bpm:
+          type: integer
+          example: 95
+        suggested_instruments:
+          type: array
+          items:
+            type: string
+          example: ["piano", "drums", "bass"]
+      required: [sections, detected_emotion, recommended_bpm]
+
+    # MIDI Generation Schema
+    MidiGenerationRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        bpm:
+          type: integer
+          minimum: 40
+          maximum: 220
+          default: 92
+          description: Beats per minute for the generated track
+          example: 92
+        genre:
+          type: string
+          enum: ["trap", "house", "techno", "hip-hop", "pop", "rock"]
+          default: "trap"
+          description: Musical genre for the beat style
+          example: "trap"
+        key:
+          type: string
+          enum: ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
+          default: "C"
+          description: Musical key for the composition
+          example: "C"
+        scale:
+          type: string
+          enum: ["major", "minor", "dorian", "mixolydian"]
+          default: "minor"
+          description: Scale type for the composition
+          example: "minor"
+        lengthBars:
+          type: integer
+          minimum: 1
+          maximum: 32
+          default: 4
+          description: Number of bars/measures in the composition
+          example: 8
+        include:
+          type: object
+          description: Which instrument tracks to include
+          properties:
+            drums:
+              type: boolean
+              default: true
+              description: Include drum track
+            bass:
+              type: boolean
+              default: true
+              description: Include bass line
+            chords:
+              type: boolean
+              default: true
+              description: Include chord progression
+            arp:
+              type: boolean
+              default: false
+              description: Include arpeggiated melody
+          additionalProperties: false
+
+    # Error Schema
+    Error:
+      type: object
+      additionalProperties: false
+      properties:
+        error:
+          type: string
+          description: Human-readable error message
+          example: "Authentication required"
+        code:
+          type: string
+          description: Machine-readable error code
+          enum: ["UNAUTHORIZED", "RATE_LIMITED", "VALIDATION_ERROR", "INTERNAL", "BAD_REQUEST"]
+          example: "UNAUTHORIZED"
+        details:
+          oneOf:
+            - type: string
+            - type: object
+              additionalProperties: true
+          description: Additional error details (optional)
+      required: [error]
+
+  responses:
+    Unauthorized:
+      description: Authentication required - missing or invalid session
+      headers:
+        X-RateLimit-Limit: { $ref: "#/components/headers/XRateLimitLimit" }
+        X-RateLimit-Remaining: { $ref: "#/components/headers/XRateLimitRemaining" }
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+          examples:
+            unauthorized:
+              value: 
+                error: "Authentication required"
+                code: "UNAUTHORIZED"
+
+    TooManyRequests:
+      description: Rate limit exceeded - too many requests
+      headers:
+        X-RateLimit-Limit: { $ref: "#/components/headers/XRateLimitLimit" }
+        X-RateLimit-Remaining: { $ref: "#/components/headers/XRateLimitRemaining" }
+        Retry-After: { $ref: "#/components/headers/RetryAfter" }
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+          examples:
+            rate_limited:
+              value:
+                error: "Rate limit exceeded"
+                code: "RATE_LIMITED"
+                details: "Try again in 60 seconds"
+
+    ServerError:
+      description: Internal server error - generic error without stack trace
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+          examples:
+            internal_error:
+              value:
+                error: "Internal server error"
+                code: "INTERNAL"
