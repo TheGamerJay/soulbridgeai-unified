@@ -457,6 +457,43 @@ def get_theme():
             "error": "Failed to get theme"
         }), 500
 
+@api_bp.route('/horoscope/limits')
+@requires_login  
+def horoscope_limits():
+    """Get user's horoscope usage limits - temporary fix for 404"""
+    try:
+        from unified_tier_system import get_feature_limit, get_usage_count
+        
+        user_id = get_user_id()
+        user_plan = session.get('user_plan', 'bronze')
+        
+        # Get limits and usage
+        daily_limit = get_feature_limit(user_plan, 'horoscope') 
+        usage_today = get_usage_count(user_id, 'horoscope')
+        remaining = max(0, daily_limit - usage_today)
+        unlimited = daily_limit >= 999999
+        
+        return jsonify({
+            "success": True,
+            "user_tier": user_plan,
+            "daily_limit": daily_limit,
+            "usage_today": usage_today,
+            "remaining": remaining,
+            "unlimited": unlimited
+        })
+        
+    except Exception as e:
+        logger.error(f"Error getting horoscope limits: {e}")
+        return jsonify({
+            "success": False,
+            "error": "Failed to get horoscope limits",
+            "user_tier": "bronze",
+            "daily_limit": 5,
+            "usage_today": 0,
+            "remaining": 5,
+            "unlimited": False
+        }), 500
+
 # Set up API blueprint middleware
 @api_bp.before_request
 def log_api_request():

@@ -789,9 +789,14 @@ def register_blueprints(app):
         logger.info("✅ Meditations system registered")
         
         # Horoscope system
-        from routes.horoscope import bp as horoscope_bp
-        app.register_blueprint(horoscope_bp)
-        logger.info("✅ Horoscope system registered")
+        try:
+            from routes.horoscope import bp as horoscope_bp
+            app.register_blueprint(horoscope_bp)
+            logger.info("✅ Horoscope system registered")
+        except Exception as horoscope_error:
+            logger.error(f"❌ Horoscope system registration failed: {horoscope_error}")
+            import traceback
+            logger.error(f"Horoscope error details: {traceback.format_exc()}")
         
         # Enhanced Fortune system
         from modules.fortune import routes as fortune_routes
@@ -869,11 +874,6 @@ def register_blueprints(app):
         from modules.api.routes import api_bp
         app.register_blueprint(api_bp, url_prefix='/api')
         logger.info("✅ API system registered")
-        
-        # Horoscope API system (fixed missing registration)
-        from routes.horoscope import bp as horoscope_bp
-        app.register_blueprint(horoscope_bp)
-        logger.info("✅ Horoscope API system registered")
         
         logger.info("🎯 All module blueprints registered successfully")
         
