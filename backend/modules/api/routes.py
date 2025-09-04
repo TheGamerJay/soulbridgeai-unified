@@ -462,14 +462,15 @@ def get_theme():
 def horoscope_limits():
     """Get user's horoscope usage limits - temporary fix for 404"""
     try:
-        from unified_tier_system import get_feature_limit, get_usage_count
+        from unified_tier_system import get_feature_limit, get_feature_usage_today
         
         user_id = get_user_id()
         user_plan = session.get('user_plan', 'bronze')
+        trial_active = session.get('trial_active', False)
         
         # Get limits and usage
-        daily_limit = get_feature_limit(user_plan, 'horoscope') 
-        usage_today = get_usage_count(user_id, 'horoscope')
+        daily_limit = get_feature_limit(user_plan, 'horoscope', trial_active) 
+        usage_today = get_feature_usage_today(user_id, 'horoscope')
         remaining = max(0, daily_limit - usage_today)
         unlimited = daily_limit >= 999999
         
