@@ -893,7 +893,7 @@ def register_blueprints(app):
             from modules.beat.lyrics_analyzer import lyrics_analyzer_bp
             app.register_blueprint(lyrics_analyzer_bp)
             logger.info("✅ Lyrics Analyzer system registered")
-        except ImportError as lyrics_error:
+        except Exception as lyrics_error:
             logger.error(f"⚠️ Lyrics Analyzer not available: {lyrics_error}")
         
         # Lyrics Workshop system (Enhanced with Tone.js)
@@ -901,7 +901,7 @@ def register_blueprints(app):
             from modules.beat.lyrics_workshop import lyrics_workshop_bp
             app.register_blueprint(lyrics_workshop_bp)
             logger.info("✅ Lyrics Workshop system registered")
-        except ImportError as workshop_error:
+        except Exception as workshop_error:
             logger.error(f"⚠️ Lyrics Workshop not available: {workshop_error}")
         
         

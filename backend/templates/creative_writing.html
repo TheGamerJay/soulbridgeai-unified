@@ -436,6 +436,8 @@
                         <option value="story">Short Story</option>
                         <option value="poem">Poetry</option>
                         <option value="lyrics">Song Lyrics</option>
+                        <option value="lyrics_analyzer">📝 Lyrics Analyzer</option>
+                        <option value="lyrics_workshop">🎵 Lyrics Workshop</option>
                         <option value="script">Script/Dialogue</option>
                         <option value="essay">Essay/Article</option>
                         <option value="letter">Letter/Email</option>
@@ -522,9 +524,20 @@
     </div>
 
     <script>
-        // Handle mode changes to show/hide Beat Wizard
+        // Handle mode changes to show/hide Beat Wizard or redirect to new tools
         document.getElementById('mode').addEventListener('change', function(e) {
             const beatWizardSection = document.getElementById('beatWizardSection');
+            
+            // Handle new lyrics analysis tools
+            if (e.target.value === 'lyrics_analyzer') {
+                window.location.href = '/api/beat/lyrics';
+                return;
+            } else if (e.target.value === 'lyrics_workshop') {
+                window.location.href = '/api/beat/workshop';
+                return;
+            }
+            
+            // Handle original lyrics mode
             if (e.target.value === 'lyrics') {
                 beatWizardSection.style.display = 'block';
             } else {

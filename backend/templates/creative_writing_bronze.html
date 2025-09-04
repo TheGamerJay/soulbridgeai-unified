@@ -261,6 +261,8 @@
                         <option value="story">Short Story</option>
                         <option value="poem">Poetry</option>
                         <option value="lyrics">Song Lyrics</option>
+                        <option value="lyrics_analyzer">📝 Lyrics Analyzer</option>
+                        <option value="lyrics_workshop">🎵 Lyrics Workshop</option>
                         <option value="script">Script/Dialogue</option>
                         <option value="essay">Essay/Article</option>
                         <option value="letter">Letter/Email</option>
@@ -297,6 +299,18 @@
     </div>
 
     <script>
+        document.getElementById('mode').addEventListener('change', function() {
+            const selectedMode = this.value;
+            if (selectedMode === 'lyrics_analyzer') {
+                window.location.href = '/api/beat/lyrics';
+                return;
+            }
+            if (selectedMode === 'lyrics_workshop') {
+                window.location.href = '/api/beat/workshop';
+                return;
+            }
+        });
+
         document.getElementById('creativeForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
