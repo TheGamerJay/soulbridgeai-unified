@@ -1089,6 +1089,13 @@ def get_genre_info(genre):
             'error': 'Failed to get genre information'
         }), 500
 
+@beat_bp.route('/', methods=['GET'])
+def beat_wizard_page():
+    """Serve the Beat Wizard frontend page"""
+    from flask import render_template
+    genre_count = len(beat_wizard.genre_keywords)
+    return render_template('beat_wizard.html', genre_count=genre_count)
+
 def init_beat_system():
     """Initialize Beat Wizard system"""
     logger.info("Enhanced Beat Wizard system initialized successfully")

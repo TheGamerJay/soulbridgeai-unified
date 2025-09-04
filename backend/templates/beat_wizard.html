@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎵 Beat Wizard - Comprehensive Music Analysis | SoulBridge AI</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --primary: #4fd1c7;
+            --secondary: #81e6d9;
+            --dark: #0f172a;
+            --darker: #020617;
+            --gold: #f59e0b;
+            --purple: #8b5cf6;
+        }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, var(--darker) 0%, var(--dark) 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .wizard-container {
+            min-height: 100vh;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(79, 209, 199, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
+                linear-gradient(135deg, var(--darker) 0%, var(--dark) 100%);
+        }
+        
+        .wizard-header {
+            padding: 20px 30px;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+        
+        .wizard-header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+        
+        .wizard-subtitle {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.1rem;
+        }
+        
+        .wizard-workspace {
+            padding: 40px 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .analysis-panel {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .panel-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .panel-icon {
+            font-size: 2.5rem;
+            margin-right: 20px;
+            filter: drop-shadow(0 0 15px currentColor);
+        }
+        
+        .panel-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--primary);
+            font-size: 1rem;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            color: #ffffff;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 209, 199, 0.2);
+        }
+        
+        textarea.form-control {
+            resize: vertical;
+            min-height: 120px;
+            font-family: inherit;
+        }
+        
+        .genre-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+        }
+        
+        .genre-option {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+        
+        .genre-option:hover {
+            background: rgba(79, 209, 199, 0.2);
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+        
+        .genre-option.selected {
+            background: rgba(79, 209, 199, 0.3);
+            border-color: var(--primary);
+            color: var(--primary);
+            font-weight: 600;
+        }
+        
+        .genre-info {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: 5px;
+        }
+        
+        .wizard-btn {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: var(--darker);
+            border: none;
+            padding: 15px 30px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            box-shadow: 0 8px 25px rgba(79, 209, 199, 0.3);
+            width: 100%;
+        }
+        
+        .wizard-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(79, 209, 199, 0.4);
+        }
+        
+        .wizard-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .results-section {
+            display: none;
+            margin-top: 30px;
+        }
+        
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .result-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .result-card h3 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+        
+        .result-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .result-description {
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.5;
+        }
+        
+        .suggestions-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .suggestions-list li {
+            background: rgba(79, 209, 199, 0.1);
+            border-left: 3px solid var(--primary);
+            padding: 10px 15px;
+            margin-bottom: 8px;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .confidence-bar {
+            width: 100%;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+        
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 5px;
+            transition: width 0.3s ease;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: var(--primary);
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(79, 209, 199, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s ease-in-out infinite;
+            margin-bottom: 10px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .nav-footer {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .nav-btn {
+            background: rgba(0, 0, 0, 0.8);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 12px 18px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        @media (max-width: 768px) {
+            .wizard-workspace { padding: 20px; }
+            .wizard-header h1 { font-size: 2rem; }
+            .form-grid { 
+                grid-template-columns: 1fr; 
+                gap: 20px; 
+            }
+            .genre-grid { 
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                max-height: 200px; 
+            }
+            .results-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="wizard-container">
+        <header class="wizard-header">
+            <h1>🎵 Beat Wizard Pro</h1>
+            <p class="wizard-subtitle">Comprehensive Music Analysis with 40+ Genres</p>
+        </header>
+        
+        <main class="wizard-workspace">
+            <div class="analysis-panel">
+                <div class="panel-header">
+                    <div class="panel-icon">🎼</div>
+                    <div class="panel-title">Music Description Analysis</div>
+                </div>
+                
+                <div class="form-grid">
+                    <div>
+                        <div class="form-group">
+                            <label for="beatDescription">Describe Your Music</label>
+                            <textarea 
+                                id="beatDescription" 
+                                class="form-control" 
+                                placeholder="Describe your music idea... (e.g., 'energetic trap beat with heavy 808s', 'chill lo-fi hip hop with vinyl crackle', 'uplifting house music for dancing')"
+                                rows="6"
+                            ></textarea>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                            <div class="form-group">
+                                <label for="customBPM">Custom BPM (Optional)</label>
+                                <input 
+                                    type="number" 
+                                    id="customBPM" 
+                                    class="form-control" 
+                                    placeholder="Auto-detect"
+                                    min="60" 
+                                    max="200"
+                                >
+                            </div>
+                            <div class="form-group">
+                                <label for="selectedGenre">Override Genre (Optional)</label>
+                                <select id="selectedGenre" class="form-control">
+                                    <option value="">Auto-detect from description</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <div class="form-group">
+                            <label>Available Genres ({{ genre_count }} Total)</label>
+                            <div class="genre-grid" id="genreGrid">
+                                <div style="text-align: center; color: rgba(255,255,255,0.5); grid-column: 1 / -1; padding: 20px;">
+                                    Loading comprehensive genre database...
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <button class="wizard-btn" onclick="analyzeBeat()">
+                    🎵 Analyze Beat & Generate Structure
+                </button>
+                
+                <div class="loading" id="loadingIndicator">
+                    <div class="spinner"></div>
+                    <div>Analyzing your music with AI...</div>
+                </div>
+            </div>
+            
+            <div class="results-section" id="resultsSection">
+                <div class="analysis-panel">
+                    <div class="panel-header">
+                        <div class="panel-icon">📊</div>
+                        <div class="panel-title">Analysis Results</div>
+                    </div>
+                    
+                    <div class="results-grid">
+                        <div class="result-card">
+                            <h3>🎼 Genre & Style</h3>
+                            <div class="result-value" id="detectedGenre">-</div>
+                            <div class="result-description" id="genreDescription">Genre analysis will appear here</div>
+                            <div class="confidence-bar">
+                                <div class="confidence-fill" id="genreConfidence" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="result-card">
+                            <h3>🎵 Musical Details</h3>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 10px;">
+                                <div>
+                                    <strong>BPM:</strong> <span id="detectedBPM">-</span>
+                                </div>
+                                <div>
+                                    <strong>Mood:</strong> <span id="detectedMood">-</span>
+                                </div>
+                                <div>
+                                    <strong>Key:</strong> <span id="detectedKey">-</span>
+                                </div>
+                                <div>
+                                    <strong>Time:</strong> <span id="detectedTime">-</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="result-card">
+                            <h3>🏗️ Song Structure</h3>
+                            <div class="result-value" id="songStructure">-</div>
+                            <div class="result-description">
+                                <strong>Sections Detected:</strong> <span id="sectionsCount">0</span>
+                            </div>
+                        </div>
+                        
+                        <div class="result-card">
+                            <h3>🎸 Recommended Instruments</h3>
+                            <div id="recommendedInstruments" class="result-description">
+                                Instrument recommendations will appear here
+                            </div>
+                        </div>
+                        
+                        <div class="result-card" style="grid-column: 1 / -1;">
+                            <h3>💡 Production Suggestions</h3>
+                            <ul class="suggestions-list" id="productionSuggestions">
+                                <li>Analysis results will provide personalized suggestions</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <nav class="nav-footer">
+            <a href="/library" class="nav-btn">📚 Library</a>
+            <a href="/mini_studio" class="nav-btn">🎵 Mini Studio</a>
+            <a href="/" class="nav-btn">← Home</a>
+        </nav>
+    </div>
+    
+    <script>
+        let availableGenres = [];
+        
+        // Load available genres on page load
+        async function loadGenres() {
+            try {
+                const response = await fetch('/beat/genres');
+                const result = await response.json();
+                
+                if (result.success) {
+                    availableGenres = result.genres;
+                    populateGenreGrid();
+                    populateGenreSelect();
+                    console.log(`Loaded ${availableGenres.length} genres`);
+                } else {
+                    console.error('Failed to load genres:', result.error);
+                    document.getElementById('genreGrid').innerHTML = '<div style="color: #ef4444; text-align: center; grid-column: 1 / -1;">Failed to load genres</div>';
+                }
+            } catch (error) {
+                console.error('Error loading genres:', error);
+                document.getElementById('genreGrid').innerHTML = '<div style="color: #ef4444; text-align: center; grid-column: 1 / -1;">Error loading genres</div>';
+            }
+        }
+        
+        // Populate genre grid
+        function populateGenreGrid() {
+            const grid = document.getElementById('genreGrid');
+            grid.innerHTML = '';
+            
+            availableGenres.forEach(genre => {
+                const option = document.createElement('div');
+                option.className = 'genre-option';
+                option.dataset.genre = genre.name;
+                option.innerHTML = `
+                    <div style="font-weight: 600;">${genre.display_name}</div>
+                    <div class="genre-info">${genre.bpm_range[0]}-${genre.bpm_range[1]} BPM</div>
+                `;
+                
+                option.addEventListener('click', () => {
+                    // Remove previous selections
+                    document.querySelectorAll('.genre-option').forEach(opt => opt.classList.remove('selected'));
+                    // Select this option
+                    option.classList.add('selected');
+                    // Update select dropdown
+                    document.getElementById('selectedGenre').value = genre.name;
+                });
+                
+                grid.appendChild(option);
+            });
+        }
+        
+        // Populate genre select dropdown
+        function populateGenreSelect() {
+            const select = document.getElementById('selectedGenre');
+            const defaultOption = select.children[0]; // Keep "Auto-detect" option
+            select.innerHTML = '';
+            select.appendChild(defaultOption);
+            
+            availableGenres.forEach(genre => {
+                const option = document.createElement('option');
+                option.value = genre.name;
+                option.textContent = genre.display_name;
+                select.appendChild(option);
+            });
+            
+            // Update grid when select changes
+            select.addEventListener('change', () => {
+                document.querySelectorAll('.genre-option').forEach(opt => opt.classList.remove('selected'));
+                if (select.value) {
+                    const selectedOption = document.querySelector(`[data-genre="${select.value}"]`);
+                    if (selectedOption) {
+                        selectedOption.classList.add('selected');
+                    }
+                }
+            });
+        }
+        
+        // Analyze beat function
+        async function analyzeBeat() {
+            const description = document.getElementById('beatDescription').value.trim();
+            const customBPM = document.getElementById('customBPM').value;
+            const selectedGenre = document.getElementById('selectedGenre').value;
+            
+            if (!description || description.length < 10) {
+                alert('Please enter a description of at least 10 characters');
+                return;
+            }
+            
+            // Show loading state
+            document.getElementById('loadingIndicator').style.display = 'block';
+            document.getElementById('resultsSection').style.display = 'none';
+            
+            try {
+                const requestData = {
+                    description: description
+                };
+                
+                if (customBPM && customBPM >= 60 && customBPM <= 200) {
+                    requestData.bpm_override = parseInt(customBPM);
+                }
+                
+                if (selectedGenre) {
+                    requestData.genre_override = selectedGenre;
+                }
+                
+                const response = await fetch('/beat/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    displayResults(result.analysis);
+                } else {
+                    alert('Analysis failed: ' + result.error);
+                }
+                
+            } catch (error) {
+                console.error('Analysis error:', error);
+                alert('Analysis failed. Please try again.');
+            } finally {
+                document.getElementById('loadingIndicator').style.display = 'none';
+            }
+        }
+        
+        // Display analysis results
+        function displayResults(analysis) {
+            // Genre and confidence
+            document.getElementById('detectedGenre').textContent = analysis.genre.replace('-', ' ').toUpperCase();
+            document.getElementById('genreDescription').textContent = analysis.description;
+            
+            const genreConfidence = Math.round(analysis.confidence_scores.genre * 100);
+            document.getElementById('genreConfidence').style.width = genreConfidence + '%';
+            
+            // Musical details
+            document.getElementById('detectedBPM').textContent = analysis.bpm;
+            document.getElementById('detectedMood').textContent = analysis.mood.charAt(0).toUpperCase() + analysis.mood.slice(1);
+            document.getElementById('detectedKey').textContent = analysis.key_signature;
+            document.getElementById('detectedTime').textContent = analysis.time_signature;
+            
+            // Song structure
+            document.getElementById('songStructure').textContent = analysis.structure;
+            document.getElementById('sectionsCount').textContent = analysis.sections_detected;
+            
+            // Instruments (get from genre info)
+            const genreInfo = availableGenres.find(g => g.name === analysis.genre);
+            if (genreInfo && genreInfo.instruments) {
+                const instrumentsHtml = genreInfo.instruments.map(inst => 
+                    `<span style="display: inline-block; background: rgba(79,209,199,0.2); padding: 4px 8px; border-radius: 12px; margin: 2px; font-size: 0.9rem;">${inst}</span>`
+                ).join(' ');
+                document.getElementById('recommendedInstruments').innerHTML = instrumentsHtml;
+            } else {
+                document.getElementById('recommendedInstruments').textContent = 'No specific instrument data available';
+            }
+            
+            // Production suggestions
+            const suggestionsList = document.getElementById('productionSuggestions');
+            suggestionsList.innerHTML = '';
+            analysis.suggestions.forEach(suggestion => {
+                const li = document.createElement('li');
+                li.textContent = suggestion;
+                suggestionsList.appendChild(li);
+            });
+            
+            // Show results
+            document.getElementById('resultsSection').style.display = 'block';
+            document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // Initialize on page load
+        window.addEventListener('load', () => {
+            loadGenres();
+            console.log('🎵 Beat Wizard Pro initialized');
+        });
+    </script>
+</body>
+</html>
