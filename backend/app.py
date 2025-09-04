@@ -870,6 +870,11 @@ def register_blueprints(app):
         app.register_blueprint(api_bp, url_prefix='/api')
         logger.info("✅ API system registered")
         
+        # Horoscope API system (fixed missing registration)
+        from routes.horoscope import bp as horoscope_bp
+        app.register_blueprint(horoscope_bp)
+        logger.info("✅ Horoscope API system registered")
+        
         logger.info("🎯 All module blueprints registered successfully")
         
     except Exception as e:
