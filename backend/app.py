@@ -4,17 +4,23 @@ Rebuilt from 19,326-line monolith using extracted modules
 Clean Flask application with Blueprint architecture
 """
 import os
+import sys
 import logging
+import traceback
+import importlib
 from datetime import datetime, timedelta
 from flask import Flask, session, request, redirect, jsonify, url_for
 from flask_cors import CORS
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
+# Initialize safe logging to prevent unicode crashes
+try:
+    from modules.core.logging_init import init_safe_logging
+    init_safe_logging(logging.INFO)
+except ImportError:
+    # Fallback basic logging
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
 logger = logging.getLogger(__name__)
 
 def create_app():
@@ -888,22 +894,33 @@ def register_blueprints(app):
         except ImportError as brief_error:
             logger.error(f"⚠️ Beat Brief Strict not available: {brief_error}")
         
-        # Lyrics Analyzer system
+        # Import Lyrics Analyzer
         try:
+            logger.info("IMPORTING Lyrics Analyzer: module=modules.beat.lyrics_analyzer, attr=lyrics_analyzer_bp")
             from modules.beat.lyrics_analyzer import lyrics_analyzer_bp
             app.register_blueprint(lyrics_analyzer_bp)
-            logger.info("✅ Lyrics Analyzer system registered")
-        except Exception as lyrics_error:
-            logger.error(f"⚠️ Lyrics Analyzer not available: {lyrics_error}")
-        
-        # CPU Beat Studio (Comprehensive Workshop with MIDI)
+            logger.info("SUCCESS: Lyrics Analyzer registered - URL prefix: /api/beat")
+        except Exception as e:
+            logger.error("FAILED importing Lyrics Analyzer: %s", str(e))
+            logger.error("Full traceback:\n%s", traceback.format_exc())
+
+        # Import CPU Beat Studio
         try:
+            logger.info("IMPORTING CPU Beat Studio: module=modules.lyrics_workshop.lyrics_workshop_bp, attr=lyrics_workshop_bp")
             from modules.lyrics_workshop.lyrics_workshop_bp import lyrics_workshop_bp
             app.register_blueprint(lyrics_workshop_bp)
-            logger.info("✅ CPU Beat Studio Workshop registered")
-        except Exception as workshop_error:
-            logger.error(f"⚠️ CPU Beat Studio not available: {workshop_error}")
+            logger.info("SUCCESS: CPU Beat Studio registered - URL prefix: /api/beat")
+        except Exception as e:
+            logger.error("FAILED importing CPU Beat Studio: %s", str(e))
+            logger.error("Full traceback:\n%s", traceback.format_exc())
         
+        # Route dumper helper
+        def _dump_routes(app):
+            app.logger.info("==== ROUTE MAP BEGIN ====")
+            for rule in sorted(app.url_map.iter_rules(), key=lambda r: r.rule):
+                methods = ",".join(sorted(m for m in rule.methods if m not in ("HEAD","OPTIONS")))
+                app.logger.info("ROUTE %-6s %-35s endpoint=%s", methods, rule.rule, rule.endpoint)
+            app.logger.info("==== ROUTE MAP END ====")
         
         # API endpoints (user info, session management, etc.)
         from modules.api.routes import api_bp
@@ -911,6 +928,9 @@ def register_blueprints(app):
         logger.info("✅ API system registered")
         
         logger.info("🎯 All module blueprints registered successfully")
+        
+        # Dump all registered routes for debugging
+        _dump_routes(app)
         
     except Exception as e:
         logger.error(f"❌ Blueprint registration failed: {e}")
@@ -1090,6 +1110,26 @@ def register_blueprints(app):
         # API endpoints (user info, session management, etc.)
         from modules.api.routes import api_bp
         app.register_blueprint(api_bp, url_prefix='/api')
+        
+        # Import Lyrics Analyzer
+        try:
+            logger.info("IMPORTING Lyrics Analyzer: module=modules.beat.lyrics_analyzer, attr=lyrics_analyzer_bp")
+            from modules.beat.lyrics_analyzer import lyrics_analyzer_bp
+            app.register_blueprint(lyrics_analyzer_bp)
+            logger.info("SUCCESS: Lyrics Analyzer registered - URL prefix: /api/beat")
+        except Exception as e:
+            logger.error("FAILED importing Lyrics Analyzer: %s", str(e))
+            logger.error("Full traceback:\n%s", traceback.format_exc())
+
+        # Import CPU Beat Studio
+        try:
+            logger.info("IMPORTING CPU Beat Studio: module=modules.lyrics_workshop.lyrics_workshop_bp, attr=lyrics_workshop_bp")
+            from modules.lyrics_workshop.lyrics_workshop_bp import lyrics_workshop_bp
+            app.register_blueprint(lyrics_workshop_bp)
+            logger.info("SUCCESS: CPU Beat Studio registered - URL prefix: /api/beat")
+        except Exception as e:
+            logger.error("FAILED importing CPU Beat Studio: %s", str(e))
+            logger.error("Full traceback:\n%s", traceback.format_exc())
         
         logger.info("✅ All blueprints registered successfully")
         
