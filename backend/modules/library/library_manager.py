@@ -439,6 +439,14 @@ class LibraryManager:
                 'error': str(e)
             }
     
+    def save_content(self, user_id: int, content_type: str, content_data: Dict[str, Any], 
+                    metadata: Dict = None) -> Optional[int]:
+        """Alias for add_content to maintain compatibility"""
+        title = content_data.get('title', f"{content_type.title()} - {datetime.now().strftime('%Y-%m-%d %H:%M')}")
+        content = json.dumps(content_data) if isinstance(content_data, dict) else str(content_data)
+        
+        return self.add_content(user_id, content_type, title, content, metadata)
+    
     def _get_user_email(self, user_id: int) -> Optional[str]:
         """Get user email from user ID"""
         try:

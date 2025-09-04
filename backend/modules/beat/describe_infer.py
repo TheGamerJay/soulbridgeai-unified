@@ -62,126 +62,280 @@ class EnhancedBeatWizard:
     
     def __init__(self):
         self.genre_keywords = {
+            # ELECTRONIC & EDM
             'house': {
                 'keywords': ['four-on-the-floor', 'synth', 'electronic', 'dance', 'club', 'bassline', 'kick'],
                 'bpm_range': (120, 130),
-                'weight': 1.0
+                'weight': 1.0,
+                'instruments': ['synthesizer', 'drum machine', 'electric piano', 'bass synth']
+            },
+            'deep-house': {
+                'keywords': ['deep house', 'deep', 'groovy', 'underground', 'soulful', 'minimal'],
+                'bpm_range': (118, 125),
+                'weight': 1.2,
+                'instruments': ['analog synths', 'electric piano', 'filtered samples', 'deep bass']
             },
             'techno': {
                 'keywords': ['repetitive', 'electronic', 'industrial', 'driving', 'mechanical', 'synthesizer'],
                 'bpm_range': (120, 150),
-                'weight': 1.0
+                'weight': 1.0,
+                'instruments': ['analog drum machines', '303 acid synth', 'industrial samples', 'reverb tanks']
             },
-            'hip-hop': {
-                'keywords': ['rap', 'urban', 'beats', 'sampling', 'rhythm', 'bass', 'drums', 'street'],
-                'bpm_range': (70, 140),
-                'weight': 1.2
-            },
-            'trap': {
-                'keywords': ['trap', '808', 'hi-hat', 'snare', 'roll', 'southern', 'heavy', 'bass'],
-                'bpm_range': (130, 170),
-                'weight': 1.1
-            },
-            'drill': {
-                'keywords': ['drill', 'dark', 'aggressive', 'sliding', '808', 'menacing', 'street'],
-                'bpm_range': (130, 160),
-                'weight': 1.1
-            },
-            'ambient': {
-                'keywords': ['atmospheric', 'calm', 'peaceful', 'floating', 'ethereal', 'spacious'],
-                'bpm_range': (60, 90),
-                'weight': 0.9
-            },
-            'jazz': {
-                'keywords': ['swing', 'improvisation', 'complex', 'sophisticated', 'brass', 'piano'],
-                'bpm_range': (90, 180),
-                'weight': 0.8
-            },
-            'reggae': {
-                'keywords': ['offbeat', 'caribbean', 'skank', 'bass', 'guitar', 'rhythm'],
-                'bpm_range': (60, 90),
-                'weight': 0.9
+            'trance': {
+                'keywords': ['trance', 'uplifting', 'euphoric', 'breakdown', 'build-up', 'progressive'],
+                'bpm_range': (128, 140),
+                'weight': 1.1,
+                'instruments': ['supersaw synths', 'arpeggiators', 'gated pads', 'white noise sweeps']
             },
             'dubstep': {
                 'keywords': ['wobble', 'bass', 'drop', 'electronic', 'heavy', 'distorted'],
                 'bpm_range': (140, 150),
-                'weight': 1.0
+                'weight': 1.0,
+                'instruments': ['wobbly bass synths', 'snare rolls', 'vocal chops', 'LFO modulators']
             },
-            'pop': {
-                'keywords': ['catchy', 'mainstream', 'accessible', 'commercial', 'melodic'],
-                'bpm_range': (100, 130),
-                'weight': 0.8
-            },
-            'reggaeton': {
-                'keywords': ['perreo', 'dembow', 'reggaeton', 'reggaetón', 'reguetón', 'latin'],
-                'bpm_range': (90, 110),
-                'weight': 1.5
-            },
-            'bachata': {
-                'keywords': ['bachata', 'guitarra', 'romantic', 'guitar', 'latin'],
-                'bpm_range': (80, 100),
-                'weight': 1.4
-            },
-            'rock': {
-                'keywords': ['rock', 'guitar', 'drums', 'electric', 'power', 'loud', 'distortion'],
-                'bpm_range': (110, 140),
-                'weight': 1.2
-            },
-            'alternative': {
-                'keywords': ['alternative', 'indie', 'grunge', 'alternative rock', 'experimental', 'underground'],
-                'bpm_range': (100, 130),
-                'weight': 1.1
-            },
-            'country': {
-                'keywords': ['country', 'acoustic', 'fiddle', 'banjo', 'twang', 'folk', 'americana'],
-                'bpm_range': (90, 120),
-                'weight': 1.3
-            },
-            'soul': {
-                'keywords': ['soul', 'soulful', 'gospel', 'motown', 'spiritual', 'emotional', 'heartfelt'],
-                'bpm_range': (70, 110),
-                'weight': 1.2
-            },
-            'ballad': {
-                'keywords': ['ballad', 'slow', 'emotional', 'piano', 'soft', 'tender', 'love song'],
-                'bpm_range': (60, 80),
-                'weight': 1.3
-            },
-            'merengue': {
-                'keywords': ['merengue', 'dominican', 'accordion', 'fast', 'dance', 'caribbean', 'tropical'],
-                'bpm_range': (120, 160),
-                'weight': 1.4
-            },
-            'salsa': {
-                'keywords': ['salsa', 'latin', 'percussion', 'brass', 'trumpet', 'timbales', 'clave'],
-                'bpm_range': (150, 200),
-                'weight': 1.4
-            },
-            # Additional genres from comprehensive list
-            'afrobeats': {
-                'keywords': ['afrobeats', 'african', 'percussion', 'afro', 'lagos', 'highlife', 'african'],
-                'bpm_range': (100, 130),
-                'weight': 1.3
-            },
-            'amapiano': {
-                'keywords': ['amapiano', 'south african', 'piano', 'log drum', 'african'],
-                'bpm_range': (110, 120),
-                'weight': 1.4
-            },
-            'uk-garage': {
-                'keywords': ['uk garage', 'garage', 'uk', 'chopped', 'vocal', '2-step'],
-                'bpm_range': (120, 140),
-                'weight': 1.2
+            'drum-and-bass': {
+                'keywords': ['dnb', 'jungle', 'amen break', 'fast', 'breakbeat', 'liquid'],
+                'bpm_range': (160, 180),
+                'weight': 1.2,
+                'instruments': ['amen breaks', 'reese bass', 'atmospheric pads', 'jungle samples']
             },
             'future-bass': {
                 'keywords': ['future bass', 'future', 'melodic', 'emotional', 'drop', 'synth'],
                 'bpm_range': (130, 160),
-                'weight': 1.1
+                'weight': 1.1,
+                'instruments': ['supersaw chords', 'vocal chops', 'sidechain compression', 'filtered leads']
             },
             'synthwave': {
                 'keywords': ['synthwave', 'retro', '80s', 'nostalgic', 'neon', 'cyber'],
                 'bpm_range': (100, 130),
-                'weight': 1.0
+                'weight': 1.0,
+                'instruments': ['analog synths', 'arpeggiated bass', 'gated reverb', 'vintage drums']
+            },
+            'ambient': {
+                'keywords': ['atmospheric', 'calm', 'peaceful', 'floating', 'ethereal', 'spacious'],
+                'bpm_range': (60, 90),
+                'weight': 0.9,
+                'instruments': ['pad synths', 'field recordings', 'reverb', 'drones']
+            },
+
+            # HIP HOP & RAP
+            'hip-hop': {
+                'keywords': ['rap', 'urban', 'beats', 'sampling', 'rhythm', 'bass', 'drums', 'street'],
+                'bpm_range': (70, 140),
+                'weight': 1.2,
+                'instruments': ['samples', 'kick drums', 'snare', 'hi-hats', 'turntables']
+            },
+            'trap': {
+                'keywords': ['trap', '808', 'hi-hat', 'snare', 'roll', 'southern', 'heavy', 'bass'],
+                'bpm_range': (130, 170),
+                'weight': 1.1,
+                'instruments': ['808 drums', 'rapid hi-hats', 'sub bass', 'trap snares']
+            },
+            'drill': {
+                'keywords': ['drill', 'dark', 'aggressive', 'sliding', '808', 'menacing', 'street'],
+                'bpm_range': (130, 160),
+                'weight': 1.1,
+                'instruments': ['sliding 808s', 'drill snares', 'dark samples', 'aggressive hi-hats']
+            },
+            'boom-bap': {
+                'keywords': ['boom bap', 'golden age', '90s', 'sampling', 'old school', 'classic'],
+                'bpm_range': (85, 105),
+                'weight': 1.3,
+                'instruments': ['vinyl samples', 'analog drums', 'bass guitar', 'jazz samples']
+            },
+            'lo-fi': {
+                'keywords': ['lo-fi', 'chill', 'vinyl', 'crackling', 'nostalgic', 'study', 'relaxing'],
+                'bpm_range': (70, 90),
+                'weight': 1.2,
+                'instruments': ['vinyl crackle', 'muffled drums', 'warm bass', 'piano loops']
+            },
+
+            # ROCK & METAL
+            'rock': {
+                'keywords': ['rock', 'guitar', 'drums', 'electric', 'power', 'loud', 'distortion'],
+                'bpm_range': (110, 140),
+                'weight': 1.2,
+                'instruments': ['electric guitar', 'bass guitar', 'drum kit', 'power chords']
+            },
+            'alternative': {
+                'keywords': ['alternative', 'indie', 'grunge', 'alternative rock', 'experimental', 'underground'],
+                'bpm_range': (100, 130),
+                'weight': 1.1,
+                'instruments': ['distorted guitars', 'fuzzy bass', 'dynamic drums', 'effects pedals']
+            },
+            'metal': {
+                'keywords': ['metal', 'heavy', 'aggressive', 'distorted', 'powerful', 'intense'],
+                'bpm_range': (120, 180),
+                'weight': 1.2,
+                'instruments': ['heavy guitars', 'double bass drums', 'palm muting', 'aggressive vocals']
+            },
+            'punk': {
+                'keywords': ['punk', 'fast', 'raw', 'rebellious', 'simple', 'aggressive'],
+                'bpm_range': (150, 200),
+                'weight': 1.3,
+                'instruments': ['power chords', 'fast drums', 'simple bass', 'shouted vocals']
+            },
+
+            # LATIN & WORLD
+            'reggaeton': {
+                'keywords': ['perreo', 'dembow', 'reggaeton', 'reggaetón', 'reguetón', 'latin'],
+                'bpm_range': (90, 110),
+                'weight': 1.5,
+                'instruments': ['dembow rhythm', 'latin percussion', 'synthesized bass', 'melodic instruments']
+            },
+            'bachata': {
+                'keywords': ['bachata', 'guitarra', 'romantic', 'guitar', 'latin'],
+                'bpm_range': (80, 100),
+                'weight': 1.4,
+                'instruments': ['acoustic guitar', 'güira', 'bongo drums', 'electric guitar']
+            },
+            'merengue': {
+                'keywords': ['merengue', 'dominican', 'accordion', 'fast', 'dance', 'caribbean', 'tropical'],
+                'bpm_range': (120, 160),
+                'weight': 1.4,
+                'instruments': ['accordion', 'tambora', 'güira', 'bass guitar']
+            },
+            'salsa': {
+                'keywords': ['salsa', 'latin', 'percussion', 'brass', 'trumpet', 'timbales', 'clave'],
+                'bpm_range': (150, 200),
+                'weight': 1.4,
+                'instruments': ['piano montuno', 'timbales', 'congas', 'brass section', 'bass tumbao']
+            },
+            'cumbia': {
+                'keywords': ['cumbia', 'colombian', 'gaita', 'accordion', 'tropical', 'folklore'],
+                'bpm_range': (90, 120),
+                'weight': 1.4,
+                'instruments': ['accordion', 'gaita', 'guacharaca', 'tambores']
+            },
+            'bossa-nova': {
+                'keywords': ['bossa nova', 'brazilian', 'smooth', 'jazz', 'guitar', 'soft'],
+                'bpm_range': (90, 120),
+                'weight': 1.3,
+                'instruments': ['nylon guitar', 'soft percussion', 'bass', 'subtle drums']
+            },
+            'afrobeats': {
+                'keywords': ['afrobeats', 'african', 'percussion', 'afro', 'lagos', 'highlife', 'african'],
+                'bpm_range': (100, 130),
+                'weight': 1.3,
+                'instruments': ['talking drums', 'log drums', 'shekere', 'bass guitar', 'keyboards']
+            },
+            'amapiano': {
+                'keywords': ['amapiano', 'south african', 'piano', 'log drum', 'african'],
+                'bpm_range': (110, 120),
+                'weight': 1.4,
+                'instruments': ['piano', 'log drums', 'jazz samples', 'saxophone', 'bass']
+            },
+
+            # JAZZ & BLUES
+            'jazz': {
+                'keywords': ['swing', 'improvisation', 'complex', 'sophisticated', 'brass', 'piano'],
+                'bpm_range': (90, 180),
+                'weight': 0.8,
+                'instruments': ['piano', 'trumpet', 'saxophone', 'double bass', 'drums']
+            },
+            'blues': {
+                'keywords': ['blues', '12-bar', 'soulful', 'guitar', 'harmonica', 'melancholic'],
+                'bpm_range': (80, 120),
+                'weight': 1.2,
+                'instruments': ['electric guitar', 'harmonica', 'piano', 'bass', 'drums']
+            },
+
+            # SOUL & R&B
+            'soul': {
+                'keywords': ['soul', 'soulful', 'gospel', 'motown', 'spiritual', 'emotional', 'heartfelt'],
+                'bpm_range': (70, 110),
+                'weight': 1.2,
+                'instruments': ['Hammond organ', 'electric piano', 'horn section', 'gospel vocals']
+            },
+            'rnb': {
+                'keywords': ['r&b', 'rnb', 'rhythm and blues', 'smooth', 'groove', 'urban'],
+                'bpm_range': (70, 100),
+                'weight': 1.2,
+                'instruments': ['electric piano', 'smooth bass', 'drum machines', 'vocal harmonies']
+            },
+            'neo-soul': {
+                'keywords': ['neo soul', 'neo-soul', 'modern soul', 'alternative rnb', 'conscious'],
+                'bpm_range': (80, 110),
+                'weight': 1.3,
+                'instruments': ['vintage keyboards', 'live drums', 'bass guitar', 'analog warmth']
+            },
+
+            # POP & MAINSTREAM
+            'pop': {
+                'keywords': ['catchy', 'mainstream', 'accessible', 'commercial', 'melodic'],
+                'bpm_range': (100, 130),
+                'weight': 0.8,
+                'instruments': ['synthesizers', 'pop drums', 'bass', 'vocal production']
+            },
+            'synthpop': {
+                'keywords': ['synthpop', 'new wave', '80s pop', 'electronic pop', 'synth'],
+                'bpm_range': (110, 140),
+                'weight': 1.0,
+                'instruments': ['vintage synths', 'drum machines', 'arpeggiated bass', 'pop vocals']
+            },
+
+            # COUNTRY & FOLK
+            'country': {
+                'keywords': ['country', 'acoustic', 'fiddle', 'banjo', 'twang', 'folk', 'americana'],
+                'bpm_range': (90, 120),
+                'weight': 1.3,
+                'instruments': ['acoustic guitar', 'banjo', 'fiddle', 'steel guitar', 'harmonica']
+            },
+            'folk': {
+                'keywords': ['folk', 'acoustic', 'traditional', 'storytelling', 'simple', 'organic'],
+                'bpm_range': (80, 120),
+                'weight': 1.2,
+                'instruments': ['acoustic guitar', 'harmonica', 'mandolin', 'simple percussion']
+            },
+
+            # REGGAE & CARIBBEAN
+            'reggae': {
+                'keywords': ['offbeat', 'caribbean', 'skank', 'bass', 'guitar', 'rhythm'],
+                'bpm_range': (60, 90),
+                'weight': 0.9,
+                'instruments': ['electric guitar skank', 'bass guitar', 'drums', 'organ']
+            },
+            'dancehall': {
+                'keywords': ['dancehall', 'jamaican', 'digital', 'toasting', 'ragga'],
+                'bpm_range': (80, 100),
+                'weight': 1.3,
+                'instruments': ['digital drums', 'synthesized bass', 'drum machines', 'samples']
+            },
+
+            # BALLADS & SLOW
+            'ballad': {
+                'keywords': ['ballad', 'slow', 'emotional', 'piano', 'soft', 'tender', 'love song'],
+                'bpm_range': (60, 80),
+                'weight': 1.3,
+                'instruments': ['piano', 'strings', 'soft drums', 'acoustic guitar']
+            },
+
+            # UK & EUROPEAN STYLES
+            'uk-garage': {
+                'keywords': ['uk garage', 'garage', 'uk', 'chopped', 'vocal', '2-step'],
+                'bpm_range': (120, 140),
+                'weight': 1.2,
+                'instruments': ['chopped vocals', 'skippy beats', 'sub bass', 'pitched vocals']
+            },
+            'grime': {
+                'keywords': ['grime', 'uk', 'aggressive', '8-bar', 'electronic', 'raw'],
+                'bpm_range': (135, 145),
+                'weight': 1.3,
+                'instruments': ['sparse beats', 'digital sounds', 'aggressive synths', 'UK vocals']
+            },
+
+            # EXPERIMENTAL & ALTERNATIVE
+            'industrial': {
+                'keywords': ['industrial', 'noise', 'mechanical', 'harsh', 'experimental', 'electronic'],
+                'bpm_range': (90, 140),
+                'weight': 1.0,
+                'instruments': ['metal percussion', 'distorted samples', 'noise generators', 'synthesizers']
+            },
+            'shoegaze': {
+                'keywords': ['shoegaze', 'dreamy', 'ethereal', 'effects', 'layers', 'wall of sound'],
+                'bpm_range': (90, 130),
+                'weight': 1.1,
+                'instruments': ['heavily effected guitars', 'reverb', 'delay', 'distortion pedals']
             }
         }
         
@@ -263,18 +417,77 @@ class EnhancedBeatWizard:
         return None
 
     def generate_song_structure(self, sections: List[Tuple[str, str]], genre: str) -> str:
-        """Generate enhanced structure with genre-specific patterns"""
+        """Generate enhanced structure with comprehensive genre-specific patterns"""
         if not sections:
-            # Genre-specific default structures
+            # Comprehensive genre-specific default structures
             defaults = {
-                "reggaeton": "Intro(4) → Coro(8) → Verso(16) → Coro(8) → Verso(16) → Coro(8) → Outro(4)",
-                "bachata": "Intro(8) → Verso(16) → Coro(8) → Verso(16) → Coro(8) → Puente(8) → Coro(8) → Outro(8)",
+                # ELECTRONIC & EDM
+                "house": "Intro(16) → Build(8) → Drop(32) → Break(16) → Build(8) → Drop(32) → Outro(16)",
+                "deep-house": "Intro(32) → Verse(16) → Build(8) → Drop(32) → Break(16) → Drop(32) → Outro(32)",
+                "techno": "Intro(32) → Main(64) → Break(32) → Main(64) → Build(16) → Peak(32) → Outro(32)",
+                "trance": "Intro(16) → Verse(16) → Buildup(16) → Drop(32) → Break(16) → Buildup(16) → Drop(32) → Outro(16)",
+                "dubstep": "Intro(8) → Buildup(8) → Drop(16) → Verse(8) → Buildup(8) → Drop(16) → Outro(8)",
+                "drum-and-bass": "Intro(16) → Verse(16) → Drop(32) → Break(16) → Drop(32) → Outro(16)",
+                "future-bass": "Intro(8) → Verse(8) → Pre(4) → Drop(16) → Verse(8) → Pre(4) → Drop(16) → Outro(8)",
+                "synthwave": "Intro(16) → Verse(16) → Chorus(16) → Verse(16) → Chorus(16) → Solo(16) → Chorus(16) → Outro(16)",
+                "ambient": "Intro(32) → Movement A(64) → Transition(16) → Movement B(64) → Outro(32)",
+
+                # HIP HOP & RAP  
+                "hip-hop": "Intro(4) → Verse(16) → Hook(8) → Verse(16) → Hook(8) → Bridge(8) → Hook(8) → Outro(4)",
                 "trap": "Intro(4) → Hook(8) → Verse(16) → Hook(8) → Verse(16) → Bridge(8) → Hook(8) → Outro(4)",
                 "drill": "Intro(8) → Hook(8) → Verse(16) → Hook(8) → Verse(16) → Hook(8) → Outro(4)",
-                "house": "Intro(16) → Verse(16) → Drop(32) → Break(16) → Drop(32) → Outro(16)",
+                "boom-bap": "Intro(4) → Verse(16) → Hook(8) → Verse(16) → Hook(8) → Verse(16) → Hook(8) → Outro(4)",
+                "lo-fi": "Intro(8) → Loop A(32) → Variation(16) → Loop B(32) → Outro(8)",
+
+                # ROCK & METAL
+                "rock": "Intro(8) → Verse(16) → Chorus(16) → Verse(16) → Chorus(16) → Solo(16) → Chorus(16) → Outro(8)",
+                "alternative": "Intro(8) → Verse(12) → Chorus(12) → Verse(12) → Chorus(12) → Bridge(8) → Chorus(12) → Outro(8)",
+                "metal": "Intro(8) → Verse(16) → Chorus(16) → Verse(16) → Chorus(16) → Breakdown(8) → Solo(16) → Chorus(16) → Outro(8)",
+                "punk": "Intro(4) → Verse(12) → Chorus(8) → Verse(12) → Chorus(8) → Bridge(8) → Chorus(8) → Outro(4)",
+
+                # LATIN & WORLD
+                "reggaeton": "Intro(4) → Coro(8) → Verso(16) → Coro(8) → Verso(16) → Puente(8) → Coro(8) → Outro(4)",
+                "bachata": "Intro(8) → Verso(16) → Coro(8) → Verso(16) → Coro(8) → Puente(8) → Coro(8) → Outro(8)",
+                "merengue": "Intro(4) → Coro(8) → Verso(8) → Coro(8) → Verso(8) → Coro(8) → Mambo(16) → Coro(8) → Outro(4)",
+                "salsa": "Intro(8) → Coro(8) → Verso(16) → Coro(8) → Mambo(32) → Coro(8) → Outro(8)",
+                "cumbia": "Intro(8) → Verso(16) → Coro(16) → Verso(16) → Coro(16) → Instrumental(16) → Coro(16) → Outro(8)",
+                "bossa-nova": "Intro(8) → Verse(16) → Chorus(16) → Verse(16) → Chorus(16) → Bridge(8) → Chorus(16) → Outro(8)",
                 "afrobeats": "Intro(8) → Hook(8) → Verse(16) → Hook(8) → Bridge(8) → Hook(8) → Outro(8)",
+                "amapiano": "Intro(16) → Build(8) → Drop(32) → Break(8) → Drop(32) → Outro(16)",
+
+                # JAZZ & BLUES
+                "jazz": "Intro(8) → Head(32) → Solo A(32) → Solo B(32) → Head(32) → Outro(8)",
+                "blues": "Intro(4) → Verse(12) → Verse(12) → Bridge(6) → Verse(12) → Solo(12) → Verse(12) → Outro(4)",
+
+                # SOUL & R&B
+                "soul": "Intro(8) → Verse(16) → Chorus(16) → Verse(16) → Chorus(16) → Bridge(8) → Chorus(16) → Outro(8)",
+                "rnb": "Intro(4) → Verse(16) → Pre-Chorus(4) → Chorus(16) → Verse(16) → Pre-Chorus(4) → Chorus(16) → Bridge(8) → Chorus(16) → Outro(4)",
+                "neo-soul": "Intro(8) → Verse(16) → Chorus(12) → Verse(16) → Chorus(12) → Breakdown(8) → Chorus(12) → Outro(8)",
+
+                # POP & MAINSTREAM
+                "pop": "Intro(4) → Verse(16) → Pre-Chorus(4) → Chorus(16) → Verse(16) → Pre-Chorus(4) → Chorus(16) → Bridge(8) → Chorus(16) → Outro(4)",
+                "synthpop": "Intro(8) → Verse(16) → Chorus(16) → Verse(16) → Chorus(16) → Synth Solo(8) → Chorus(16) → Outro(8)",
+
+                # COUNTRY & FOLK
+                "country": "Intro(4) → Verse(16) → Chorus(16) → Verse(16) → Chorus(16) → Bridge(8) → Chorus(16) → Outro(4)",
+                "folk": "Intro(4) → Verse(16) → Chorus(12) → Verse(16) → Chorus(12) → Bridge(8) → Chorus(12) → Outro(4)",
+
+                # REGGAE & CARIBBEAN
+                "reggae": "Intro(8) → Verse(16) → Chorus(16) → Verse(16) → Chorus(16) → Bridge(8) → Chorus(16) → Outro(8)",
+                "dancehall": "Intro(4) → Hook(8) → Verse(16) → Hook(8) → Verse(16) → Hook(8) → Outro(4)",
+
+                # BALLADS & SLOW
+                "ballad": "Intro(8) → Verse(16) → Chorus(16) → Verse(16) → Chorus(16) → Bridge(8) → Chorus(16) → Outro(8)",
+
+                # UK & EUROPEAN STYLES
+                "uk-garage": "Intro(8) → Vocal(16) → Drop(16) → Break(8) → Vocal(16) → Drop(16) → Outro(8)",
+                "grime": "Intro(8) → Bars(64) → Hook(8) → Bars(64) → Hook(8) → Outro(8)",
+
+                # EXPERIMENTAL & ALTERNATIVE
+                "industrial": "Intro(16) → Section A(32) → Build(8) → Section B(32) → Breakdown(16) → Section B(32) → Outro(16)",
+                "shoegaze": "Intro(16) → Verse(16) → Wall(32) → Verse(16) → Wall(32) → Bridge(16) → Wall(32) → Outro(16)",
             }
-            return defaults.get(genre, defaults["trap"])
+            return defaults.get(genre, defaults.get("pop", "Intro(4) → Verse(16) → Chorus(16) → Verse(16) → Chorus(16) → Bridge(8) → Chorus(16) → Outro(4)"))
         
         # Build from detected sections
         label_map = {}
@@ -293,15 +506,36 @@ class EnhancedBeatWizard:
                 "drop": "Drop", "ad_lib": "Ad-Lib"
             }.get(canon, canon.title())
             
-            # Genre-specific bar counts
-            bar_counts = {
+            # Comprehensive genre-specific bar counts
+            genre_bar_counts = {
+                # ELECTRONIC & EDM
+                "house": {"intro": 16, "build": 8, "drop": 32, "break": 16, "outro": 16, "verse": 16, "hook": 16},
+                "deep-house": {"intro": 32, "verse": 16, "build": 8, "drop": 32, "break": 16, "outro": 32},
+                "techno": {"intro": 32, "verse": 32, "drop": 64, "break": 32, "build": 16, "outro": 32},
+                "trance": {"intro": 16, "verse": 16, "pre": 16, "drop": 32, "break": 16, "outro": 16},
+                "dubstep": {"intro": 8, "verse": 8, "pre": 8, "drop": 16, "outro": 8},
+                
+                # HIP HOP & RAP
+                "hip-hop": {"intro": 4, "verse": 16, "hook": 8, "bridge": 8, "outro": 4},
+                "trap": {"intro": 4, "verse": 16, "hook": 8, "bridge": 8, "outro": 4},
+                "drill": {"intro": 8, "verse": 16, "hook": 8, "outro": 4},
+                "boom-bap": {"intro": 4, "verse": 16, "hook": 8, "outro": 4},
+                
+                # ROCK & METAL
+                "rock": {"intro": 8, "verse": 16, "hook": 16, "bridge": 8, "outro": 8},
+                "metal": {"intro": 8, "verse": 16, "hook": 16, "bridge": 8, "outro": 8},
+                
+                # LATIN & WORLD
                 "reggaeton": {"intro": 4, "verse": 16, "hook": 8, "bridge": 8, "outro": 4},
                 "bachata": {"intro": 8, "verse": 16, "hook": 8, "bridge": 8, "outro": 8},
-                "house": {"intro": 16, "verse": 16, "drop": 32, "break": 16, "outro": 16},
-                "afrobeats": {"intro": 8, "verse": 16, "hook": 8, "bridge": 8, "outro": 8},
-            }.get(genre, {"intro": 4, "pre": 4, "hook": 8, "verse": 16, "bridge": 8, 
-                         "interlude": 4, "drop": 8, "outro": 4, "ad_lib": 2})
+                "salsa": {"intro": 8, "verse": 16, "hook": 8, "bridge": 16, "outro": 8},
+                
+                # Default for other genres
+                "default": {"intro": 4, "pre": 4, "hook": 8, "verse": 16, "bridge": 8, 
+                           "interlude": 4, "drop": 16, "outro": 4, "ad_lib": 2}
+            }
             
+            bar_counts = genre_bar_counts.get(genre, genre_bar_counts["default"])
             bars = bar_counts.get(canon, 8)
             return f"{display}({bars})"
         
@@ -420,97 +654,127 @@ class EnhancedBeatWizard:
         return base_bpm
 
     def generate_suggestions(self, analysis: Dict[str, Any]) -> List[str]:
-        """Generate contextual suggestions based on analysis"""
+        """Generate contextual suggestions based on analysis with instrument specifications"""
         suggestions = []
         genre = analysis['genre']
         mood = analysis['mood']
         bpm = analysis['bpm']
         
-        # Genre-specific suggestions
-        if genre == 'house':
-            suggestions.extend([
+        # Get genre-specific instrument suggestions
+        if genre in self.genre_keywords:
+            genre_data = self.genre_keywords[genre]
+            instruments = genre_data.get('instruments', [])
+            
+            if instruments:
+                # Primary instrument suggestions
+                primary_instruments = instruments[:2]
+                suggestions.append(f"Essential instruments: {', '.join(primary_instruments)}")
+                
+                # Secondary instrument suggestions
+                if len(instruments) > 2:
+                    secondary = instruments[2:]
+                    suggestions.append(f"Layer with: {', '.join(secondary)}")
+        
+        # Genre-specific production suggestions
+        genre_suggestions = {
+            'house': [
                 "Add a strong four-on-the-floor kick pattern",
-                "Layer in some acid basslines for authentic house vibes",
-                "Consider adding filtered disco samples"
-            ])
-        elif genre == 'hip-hop':
-            suggestions.extend([
-                "Focus on a strong drum pattern with snappy snares",
-                "Layer in some vinyl crackle for authenticity",
-                "Add space for vocal delivery with strategic breaks"
-            ])
-        elif genre == 'trap':
-            suggestions.extend([
-                "Use heavy 808 drums with sub bass",
-                "Add rapid hi-hat rolls for modern trap feel",
-                "Layer dark atmospheric pads"
-            ])
-        elif genre == 'reggaeton':
-            suggestions.extend([
+                "Layer filtered disco samples for authentic house vibes",
+                "Use sidechain compression on pads"
+            ],
+            'deep-house': [
+                "Focus on groove and subtle progression",
+                "Use warm analog-style filtering",
+                "Keep arrangements minimal and spacious"
+            ],
+            'techno': [
+                "Create driving repetitive patterns",
+                "Use industrial samples for texture",
+                "Build tension with gradual filter sweeps"
+            ],
+            'hip-hop': [
+                "Focus on groove and pocket",
+                "Layer vinyl crackle for authenticity",
+                "Leave space for vocal delivery"
+            ],
+            'trap': [
+                "Use heavy 808 patterns with slides",
+                "Add rapid hi-hat rolls and snare fills",
+                "Layer dark atmospheric elements"
+            ],
+            'drill': [
+                "Keep arrangements dark and minimal",
+                "Use sliding 808s as main element",
+                "Add aggressive hi-hat patterns"
+            ],
+            'boom-bap': [
+                "Sample from jazz and soul records",
+                "Use analog warmth and tape saturation",
+                "Keep drum patterns simple but punchy"
+            ],
+            'lo-fi': [
+                "Add vinyl crackle and tape noise",
+                "Use warm, muffled drum sounds",
+                "Keep melodies simple and nostalgic"
+            ],
+            'reggaeton': [
                 "Use the classic dembow rhythm pattern",
-                "Add Latin percussion elements",
-                "Include melodic guitar or piano elements"
-            ])
-        elif genre == 'rock':
-            suggestions.extend([
-                "Use power chords and distorted electric guitars",
-                "Add a driving drum beat with emphasis on 2 and 4",
-                "Include bass guitar with strong rhythm foundation"
-            ])
-        elif genre == 'alternative':
-            suggestions.extend([
-                "Experiment with unconventional song structures",
-                "Use clean and distorted guitar textures",
-                "Add atmospheric elements and reverb"
-            ])
-        elif genre == 'country':
-            suggestions.extend([
-                "Use acoustic guitar as the foundation",
-                "Add fiddle or steel guitar for authenticity",
-                "Keep the arrangement simple and story-focused"
-            ])
-        elif genre == 'soul':
-            suggestions.extend([
-                "Use rich vocal harmonies and gospel influences",
-                "Add warm electric piano or Hammond organ",
-                "Include a tight rhythm section with groove emphasis"
-            ])
-        elif genre == 'ballad':
-            suggestions.extend([
-                "Start with piano or acoustic guitar",
-                "Build dynamics gradually throughout the song",
-                "Focus on emotional vocal delivery and space"
-            ])
-        elif genre == 'merengue':
-            suggestions.extend([
-                "Use fast accordion patterns and brass sections",
-                "Add Dominican percussion with güira and tambora",
-                "Keep the energy high and danceable"
-            ])
-        elif genre == 'salsa':
-            suggestions.extend([
-                "Use complex Latin percussion patterns",
-                "Add brass section with trumpet and trombone",
-                "Include piano montunos and bass tumbao"
-            ])
-        elif genre == 'ambient':
-            suggestions.extend([
-                "Use reverb and delay to create spatial depth",
-                "Layer atmospheric pads for texture",
-                "Keep percussion minimal and organic"
-            ])
+                "Add Latin percussion layers",
+                "Include melodic guitar or piano hooks"
+            ],
+            'rock': [
+                "Use power chords and strong rhythm",
+                "Add driving drums with 2 and 4 emphasis",
+                "Include dynamic builds and releases"
+            ],
+            'metal': [
+                "Use heavy, distorted guitars",
+                "Add double bass drum patterns",
+                "Focus on powerful, aggressive sounds"
+            ],
+            'jazz': [
+                "Leave space for improvisation",
+                "Use complex chord progressions",
+                "Focus on swing and groove dynamics"
+            ],
+            'ambient': [
+                "Create spatial depth with reverb",
+                "Use atmospheric textures and drones",
+                "Keep percussion minimal or absent"
+            ],
+            'dnb': [
+                "Chop and manipulate breakbeats",
+                "Use rolling bass patterns",
+                "Create complex rhythm variations"
+            ]
+        }
+        
+        # Add genre-specific suggestions
+        if genre in genre_suggestions:
+            suggestions.extend(genre_suggestions[genre][:2])
+        elif genre.replace('-', '_') in genre_suggestions:
+            suggestions.extend(genre_suggestions[genre.replace('-', '_')][:2])
         
         # BPM-specific suggestions
         if bpm < 80:
-            suggestions.append("Perfect tempo for downtempo or ambient tracks")
+            suggestions.append("Perfect tempo for downtempo and ambient vibes")
         elif bpm > 150:
-            suggestions.append("High-energy tempo - great for dance or electronic music")
+            suggestions.append("High-energy tempo - great for dance and electronic music")
+        elif 120 <= bpm <= 130:
+            suggestions.append("Optimal dancing tempo - perfect for clubs")
         
         # Mood-specific suggestions
-        if mood == 'dark':
-            suggestions.append("Use minor keys and heavy bass for darker atmosphere")
-        elif mood == 'energetic':
-            suggestions.append("Add dynamic builds and drops to maintain energy")
+        mood_suggestions = {
+            'dark': "Use minor keys and heavy bass for darker atmosphere",
+            'energetic': "Add dynamic builds and drops to maintain energy", 
+            'chill': "Use warm sounds and relaxed rhythms",
+            'happy': "Focus on major keys and uplifting melodies",
+            'melancholic': "Use emotional chord progressions and space",
+            'mysterious': "Layer atmospheric textures and ambient sounds"
+        }
+        
+        if mood in mood_suggestions:
+            suggestions.append(mood_suggestions[mood])
         
         return suggestions[:5]  # Limit to top 5 suggestions
 
@@ -639,6 +903,33 @@ class EnhancedBeatWizard:
         tempo_desc = "slow and contemplative" if bpm < 80 else "moderate" if bpm < 130 else "fast-paced and energetic"
         
         return f"A {mood} {genre} composition in {key} with a {tempo_desc} feel at {bpm} BPM. {original[:100]}{'...' if len(original) > 100 else ''}"
+    
+    def get_available_genres(self) -> List[Dict[str, Any]]:
+        """Get list of all available genres with their metadata"""
+        genres = []
+        for genre, data in self.genre_keywords.items():
+            genres.append({
+                'name': genre,
+                'display_name': genre.replace('-', ' ').title(),
+                'bpm_range': data['bpm_range'],
+                'instruments': data.get('instruments', []),
+                'weight': data['weight']
+            })
+        return sorted(genres, key=lambda x: x['display_name'])
+    
+    def get_genre_info(self, genre: str) -> Optional[Dict[str, Any]]:
+        """Get detailed information about a specific genre"""
+        if genre in self.genre_keywords:
+            data = self.genre_keywords[genre]
+            return {
+                'name': genre,
+                'display_name': genre.replace('-', ' ').title(),
+                'keywords': data['keywords'],
+                'bpm_range': data['bpm_range'],
+                'instruments': data.get('instruments', []),
+                'weight': data['weight']
+            }
+        return None
 
 
 # Initialize the enhanced beat wizard
@@ -674,7 +965,9 @@ def analyze_beat():
         
         # Auto-save to library
         try:
-            library_manager = LibraryManager()
+            from ...db.database_manager import get_db
+            database = get_db()
+            library_manager = LibraryManager(database)
             library_manager.save_content(
                 user_id=user_id,
                 content_type='beat_analysis',
@@ -756,6 +1049,44 @@ def beat_stats():
         return jsonify({
             'success': False,
             'error': 'Failed to get statistics'
+        }), 500
+
+@beat_bp.route('/genres', methods=['GET'])
+def get_genres():
+    """Get list of all available genres"""
+    try:
+        genres = beat_wizard.get_available_genres()
+        return jsonify({
+            'success': True,
+            'genres': genres
+        })
+    except Exception as e:
+        logger.error(f"Error getting genres: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to get genres'
+        }), 500
+
+@beat_bp.route('/genres/<genre>', methods=['GET'])
+def get_genre_info(genre):
+    """Get detailed information about a specific genre"""
+    try:
+        genre_info = beat_wizard.get_genre_info(genre)
+        if genre_info:
+            return jsonify({
+                'success': True,
+                'genre': genre_info
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Genre not found'
+            }), 404
+    except Exception as e:
+        logger.error(f"Error getting genre info: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to get genre information'
         }), 500
 
 def init_beat_system():
