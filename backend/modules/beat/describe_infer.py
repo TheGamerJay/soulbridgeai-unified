@@ -269,19 +269,29 @@ class EnhancedBeatWizard:
         
         return suggestions[:5]  # Limit to top 5 suggestions
 
-    def analyze_beat(self, description: str, user_id: str) -> BeatAnalysis:
+    def analyze_beat(self, description: str, user_id: str, genre_override: Optional[str] = None, bpm_override: Optional[int] = None) -> BeatAnalysis:
         """Comprehensive beat analysis with enhanced algorithms"""
         try:
             # Generate deterministic seed
             seed = self.generate_deterministic_seed(description, user_id)
             
-            # Enhanced analysis
-            genre, genre_confidence = self.detect_genre_with_confidence(description, 120)  # Initial BPM estimate
-            mood, mood_confidence = self.detect_mood_with_confidence(description)
-            bpm = self.estimate_bpm(description, genre)
+            # Enhanced analysis with overrides
+            if genre_override and genre_override in self.genre_keywords:
+                genre = genre_override
+                genre_confidence = 1.0  # High confidence for user-selected genre
+            else:
+                genre, genre_confidence = self.detect_genre_with_confidence(description, 120)  # Initial BPM estimate
             
-            # Re-calculate genre with better BPM
-            genre, genre_confidence = self.detect_genre_with_confidence(description, bpm)
+            mood, mood_confidence = self.detect_mood_with_confidence(description)
+            
+            if bpm_override and 60 <= bpm_override <= 200:
+                bpm = bpm_override
+            else:
+                bpm = self.estimate_bpm(description, genre)
+            
+            # Re-calculate genre with better BPM if not overridden
+            if not genre_override:
+                genre, genre_confidence = self.detect_genre_with_confidence(description, bpm)
             
             # Additional analysis
             key_signature = self._infer_key_signature(description, mood)
@@ -400,8 +410,12 @@ def analyze_beat():
         
         user_id = get_user_id()
         
-        # Perform analysis
-        analysis = beat_wizard.analyze_beat(description, user_id)
+        # Get optional overrides
+        genre_override = data.get('genre_override')
+        bpm_override = data.get('bpm_override')
+        
+        # Perform analysis with overrides
+        analysis = beat_wizard.analyze_beat(description, user_id, genre_override, bpm_override)
         
         # Auto-save to library
         try:

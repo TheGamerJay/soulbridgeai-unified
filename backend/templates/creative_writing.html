@@ -284,6 +284,24 @@
             font-size: 0.9rem;
         }
 
+        .beat-wizard-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .beat-wizard-controls .form-group {
+            margin-bottom: 0;
+        }
+
+        @media (max-width: 768px) {
+            .beat-wizard-controls {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+        }
+
         .beat-btn {
             background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
             border: none;
@@ -450,6 +468,34 @@
                         <h3>🎵 Beat Wizard</h3>
                         <p>Get beat analysis and production suggestions for your lyrics</p>
                     </div>
+                    
+                    <div class="beat-wizard-controls">
+                        <div class="form-group">
+                            <label for="genreOverride">Preferred Genre (Optional)</label>
+                            <select id="genreOverride" class="form-control">
+                                <option value="">Auto-detect from description</option>
+                                <option value="trap">Trap</option>
+                                <option value="drill">Drill</option>
+                                <option value="hip-hop">Hip-Hop</option>
+                                <option value="pop">Pop</option>
+                                <option value="house">House</option>
+                                <option value="techno">Techno</option>
+                                <option value="reggaeton">Reggaeton</option>
+                                <option value="bachata">Bachata</option>
+                                <option value="r&b">R&B</option>
+                                <option value="jazz">Jazz</option>
+                                <option value="reggae">Reggae</option>
+                                <option value="ambient">Ambient</option>
+                                <option value="dubstep">Dubstep</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="bpmOverride">Target BPM (Optional)</label>
+                            <input type="number" id="bpmOverride" class="form-control" min="60" max="200" placeholder="Auto-calculate">
+                        </div>
+                    </div>
+                    
                     <button type="button" class="btn beat-btn" id="analyzeBeatBtn">Analyze Beat Style</button>
                     <div id="beatAnalysisResult" class="beat-analysis-result"></div>
                 </div>
@@ -493,14 +539,27 @@
             beatAnalysisResult.classList.add('show');
 
             try {
+                const genreOverride = document.getElementById('genreOverride').value;
+                const bpmOverride = document.getElementById('bpmOverride').value;
+
+                const requestData = {
+                    description: prompt
+                };
+                
+                if (genreOverride) {
+                    requestData.genre_override = genreOverride;
+                }
+                
+                if (bpmOverride && parseInt(bpmOverride) >= 60 && parseInt(bpmOverride) <= 200) {
+                    requestData.bpm_override = parseInt(bpmOverride);
+                }
+
                 const response = await fetch('/beat/analyze', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({
-                        description: prompt
-                    })
+                    body: JSON.stringify(requestData)
                 });
 
                 const result = await response.json();
