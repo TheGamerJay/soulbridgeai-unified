@@ -38,21 +38,24 @@ def test_workshop_ping(client):
     assert data['blueprint'] == 'beat_workshop'
     assert '/api/beat/workshop' in data['route']
 
-def test_workshop_page(client):
-    """Test workshop page renders"""
+def test_workshop_page_requires_auth(client):
+    """Test workshop page requires authentication"""
     response = client.get("/api/beat/workshop")
-    assert response.status_code == 200
+    # Should redirect to login
+    assert response.status_code == 302
+    assert 'auth/login' in response.location
 
-def test_midi_generation(client):
-    """Test MIDI generation endpoint"""
+def test_midi_generation_requires_auth(client):
+    """Test MIDI generation requires authentication"""
     response = client.post("/api/beat/midi", 
                           json={"bpm": 92, "genre": "trap"})
-    assert response.status_code == 200
-    assert response.headers["Content-Type"].startswith("audio/midi")
-    assert "attachment" in response.headers.get("Content-Disposition", "")
+    # Should return 401 unauthorized
+    assert response.status_code == 401
+    data = response.get_json()
+    assert 'Authentication required' in data['error']
 
-def test_lyrics_analysis(client):
-    """Test lyrics analysis endpoint"""
+def test_lyrics_analysis_requires_auth(client):
+    """Test lyrics analysis requires authentication"""
     test_lyrics = """[Verse 1]
 Started from the bottom now we here
 Never gave up fighting through the fear
@@ -67,16 +70,15 @@ We make it happen somehow"""
     
     response = client.post("/api/beat/analyze_lyrics",
                           json={"lyrics": test_lyrics})
-    assert response.status_code == 200
+    # Should return 401 unauthorized
+    assert response.status_code == 401
     
     data = response.get_json()
-    assert data['success'] is True
-    assert 'analysis' in data
-    assert 'detected_genre' in data['analysis']
-    assert 'sections' in data['analysis']
+    assert data['success'] is False
+    assert 'Authentication required' in data['error']
 
-def test_workshop_analyze(client):
-    """Test workshop analyze endpoint"""  
+def test_workshop_analyze_requires_auth(client):
+    """Test workshop analyze requires authentication"""  
     test_lyrics = """Working hard every single day
 Building dreams in every way
 Never stop until we make it
@@ -84,12 +86,11 @@ Success is ours for the taking"""
     
     response = client.post("/api/beat/workshop/analyze",
                           json={"lyrics": test_lyrics})
-    assert response.status_code == 200
+    # Should return 401 unauthorized
+    assert response.status_code == 401
     
     data = response.get_json()
-    assert 'sections' in data
-    assert 'detected_emotion' in data
-    assert 'recommended_bpm' in data
+    assert 'Authentication required' in data['error']
 
 def test_health_checks(client):
     """Test health check endpoints"""
@@ -111,14 +112,26 @@ def test_health_checks(client):
     data = response.get_json()
     assert data['alive'] is True
 
+def test_security_headers(client):
+    """Test security headers are properly set"""
+    response = client.get("/healthz")
+    assert response.status_code == 200
+    
+    # Check security headers
+    assert 'X-Content-Type-Options' in response.headers
+    assert response.headers['X-Content-Type-Options'] == 'nosniff'
+    assert response.headers['X-Frame-Options'] == 'DENY'
+    assert 'Content-Security-Policy' in response.headers
+    assert 'Referrer-Policy' in response.headers
+
 def test_error_handling(client):
     """Test error handling for invalid requests"""
-    # Empty lyrics
+    # Empty lyrics (should require auth first)
     response = client.post("/api/beat/analyze_lyrics", json={})
-    assert response.status_code == 400
+    assert response.status_code == 401  # Auth required before validation
     
-    # Invalid JSON
+    # Invalid JSON (should require auth first) 
     response = client.post("/api/beat/workshop/analyze", 
                           data="invalid json",
                           content_type="application/json")
-    assert response.status_code in [400, 500]  # Either bad request or internal error
+    assert response.status_code == 401  # Auth required before validation

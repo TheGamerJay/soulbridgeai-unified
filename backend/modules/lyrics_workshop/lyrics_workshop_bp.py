@@ -12,6 +12,8 @@ from flask import Blueprint, render_template, request, jsonify, send_file
 from mido import MidiFile, MidiTrack, Message
 from io import BytesIO
 import time
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 lyrics_workshop_bp = Blueprint(
     "beat_workshop", __name__,
@@ -318,11 +320,20 @@ def write_full_midi(bpm, genre, key, scale, bars, include):
 @lyrics_workshop_bp.route("/workshop", methods=["GET"])
 def workshop_page():
     """Serve the Enhanced Lyrics Workshop & Beat Studio page"""
+    # Authentication check
+    from flask import session, redirect
+    if not session.get('logged_in'):
+        return redirect('/auth/login?return_to=api/beat/workshop')
     return render_template('lyrics_workshop_enhanced.html')
 
 @lyrics_workshop_bp.route('/workshop/analyze', methods=['POST'])
 def analyze():
     """Analyze lyrics for structure and metrics"""
+    # Authentication check
+    from flask import session
+    if not session.get('logged_in'):
+        return jsonify({'error': 'Authentication required'}), 401
+        
     data = request.get_json(force=True)
     lyrics = data.get('lyrics', '')
     
@@ -390,12 +401,18 @@ def midi_full():
     except Exception as e:
         return jsonify({'error': f'MIDI generation failed: {str(e)}'}), 500
 
-@lyrics_workshop_bp.route("/midi", methods=["POST"])
+@lyrics_workshop_bp.route("/midi", methods=["POST"])  
 def gen_midi():
     """
     MIDI export endpoint for direct download.
     Returns a .mid file download with correct headers.
+    Rate limited to prevent abuse of CPU-intensive MIDI generation.
     """
+    # Authentication check
+    from flask import session
+    if not session.get('logged_in'):
+        return jsonify({'error': 'Authentication required'}), 401
+    
     try:
         # Get parameters from request
         data = request.get_json(silent=True) or {}

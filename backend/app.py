@@ -17,6 +17,7 @@ from datetime import datetime, timedelta
 from flask import Flask, session, request, redirect, jsonify, url_for
 from flask_cors import CORS
 from werkzeug.middleware.proxy_fix import ProxyFix
+from security_config import init_security, enhance_security_headers, secure_error_handlers
 
 # Initialize safe logging to prevent unicode crashes
 try:
@@ -106,14 +107,23 @@ def create_app():
     # Initialize all systems
     initialize_systems(app)
     
+    # Initialize security (rate limiting, CSRF, etc.)
+    limiter, csrf = init_security(app)
+    
     # Set up global middleware
     setup_middleware(app)
+    
+    # Set up enhanced security headers
+    enhance_security_headers(app)
+    
+    # Set up secure error handlers
+    secure_error_handlers(app)
     
     # Set up v1 compatibility routes
     setup_v1_compatibility_routes(app)
     
-    # Set up error handlers
-    setup_error_handlers(app)
+    # Set up error handlers (legacy - secure_error_handlers replaces this)
+    # setup_error_handlers(app)
     
     # Add diagnostic routes for session debugging
     @app.route("/_debug/session")

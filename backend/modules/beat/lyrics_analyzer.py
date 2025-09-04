@@ -391,10 +391,13 @@ def analyze_lyrics_comprehensive(lyrics: str, target_genre: str = None) -> Dict[
     }
 
 # ------------------ Frontend Route ------------------
-@lyrics_analyzer_bp.route("/lyrics", methods=["GET"])
+@lyrics_analyzer_bp.route("/lyrics", methods=["GET"]) 
 def lyrics_analyzer_page():
     """Serve the Lyrics Analyzer frontend page"""
-    from flask import render_template
+    # Authentication check
+    from flask import render_template, session, redirect
+    if not session.get('logged_in'):
+        return redirect('/auth/login?return_to=api/beat/lyrics')
     return render_template('lyrics_analyzer.html')
 
 @lyrics_analyzer_bp.route("/lyrics/ping", methods=["GET"])
@@ -421,6 +424,11 @@ def analyze_lyrics_endpoint():
     
     Returns: Complete analysis with suggestions and beat recommendations
     """
+    # Authentication check
+    from flask import session
+    if not session.get('logged_in'):
+        return jsonify({'success': False, 'error': 'Authentication required'}), 401
+        
     data = request.get_json(silent=True) or {}
     lyrics = data.get("lyrics", "").strip()
     target_genre = data.get("target_genre", "").strip()
