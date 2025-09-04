@@ -21,9 +21,26 @@ logger = logging.getLogger(__name__)
 # Create blueprint
 beat_bp = Blueprint('beat', __name__)
 
+# Advanced section detection (extracted from comprehensive code)
+SECTION_ALIASES = {
+    "hook": {"hook", "chorus", "coro", "estribillo", "refrain", "refrán", "gancho"},
+    "verse": {"verse", "verso", "estrofa", "rap", "bar", "barra"},
+    "bridge": {"bridge", "puente", "middle eight", "m8", "break"},
+    "pre": {"pre-chorus", "prechorus", "pre chorus", "pre-coro", "precoro", "pre coro", 
+            "pre-estribillo", "preestribillo", "buildup", "antecoro"},
+    "intro": {"intro", "entrada", "start", "beginning"},
+    "outro": {"outro", "salida", "cierre", "end", "ending", "final"},
+    "interlude": {"interlude", "interludio", "instrumental", "solo"},
+    "drop": {"drop", "break", "beat drop", "bajada", "subida", "climax"},
+    "ad_lib": {"ad-lib", "adlib", "vocal", "background", "bg"}
+}
+
+NORM = {n.lower(): canon for canon, names in SECTION_ALIASES.items() for n in names}
+SECTION_TAG_RE = re.compile(r"^\s*[\[\(]?\s*(?P<label>[A-Za-zÁÉÍÓÚÑáéíóúñ\- ]{2,30})\s*[\]\)]?\s*:?\s*$")
+
 @dataclass
 class BeatAnalysis:
-    """Immutable beat analysis result"""
+    """Immutable beat analysis result with enhanced structure analysis"""
     bpm: int
     genre: str
     mood: str
@@ -32,6 +49,8 @@ class BeatAnalysis:
     description: str
     suggestions: List[str]
     confidence_scores: Dict[str, float]
+    structure: str
+    sections_detected: int
     created_at: str
     seed: str
 
@@ -137,6 +156,32 @@ class EnhancedBeatWizard:
                 'keywords': ['salsa', 'latin', 'percussion', 'brass', 'trumpet', 'timbales', 'clave'],
                 'bpm_range': (150, 200),
                 'weight': 1.4
+            },
+            # Additional genres from comprehensive list
+            'afrobeats': {
+                'keywords': ['afrobeats', 'african', 'percussion', 'afro', 'lagos', 'highlife', 'african'],
+                'bpm_range': (100, 130),
+                'weight': 1.3
+            },
+            'amapiano': {
+                'keywords': ['amapiano', 'south african', 'piano', 'log drum', 'african'],
+                'bpm_range': (110, 120),
+                'weight': 1.4
+            },
+            'uk-garage': {
+                'keywords': ['uk garage', 'garage', 'uk', 'chopped', 'vocal', '2-step'],
+                'bpm_range': (120, 140),
+                'weight': 1.2
+            },
+            'future-bass': {
+                'keywords': ['future bass', 'future', 'melodic', 'emotional', 'drop', 'synth'],
+                'bpm_range': (130, 160),
+                'weight': 1.1
+            },
+            'synthwave': {
+                'keywords': ['synthwave', 'retro', '80s', 'nostalgic', 'neon', 'cyber'],
+                'bpm_range': (100, 130),
+                'weight': 1.0
             }
         }
         
@@ -153,6 +198,115 @@ class EnhancedBeatWizard:
         """Generate deterministic seed for consistent results"""
         combined = f"{description.lower().strip()}:{user_id}"
         return hashlib.sha256(combined.encode()).hexdigest()[:16]
+
+    def detect_song_sections(self, text: str) -> List[Tuple[str, str]]:
+        """Advanced section detection with bilingual support"""
+        sections = []
+        lines = text.splitlines()
+        
+        for i, line in enumerate(lines):
+            raw = line.strip()
+            if not raw: 
+                continue
+                
+            # Check for bracketed/parenthesized sections
+            m = SECTION_TAG_RE.match(raw)
+            candidate = None
+            
+            if m:
+                candidate = m.group("label")
+            else:
+                # Check for all-caps short lines (likely section headers)
+                if (len(raw) <= 25 and raw == raw.upper() and 
+                    any(c.isalpha() for c in raw) and 
+                    len([c for c in raw if c.isalpha()]) >= 3):
+                    candidate = raw
+            
+            if candidate:
+                canon = self._normalize_label(candidate)
+                if canon:
+                    sections.append((canon, candidate.strip()))
+        
+        return sections
+    
+    def _normalize_label(self, raw: str) -> Optional[str]:
+        """Enhanced label normalization with better pattern matching"""
+        if not raw: 
+            return None
+        
+        # Clean and normalize
+        t = re.sub(r"[^a-záéíóúñ\- ]", "", raw.strip().lower())
+        t = re.sub(r"\s+", " ", t).strip()
+        
+        # Direct match
+        if t in NORM: 
+            return NORM[t]
+        
+        # Prefix match
+        for k in NORM:
+            if t.startswith(k) and len(t) - len(k) <= 3:  # Allow slight variations
+                return NORM[k]
+        
+        # Fuzzy matching for common misspellings
+        fuzzy_matches = {
+            "corus": "hook",
+            "versus": "verse", 
+            "bridg": "bridge",
+            "introo": "intro",
+            "outroo": "outro"
+        }
+        
+        for fuzzy, canon in fuzzy_matches.items():
+            if fuzzy in t:
+                return canon
+        
+        return None
+
+    def generate_song_structure(self, sections: List[Tuple[str, str]], genre: str) -> str:
+        """Generate enhanced structure with genre-specific patterns"""
+        if not sections:
+            # Genre-specific default structures
+            defaults = {
+                "reggaeton": "Intro(4) → Coro(8) → Verso(16) → Coro(8) → Verso(16) → Coro(8) → Outro(4)",
+                "bachata": "Intro(8) → Verso(16) → Coro(8) → Verso(16) → Coro(8) → Puente(8) → Coro(8) → Outro(8)",
+                "trap": "Intro(4) → Hook(8) → Verse(16) → Hook(8) → Verse(16) → Bridge(8) → Hook(8) → Outro(4)",
+                "drill": "Intro(8) → Hook(8) → Verse(16) → Hook(8) → Verse(16) → Hook(8) → Outro(4)",
+                "house": "Intro(16) → Verse(16) → Drop(32) → Break(16) → Drop(32) → Outro(16)",
+                "afrobeats": "Intro(8) → Hook(8) → Verse(16) → Hook(8) → Bridge(8) → Hook(8) → Outro(8)",
+            }
+            return defaults.get(genre, defaults["trap"])
+        
+        # Build from detected sections
+        label_map = {}
+        sequence = []
+        
+        for canon, raw in sections:
+            label_map[canon] = raw
+            if not sequence or sequence[-1] != canon:
+                sequence.append(canon)
+        
+        def format_section(canon: str) -> str:
+            raw = label_map.get(canon, "")
+            display = raw.title() if raw else {
+                "hook": "Hook", "verse": "Verse", "bridge": "Bridge", "pre": "Pre-Chorus",
+                "intro": "Intro", "outro": "Outro", "interlude": "Interlude", 
+                "drop": "Drop", "ad_lib": "Ad-Lib"
+            }.get(canon, canon.title())
+            
+            # Genre-specific bar counts
+            bar_counts = {
+                "reggaeton": {"intro": 4, "verse": 16, "hook": 8, "bridge": 8, "outro": 4},
+                "bachata": {"intro": 8, "verse": 16, "hook": 8, "bridge": 8, "outro": 8},
+                "house": {"intro": 16, "verse": 16, "drop": 32, "break": 16, "outro": 16},
+                "afrobeats": {"intro": 8, "verse": 16, "hook": 8, "bridge": 8, "outro": 8},
+            }.get(genre, {"intro": 4, "pre": 4, "hook": 8, "verse": 16, "bridge": 8, 
+                         "interlude": 4, "drop": 8, "outro": 4, "ad_lib": 2})
+            
+            bars = bar_counts.get(canon, 8)
+            return f"{display}({bars})"
+        
+        parts = [format_section(section) for section in sequence]
+        return " → ".join(parts)
 
     def calculate_syllable_density(self, text: str) -> float:
         """Calculate syllable density for BPM estimation"""
@@ -384,6 +538,10 @@ class EnhancedBeatWizard:
             if not genre_override:
                 genre, genre_confidence = self.detect_genre_with_confidence(description, bpm)
             
+            # Enhanced section and structure analysis
+            sections = self.detect_song_sections(description)
+            structure = self.generate_song_structure(sections, genre)
+            
             # Additional analysis
             key_signature = self._infer_key_signature(description, mood)
             time_signature = self._infer_time_signature(description, genre)
@@ -393,7 +551,9 @@ class EnhancedBeatWizard:
                 'mood': mood,
                 'bpm': bpm,
                 'key_signature': key_signature,
-                'time_signature': time_signature
+                'time_signature': time_signature,
+                'structure': structure,
+                'sections_detected': len(sections)
             }
             
             suggestions = self.generate_suggestions(analysis_dict)
@@ -415,6 +575,8 @@ class EnhancedBeatWizard:
                 description=enhanced_description,
                 suggestions=suggestions,
                 confidence_scores=confidence_scores,
+                structure=structure,
+                sections_detected=len(sections),
                 created_at=datetime.now().isoformat(),
                 seed=seed
             )
@@ -431,6 +593,8 @@ class EnhancedBeatWizard:
                 description="A balanced electronic composition suitable for various applications.",
                 suggestions=["Focus on strong rhythm patterns", "Add melodic elements for interest"],
                 confidence_scores={'genre': 0.5, 'mood': 0.5, 'overall': 0.5},
+                structure="Intro(4) → Hook(8) → Verse(16) → Hook(8) → Outro(4)",
+                sections_detected=0,
                 created_at=datetime.now().isoformat(),
                 seed='default'
             )

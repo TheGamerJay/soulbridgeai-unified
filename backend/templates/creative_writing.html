@@ -494,6 +494,11 @@
                                 <option value="reggae">Reggae</option>
                                 <option value="ambient">Ambient</option>
                                 <option value="dubstep">Dubstep</option>
+                                <option value="afrobeats">Afrobeats</option>
+                                <option value="amapiano">Amapiano</option>
+                                <option value="uk-garage">UK Garage</option>
+                                <option value="future-bass">Future Bass</option>
+                                <option value="synthwave">Synthwave</option>
                             </select>
                         </div>
                         
@@ -600,6 +605,17 @@
                             <h4 style="color: var(--primary-color); margin-bottom: 8px;">Analysis</h4>
                             <p style="color: var(--text-secondary); line-height: 1.5; font-size: 0.9rem;">${analysis.description}</p>
                         </div>
+                        ${analysis.structure ? `
+                        <div style="margin-bottom: 15px;">
+                            <h4 style="color: var(--primary-color); margin-bottom: 8px;">🎵 Song Structure</h4>
+                            <div style="background: rgba(var(--primary-rgb), 0.1); padding: 10px; border-radius: 6px; font-family: monospace; font-size: 0.85rem; color: var(--text-primary);">
+                                ${analysis.structure}
+                            </div>
+                            <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 5px;">
+                                ${analysis.sections_detected} section${analysis.sections_detected !== 1 ? 's' : ''} detected
+                            </p>
+                        </div>
+                        ` : ''}
                         <div class="beat-suggestions">
                             <h4>🎯 Production Suggestions</h4>
                             <ul>
