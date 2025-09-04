@@ -102,6 +102,41 @@ class EnhancedBeatWizard:
                 'keywords': ['bachata', 'guitarra', 'romantic', 'guitar', 'latin'],
                 'bpm_range': (80, 100),
                 'weight': 1.4
+            },
+            'rock': {
+                'keywords': ['rock', 'guitar', 'drums', 'electric', 'power', 'loud', 'distortion'],
+                'bpm_range': (110, 140),
+                'weight': 1.2
+            },
+            'alternative': {
+                'keywords': ['alternative', 'indie', 'grunge', 'alternative rock', 'experimental', 'underground'],
+                'bpm_range': (100, 130),
+                'weight': 1.1
+            },
+            'country': {
+                'keywords': ['country', 'acoustic', 'fiddle', 'banjo', 'twang', 'folk', 'americana'],
+                'bpm_range': (90, 120),
+                'weight': 1.3
+            },
+            'soul': {
+                'keywords': ['soul', 'soulful', 'gospel', 'motown', 'spiritual', 'emotional', 'heartfelt'],
+                'bpm_range': (70, 110),
+                'weight': 1.2
+            },
+            'ballad': {
+                'keywords': ['ballad', 'slow', 'emotional', 'piano', 'soft', 'tender', 'love song'],
+                'bpm_range': (60, 80),
+                'weight': 1.3
+            },
+            'merengue': {
+                'keywords': ['merengue', 'dominican', 'accordion', 'fast', 'dance', 'caribbean', 'tropical'],
+                'bpm_range': (120, 160),
+                'weight': 1.4
+            },
+            'salsa': {
+                'keywords': ['salsa', 'latin', 'percussion', 'brass', 'trumpet', 'timbales', 'clave'],
+                'bpm_range': (150, 200),
+                'weight': 1.4
             }
         }
         
@@ -164,6 +199,20 @@ class EnhancedBeatWizard:
             return 'drill', 0.9
         elif 'trap' in description_lower:
             return 'trap', 0.9  
+        elif 'rock' in description_lower and 'alternative' in description_lower:
+            return 'alternative', 0.9
+        elif 'rock' in description_lower:
+            return 'rock', 0.9
+        elif 'country' in description_lower:
+            return 'country', 0.9
+        elif 'soul' in description_lower:
+            return 'soul', 0.9
+        elif 'ballad' in description_lower:
+            return 'ballad', 0.9
+        elif 'merengue' in description_lower:
+            return 'merengue', 0.9
+        elif 'salsa' in description_lower:
+            return 'salsa', 0.9
         elif 'bachata' in description_lower:
             return 'bachata', 0.9
         elif 'reggaeton' in description_lower or 'dembow' in description_lower:
@@ -247,6 +296,48 @@ class EnhancedBeatWizard:
                 "Use the classic dembow rhythm pattern",
                 "Add Latin percussion elements",
                 "Include melodic guitar or piano elements"
+            ])
+        elif genre == 'rock':
+            suggestions.extend([
+                "Use power chords and distorted electric guitars",
+                "Add a driving drum beat with emphasis on 2 and 4",
+                "Include bass guitar with strong rhythm foundation"
+            ])
+        elif genre == 'alternative':
+            suggestions.extend([
+                "Experiment with unconventional song structures",
+                "Use clean and distorted guitar textures",
+                "Add atmospheric elements and reverb"
+            ])
+        elif genre == 'country':
+            suggestions.extend([
+                "Use acoustic guitar as the foundation",
+                "Add fiddle or steel guitar for authenticity",
+                "Keep the arrangement simple and story-focused"
+            ])
+        elif genre == 'soul':
+            suggestions.extend([
+                "Use rich vocal harmonies and gospel influences",
+                "Add warm electric piano or Hammond organ",
+                "Include a tight rhythm section with groove emphasis"
+            ])
+        elif genre == 'ballad':
+            suggestions.extend([
+                "Start with piano or acoustic guitar",
+                "Build dynamics gradually throughout the song",
+                "Focus on emotional vocal delivery and space"
+            ])
+        elif genre == 'merengue':
+            suggestions.extend([
+                "Use fast accordion patterns and brass sections",
+                "Add Dominican percussion with güira and tambora",
+                "Keep the energy high and danceable"
+            ])
+        elif genre == 'salsa':
+            suggestions.extend([
+                "Use complex Latin percussion patterns",
+                "Add brass section with trumpet and trombone",
+                "Include piano montunos and bass tumbao"
             ])
         elif genre == 'ambient':
             suggestions.extend([
