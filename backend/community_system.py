@@ -1672,7 +1672,7 @@ def ad_break():
                 <div class="ad-message">
                     Your avatar has been updated! Ads help keep SoulBridge AI accessible for everyone.
                     <br><br>
-                    🚀 <strong>Want ad-free experience?</strong> Upgrade to Silver or Gold tier for unlimited companion switching!
+                    🚀 <strong>Want ad-free experience?</strong> Upgrade to Silver or Gold tier for no ads and premium companions!
                 </div>
                 
                 <!-- Simulated Ad Space -->
