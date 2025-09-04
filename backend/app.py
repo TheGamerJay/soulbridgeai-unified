@@ -896,6 +896,14 @@ def register_blueprints(app):
         except ImportError as lyrics_error:
             logger.error(f"⚠️ Lyrics Analyzer not available: {lyrics_error}")
         
+        # Lyrics Workshop system (Enhanced with Tone.js)
+        try:
+            from modules.beat.lyrics_workshop import lyrics_workshop_bp
+            app.register_blueprint(lyrics_workshop_bp)
+            logger.info("✅ Lyrics Workshop system registered")
+        except ImportError as workshop_error:
+            logger.error(f"⚠️ Lyrics Workshop not available: {workshop_error}")
+        
         
         # API endpoints (user info, session management, etc.)
         from modules.api.routes import api_bp
