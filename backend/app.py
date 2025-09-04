@@ -98,6 +98,9 @@ def create_app():
     # Set up global middleware
     setup_middleware(app)
     
+    # Set up v1 compatibility routes
+    setup_v1_compatibility_routes(app)
+    
     # Set up error handlers
     setup_error_handlers(app)
     
@@ -1065,6 +1068,40 @@ def initialize_systems(app):
         
     except Exception as e:
         logger.error(f"❌ System initialization failed: {e}")
+
+def setup_v1_compatibility_routes(app):
+    """Setup v1 API compatibility routes"""
+    try:
+        from modules.auth.session_manager import requires_login, get_user_id
+        from flask import session, jsonify
+        
+        @app.route('/v1/entitlements')
+        @requires_login
+        def v1_entitlements():
+            """V1 compatibility endpoint for entitlements"""
+            try:
+                user_id = get_user_id()
+                user_plan = session.get('user_plan', 'bronze')
+                trial_active = session.get('trial_active', False)
+                trial_expires_at = session.get('trial_expires_at')
+                
+                return jsonify({
+                    "logged_in": True,
+                    "user_id": user_id,
+                    "user_plan": user_plan,
+                    "tier": user_plan,
+                    "trial_active": trial_active,
+                    "trial_expires_at": trial_expires_at
+                })
+                
+            except Exception as e:
+                logger.error(f"Error in v1 entitlements: {e}")
+                return jsonify({"logged_in": False, "error": str(e)}), 500
+        
+        logger.info("✅ V1 compatibility routes configured")
+        
+    except Exception as e:
+        logger.error(f"❌ V1 routes setup failed: {e}")
 
 def setup_error_handlers(app):
     """Set up global error handlers"""

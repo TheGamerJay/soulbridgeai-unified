@@ -494,6 +494,42 @@ def horoscope_limits():
             "unlimited": False
         }), 500
 
+# Entitlements/Trial Endpoints (v1 compatibility)
+@api_bp.route('/v1/entitlements')
+@requires_login
+def v1_entitlements():
+    """Get user entitlements and trial status - v1 compatibility endpoint"""
+    try:
+        user_id = get_user_id()
+        user_plan = session.get('user_plan', 'bronze')
+        trial_active = session.get('trial_active', False)
+        trial_expires_at = session.get('trial_expires_at')
+        
+        return jsonify({
+            "logged_in": True,
+            "user_id": user_id,
+            "user_plan": user_plan,
+            "tier": user_plan,
+            "trial_active": trial_active,
+            "trial_expires_at": trial_expires_at,
+            "entitlements": {
+                "decoder": {"enabled": True, "limit": "feature" if user_plan == "gold" else "limited"},
+                "fortune": {"enabled": True, "limit": "feature" if user_plan == "gold" else "limited"},
+                "horoscope": {"enabled": True, "limit": "feature" if user_plan == "gold" else "limited"},
+                "creative_writer": {"enabled": True, "limit": "feature" if user_plan == "gold" else "limited"},
+                "ai_images": {"enabled": user_plan in ["silver", "gold"], "limit": "credit"},
+                "voice_chat": {"enabled": user_plan == "gold", "limit": "credit"},
+                "mini_studio": {"enabled": user_plan == "gold", "limit": "credit"}
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Error getting v1 entitlements: {e}")
+        return jsonify({
+            "logged_in": False,
+            "error": "Failed to get entitlements"
+        }), 500
+
 # Set up API blueprint middleware
 @api_bp.before_request
 def log_api_request():
