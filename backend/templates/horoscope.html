@@ -227,6 +227,26 @@
       border-top: 1px solid rgba(212, 175, 55, 0.3);
       margin: 30px 0;
     }
+
+  .upgrade-prompt {
+      background: rgba(251, 191, 36, 0.1);
+      border: 2px solid rgba(251, 191, 36, 0.3);
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      margin-top: 20px;
+  }
+
+  .upgrade-button {
+      background: linear-gradient(135deg, #fbbf24, #f59e0b);
+      color: #000;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 12px;
+  }
   </style>
 </head>
 <body>
@@ -279,6 +299,15 @@
       </div>
       <div class="panel">
         <button id="go" style="font-size: 1.1rem; padding: 12px 20px;">✨ Get My Horoscope ✨</button>
+      </div>
+      
+      <!-- Upgrade Prompt -->
+      <div class="upgrade-prompt" id="upgrade-prompt" style="display: none;">
+        <h3 style="color: #fbbf24; margin-bottom: 12px;">🔓 Unlock More Horoscope Readings</h3>
+        <p>You've reached your daily limit. Upgrade to Silver (10 daily) or Gold (unlimited) for more horoscope readings plus premium features!</p>
+        <button class="upgrade-button" onclick="window.location.href='/subscription'">
+          Upgrade Now
+        </button>
       </div>
     </div>
     
@@ -574,6 +603,14 @@ async function loadUsageLimits() {
                 usageInfo.innerHTML = `${tierEmoji} ${tierDisplay} Tier - Unlimited horoscope readings available`;
             } else {
                 usageInfo.innerHTML = `${tierEmoji} ${tierDisplay} Tier - ${remaining} horoscope readings remaining today (${data.usage_today}/${data.daily_limit} used)`;
+                
+                if (remaining === 0) {
+                    usageInfo.style.background = 'rgba(239, 68, 68, 0.1)';
+                    usageInfo.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+                    document.getElementById('go').disabled = true;
+                    document.getElementById('go').textContent = '🔮 Daily Limit Reached';
+                    document.getElementById('upgrade-prompt').style.display = 'block';
+                }
             }
         } else {
             document.getElementById('usage-info').innerHTML = '🥉 Bronze Tier - 0/5 horoscope readings used today';

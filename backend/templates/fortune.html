@@ -327,6 +327,26 @@
                 padding: 16px;
             }
         }
+
+        .upgrade-prompt {
+            background: rgba(251, 191, 36, 0.1);
+            border: 2px solid rgba(251, 191, 36, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .upgrade-button {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: #000;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 12px;
+        }
     </style>
 </head>
 <body>
@@ -369,6 +389,15 @@
             </div>
             <div class="panel">
                 <button id="draw">🔮 Draw Cards</button>
+            </div>
+            
+            <!-- Upgrade Prompt -->
+            <div class="upgrade-prompt" id="upgrade-prompt" style="display: none;">
+                <h3 style="color: #fbbf24; margin-bottom: 12px;">🔓 Unlock More Fortune Readings</h3>
+                <p>You've reached your daily limit. Upgrade to Silver (8 daily) or Gold (unlimited) for more fortune readings plus premium features!</p>
+                <button class="upgrade-button" onclick="window.location.href='/subscription'">
+                    Upgrade Now
+                </button>
             </div>
         </div>
         <div id="reading"></div>
@@ -448,6 +477,7 @@
                             usageInfo.style.borderColor = 'rgba(239, 68, 68, 0.3)';
                             document.getElementById('draw').disabled = true;
                             document.getElementById('draw').textContent = '🔮 Daily Limit Reached';
+                            document.getElementById('upgrade-prompt').style.display = 'block';
                         }
                     }
                 }
