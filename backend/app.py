@@ -888,6 +888,14 @@ def register_blueprints(app):
         except ImportError as brief_error:
             logger.error(f"⚠️ Beat Brief Strict not available: {brief_error}")
         
+        # Lyrics Analyzer system
+        try:
+            from modules.beat.lyrics_analyzer import lyrics_analyzer_bp
+            app.register_blueprint(lyrics_analyzer_bp)
+            logger.info("✅ Lyrics Analyzer system registered")
+        except ImportError as lyrics_error:
+            logger.error(f"⚠️ Lyrics Analyzer not available: {lyrics_error}")
+        
         
         # API endpoints (user info, session management, etc.)
         from modules.api.routes import api_bp
