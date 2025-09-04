@@ -871,6 +871,14 @@ def register_blueprints(app):
             logger.info("✅ Mini Studio registered")
         except ImportError:
             logger.info("⚠️ Mini Studio not available")
+            
+        # Beat Wizard system
+        try:
+            from modules.beat.describe_infer import beat_bp
+            app.register_blueprint(beat_bp, url_prefix='/beat')
+            logger.info("✅ Beat Wizard system registered")
+        except ImportError as beat_error:
+            logger.error(f"⚠️ Beat Wizard not available: {beat_error}")
         
         
         # API endpoints (user info, session management, etc.)
@@ -1050,6 +1058,10 @@ def register_blueprints(app):
         # Voice features
         from modules.voice.routes import voice_bp
         app.register_blueprint(voice_bp)
+        
+        # Beat Wizard system
+        from modules.beat.describe_infer import beat_bp
+        app.register_blueprint(beat_bp, url_prefix='/beat')
         
         # API endpoints (user info, session management, etc.)
         from modules.api.routes import api_bp

@@ -20,7 +20,9 @@
       "Bash(sed:*)",
       "Bash(git restore:*)",
       "Bash(explorer:*)",
-      "Bash(set PORT=8080)"
+      "Bash(set PORT=8080)",
+      "Bash(git rm:*)",
+      "Bash(del test_beat_wizard.py)"
     ],
     "deny": [],
     "ask": [],
