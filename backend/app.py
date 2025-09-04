@@ -3,6 +3,11 @@ SoulBridge AI - Modular Application
 Rebuilt from 19,326-line monolith using extracted modules
 Clean Flask application with Blueprint architecture
 """
+
+# Single source of truth for blueprint registration - guard against redefinition
+if globals().get("_REGISTER_BLUEPRINTS_DEFINED"):
+    raise RuntimeError("register_blueprints already defined in backend/app.py")
+
 import os
 import sys
 import logging
@@ -922,19 +927,24 @@ def register_blueprints(app):
                 app.logger.info("ROUTE %-6s %-35s endpoint=%s", methods, rule.rule, rule.endpoint)
             app.logger.info("==== ROUTE MAP END ====")
         
-        # API endpoints (user info, session management, etc.)
-        from modules.api.routes import api_bp
-        app.register_blueprint(api_bp, url_prefix='/api')
-        logger.info("✅ API system registered")
+        
+        # Health checks for operational monitoring
+        from health import health_bp
+        app.register_blueprint(health_bp)
+        logger.info("✅ Health checks registered")
         
         logger.info("🎯 All module blueprints registered successfully")
         
-        # Dump all registered routes for debugging
-        _dump_routes(app)
+        # Dump all registered routes for debugging (behind env toggle)
+        if os.getenv("DUMP_ROUTES") == "1":
+            _dump_routes(app)
         
     except Exception as e:
         logger.error(f"❌ Blueprint registration failed: {e}")
         raise
+
+# Mark register_blueprints as defined to prevent redefinition
+_REGISTER_BLUEPRINTS_DEFINED = True
 
 def initialize_systems(app):
     """Initialize all extracted systems with their dependencies"""
@@ -1068,73 +1078,6 @@ def setup_middleware(app):
     except Exception as e:
         logger.error(f"❌ Middleware setup failed: {e}")
 
-def register_blueprints(app):
-    """Register all module blueprints"""
-    try:
-        # Core authentication routes
-        from modules.auth.routes import auth_bp
-        app.register_blueprint(auth_bp, url_prefix='/auth')
-        
-        # Creative features
-        from modules.creative.routes import creative_bp
-        app.register_blueprint(creative_bp)
-        
-        # Fortune telling (separate from creative)
-        from modules.fortune.routes import fortune_bp
-        app.register_blueprint(fortune_bp)
-        
-        # Library management
-        from modules.library.routes import library_bp
-        app.register_blueprint(library_bp)
-        
-        # User profile management
-        from modules.user_profile.routes import profile_bp
-        app.register_blueprint(profile_bp)
-        
-        # AI Images
-        from modules.ai_images.routes import ai_images_bp
-        app.register_blueprint(ai_images_bp)
-        
-        # Mini Studio
-        from modules.studio.routes import studio_bp
-        app.register_blueprint(studio_bp)
-        
-        # Voice features
-        from modules.voice.routes import voice_bp
-        app.register_blueprint(voice_bp)
-        
-        # Beat Wizard system
-        from modules.beat.describe_infer import beat_bp
-        app.register_blueprint(beat_bp, url_prefix='/beat')
-        
-        # API endpoints (user info, session management, etc.)
-        from modules.api.routes import api_bp
-        app.register_blueprint(api_bp, url_prefix='/api')
-        
-        # Import Lyrics Analyzer
-        try:
-            logger.info("IMPORTING Lyrics Analyzer: module=modules.beat.lyrics_analyzer, attr=lyrics_analyzer_bp")
-            from modules.beat.lyrics_analyzer import lyrics_analyzer_bp
-            app.register_blueprint(lyrics_analyzer_bp)
-            logger.info("SUCCESS: Lyrics Analyzer registered - URL prefix: /api/beat")
-        except Exception as e:
-            logger.error("FAILED importing Lyrics Analyzer: %s", str(e))
-            logger.error("Full traceback:\n%s", traceback.format_exc())
-
-        # Import CPU Beat Studio
-        try:
-            logger.info("IMPORTING CPU Beat Studio: module=modules.lyrics_workshop.lyrics_workshop_bp, attr=lyrics_workshop_bp")
-            from modules.lyrics_workshop.lyrics_workshop_bp import lyrics_workshop_bp
-            app.register_blueprint(lyrics_workshop_bp)
-            logger.info("SUCCESS: CPU Beat Studio registered - URL prefix: /api/beat")
-        except Exception as e:
-            logger.error("FAILED importing CPU Beat Studio: %s", str(e))
-            logger.error("Full traceback:\n%s", traceback.format_exc())
-        
-        logger.info("✅ All blueprints registered successfully")
-        
-    except Exception as e:
-        logger.error(f"❌ Blueprint registration failed: {e}")
 
 def initialize_systems(app):
     """Initialize all application systems"""

@@ -8,7 +8,10 @@ import json
 from flask import Blueprint, request, jsonify, Response
 from typing import Dict, List, Tuple, Any
 
-lyrics_analyzer_bp = Blueprint("lyrics_analyzer", __name__, url_prefix="/api/beat")
+lyrics_analyzer_bp = Blueprint(
+    "beat_lyrics", __name__,
+    url_prefix="/api/beat"   # matches your menu links
+)
 
 # ------------------ Core Analysis Maps ------------------
 GENRE_KEYWORDS = {
@@ -393,6 +396,17 @@ def lyrics_analyzer_page():
     """Serve the Lyrics Analyzer frontend page"""
     from flask import render_template
     return render_template('lyrics_analyzer.html')
+
+@lyrics_analyzer_bp.route("/lyrics/ping", methods=["GET"])
+def analyzer_ping():
+    """Health check endpoint for the lyrics analyzer"""
+    q = request.args.get("q", "")
+    return jsonify({
+        'ok': True, 
+        'route': "/api/beat/lyrics", 
+        'q': q,
+        'blueprint': 'beat_lyrics'
+    })
 
 # ------------------ API Endpoints ------------------
 @lyrics_analyzer_bp.route("/analyze_lyrics", methods=["POST"])

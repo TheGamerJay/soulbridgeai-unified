@@ -8,10 +8,18 @@ import re
 import io
 import base64
 import random
-from flask import Blueprint, render_template, request, jsonify
+from flask import Blueprint, render_template, request, jsonify, send_file
 from mido import MidiFile, MidiTrack, Message
+from io import BytesIO
+import time
 
-lyrics_workshop_bp = Blueprint("lyrics_workshop", __name__, url_prefix="/api/beat")
+lyrics_workshop_bp = Blueprint(
+    "beat_workshop", __name__,
+    url_prefix="/api/beat",
+    template_folder="templates",           # modules/lyrics_workshop/templates/
+    static_folder="static",                # modules/lyrics_workshop/static/
+    static_url_path="/static/lyrics_workshop"
+)
 
 # ============================================================================
 # MIDI Generation Constants
@@ -381,6 +389,50 @@ def midi_full():
         
     except Exception as e:
         return jsonify({'error': f'MIDI generation failed: {str(e)}'}), 500
+
+@lyrics_workshop_bp.route("/midi", methods=["POST"])
+def gen_midi():
+    """
+    MIDI export endpoint for direct download.
+    Returns a .mid file download with correct headers.
+    """
+    try:
+        # Get parameters from request
+        data = request.get_json(silent=True) or {}
+        tempo = int(data.get("bpm", 92))
+        genre = data.get("genre", "trap")
+        key = data.get("key", "C")
+        scale = data.get("scale", "minor")
+        bars = int(data.get("lengthBars", 4))
+        include = data.get("include", {
+            'drums': True,
+            'bass': True, 
+            'chords': True,
+            'arp': False
+        })
+        
+        # Generate MIDI bytes
+        midi_bytes = write_full_midi(tempo, genre, key, scale, bars, include)
+        
+        # Create BytesIO buffer for download
+        buf = BytesIO(midi_bytes)
+        filename = f"beat_{tempo}bpm_{int(time.time())}.mid"
+        
+        return send_file(buf, mimetype="audio/midi",
+                        as_attachment=True, download_name=filename)
+    
+    except Exception as e:
+        return jsonify({'error': f'MIDI generation failed: {str(e)}'}), 500
+
+@lyrics_workshop_bp.route("/ping", methods=["GET"])
+def ping():
+    """Health check endpoint for the beat workshop"""
+    return jsonify({
+        'ok': True, 
+        'route': "/api/beat/workshop", 
+        'static': lyrics_workshop_bp.static_url_path,
+        'blueprint': 'beat_workshop'
+    })
 
 # Export blueprint
 __all__ = ['lyrics_workshop_bp']
