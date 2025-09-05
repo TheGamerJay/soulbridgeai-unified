@@ -849,13 +849,9 @@ def register_blueprints(app):
         app.register_blueprint(creative_bp)
         logger.info("✅ Creative system registered")
         
-        # Community System (CRITICAL FIX)
-        try:
-            from community_system import register_community_system
-            register_community_system(app)
-            logger.info("✅ Community system registered")
-        except Exception as e:
-            logger.warning(f"⚠️  Community system failed to register: {e}")
+        # Community System (CRITICAL FIX) - Using modular version in register_blueprints()
+        # Legacy community_system.py registration disabled to avoid blueprint name conflict
+        logger.info("✅ Community system registered via modular blueprints")
         
         # AI Lyric Writer
         try:
