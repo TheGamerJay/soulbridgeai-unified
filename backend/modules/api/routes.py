@@ -11,8 +11,115 @@ from ..auth.session_manager import requires_login, get_user_id
 from .session_api import SessionAPI
 from .user_api import UserAPI
 from .debug_api import DebugAPI
+from ...constants import PLAN_LIMITS, FEATURE_ACCESS
 
 logger = logging.getLogger(__name__)
+
+# =============================================================================
+# COMPANION DATA AND UTILITIES
+# =============================================================================
+
+def get_all_companions():
+    """Get complete list of all companions with their tier information"""
+    return [
+        # Bronze companions (10)
+        {"id": "gamerjay_bronze", "name": "GamerJay", "tier": "bronze", "image_url": "/static/logos/GamerJay_Free_companion.png"},
+        {"id": "blayzo_bronze", "name": "Blayzo", "tier": "bronze", "image_url": "/static/logos/Blayzo.png"},
+        {"id": "blayzica_bronze", "name": "Blayzica", "tier": "bronze", "image_url": "/static/logos/Blayzica.png"},
+        {"id": "claude_bronze", "name": "Claude", "tier": "bronze", "image_url": "/static/logos/Claude_Free.png"},
+        {"id": "blayzia_bronze", "name": "Blayzia", "tier": "bronze", "image_url": "/static/logos/Blayzia.png"},
+        {"id": "blayzion_bronze", "name": "Blayzion", "tier": "bronze", "image_url": "/static/logos/Blayzion.png"},
+        {"id": "lumen_bronze", "name": "Lumen", "tier": "bronze", "image_url": "/static/logos/Lumen_Bronze.png"},
+        {"id": "blayzo2_bronze", "name": "Blayzo.2", "tier": "bronze", "image_url": "/static/logos/blayzo_free_tier.png"},
+        {"id": "crimson_bronze", "name": "Crimson", "tier": "bronze", "image_url": "/static/logos/Crimson_Free.png"},
+        {"id": "violet_bronze", "name": "Violet", "tier": "bronze", "image_url": "/static/logos/Violet_Free.png"},
+        
+        # Silver companions (8)
+        {"id": "sky_silver", "name": "Sky", "tier": "silver", "image_url": "/static/logos/Sky_a_premium_companion.png"},
+        {"id": "gamerjay_silver", "name": "GamerJay.2", "tier": "silver", "image_url": "/static/logos/GamerJay_premium_companion.png"},
+        {"id": "claude_silver", "name": "Claude.3", "tier": "silver", "image_url": "/static/logos/Claude_Growth.png"},
+        {"id": "blayzo_silver", "name": "Blayzo.3", "tier": "silver", "image_url": "/static/logos/Blayzo_premium_companion.png"},
+        {"id": "blayzica_silver", "name": "Blayzica.2", "tier": "silver", "image_url": "/static/logos/Blayzica_Pro.png"},
+        {"id": "watchdog_silver", "name": "WatchDog", "tier": "silver", "image_url": "/static/logos/WatchDog_Premium.png"},
+        {"id": "rozia_silver", "name": "Rozia", "tier": "silver", "image_url": "/static/logos/Rozia.png"},
+        {"id": "lumen_silver", "name": "Lumen.2", "tier": "silver", "image_url": "/static/logos/Lumen_Silver.png"},
+        
+        # Gold companions (8)
+        {"id": "crimson_gold", "name": "Crimson.2", "tier": "gold", "image_url": "/static/logos/Crimson_Max.png"},
+        {"id": "violet_gold", "name": "Violet.2", "tier": "gold", "image_url": "/static/logos/Violet_Max.png"},
+        {"id": "claude_gold", "name": "Claude.2", "tier": "gold", "image_url": "/static/logos/Claude_Max.png"},
+        {"id": "royal_gold", "name": "Royal", "tier": "gold", "image_url": "/static/logos/Royal_Max.png"},
+        {"id": "ven_blayzica_gold", "name": "Ven Blayzica", "tier": "gold", "image_url": "/static/logos/Ven_Blayzica_Max.png"},
+        {"id": "ven_sky_gold", "name": "Ven Sky", "tier": "gold", "image_url": "/static/logos/Ven_Sky_Max.png"},
+        {"id": "watchdog_gold", "name": "WatchDog.2", "tier": "gold", "image_url": "/static/logos/WatchDog_a_Max_Companion.png"},
+        {"id": "dr_madjay_gold", "name": "Dr. MadJay", "tier": "gold", "image_url": "/static/logos/Dr. MadJay.png"},
+        
+        # Referral companions (5)
+        {"id": "blayzike", "name": "Blayzike", "tier": "silver", "image_url": "/static/referral/blayzike.png"},
+        {"id": "nyxara", "name": "Nyxara", "tier": "silver", "image_url": "/static/logos/Nyxara.png"},
+        {"id": "blazelian", "name": "Blazelian", "tier": "gold", "image_url": "/static/referral/blazelian.png"},
+        {"id": "claude_referral", "name": "Claude Referral", "tier": "gold", "image_url": "/static/referral/claude_referral.png"},
+        {"id": "blayzo_referral", "name": "Blayzo Referral", "tier": "gold", "image_url": "/static/logos/Blayzo_Referral.png"},
+    ]
+
+def get_companion_by_id(companion_id):
+    """Get companion data by ID"""
+    companions = get_all_companions()
+    return next((c for c in companions if c['id'] == companion_id), None)
+
+def get_companion_tier_limits(companion_tier):
+    """Get limits for a specific companion tier"""
+    return PLAN_LIMITS.get(companion_tier, PLAN_LIMITS["bronze"])
+
+def get_companion_usage_keys(user_id, companion_id):
+    """Generate per-companion usage keys for session storage"""
+    today = datetime.now().strftime('%Y-%m-%d')
+    return {
+        'decoder': f"decoder_usage_{user_id}_{companion_id}_{today}",
+        'fortune': f"fortune_usage_{user_id}_{companion_id}_{today}",
+        'horoscope': f"horoscope_usage_{user_id}_{companion_id}_{today}",
+        'creative_writer': f"creative_writer_usage_{user_id}_{companion_id}_{today}",
+    }
+
+def get_companion_feature_usage(user_id, companion_id, feature):
+    """Get companion-specific feature usage from session"""
+    usage_keys = get_companion_usage_keys(user_id, companion_id)
+    usage_key = usage_keys.get(feature)
+    if not usage_key:
+        return 0
+    return session.get(usage_key, 0)
+
+def increment_companion_feature_usage(user_id, companion_id, feature):
+    """Increment companion-specific feature usage in session"""
+    usage_keys = get_companion_usage_keys(user_id, companion_id)
+    usage_key = usage_keys.get(feature)
+    if not usage_key:
+        logger.error(f"Unknown feature for usage tracking: {feature}")
+        return False
+    
+    current_usage = session.get(usage_key, 0)
+    session[usage_key] = current_usage + 1
+    session.modified = True
+    
+    logger.info(f"🎯 COMPANION USAGE: user={user_id}, companion={companion_id}, feature={feature}, usage={current_usage + 1}")
+    return True
+
+def check_companion_feature_limit(user_id, companion_id, feature):
+    """Check if companion feature usage is within limits"""
+    companion = get_companion_by_id(companion_id)
+    if not companion:
+        return False
+    
+    companion_tier = companion['tier']
+    limits = get_companion_tier_limits(companion_tier)
+    feature_limit = limits.get(feature, 0)
+    
+    # Unlimited usage for 999+ limits
+    if feature_limit >= 999:
+        return True
+    
+    current_usage = get_companion_feature_usage(user_id, companion_id, feature)
+    return current_usage < feature_limit
 
 # Create API blueprint
 api_bp = Blueprint('api', __name__)
@@ -99,6 +206,91 @@ def logout_on_close():
         return jsonify({
             "success": False,
             "error": "Logout failed"
+        }), 500
+
+# =============================================================================
+# COMPANION-TIER-BASED API ENDPOINTS (ARCHITECTURAL FIX)
+# =============================================================================
+
+@api_bp.route('/tier-limits', methods=['GET'])
+@requires_login
+def tier_limits_companion_based():
+    """
+    🚨 ARCHITECTURAL FIX: Companion-tier-based limits instead of user-tier-based
+    
+    Returns limits and usage based on the current companion's tier, not the user's subscription.
+    This ensures Bronze users visiting Gold companions see Gold limits/features, while 
+    tracking usage separately per-companion.
+    """
+    try:
+        user_id = get_user_id()
+        companion_id = session.get('selected_companion')
+        user_plan = session.get('user_plan', 'bronze')
+        trial_active = session.get('trial_active', False)
+        
+        if not companion_id:
+            return jsonify({
+                'success': False,
+                'error': 'No companion selected'
+            }), 400
+        
+        # Get companion data and tier
+        companion = get_companion_by_id(companion_id)
+        if not companion:
+            return jsonify({
+                'success': False,
+                'error': 'Invalid companion'
+            }), 400
+        
+        companion_tier = companion['tier']
+        
+        # Get companion-tier-based limits (not user-tier based)
+        limits = get_companion_tier_limits(companion_tier)
+        
+        # Get per-companion usage keys
+        usage_keys = get_companion_usage_keys(user_id, companion_id)
+        
+        # Get current usage from session (per-companion tracking)
+        usage = {}
+        for feature, key in usage_keys.items():
+            usage[feature] = session.get(key, 0)
+        
+        # Convert 999 limits to "unlimited" for frontend display
+        display_limits = {}
+        for feature, limit in limits.items():
+            display_limits[feature] = "unlimited" if limit >= 999 else limit
+        
+        # Check if user can access this companion tier during trial
+        user_effective_plan = "gold" if trial_active else user_plan
+        can_access = (
+            companion_tier == "bronze" or  # Everyone can access Bronze
+            (companion_tier == "silver" and user_effective_plan in ["silver", "gold"]) or
+            (companion_tier == "gold" and user_effective_plan == "gold")
+        )
+        
+        response_data = {
+            'success': True,
+            'companion_id': companion_id,
+            'companion_name': companion['name'],
+            'companion_tier': companion_tier,
+            'user_plan': user_plan,
+            'trial_active': trial_active,
+            'can_access': can_access,
+            'limits': display_limits,
+            'usage': usage,
+            'usage_keys': usage_keys,  # Debug info
+            'architecture': 'companion-tier-based'  # Debug marker
+        }
+        
+        logger.info(f"🎯 COMPANION-TIER API: user={user_id}, companion={companion_id}({companion_tier}), limits={display_limits}")
+        
+        return jsonify(response_data)
+        
+    except Exception as e:
+        logger.error(f"Companion-tier limits API error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to get tier limits'
         }), 500
 
 # User Information Endpoints
@@ -497,38 +689,197 @@ def horoscope_limits():
 
 # Entitlements/Trial Endpoints (v1 compatibility)
 @api_bp.route('/v1/entitlements')
-@requires_login
+@requires_login  
 def v1_entitlements():
-    """Get user entitlements and trial status - v1 compatibility endpoint"""
+    """
+    🚨 ARCHITECTURAL FIX: Companion-tier-based entitlements (v1 compatibility)
+    
+    Returns entitlements based on current companion's tier, not user's subscription.
+    Maintains v1 API compatibility while fixing the architectural mismatch.
+    """
     try:
         user_id = get_user_id()
+        companion_id = session.get('selected_companion')
         user_plan = session.get('user_plan', 'bronze')
         trial_active = session.get('trial_active', False)
         trial_expires_at = session.get('trial_expires_at')
         
-        return jsonify({
+        # Default to bronze if no companion selected
+        if not companion_id:
+            companion_tier = "bronze"
+        else:
+            companion = get_companion_by_id(companion_id)
+            companion_tier = companion['tier'] if companion else "bronze"
+        
+        # Get companion-tier-based limits instead of user-tier-based
+        limits = get_companion_tier_limits(companion_tier)
+        
+        # Check if user can access this companion tier
+        user_effective_plan = "gold" if trial_active else user_plan
+        can_access = (
+            companion_tier == "bronze" or  # Everyone can access Bronze
+            (companion_tier == "silver" and user_effective_plan in ["silver", "gold"]) or
+            (companion_tier == "gold" and user_effective_plan == "gold")
+        )
+        
+        # Generate daily_limits compatible with v1 format
+        daily_limits = {}
+        for feature, limit in limits.items():
+            if limit >= 999:
+                daily_limits[feature] = "unlimited"
+            else:
+                daily_limits[feature] = limit
+        
+        # Return v1-compatible format with companion-tier data
+        response = {
             "logged_in": True,
             "user_id": user_id,
             "user_plan": user_plan,
-            "tier": user_plan,
+            "tier": companion_tier,  # 🚨 KEY FIX: Return companion tier, not user tier
+            "companion_id": companion_id,
+            "companion_tier": companion_tier,
             "trial_active": trial_active,
             "trial_expires_at": trial_expires_at,
+            "can_access": can_access,
+            "daily_limits": daily_limits,  # v1 compatibility
             "entitlements": {
-                "decoder": {"enabled": True, "limit": "feature" if user_plan == "gold" else "limited"},
-                "fortune": {"enabled": True, "limit": "feature" if user_plan == "gold" else "limited"},
-                "horoscope": {"enabled": True, "limit": "feature" if user_plan == "gold" else "limited"},
-                "creative_writer": {"enabled": True, "limit": "feature" if user_plan == "gold" else "limited"},
-                "ai_images": {"enabled": user_plan in ["silver", "gold"], "limit": "credit"},
-                "voice_chat": {"enabled": user_plan == "gold", "limit": "credit"},
-                "mini_studio": {"enabled": user_plan == "gold", "limit": "credit"}
-            }
-        })
+                "decoder": {"enabled": True, "limit": "unlimited" if companion_tier == "gold" else "limited"},
+                "fortune": {"enabled": True, "limit": "unlimited" if companion_tier == "gold" else "limited"}, 
+                "horoscope": {"enabled": True, "limit": "unlimited" if companion_tier == "gold" else "limited"},
+                "creative_writer": {"enabled": True, "limit": "unlimited" if companion_tier == "gold" else "limited"},
+                "ai_images": {"enabled": companion_tier in ["silver", "gold"], "limit": "credit"},
+                "voice_chat": {"enabled": companion_tier in ["silver", "gold"], "limit": "credit"},
+                "mini_studio": {"enabled": companion_tier == "gold", "limit": "credit"}
+            },
+            "architecture": "companion-tier-based"  # Debug marker
+        }
+        
+        logger.info(f"🎯 V1 ENTITLEMENTS: user={user_id}, companion={companion_id}({companion_tier}), access={can_access}")
+        
+        return jsonify(response)
         
     except Exception as e:
         logger.error(f"Error getting v1 entitlements: {e}")
         return jsonify({
             "logged_in": False,
             "error": "Failed to get entitlements"
+        }), 500
+
+# =============================================================================
+# COMPANION-TIER FEATURE API ENDPOINTS (USAGE TRACKING FIX)
+# =============================================================================
+
+@api_bp.route('/companion/decoder/check-limit', methods=['GET'])
+@requires_login
+def check_companion_decoder_limit():
+    """
+    🚨 COMPANION-TIER USAGE FIX: Check decoder limits for current companion
+    
+    Returns companion-specific limits and usage, not shared user limits.
+    """
+    try:
+        user_id = get_user_id()
+        companion_id = session.get('selected_companion')
+        
+        if not companion_id:
+            return jsonify({
+                'success': False,
+                'error': 'No companion selected'
+            }), 400
+        
+        companion = get_companion_by_id(companion_id)
+        if not companion:
+            return jsonify({
+                'success': False,
+                'error': 'Invalid companion'
+            }), 400
+        
+        companion_tier = companion['tier']
+        limits = get_companion_tier_limits(companion_tier)
+        decoder_limit = limits.get('decoder', 0)
+        current_usage = get_companion_feature_usage(user_id, companion_id, 'decoder')
+        
+        can_use = check_companion_feature_limit(user_id, companion_id, 'decoder')
+        
+        return jsonify({
+            'success': True,
+            'companion_id': companion_id,
+            'companion_tier': companion_tier,
+            'feature': 'decoder',
+            'limit': "unlimited" if decoder_limit >= 999 else decoder_limit,
+            'usage': current_usage,
+            'can_use': can_use,
+            'remaining': "unlimited" if decoder_limit >= 999 else max(0, decoder_limit - current_usage)
+        })
+        
+    except Exception as e:
+        logger.error(f"Companion decoder limit check error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to check decoder limit'
+        }), 500
+
+@api_bp.route('/companion/decoder/use', methods=['POST'])
+@requires_login
+def use_companion_decoder():
+    """
+    🚨 COMPANION-TIER USAGE FIX: Use decoder with companion-specific tracking
+    """
+    try:
+        user_id = get_user_id()
+        companion_id = session.get('selected_companion')
+        
+        if not companion_id:
+            return jsonify({
+                'success': False,
+                'error': 'No companion selected'
+            }), 400
+        
+        # Check limit before using
+        if not check_companion_feature_limit(user_id, companion_id, 'decoder'):
+            companion = get_companion_by_id(companion_id)
+            companion_tier = companion['tier'] if companion else 'bronze'
+            limits = get_companion_tier_limits(companion_tier)
+            limit = limits.get('decoder', 0)
+            
+            return jsonify({
+                'success': False,
+                'error': f"Daily limit reached for this {companion_tier} companion ({limit} uses per day)",
+                'limit_reached': True,
+                'companion_tier': companion_tier
+            }), 429
+        
+        # Increment companion-specific usage
+        success = increment_companion_feature_usage(user_id, companion_id, 'decoder')
+        if not success:
+            return jsonify({
+                'success': False,
+                'error': 'Failed to track usage'
+            }), 500
+        
+        # Get updated usage stats
+        current_usage = get_companion_feature_usage(user_id, companion_id, 'decoder')
+        companion = get_companion_by_id(companion_id)
+        companion_tier = companion['tier'] if companion else 'bronze'
+        limits = get_companion_tier_limits(companion_tier)
+        decoder_limit = limits.get('decoder', 0)
+        
+        return jsonify({
+            'success': True,
+            'companion_id': companion_id,
+            'companion_tier': companion_tier,
+            'feature': 'decoder',
+            'usage': current_usage,
+            'limit': "unlimited" if decoder_limit >= 999 else decoder_limit,
+            'remaining': "unlimited" if decoder_limit >= 999 else max(0, decoder_limit - current_usage),
+            'message': f'Decoder used successfully with {companion["name"] if companion else "companion"}'
+        })
+        
+    except Exception as e:
+        logger.error(f"Companion decoder usage error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to use decoder'
         }), 500
 
 # Set up API blueprint middleware
