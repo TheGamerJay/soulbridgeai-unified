@@ -860,6 +860,14 @@ def register_blueprints(app):
             logger.info("✅ Health monitoring endpoints registered")
         except Exception as e:
             logger.warning(f"⚠️  Health monitoring failed to register: {e}")
+
+        # Vector Lyric System
+        try:
+            from routes.vector_lyric_routes import vector_lyric_bp
+            app.register_blueprint(vector_lyric_bp)
+            logger.info("✅ Vector lyric system registered")
+        except Exception as e:
+            logger.warning(f"⚠️  Vector lyric system failed to register: {e}")
         
         # AI Images
         from modules.ai_images import ai_images_bp

@@ -27,7 +27,8 @@
       "Bash(PYTHONWARNINGS=default python -X dev app.py)",
       "Bash(set PYTHONUTF8=1)",
       "Bash(set PYTHONIOENCODING=utf-8)",
-      "Bash(bash start.sh)"
+      "Bash(bash start.sh)",
+      "Bash(PYTHONIOENCODING=utf-8 DATABASE_URL=\"postgresql://postgres:sDCOyvWZKSxyJvnJBZNSJemzZKbbSjIT@postgres-wj-8.railway.internal:5432/railway\" python run_pgvector_migration.py)"
     ],
     "deny": [],
     "ask": [],

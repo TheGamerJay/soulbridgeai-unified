@@ -173,6 +173,25 @@ def check_service_health() -> Dict[str, Any]:
             'error': str(e)
         }
     
+    # Check vector lyric service
+    try:
+        from services.vector_lyric_service import create_vector_lyric_service
+        vector_service = create_vector_lyric_service()
+        health = vector_service.health_check()
+        services_status['vector_lyric_service'] = {
+            'status': 'healthy' if health.get('service_ready') else 'degraded',
+            'pgvector_enabled': health.get('pgvector_enabled', False),
+            'model_loaded': health.get('model_loaded', False),
+            'database_connected': health.get('database_connected', False),
+            'tables_exist': health.get('tables_exist', False),
+            'service_ready': health.get('service_ready', False)
+        }
+    except Exception as e:
+        services_status['vector_lyric_service'] = {
+            'status': 'error',
+            'error': str(e)
+        }
+    
     return services_status
 
 @health_bp.route('/status', methods=['GET'])
