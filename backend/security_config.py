@@ -73,7 +73,7 @@ def enhance_security_headers(app):
                 "img-src 'self' data: blob: https:; "
                 "media-src 'self' blob: data:; "
                 "connect-src 'self' wss: https:; "
-                "frame-src 'self' https://googleads.g.doubleclick.net https://tpc.googlesyndication.com; "
+                "frame-src 'self' https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://ep2.adtrafficquality.google https://www.google.com; "
                 "frame-ancestors 'none'; "
                 "base-uri 'self'; "
                 "form-action 'self';"
