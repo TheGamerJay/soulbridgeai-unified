@@ -18,17 +18,24 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Environment variables for predictable builds
+# Environment variables for predictable builds and network reliability
 ENV PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
+    PYTHONUNBUFFERED=1 \
+    PIP_DEFAULT_TIMEOUT=300 \
+    PIP_RETRIES=5
 
 # Copy requirements and install Python dependencies
 COPY backend/requirements.txt .
 
-# Install dependencies (audio processing temporarily disabled)
-RUN pip install --upgrade pip && pip install -r requirements.txt
+# Install dependencies with robust retry and fallback logic
+RUN python -m pip install --upgrade pip --timeout 300 --retries 5
+RUN pip install -r requirements.txt --timeout 300 --retries 5 --default-timeout=100 || \
+    (echo "First attempt failed, trying with different PyPI mirror..." && \
+     pip install -r requirements.txt --timeout 300 --retries 5 --index-url https://pypi.org/simple/) || \
+    (echo "Second attempt failed, trying individual packages..." && \
+     pip install --timeout 300 --retries 5 flask flask-socketio python-socketio eventlet openai gunicorn)
 
 # Copy backend application
 COPY backend/ .
