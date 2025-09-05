@@ -374,6 +374,18 @@
                     </label>
                 </div>
 
+                <!-- AI Training Consent Status -->
+                <div id="consentStatusIndicator" style="margin: 1rem 0; padding: 0.75rem; border-radius: 8px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); font-size: 0.85rem;">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 0.5rem;">
+                        <span id="consentIcon">🤖</span>
+                        <span id="consentText">Loading consent status...</span>
+                    </div>
+                    <div style="color: rgba(255,255,255,0.6); font-size: 0.75rem; line-height: 1.4;">
+                        <span id="consentDescription">Checking your AI training preferences...</span>
+                        <a href="/profile" style="color: var(--primary); text-decoration: underline; margin-left: 0.5rem;">Manage in Profile</a>
+                    </div>
+                </div>
+
                 <button type="submit" class="btn" id="generateBtn">🎤 Generate AI Lyrics</button>
                 <button type="button" class="btn btn-secondary" id="similarityBtn">🔍 Check Similarity Only</button>
             </form>
@@ -410,6 +422,9 @@
         </div>
     </div>
 
+    <!-- Consent Management Library -->
+    <script src="{{ url_for('static', filename='js/consent.js') }}"></script>
+    
     <script>
         let userStats = null;
 
@@ -417,6 +432,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             loadUserStats();
             setupFormHandlers();
+            loadConsentStatus();
         });
 
         // Character counter
@@ -658,6 +674,44 @@
             
             resultContainer.style.display = 'block';
             resultContent.innerHTML = `<div class="error-message">❌ ${message}</div>`;
+        }
+
+        // ================== CONSENT STATUS MANAGEMENT ==================
+        async function loadConsentStatus() {
+            try {
+                const response = await fetch('/api/consent/get', { credentials: 'include' });
+                if (response.ok) {
+                    const consentStatus = await response.json();
+                    updateConsentUI(consentStatus);
+                } else {
+                    // User not authenticated or consent endpoint not available
+                    updateConsentUI({ status: 'opt_out' });
+                }
+            } catch (error) {
+                console.warn('Could not load consent status:', error);
+                updateConsentUI({ status: 'opt_out' });
+            }
+        }
+
+        function updateConsentUI(consentStatus) {
+            const icon = document.getElementById('consentIcon');
+            const text = document.getElementById('consentText');
+            const description = document.getElementById('consentDescription');
+            const indicator = document.getElementById('consentStatusIndicator');
+
+            if (consentStatus.status === 'opt_in') {
+                icon.textContent = '✅';
+                text.textContent = 'Draft sharing: ENABLED';
+                description.textContent = 'Your lyrics help improve AI for everyone. Your exact text is never shared.';
+                indicator.style.background = 'rgba(16, 185, 129, 0.1)';
+                indicator.style.borderColor = 'rgba(16, 185, 129, 0.3)';
+            } else {
+                icon.textContent = '🔒';
+                text.textContent = 'Draft sharing: DISABLED';
+                description.textContent = 'Your lyrics are private and not used for AI training.';
+                indicator.style.background = 'rgba(107, 114, 128, 0.1)';
+                indicator.style.borderColor = 'rgba(107, 114, 128, 0.3)';
+            }
         }
     </script>
 </body>

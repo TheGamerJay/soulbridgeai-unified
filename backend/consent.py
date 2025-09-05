@@ -158,8 +158,18 @@ def get_user_consent_status(user_id: str = None) -> dict:
     return _load(user_id)
 
 # Authentication middleware for consent endpoints
+@consent_bp.route("/policy")
+def consent_policy():
+    """Serve the AI training policy page"""
+    from flask import render_template
+    return render_template('ai_training_policy.html')
+
 @consent_bp.before_request
 def require_auth():
     """Ensure user is authenticated for consent operations"""
+    # Allow policy page without authentication
+    if request.endpoint and 'policy' in request.endpoint:
+        return
+    
     if not session.get('logged_in'):
         return jsonify({"error": "Authentication required"}), 401

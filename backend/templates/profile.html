@@ -1395,6 +1395,25 @@
                     </div>
                 </div>
 
+                <div class="settings-group">
+                    <div class="settings-title">🤖 AI Training Consent</div>
+                    <p style="color: rgba(255, 255, 255, 0.6); font-size: 0.85rem; margin-bottom: 1rem;">
+                        Control whether your creative content helps improve our AI systems
+                    </p>
+                    
+                    <div class="setting-item">
+                        <span class="setting-label">Share drafts to improve the model</span>
+                        <div class="toggle-switch" id="consentToggle" onclick="toggleConsent()"></div>
+                    </div>
+                    
+                    <div style="font-size: 0.75rem; color: rgba(255, 255, 255, 0.5); line-height: 1.4; margin-top: 0.5rem;">
+                        Draft sharing saves your <strong>future</strong> drafts to help improve the system.<br>
+                        Turning OFF stops new saves; <strong>past contributions remain</strong>. 
+                        Your exact text is never shown to others.
+                        <a href="/api/consent/policy" target="_blank" style="color: #22d3ee; text-decoration: underline;">Terms & Policy</a>
+                    </div>
+                </div>
+
                 <div style="display: flex; gap: 15px; flex-wrap: wrap; margin: 20px 0;">
                     <button class="profile-btn secondary" onclick="resetSettings()">
                         🔄 Reset to Defaults
@@ -4200,6 +4219,90 @@
         
         // Profile page uses default styling - no theme switching
         console.log('📄 Profile page loaded - using default styling');
+
+        // ================== CONSENT MANAGEMENT ==================
+        let consentStatus = { status: 'opt_out' };
+
+        async function loadConsentStatus() {
+            try {
+                const response = await fetch('/api/consent/get', { credentials: 'include' });
+                if (response.ok) {
+                    consentStatus = await response.json();
+                    updateConsentUI();
+                } else {
+                    console.log('Could not load consent status - user may not be authenticated');
+                }
+            } catch (error) {
+                console.error('Error loading consent status:', error);
+            }
+        }
+
+        function updateConsentUI() {
+            const toggle = document.getElementById('consentToggle');
+            if (toggle) {
+                if (consentStatus.status === 'opt_in') {
+                    toggle.classList.add('active');
+                } else {
+                    toggle.classList.remove('active');
+                }
+            }
+        }
+
+        async function toggleConsent() {
+            const newStatus = consentStatus.status === 'opt_in' ? 'opt_out' : 'opt_in';
+            
+            // Show confirmation dialog
+            const confirmed = newStatus === 'opt_in' ? 
+                confirm(
+                    "Enable draft sharing?\n\n" +
+                    "• FUTURE drafts will be saved to improve the system.\n" +
+                    "• Turning OFF later stops new saves, but past contributions remain.\n" +
+                    "• Your exact text is never shown to others.\n\n" +
+                    "See Terms & Policy for details."
+                ) : 
+                confirm(
+                    "Turn OFF draft sharing?\n\n" +
+                    "• This stops saving FUTURE drafts.\n" +
+                    "• Anything already saved will remain in the contribution pool."
+                );
+
+            if (!confirmed) return;
+
+            try {
+                const response = await fetch('/api/consent/set', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ 
+                        status: newStatus,
+                        content_types: ['lyrics', 'poems', 'stories', 'scripts', 'articles', 'letters']
+                    })
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.ok) {
+                        consentStatus = { status: newStatus };
+                        updateConsentUI();
+                        showProfileMessage(`🤖 Training consent ${newStatus === 'opt_in' ? 'enabled' : 'disabled'}!`, 'success');
+                    } else {
+                        showProfileMessage('❌ Failed to update consent preference', 'error');
+                    }
+                } else {
+                    showProfileMessage('❌ Could not update consent preference', 'error');
+                }
+            } catch (error) {
+                console.error('Error updating consent:', error);
+                showProfileMessage('❌ Error updating consent preference', 'error');
+            }
+        }
+
+        // Load consent status when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                loadConsentStatus();
+            }, 1000); // Wait for auth to be ready
+        });
     </script>
 </body>
 </html>
