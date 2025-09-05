@@ -173,14 +173,10 @@ def admin_surveillance():
             'ADMIN_DASH_KEY': 'soulbridge_admin_2024'  # For template links
         }
         
-        # Render surveillance template - flatten all data for template access
+        # Render surveillance template - pass all variables directly to template
         try:
             return render_template("admin/surveillance.html", 
-                                 data=surveillance_data, 
                                  surveillance_metrics=surveillance_metrics,
-                                 trial_stats=trial_stats,
-                                 user_stats=user_stats,
-                                 ADMIN_DASH_KEY='soulbridge_admin_2024',
                                  **surveillance_data)
         except Exception as template_error:
             logger.error(f"Template admin/surveillance.html failed: {template_error}")
