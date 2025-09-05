@@ -11,7 +11,7 @@ from ..auth.session_manager import requires_login, get_user_id
 from .session_api import SessionAPI
 from .user_api import UserAPI
 from .debug_api import DebugAPI
-from ...constants import PLAN_LIMITS, FEATURE_ACCESS
+from constants import PLAN_LIMITS, FEATURE_ACCESS
 
 logger = logging.getLogger(__name__)
 
