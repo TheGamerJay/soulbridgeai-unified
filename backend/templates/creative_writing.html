@@ -402,7 +402,7 @@
     </style>
 </head>
 <body>
-    <a href="/chat" class="back-btn">← Back to AI Chat</a>
+    <a href="#" class="back-btn" onclick="goBackToCompanion(); return false;">← Back to AI Chat</a>
     
     <div class="container">
         <div class="usage-info">
@@ -708,6 +708,27 @@
                 generateBtn.textContent = 'Generate Creative Writing';
             }
         });
+
+        // Function to go back to the selected companion
+        function goBackToCompanion() {
+            // Check if there's a selected companion in the session
+            fetch('/api/session/companion')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.companion_id) {
+                        // Redirect to the specific companion chat
+                        window.location.href = '/chat/' + data.companion_id;
+                    } else {
+                        // Fallback to intro page
+                        window.location.href = '/intro';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error getting companion:', error);
+                    // Fallback to intro page
+                    window.location.href = '/intro';
+                });
+        }
     </script>
 </body>
 </html>

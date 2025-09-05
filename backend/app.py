@@ -588,6 +588,18 @@ def create_app():
             'user_plan': session.get('user_plan', 'bronze')
         })
     
+    @app.route("/api/session/companion")
+    def api_session_companion():
+        """Get current selected companion from session"""
+        if not session.get('logged_in'):
+            return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+        
+        selected_companion = session.get('selected_companion')
+        return jsonify({
+            'success': True,
+            'companion_id': selected_companion
+        })
+    
     # CREATIVE ROUTES (from creative module blueprint)
     @app.route("/creative")
     def creative():

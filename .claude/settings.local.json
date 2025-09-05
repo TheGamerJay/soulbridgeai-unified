@@ -22,7 +22,12 @@
       "Bash(explorer:*)",
       "Bash(set PORT=8080)",
       "Bash(git rm:*)",
-      "Bash(del test_beat_wizard.py)"
+      "Bash(del test_beat_wizard.py)",
+      "Bash(pip install:*)",
+      "Bash(PYTHONWARNINGS=default python -X dev app.py)",
+      "Bash(set PYTHONUTF8=1)",
+      "Bash(set PYTHONIOENCODING=utf-8)",
+      "Bash(bash start.sh)"
     ],
     "deny": [],
     "ask": [],
