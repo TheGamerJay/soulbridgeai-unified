@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🗄️ Database Tools - SoulBridge AI Admin</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #10131a 0%, #1a2330 100%);
+            color: #eaf6fb;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .header {
+            background: rgba(10, 20, 40, 0.98);
+            padding: 20px;
+            border-radius: 12px;
+            border: 2px solid #00e6ff;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            color: #00e6ff;
+            font-size: 2rem;
+            margin: 0;
+            text-shadow: 0 0 12px #00e6ff44;
+        }
+        .db-info {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 12px;
+            border: 1px solid #00e6ff22;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        .status.connected {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            border: 1px solid #10b981;
+        }
+        .status.disconnected {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid #ef4444;
+        }
+        .back-btn {
+            color: #00e6ff;
+            text-decoration: none;
+            padding: 10px 20px;
+            border: 1px solid #00e6ff;
+            border-radius: 8px;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+        .back-btn:hover {
+            background: rgba(0, 230, 255, 0.1);
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .info-item {
+            background: rgba(0, 230, 255, 0.05);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 230, 255, 0.1);
+        }
+        .info-label {
+            color: #00e6ff;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+        .info-value {
+            color: #eaf6fb;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🗄️ Database Management</h1>
+        <p>Database administration and monitoring tools</p>
+    </div>
+
+    <a href="/admin/surveillance?key=soulbridge_admin_2024" class="back-btn">← Back to Surveillance</a>
+
+    <div class="db-info">
+        <h3>Database Connection Status</h3>
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="info-label">Connection Status</div>
+                <div class="info-value">
+                    <span class="status {{ 'connected' if db_info.connected else 'disconnected' }}">
+                        {{ db_info.status }}
+                    </span>
+                </div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Database Type</div>
+                <div class="info-value">{{ db_info.type }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Schema Status</div>
+                <div class="info-value">
+                    <span class="status connected">Ready</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="db-info">
+        <h3>Available Tools</h3>
+        <p style="color: #888; margin-bottom: 15px;">Database management and maintenance tools</p>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <a href="/admin/sql?key=soulbridge_admin_2024" style="color: #00e6ff; text-decoration: none; padding: 8px 16px; border: 1px solid #00e6ff; border-radius: 6px;">
+                🛠️ SQL Console
+            </a>
+            <a href="/admin/init-database" style="color: #00e6ff; text-decoration: none; padding: 8px 16px; border: 1px solid #00e6ff; border-radius: 6px;">
+                🔧 Initialize Schema
+            </a>
+        </div>
+    </div>
+</body>
+</html>

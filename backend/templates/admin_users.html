@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>👥 User Management - SoulBridge AI Admin</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #10131a 0%, #1a2330 100%);
+            color: #eaf6fb;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .header {
+            background: rgba(10, 20, 40, 0.98);
+            padding: 20px;
+            border-radius: 12px;
+            border: 2px solid #00e6ff;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            color: #00e6ff;
+            font-size: 2rem;
+            margin: 0;
+            text-shadow: 0 0 12px #00e6ff44;
+        }
+        .users-table {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 12px;
+            border: 1px solid #00e6ff22;
+            padding: 20px;
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            color: #eaf6fb;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #00e6ff22;
+        }
+        th {
+            background: rgba(0, 230, 255, 0.1);
+            color: #00e6ff;
+            font-weight: 600;
+        }
+        .pagination {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .pagination a {
+            color: #00e6ff;
+            text-decoration: none;
+            padding: 8px 16px;
+            margin: 0 4px;
+            border: 1px solid #00e6ff;
+            border-radius: 6px;
+            display: inline-block;
+        }
+        .pagination a:hover {
+            background: rgba(0, 230, 255, 0.1);
+        }
+        .back-btn {
+            color: #00e6ff;
+            text-decoration: none;
+            padding: 10px 20px;
+            border: 1px solid #00e6ff;
+            border-radius: 8px;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+        .back-btn:hover {
+            background: rgba(0, 230, 255, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>👥 User Management</h1>
+        <p>Total Users: {{ total_users }}</p>
+    </div>
+
+    <a href="/admin/dashboard" class="back-btn">← Back to Dashboard</a>
+
+    <div class="users-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Email</th>
+                    <th>Plan</th>
+                    <th>Trial Active</th>
+                    <th>Created</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user[0] }}</td>
+                    <td>{{ user[1] }}</td>
+                    <td>{{ user[2] }}</td>
+                    <td>{{ "Yes" if user[3] else "No" }}</td>
+                    <td>{{ user[4] }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" style="text-align: center; color: #888;">No users found</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if total_pages > 1 %}
+    <div class="pagination">
+        {% for page_num in range(1, total_pages + 1) %}
+            {% if page_num == page %}
+                <strong>{{ page_num }}</strong>
+            {% else %}
+                <a href="?page={{ page_num }}">{{ page_num }}</a>
+            {% endif %}
+        {% endfor %}
+    </div>
+    {% endif %}
+</body>
+</html>

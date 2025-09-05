@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🛠️ SQL Console - SoulBridge AI Admin</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #10131a 0%, #1a2330 100%);
+            color: #eaf6fb;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .header {
+            background: rgba(10, 20, 40, 0.98);
+            padding: 20px;
+            border-radius: 12px;
+            border: 2px solid #00e6ff;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            color: #00e6ff;
+            font-size: 2rem;
+            margin: 0;
+            text-shadow: 0 0 12px #00e6ff44;
+        }
+        .warning {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid #ef4444;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+            color: #ef4444;
+            text-align: center;
+        }
+        .back-btn {
+            color: #00e6ff;
+            text-decoration: none;
+            padding: 10px 20px;
+            border: 1px solid #00e6ff;
+            border-radius: 8px;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+        .back-btn:hover {
+            background: rgba(0, 230, 255, 0.1);
+        }
+        .console {
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 12px;
+            border: 1px solid #00e6ff22;
+            padding: 20px;
+        }
+        textarea {
+            width: 100%;
+            height: 200px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid #00e6ff44;
+            border-radius: 8px;
+            color: #eaf6fb;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            padding: 15px;
+            resize: vertical;
+        }
+        .execute-btn {
+            background: linear-gradient(135deg, #00e6ff 0%, #0ea5e9 100%);
+            color: #000;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .execute-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 230, 255, 0.4);
+        }
+        .results {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 8px;
+            border: 1px solid #00e6ff22;
+            padding: 15px;
+            margin-top: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🛠️ SQL Console</h1>
+        <p>Direct database access - Use with extreme caution!</p>
+    </div>
+
+    <a href="/admin/database?key=soulbridge_admin_2024" class="back-btn">← Back to Database Tools</a>
+
+    <div class="warning">
+        ⚠️ <strong>DANGER ZONE</strong> ⚠️<br>
+        This console provides direct database access. Use with extreme caution!<br>
+        Improper queries can damage or destroy data permanently.
+    </div>
+
+    <div class="console">
+        <h3>SQL Query Console</h3>
+        <form method="post" style="margin: 0;">
+            <textarea name="query" placeholder="Enter your SQL query here...
+Example:
+SELECT * FROM users LIMIT 10;
+
+SHOW TABLES; (MySQL)
+.tables (SQLite)
+
+SELECT COUNT(*) FROM users WHERE user_plan = 'gold';" required></textarea>
+            <br>
+            <button type="submit" class="execute-btn">🚀 Execute Query</button>
+        </form>
+
+        {% if query_result %}
+        <div class="results">
+            <h4>Query Results:</h4>
+            <pre>{{ query_result }}</pre>
+        </div>
+        {% endif %}
+
+        {% if query_error %}
+        <div class="results" style="border-color: #ef4444; color: #ef4444;">
+            <h4>Query Error:</h4>
+            <pre>{{ query_error }}</pre>
+        </div>
+        {% endif %}
+    </div>
+
+    <div style="margin-top: 30px; padding: 20px; background: rgba(0, 0, 0, 0.3); border-radius: 8px; font-size: 0.9rem; color: #888;">
+        <strong>Quick Reference:</strong><br>
+        • <code>SELECT * FROM users LIMIT 5;</code> - View first 5 users<br>
+        • <code>SELECT COUNT(*) FROM users;</code> - Count total users<br>
+        • <code>SHOW TABLES;</code> (MySQL) or <code>.tables</code> (SQLite) - List all tables<br>
+        • <code>DESCRIBE users;</code> (MySQL) or <code>.schema users</code> (SQLite) - View table structure
+    </div>
+</body>
+</html>
