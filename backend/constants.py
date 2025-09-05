@@ -7,10 +7,10 @@ Centralized configuration for all magic numbers and constants
 # Feature limits per plan
 PLAN_LIMITS = {
     "bronze": {
-        "decoder": 3,
-        "fortune": 3, 
-        "horoscope": 3,
-        "creative_writer": 2,  # 2 uses per day for bronze tier
+        "decoder": 5,
+        "fortune": 5, 
+        "horoscope": 5,
+        "creative_writer": 5,  # 5 uses per day for bronze tier
         "library_chats": 3     # Save max 3 chat conversations
     },
     "silver": {
