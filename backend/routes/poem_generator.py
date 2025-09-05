@@ -7,6 +7,7 @@ import logging
 from flask import Blueprint, request, jsonify, session, render_template
 from datetime import datetime, timezone
 import traceback
+from typing import List
 
 from services.poem_generator import (
     PoemGenerator, PoemType, create_poem_generator_service

@@ -868,6 +868,14 @@ def register_blueprints(app):
             logger.info("✅ Vector lyric system registered")
         except Exception as e:
             logger.warning(f"⚠️  Vector lyric system failed to register: {e}")
+
+        # Consent Management
+        try:
+            from routes.consent_management import consent_bp
+            app.register_blueprint(consent_bp)
+            logger.info("✅ Consent management system registered")
+        except Exception as e:
+            logger.warning(f"⚠️  Consent management system failed to register: {e}")
         
         # AI Images
         from modules.ai_images import ai_images_bp

@@ -8,6 +8,7 @@ from flask import Blueprint, request, jsonify, session, render_template
 from datetime import datetime, timezone
 import traceback
 import json
+from typing import List
 
 from services.story_generator import (
     StoryGenerator, StoryGenre, StoryLength, NarrativeStructure,
