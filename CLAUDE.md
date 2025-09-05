@@ -35,9 +35,9 @@
 **Cost**: $12.99/month or $117/year (25% savings)
 **Features**: Enhanced limits + credit features
 - Decoder: 15 daily uses
-- Fortune: 8 daily uses
+- Fortune: 12 daily uses (enhanced for better UX)
 - Horoscope: 10 daily uses  
-- Creative Writer: 20 daily uses
+- Creative Writer: 15 daily uses
 - Artistic Time: 200 monthly artistic time (resets each billing cycle, NO ROLLOVER)
 - Premium features: UNLOCKED (AI images, voice journaling, relationship profiles, meditations)
 - Mini Studio: LOCKED (Gold tier exclusive)
@@ -48,12 +48,13 @@
 
 ### 🥇 GOLD TIER (Subscription) 
 **Cost**: $19.99/month or $180/year (25% savings)
-**Features**: Unlimited everything + exclusive features
-- Decoder: UNLIMITED daily uses
-- Fortune: UNLIMITED daily uses
-- Horoscope: UNLIMITED daily uses
-- Creative Writer: UNLIMITED daily uses
+**Features**: Premium high limits + exclusive features
+- Decoder: 100 daily uses (premium limit)
+- Fortune: 150 daily uses (highest since most impulsive)  
+- Horoscope: 50 daily uses (premium limit)
+- Creative Writer: 75 daily uses (substantial for serious writers)
 - Artistic Time: 500 monthly artistic time (resets each billing cycle, NO ROLLOVER)
+- AI Images: 50 monthly images (premium but realistic)
 - Premium features: UNLOCKED (all of them)
 - Mini Studio: UNLOCKED (Gold exclusive feature)
 - Companion Access: Bronze + Silver + Gold tier companions  
@@ -65,9 +66,43 @@
 **Cost**: $5/month
 **Purpose**: Remove ads from Bronze tier without upgrading features
 - Removes ads from Bronze tier experience
-- Keeps all Bronze tier limits (3/2/3)
+- Keeps all Bronze tier limits (5/5/5/5)
 - No additional features or credits
 - Alternative to full Silver/Gold subscription
+
+## 🏗️ **TIER SYSTEM ARCHITECTURE (Updated 2025-01)**
+
+### **Realistic Premium Limits Philosophy**
+The Gold tier moved from "unlimited" (999) to **realistic premium limits** for business sustainability:
+
+**Why This Change?**
+- ✅ **Cost Protection**: Prevents API abuse from heavy users
+- ✅ **Still Premium**: Gold limits are 10-30x higher than Silver
+- ✅ **Better UX**: Users see achievable numbers vs confusing "∞"
+- ✅ **Business Model**: Sustainable for long-term growth
+
+### **Current Tier Comparison Table**
+```
+Feature         | Bronze | Silver | Gold  | Ratio (Gold/Bronze)
+----------------|--------|--------|-------|-------------------
+Decoder         | 5      | 15     | 100   | 20x higher
+Fortune         | 5      | 12     | 150   | 30x higher  
+Horoscope       | 5      | 10     | 50    | 10x higher
+Creative Writer | 5      | 15     | 75    | 15x higher
+AI Images       | 0      | 12     | 50    | Premium exclusive
+```
+
+### **Companion-Tier-Based Architecture**
+**CRITICAL**: The system uses **companion-tier-based limits**, not user-tier-based:
+
+- **Bronze user + Gold companion** = Shows Gold features (100/150/50/75 limits)
+- **Gold user + Bronze companion** = Shows Bronze features (5/5/5/5 limits)  
+- **Usage tracking** = Per-companion (each companion tracks separately)
+
+**Implementation:**
+- Templates: `{% if companion_tier == 'gold' %}` (not user_plan)
+- APIs: Return companion-tier limits (not user subscription limits)
+- Session keys: `decoder_usage_{user_id}_{companion_id}_{date}` format
 
 ### Key Trial Design Principles:
 1. **Trial is for BRONZE users only** - Silver/Gold don't need to trial their own tiers

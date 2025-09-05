@@ -50,25 +50,32 @@ npm install
 npm run dev
 ```
 
-## 🧩 Tiers & Models
-- **Bronze**: Uses GPT-3.5
-- **Silver**: Uses GPT-4 (e.g., gpt-4o-mini / gpt-4-turbo)
-- **Gold**: Uses GPT-5 (use your actual model ID when enabled)
+## 🏗️ Tier System Architecture (Updated 2025-01)
+
+### **Realistic Premium Limits**
+| Feature | Bronze | Silver | Gold | Ratio |
+|---------|--------|--------|------|-------|
+| Decoder | 5/day | 15/day | 100/day | 20x |
+| Fortune | 5/day | 12/day | 150/day | 30x |
+| Horoscope | 5/day | 10/day | 50/day | 10x |
+| Creative Writer | 5/day | 15/day | 75/day | 15x |
+| AI Images | ⛔ | 12/month | 50/month | Premium |
+| Voice Journal | ⛔ | ✅ | ✅ | Premium |
+| Mini Studio | ⛔ | ⛔ | ✅ | Exclusive |
+
+### **AI Models by Tier**
+- **Bronze**: GPT-3.5 Turbo
+- **Silver**: GPT-4o-mini / GPT-4 Turbo  
+- **Gold**: GPT-4o / GPT-4 (premium models)
+
+### **Companion-Tier-Based Architecture**
+- **Bronze user + Gold companion** = Gold features (100/150/50/75 limits)
+- **Gold user + Bronze companion** = Bronze features (5/5/5/5 limits)  
+- **Per-companion usage tracking** (not shared across companions)
 
 All tier decisions are computed per request. Personalized pages and APIs send no-cache headers and `Vary: Cookie` to prevent global template sharing.
 
-## 🔐 Feature Access by Tier
-
-| Feature | Bronze | Silver | Gold |
-|---------|--------|--------|------|
-| Chat (text) | ✅ | ✅ | ✅ |
-| Voice Chat | ⛔ | ⛔ | ✅ |
-| Decoder / Fortune / Horoscope | Limits | Higher | ∞ |
-| Mini Studio (lyrics/MIDI/vocals/FX/art) | ⛔ | ⛔ | ✅ |
-
-**Mini Studio is Gold-only:**
-- UI: button/link rendered only if `tier == "gold"`.
-- Server: all Mini Studio routes wrapped with `@gold_only` and return 404 for non-gold.
+**Note:** Mini Studio is Gold-exclusive. Voice Chat/Journal available on Silver+ tiers.
 
 ## 🤖 AI Companions
 
