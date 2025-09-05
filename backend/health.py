@@ -1,23 +1,23 @@
 # health.py
 """
-Health checks blueprint for operational monitoring
-Provides standardized health and readiness endpoints
+Railway-compatible health checks (no authentication required)
+Critical: These endpoints must be accessible for Railway's health probes
 """
 from flask import Blueprint, jsonify
 
-health_bp = Blueprint("ops_health", __name__)
+health_bp = Blueprint("health", __name__)
 
-@health_bp.route("/healthz", methods=["GET"])
+@health_bp.get("/health")   
+def health():
+    """Railway default health probe - no authentication required"""
+    return jsonify(status="ok", healthy=True), 200
+
+@health_bp.get("/healthz")  
 def healthz():
-    """Health check endpoint - always returns OK if service is running"""
+    """Kubernetes-style health check - no authentication required"""
     return jsonify(status="ok"), 200
 
-@health_bp.route("/readyz", methods=["GET"])  
+@health_bp.get("/readyz")   
 def readyz():
-    """Readiness check endpoint - indicates if service can handle requests"""
+    """Readiness probe - can add DB/Redis checks later if needed"""
     return jsonify(ready=True), 200
-
-@health_bp.route("/livez", methods=["GET"])
-def livez():
-    """Liveness check endpoint - indicates if service is alive"""
-    return jsonify(alive=True), 200

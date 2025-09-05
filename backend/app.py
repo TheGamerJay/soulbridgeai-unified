@@ -751,12 +751,25 @@ def create_app():
             'session_keys': list(session.keys())
         })
 
+    # Production startup diagnostics
+    port = os.getenv("PORT", "5000")
     logger.info("🚀 SoulBridge AI application created successfully")
+    logger.info(f"🌐 Server will bind to 0.0.0.0:{port}")
+    logger.info("🏥 Health endpoints: /health, /healthz, /readyz (no auth required)")
+    logger.info(f"📚 API Documentation: {'enabled' if os.getenv('DOCS_ENABLED', '1') == '1' else 'disabled'}")
+    logger.info(f"🔐 Environment: {os.getenv('ENVIRONMENT', 'development')}")
+    
     return app
 
 def register_blueprints(app):
     """Register all extracted module blueprints"""
     try:
+        # Health checks FIRST - critical for Railway deployment probes
+        # Must be accessible without authentication for health monitoring
+        from health import health_bp
+        app.register_blueprint(health_bp)
+        logger.info("✅ Railway health checks registered FIRST (/health, /healthz, /readyz)")
+        
         # Core system routes
         from modules.core import core_bp
         app.register_blueprint(core_bp)
@@ -860,10 +873,10 @@ def register_blueprints(app):
         app.register_blueprint(admin_bp, url_prefix='/admin')
         logger.info("✅ Admin system registered")
         
-        # Health and monitoring
-        from modules.health import health_bp
-        app.register_blueprint(health_bp)
-        logger.info("✅ Health system registered")
+        # Health and monitoring (now handled by Railway-compatible health.py at top)
+        # from modules.health import health_bp  # Removed to avoid duplicate registration
+        # app.register_blueprint(health_bp)     # Railway health endpoints registered first
+        logger.info("✅ Health system already registered (Railway-compatible)")
         
         # Legal/compliance
         from modules.legal import legal_bp
@@ -938,10 +951,6 @@ def register_blueprints(app):
             app.logger.info("==== ROUTE MAP END ====")
         
         
-        # Health checks for operational monitoring
-        from health import health_bp
-        app.register_blueprint(health_bp)
-        logger.info("✅ Health checks registered")
         
         # API Documentation (Swagger UI) - environment controlled
         # Default to enabled in development, disabled in production
