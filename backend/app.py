@@ -849,6 +849,14 @@ def register_blueprints(app):
         app.register_blueprint(creative_bp)
         logger.info("✅ Creative system registered")
         
+        # Community System (CRITICAL FIX)
+        try:
+            from community_system import register_community_system
+            register_community_system(app)
+            logger.info("✅ Community system registered")
+        except Exception as e:
+            logger.warning(f"⚠️  Community system failed to register: {e}")
+        
         # AI Lyric Writer
         try:
             from routes.ai_lyric_writer import ai_lyric_writer_bp
