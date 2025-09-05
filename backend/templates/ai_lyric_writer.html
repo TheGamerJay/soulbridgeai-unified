@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🤖 AI Lyric Writer | SoulBridge AI</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    
+    <style>
+        :root {
+            --primary: #22d3ee;
+            --primary-rgb: 34, 211, 238;
+            --accent: #00E6E6;
+            --background-primary: #000000;
+            --background-secondary: #1a1a1a;
+            --text-primary: #ffffff;
+            --text-secondary: #e5e5e5;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--background-primary);
+            color: var(--text-primary);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            color: var(--primary);
+            margin-bottom: 16px;
+            text-shadow: 0 0 20px rgba(var(--primary-rgb), 0.5);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .usage-info {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--background-secondary);
+            padding: 6px 12px;
+            border-radius: 15px;
+            border: 1px solid var(--primary);
+            font-size: 0.75rem;
+            z-index: 999;
+        }
+
+        .usage-count {
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        .writer-interface {
+            background: var(--background-secondary);
+            border: 2px solid var(--primary);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 40px;
+            position: relative;
+        }
+
+        .writer-interface::before {
+            content: '🤖';
+            position: absolute;
+            top: -35px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 70px;
+            height: 70px;
+            background: var(--background-primary);
+            border-radius: 50%;
+            border: 2px solid var(--primary);
+            box-shadow: 0 0 15px rgba(var(--primary-rgb), 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 15px;
+            background: var(--background-secondary);
+            border: 2px solid var(--primary);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
+        }
+
+        textarea.form-control {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent) 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(var(--primary-rgb), 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            margin-top: 10px;
+        }
+
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, #8b5cf6 0%, #8b5cf6 100%);
+        }
+
+        .back-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(30, 41, 59, 0.9);
+            color: var(--primary);
+            text-decoration: none;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            border: 1px solid var(--primary);
+        }
+
+        .back-btn:hover {
+            background: rgba(30, 41, 59, 1);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(var(--primary-rgb), 0.3);
+        }
+
+        .result-container {
+            background: var(--background-secondary);
+            border: 2px solid var(--primary);
+            border-radius: 12px;
+            padding: 25px;
+            margin-top: 25px;
+            display: none;
+        }
+
+        .result-content {
+            color: var(--text-primary);
+            line-height: 1.7;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+        }
+
+        .loading {
+            text-align: center;
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .error-message {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--error);
+            color: var(--error);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+
+        .success-message {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--success);
+            color: var(--success);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 40px;
+        }
+
+        .feature-card {
+            background: var(--background-secondary);
+            border: 1px solid rgba(var(--primary-rgb), 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+
+        .feature-title {
+            color: var(--primary);
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .feature-description {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .writer-interface {
+                padding: 20px;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .back-btn {
+                position: static;
+                margin-bottom: 20px;
+                display: inline-block;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="/creative-writing" class="back-btn">← Back to Creative Writing</a>
+    
+    <div class="container">
+        <div class="usage-info" id="usageInfo">
+            <p>Daily Usage: <span class="usage-count" id="usageCount">Loading...</span></p>
+        </div>
+
+        <div class="header">
+            <h1>🤖 AI Lyric Writer</h1>
+            <p>Advanced lyric generation with consent management and similarity checking</p>
+        </div>
+
+        <div class="writer-interface">
+            <form id="lyricForm">
+                <div class="form-group">
+                    <label for="prompt">Lyric Prompt</label>
+                    <textarea id="prompt" class="form-control" placeholder="Describe your song concept, theme, or story..." required maxlength="500"></textarea>
+                    <small style="color: var(--text-secondary); margin-top: 5px; display: block;">
+                        <span id="charCount">0</span>/500 characters
+                    </small>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="genre">Genre</label>
+                        <select id="genre" class="form-control" required>
+                            <option value="">Choose genre...</option>
+                            <option value="trap">Trap</option>
+                            <option value="drill">Drill</option>
+                            <option value="reggaeton">Reggaeton</option>
+                            <option value="bachata-trap">Bachata-Trap</option>
+                            <option value="boom-bap">Boom Bap</option>
+                            <option value="rnb">R&B</option>
+                            <option value="pop">Pop</option>
+                            <option value="rock">Rock</option>
+                            <option value="country">Country</option>
+                            <option value="jazz">Jazz</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="mood">Mood</label>
+                        <select id="mood" class="form-control" required>
+                            <option value="">Choose mood...</option>
+                            <option value="happy">Happy/Upbeat</option>
+                            <option value="sad">Sad/Melancholic</option>
+                            <option value="angry">Angry/Aggressive</option>
+                            <option value="romantic">Romantic/Love</option>
+                            <option value="confident">Confident/Bold</option>
+                            <option value="nostalgic">Nostalgic</option>
+                            <option value="energetic">Energetic</option>
+                            <option value="chill">Chill/Relaxed</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="language">Language</label>
+                        <select id="language" class="form-control">
+                            <option value="en">English</option>
+                            <option value="es">Spanish</option>
+                            <option value="fr">French</option>
+                            <option value="de">German</option>
+                            <option value="it">Italian</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="checkSimilarity" checked style="margin-right: 8px;">
+                        Check for similar existing lyrics (prevents plagiarism)
+                    </label>
+                </div>
+
+                <button type="submit" class="btn" id="generateBtn">🎤 Generate AI Lyrics</button>
+                <button type="button" class="btn btn-secondary" id="similarityBtn">🔍 Check Similarity Only</button>
+            </form>
+
+            <div id="resultContainer" class="result-container">
+                <div id="resultContent" class="result-content"></div>
+            </div>
+        </div>
+
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">🧠</div>
+                <div class="feature-title">AI-Powered Generation</div>
+                <div class="feature-description">Advanced AI creates authentic lyrics based on your prompt, genre, and mood preferences.</div>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">🛡️</div>
+                <div class="feature-title">Consent Management</div>
+                <div class="feature-description">Built-in artist consent tracking ensures ethical AI training and usage compliance.</div>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">🔍</div>
+                <div class="feature-title">Similarity Detection</div>
+                <div class="feature-description">Embedding-based similarity checking prevents accidental plagiarism of existing lyrics.</div>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">🎵</div>
+                <div class="feature-title">Genre Expertise</div>
+                <div class="feature-description">Specialized knowledge across multiple genres from trap to R&B, pop to country.</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let userStats = null;
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            loadUserStats();
+            setupFormHandlers();
+        });
+
+        // Character counter
+        document.getElementById('prompt').addEventListener('input', function() {
+            const count = this.value.length;
+            document.getElementById('charCount').textContent = count;
+            
+            if (count > 450) {
+                document.getElementById('charCount').style.color = 'var(--warning)';
+            } else if (count > 500) {
+                document.getElementById('charCount').style.color = 'var(--error)';
+            } else {
+                document.getElementById('charCount').style.color = 'var(--text-secondary)';
+            }
+        });
+
+        async function loadUserStats() {
+            try {
+                const response = await fetch('/api/ai-lyrics/stats');
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        userStats = data.stats;
+                        updateUsageDisplay();
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to load user stats:', error);
+                document.getElementById('usageCount').textContent = 'Error loading';
+            }
+        }
+
+        function updateUsageDisplay() {
+            if (!userStats) return;
+            
+            const usageElement = document.getElementById('usageCount');
+            if (userStats.daily_limit === -1) {
+                usageElement.textContent = `${userStats.current_usage}/∞ (Unlimited)`;
+            } else {
+                usageElement.textContent = `${userStats.current_usage}/${userStats.daily_limit}`;
+                
+                if (userStats.remaining_usage === 0) {
+                    usageElement.style.color = 'var(--error)';
+                } else if (userStats.remaining_usage <= 2) {
+                    usageElement.style.color = 'var(--warning)';
+                }
+            }
+        }
+
+        function setupFormHandlers() {
+            document.getElementById('lyricForm').addEventListener('submit', generateLyrics);
+            document.getElementById('similarityBtn').addEventListener('click', checkSimilarity);
+        }
+
+        async function generateLyrics(e) {
+            e.preventDefault();
+            
+            const generateBtn = document.getElementById('generateBtn');
+            const resultContainer = document.getElementById('resultContainer');
+            const resultContent = document.getElementById('resultContent');
+            
+            // Validate form
+            const prompt = document.getElementById('prompt').value.trim();
+            const genre = document.getElementById('genre').value;
+            const mood = document.getElementById('mood').value;
+            const language = document.getElementById('language').value;
+            const checkSimilarity = document.getElementById('checkSimilarity').checked;
+            
+            if (!prompt || !genre || !mood) {
+                showError('Please fill in all required fields');
+                return;
+            }
+            
+            // Check usage limits
+            if (userStats && userStats.remaining_usage === 0) {
+                showError(`Daily limit reached (${userStats.daily_limit} generations per day for ${userStats.user_plan} tier)`);
+                return;
+            }
+            
+            // Show loading state
+            generateBtn.disabled = true;
+            generateBtn.textContent = 'Generating...';
+            resultContainer.style.display = 'block';
+            resultContent.innerHTML = '<div class="loading">🤖 Generating your AI lyrics...</div>';
+            
+            try {
+                const response = await fetch('/api/ai-lyrics/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        prompt: prompt,
+                        genre: genre,
+                        mood: mood,
+                        language: language,
+                        check_similarity: checkSimilarity
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    resultContent.innerHTML = `
+                        <div class="success-message">
+                            ✅ Lyrics generated successfully! (ID: ${result.lyric_id})
+                        </div>
+                        <div style="margin-top: 20px;">
+                            <strong>Generated Lyrics:</strong>
+                        </div>
+                        <div style="margin-top: 15px; padding: 20px; background: rgba(0,0,0,0.3); border-radius: 8px; border-left: 4px solid var(--primary);">
+                            ${result.lyrics}
+                        </div>
+                        <div style="margin-top: 15px; font-size: 0.9rem; color: var(--text-secondary);">
+                            <strong>Metadata:</strong> Genre: ${result.metadata.genre}, Mood: ${result.metadata.mood}, Language: ${result.metadata.language}
+                        </div>
+                    `;
+                    
+                    // Update usage
+                    if (userStats) {
+                        userStats.current_usage += 1;
+                        userStats.remaining_usage = Math.max(0, userStats.remaining_usage - 1);
+                        updateUsageDisplay();
+                    }
+                } else {
+                    if (result.similar_lyrics) {
+                        resultContent.innerHTML = `
+                            <div class="error-message">
+                                ⚠️ Similar lyrics found! Generation blocked to prevent plagiarism.
+                            </div>
+                            <div style="margin-top: 15px;">
+                                <strong>Found ${result.similar_count} similar lyrics:</strong>
+                            </div>
+                            <div style="margin-top: 10px;">
+                                ${result.similar_lyrics.map(lyric => `
+                                    <div style="padding: 10px; margin: 5px 0; background: rgba(239, 68, 68, 0.1); border-radius: 6px; border-left: 3px solid var(--error);">
+                                        <strong>${lyric.title}</strong><br>
+                                        <small>Artist: ${lyric.artist_id} | Similarity: ${(lyric.similarity_score * 100).toFixed(1)}%</small>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            <div style="margin-top: 15px; font-size: 0.9rem; color: var(--text-secondary);">
+                                Try modifying your prompt to make it more unique.
+                            </div>
+                        `;
+                    } else {
+                        showError(result.error || 'Generation failed');
+                    }
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Network error occurred. Please try again.');
+            } finally {
+                generateBtn.disabled = false;
+                generateBtn.textContent = '🎤 Generate AI Lyrics';
+            }
+        }
+
+        async function checkSimilarity() {
+            const prompt = document.getElementById('prompt').value.trim();
+            
+            if (!prompt) {
+                showError('Please enter a prompt to check similarity');
+                return;
+            }
+            
+            const similarityBtn = document.getElementById('similarityBtn');
+            const resultContainer = document.getElementById('resultContainer');
+            const resultContent = document.getElementById('resultContent');
+            
+            similarityBtn.disabled = true;
+            similarityBtn.textContent = 'Checking...';
+            resultContainer.style.display = 'block';
+            resultContent.innerHTML = '<div class="loading">🔍 Checking for similar lyrics...</div>';
+            
+            try {
+                const response = await fetch('/api/ai-lyrics/check-similarity', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        text: prompt,
+                        threshold: 0.85,
+                        limit: 10
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    if (result.similar_count === 0) {
+                        resultContent.innerHTML = `
+                            <div class="success-message">
+                                ✅ No similar lyrics found! Your prompt appears to be unique.
+                            </div>
+                            <div style="margin-top: 15px; font-size: 0.9rem; color: var(--text-secondary);">
+                                Similarity threshold: ${(result.threshold_used * 100)}%
+                            </div>
+                        `;
+                    } else {
+                        resultContent.innerHTML = `
+                            <div style="color: var(--warning); font-weight: 600; margin-bottom: 15px;">
+                                ⚠️ Found ${result.similar_count} similar lyrics
+                            </div>
+                            <div>
+                                ${result.similar_lyrics.map(lyric => `
+                                    <div style="padding: 15px; margin: 10px 0; background: rgba(245, 158, 11, 0.1); border-radius: 8px; border-left: 4px solid var(--warning);">
+                                        <strong>${lyric.title}</strong><br>
+                                        <small style="color: var(--text-secondary);">Artist: ${lyric.artist_id} | Genre: ${lyric.genre} | Similarity: ${(lyric.similarity_score * 100).toFixed(1)}%</small><br>
+                                        <div style="margin-top: 8px; font-style: italic; color: var(--text-secondary);">
+                                            "${lyric.preview}"
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            <div style="margin-top: 15px; font-size: 0.9rem; color: var(--text-secondary);">
+                                Consider modifying your prompt to avoid similarity with existing lyrics.
+                            </div>
+                        `;
+                    }
+                } else {
+                    showError(result.error || 'Similarity check failed');
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Network error occurred. Please try again.');
+            } finally {
+                similarityBtn.disabled = false;
+                similarityBtn.textContent = '🔍 Check Similarity Only';
+            }
+        }
+
+        function showError(message) {
+            const resultContainer = document.getElementById('resultContainer');
+            const resultContent = document.getElementById('resultContent');
+            
+            resultContainer.style.display = 'block';
+            resultContent.innerHTML = `<div class="error-message">❌ ${message}</div>`;
+        }
+    </script>
+</body>
+</html>

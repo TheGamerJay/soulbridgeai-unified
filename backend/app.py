@@ -813,6 +813,14 @@ def register_blueprints(app):
         app.register_blueprint(creative_bp)
         logger.info("✅ Creative system registered")
         
+        # AI Lyric Writer
+        try:
+            from routes.ai_lyric_writer import ai_lyric_writer_bp
+            app.register_blueprint(ai_lyric_writer_bp)
+            logger.info("✅ AI Lyric Writer system registered")
+        except Exception as e:
+            logger.warning(f"⚠️  AI Lyric Writer system failed to register: {e}")
+        
         # AI Images
         from modules.ai_images import ai_images_bp
         app.register_blueprint(ai_images_bp)
