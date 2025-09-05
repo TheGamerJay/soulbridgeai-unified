@@ -438,6 +438,397 @@
             background: rgba(79, 209, 199, 0.8);
         }
 
+        /* Drum Machine Styles */
+        .drum-machine-pro {
+            background: #1a1a1a;
+            border: 2px solid #333;
+            border-radius: 12px;
+            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #fff;
+            margin-top: 20px;
+        }
+
+        .dm-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #333;
+        }
+
+        .dm-header h2 {
+            margin: 0;
+            color: #4fd1c7;
+            font-size: 1.3rem;
+        }
+
+        .pattern-selector {
+            display: flex;
+            gap: 8px;
+        }
+
+        .pattern-btn {
+            background: #333;
+            color: #fff;
+            border: 1px solid #555;
+            border-radius: 6px;
+            padding: 8px 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .pattern-btn:hover {
+            background: #444;
+        }
+
+        .pattern-btn.active {
+            background: #4fd1c7;
+            color: #000;
+            border-color: #4fd1c7;
+        }
+
+        .transport-controls {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            margin-bottom: 25px;
+            padding: 15px;
+            background: #262626;
+            border-radius: 8px;
+            flex-wrap: wrap;
+        }
+
+        .play-btn {
+            background: #4fd1c7;
+            color: #000;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .play-btn:hover {
+            background: #00E6E6;
+            transform: scale(1.05);
+        }
+
+        .play-btn.playing {
+            background: #ef4444;
+            animation: pulse 1s infinite;
+        }
+
+        .tempo-section {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .tempo-section label {
+            font-weight: 600;
+            min-width: 50px;
+        }
+
+        .tempo-section input[type="range"] {
+            width: 100px;
+        }
+
+        .tempo-display {
+            min-width: 35px;
+            text-align: center;
+            font-weight: bold;
+            color: #4fd1c7;
+        }
+
+        .tap-tempo-btn {
+            background: #333;
+            color: #fff;
+            border: 1px solid #555;
+            border-radius: 4px;
+            padding: 6px 12px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.2s ease;
+        }
+
+        .tap-tempo-btn:hover {
+            background: #444;
+        }
+
+        .kit-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .kit-selector label {
+            font-weight: 600;
+        }
+
+        .kit-selector select {
+            background: #333;
+            color: #fff;
+            border: 1px solid #555;
+            border-radius: 4px;
+            padding: 6px 12px;
+            cursor: pointer;
+        }
+
+        .step-grid {
+            margin-bottom: 15px;
+        }
+
+        .voice-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .voice-label {
+            width: 120px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .voice-name {
+            font-weight: bold;
+            font-size: 0.9rem;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .voice-name:hover {
+            background: #333;
+        }
+
+        .voice-name.selected {
+            background: #4fd1c7;
+            color: #000;
+        }
+
+        .randomize-voice-btn {
+            background: transparent;
+            border: none;
+            font-size: 0.8rem;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.2s ease;
+        }
+
+        .randomize-voice-btn:hover {
+            opacity: 1;
+        }
+
+        .steps-container {
+            display: flex;
+            gap: 4px;
+            flex: 1;
+        }
+
+        .step {
+            width: 32px;
+            height: 32px;
+            background: #333;
+            border: 1px solid #555;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            transition: all 0.1s ease;
+            position: relative;
+        }
+
+        .step:hover {
+            border-color: #4fd1c7;
+            background: #3d3d3d;
+        }
+
+        .step.active {
+            background: #4fd1c7;
+            color: #000;
+            border-color: #4fd1c7;
+        }
+
+        .step.current {
+            box-shadow: 0 0 10px #4fd1c7;
+            transform: scale(1.1);
+        }
+
+        .step.velocity-high.active {
+            background: #00ff88;
+        }
+
+        .step.velocity-medium.active {
+            background: #ffaa00;
+        }
+
+        .step.velocity-low.active {
+            background: #ff6b6b;
+        }
+
+        .step-number {
+            font-size: 0.6rem;
+            opacity: 0.7;
+        }
+
+        .step.active .step-number {
+            opacity: 0.9;
+            font-weight: bold;
+        }
+
+        .step-numbers {
+            display: flex;
+            margin-left: 120px;
+            gap: 4px;
+            margin-bottom: 20px;
+        }
+
+        .step-number-label {
+            width: 32px;
+            text-align: center;
+            font-size: 0.7rem;
+            opacity: 0.5;
+            font-weight: 500;
+        }
+
+        .step-number-label.current {
+            color: #4fd1c7;
+            opacity: 1;
+            font-weight: bold;
+        }
+
+        .controls-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .groove-controls,
+        .reverb-controls,
+        .sidechain-controls {
+            background: #262626;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .groove-controls h4,
+        .reverb-controls h4,
+        .sidechain-controls h4 {
+            margin: 0 0 15px 0;
+            color: #4fd1c7;
+            font-size: 1rem;
+            border-bottom: 1px solid #333;
+            padding-bottom: 8px;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .control-group label {
+            min-width: 70px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .control-group input[type="range"] {
+            flex: 1;
+            height: 4px;
+            border-radius: 2px;
+            background: #444;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .control-group input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #4fd1c7;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .control-group input[type="range"]::-webkit-slider-thumb:hover {
+            background: #00E6E6;
+            transform: scale(1.2);
+        }
+
+        .control-group input[type="range"]:disabled {
+            opacity: 0.5;
+        }
+
+        .control-group span {
+            min-width: 35px;
+            text-align: right;
+            font-size: 0.8rem;
+            color: #4fd1c7;
+        }
+
+        .control-group input[type="checkbox"] {
+            margin-right: 8px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            background: #333;
+            color: #fff;
+            border: 1px solid #555;
+            border-radius: 6px;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .action-btn:hover {
+            background: #444;
+            border-color: #4fd1c7;
+        }
+
+        .clear-btn:hover {
+            background: #ef4444;
+            border-color: #ef4444;
+        }
+
+        .randomize-btn:hover {
+            background: #8b5cf6;
+            border-color: #8b5cf6;
+        }
+
+        .export-btn:hover {
+            background: #4fd1c7;
+            color: #000;
+            border-color: #4fd1c7;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .studio-workspace { padding: 20px; }
@@ -446,6 +837,35 @@
             .studio-tabs { flex-wrap: wrap; }
             .netflix-card { height: 350px; }
             .card-image { height: 180px; }
+            
+            .transport-controls {
+                flex-wrap: wrap;
+                gap: 15px;
+            }
+            
+            .controls-section {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .voice-row {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+            }
+            
+            .voice-label {
+                width: auto;
+                justify-content: center;
+            }
+            
+            .step-numbers {
+                margin-left: 0;
+                justify-content: center;
+            }
         }
     </style>
 </head>
@@ -470,6 +890,7 @@
             <div class="studio-tabs">
                 <button class="tab-btn active" onclick="openTab('vocals')">🎤 Vocals</button>
                 <button class="tab-btn" onclick="openTab('lyrics')">🕵️‍♂️ SecretWriter</button>
+                <button class="tab-btn" onclick="openTab('drums')">🥁 Drums</button>
                 <button class="tab-btn" onclick="openTab('midi')">🎹 MIDI</button>
                 <button class="tab-btn" onclick="openTab('effects')">🎚️ Effects</button>
                 <button class="tab-btn" onclick="openTab('mix')">🔊 Mix</button>
@@ -564,6 +985,158 @@
                                 <span class="badge exclusive" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">PREMIUM</span>
                                 <span class="badge referral">AI SONGWRITER</span>
                                 <span class="badge" style="background: var(--gold);">GOLD TIER</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Drums Tab -->
+            <div id="drums" class="tab-content">
+                <div class="equipment-grid" style="grid-template-columns: 1fr;">
+                    <div class="equipment-panel" style="max-width: none;">
+                        <div class="panel-header">
+                            <div class="panel-icon">🥁</div>
+                            <div class="panel-title">Professional Drum Machine</div>
+                        </div>
+                        <div class="panel-description">
+                            Advanced 16-step sequencer with Tone.js engine, switchable kits, and professional features
+                        </div>
+                        
+                        <!-- Drum Machine Container -->
+                        <div id="drumMachineContainer" style="margin-top: 20px;">
+                            <!-- Professional Drum Machine -->
+                            <div class="drum-machine-pro">
+                                <!-- Header -->
+                                <div class="dm-header">
+                                    <h2>🥁 Professional Drum Machine</h2>
+                                    <div class="pattern-selector">
+                                        <button class="pattern-btn active" onclick="switchPattern('A')">A</button>
+                                        <button class="pattern-btn" onclick="switchPattern('B')">B</button>
+                                    </div>
+                                </div>
+
+                                <!-- Transport Controls -->
+                                <div class="transport-controls">
+                                    <button class="play-btn" id="drumPlayBtn" onclick="toggleDrumPlayback()">▶️</button>
+                                    
+                                    <div class="tempo-section">
+                                        <label>Tempo</label>
+                                        <input type="range" id="drumTempo" min="60" max="200" value="120" onchange="updateDrumTempo()" />
+                                        <span class="tempo-display" id="tempoDisplay">120</span>
+                                        <button class="tap-tempo-btn" onclick="tapTempo()">TAP</button>
+                                    </div>
+
+                                    <div class="kit-selector">
+                                        <label>Kit</label>
+                                        <select id="drumKit" onchange="updateDrumKit()">
+                                            <option value="CR78">CR-78</option>
+                                            <option value="808" selected>TR-808</option>
+                                            <option value="909">TR-909</option>
+                                            <option value="Synth">Synth</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- Step Grid -->
+                                <div class="step-grid">
+                                    <div class="voice-row">
+                                        <div class="voice-label">
+                                            <span class="voice-name" data-voice="kick">KICK</span>
+                                            <button class="randomize-voice-btn" onclick="randomizeVoice('kick')" title="Randomize kick">🎲</button>
+                                        </div>
+                                        <div class="steps-container" id="kickSteps">
+                                            <!-- Steps will be generated by JavaScript -->
+                                        </div>
+                                    </div>
+                                    <div class="voice-row">
+                                        <div class="voice-label">
+                                            <span class="voice-name" data-voice="snare">SNARE</span>
+                                            <button class="randomize-voice-btn" onclick="randomizeVoice('snare')" title="Randomize snare">🎲</button>
+                                        </div>
+                                        <div class="steps-container" id="snareSteps">
+                                            <!-- Steps will be generated by JavaScript -->
+                                        </div>
+                                    </div>
+                                    <div class="voice-row">
+                                        <div class="voice-label">
+                                            <span class="voice-name" data-voice="hat">HAT</span>
+                                            <button class="randomize-voice-btn" onclick="randomizeVoice('hat')" title="Randomize hi-hat">🎲</button>
+                                        </div>
+                                        <div class="steps-container" id="hatSteps">
+                                            <!-- Steps will be generated by JavaScript -->
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Step Numbers -->
+                                <div class="step-numbers">
+                                    <!-- Numbers will be generated by JavaScript -->
+                                </div>
+
+                                <!-- Controls Section -->
+                                <div class="controls-section">
+                                    <!-- Groove Controls -->
+                                    <div class="groove-controls">
+                                        <h4>Groove</h4>
+                                        <div class="control-group">
+                                            <label>Swing</label>
+                                            <input type="range" id="drumSwing" min="0" max="100" value="0" onchange="updateDrumGroove()" />
+                                            <span id="swingValue">0%</span>
+                                        </div>
+                                        
+                                        <div class="control-group">
+                                            <label>Humanize</label>
+                                            <input type="range" id="drumHumanize" min="0" max="100" value="0" onchange="updateDrumGroove()" />
+                                            <span id="humanizeValue">0%</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Reverb Controls -->
+                                    <div class="reverb-controls">
+                                        <h4>Reverb Sends</h4>
+                                        <div class="control-group">
+                                            <label>KICK</label>
+                                            <input type="range" id="kickReverb" min="0" max="100" value="10" onchange="updateDrumReverb()" />
+                                            <span id="kickReverbValue">10%</span>
+                                        </div>
+                                        <div class="control-group">
+                                            <label>SNARE</label>
+                                            <input type="range" id="snareReverb" min="0" max="100" value="30" onchange="updateDrumReverb()" />
+                                            <span id="snareReverbValue">30%</span>
+                                        </div>
+                                        <div class="control-group">
+                                            <label>HAT</label>
+                                            <input type="range" id="hatReverb" min="0" max="100" value="20" onchange="updateDrumReverb()" />
+                                            <span id="hatReverbValue">20%</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Sidechain Controls -->
+                                    <div class="sidechain-controls">
+                                        <h4>Sidechain</h4>
+                                        <div class="control-group">
+                                            <label>
+                                                <input type="checkbox" id="sidechainEnable" checked onchange="updateDrumSidechain()" />
+                                                Enable
+                                            </label>
+                                        </div>
+                                        
+                                        <div class="control-group">
+                                            <label>Amount</label>
+                                            <input type="range" id="sidechainAmount" min="0" max="100" value="60" onchange="updateDrumSidechain()" />
+                                            <span id="sidechainValue">60%</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Action Buttons -->
+                                <div class="action-buttons">
+                                    <button onclick="clearDrumPattern()" class="action-btn clear-btn">🗑️ Clear Pattern</button>
+                                    <button onclick="randomizeDrumPattern()" class="action-btn randomize-btn">🎲 Randomize All</button>
+                                    <button onclick="exportDrumWAV()" class="action-btn export-btn">💾 Export WAV</button>
+                                    <button onclick="exportDrumMIDI()" class="action-btn export-btn">🎵 Export MIDI</button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -738,8 +1311,329 @@
         </nav>
     </div>
     
+    <!-- Tone.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/tone@14.7.77/build/Tone.js"></script>
+    
     <script>
         let creditsRemaining = {{ credits|default(0) }};
+        
+        // Drum Machine Engine
+        let drumEngine = null;
+        let drumCurrentStep = 0;
+        let drumCurrentPattern = 'A';
+        let drumIsPlaying = false;
+        let drumSequence = null;
+        
+        // Drum Machine Patterns
+        let drumPatterns = {
+            A: {
+                kick: Array(16).fill(null).map(() => ({ active: false, velocity: 0.8 })),
+                snare: Array(16).fill(null).map(() => ({ active: false, velocity: 0.8 })),
+                hat: Array(16).fill(null).map(() => ({ active: false, velocity: 0.8 }))
+            },
+            B: {
+                kick: Array(16).fill(null).map(() => ({ active: false, velocity: 0.8 })),
+                snare: Array(16).fill(null).map(() => ({ active: false, velocity: 0.8 })),
+                hat: Array(16).fill(null).map(() => ({ active: false, velocity: 0.8 }))
+            }
+        };
+        
+        // Initialize default pattern
+        drumPatterns.A.kick[0].active = true;
+        drumPatterns.A.kick[4].active = true;
+        drumPatterns.A.kick[8].active = true;
+        drumPatterns.A.kick[12].active = true;
+        
+        drumPatterns.A.snare[4].active = true;
+        drumPatterns.A.snare[12].active = true;
+        
+        drumPatterns.A.hat[2].active = true;
+        drumPatterns.A.hat[6].active = true;
+        drumPatterns.A.hat[10].active = true;
+        drumPatterns.A.hat[14].active = true;
+        
+        // Drum Machine Functions
+        async function initializeDrumMachine() {
+            if (drumEngine) return;
+            
+            try {
+                await Tone.start();
+                console.log('🥁 Tone.js started, initializing drum machine...');
+                
+                // Create drum voices
+                const kick = new Tone.MembraneSynth({
+                    pitchDecay: 0.05,
+                    octaves: 10,
+                    oscillator: { type: "sine" },
+                    envelope: { attack: 0.001, decay: 0.4, sustain: 0.01, release: 1.4 }
+                }).toDestination();
+                
+                const snare = new Tone.NoiseSynth({
+                    noise: { type: "white" },
+                    envelope: { attack: 0.005, decay: 0.1, sustain: 0.0, release: 0.4 }
+                }).toDestination();
+                
+                const hat = new Tone.NoiseSynth({
+                    noise: { type: "white" },
+                    envelope: { attack: 0.001, decay: 0.05, sustain: 0.0, release: 0.03 }
+                }).toDestination();
+                
+                drumEngine = { kick, snare, hat };
+                
+                // Initialize step grid UI
+                generateStepGrid();
+                generateStepNumbers();
+                
+                console.log('🥁 Drum machine initialized successfully');
+            } catch (error) {
+                console.error('Failed to initialize drum machine:', error);
+                alert('Failed to initialize audio. Please check your browser settings.');
+            }
+        }
+        
+        function generateStepGrid() {
+            ['kick', 'snare', 'hat'].forEach(voice => {
+                const container = document.getElementById(voice + 'Steps');
+                if (!container) return;
+                
+                container.innerHTML = '';
+                for (let i = 0; i < 16; i++) {
+                    const step = document.createElement('button');
+                    step.className = 'step';
+                    step.dataset.voice = voice;
+                    step.dataset.step = i;
+                    step.innerHTML = `<span class="step-number">${i + 1}</span>`;
+                    step.onclick = () => toggleStep(voice, i);
+                    step.oncontextmenu = (e) => {
+                        e.preventDefault();
+                        cycleStepVelocity(voice, i);
+                    };
+                    container.appendChild(step);
+                }
+                
+                updateStepGrid();
+            });
+        }
+        
+        function generateStepNumbers() {
+            const container = document.querySelector('.step-numbers');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            for (let i = 0; i < 16; i++) {
+                const label = document.createElement('div');
+                label.className = 'step-number-label';
+                label.textContent = i + 1;
+                container.appendChild(label);
+            }
+        }
+        
+        function updateStepGrid() {
+            ['kick', 'snare', 'hat'].forEach(voice => {
+                const pattern = drumPatterns[drumCurrentPattern][voice];
+                for (let i = 0; i < 16; i++) {
+                    const stepElement = document.querySelector(`[data-voice="${voice}"][data-step="${i}"]`);
+                    if (!stepElement) continue;
+                    
+                    stepElement.classList.toggle('active', pattern[i].active);
+                    stepElement.classList.toggle('current', i === drumCurrentStep && drumIsPlaying);
+                    
+                    // Velocity indication
+                    stepElement.classList.remove('velocity-high', 'velocity-medium', 'velocity-low');
+                    if (pattern[i].active) {
+                        if (pattern[i].velocity > 0.8) stepElement.classList.add('velocity-high');
+                        else if (pattern[i].velocity > 0.5) stepElement.classList.add('velocity-medium');
+                        else stepElement.classList.add('velocity-low');
+                    }
+                }
+            });
+            
+            // Update step number indicators
+            document.querySelectorAll('.step-number-label').forEach((label, i) => {
+                label.classList.toggle('current', i === drumCurrentStep && drumIsPlaying);
+            });
+        }
+        
+        function toggleStep(voice, step) {
+            const pattern = drumPatterns[drumCurrentPattern][voice];
+            pattern[step].active = !pattern[step].active;
+            updateStepGrid();
+        }
+        
+        function cycleStepVelocity(voice, step) {
+            const pattern = drumPatterns[drumCurrentPattern][voice];
+            const velocities = [0.3, 0.5, 0.8, 1.0];
+            const currentIndex = velocities.findIndex(v => Math.abs(v - pattern[step].velocity) < 0.1);
+            const nextIndex = (currentIndex + 1) % velocities.length;
+            pattern[step].velocity = velocities[nextIndex];
+            updateStepGrid();
+        }
+        
+        async function toggleDrumPlayback() {
+            if (!drumEngine) {
+                await initializeDrumMachine();
+                if (!drumEngine) return;
+            }
+            
+            const playBtn = document.getElementById('drumPlayBtn');
+            
+            if (drumIsPlaying) {
+                // Stop playback
+                if (drumSequence) {
+                    drumSequence.stop();
+                    drumSequence.dispose();
+                    drumSequence = null;
+                }
+                Tone.Transport.stop();
+                drumIsPlaying = false;
+                drumCurrentStep = 0;
+                playBtn.textContent = '▶️';
+                playBtn.classList.remove('playing');
+            } else {
+                // Start playback
+                const tempo = document.getElementById('drumTempo').value;
+                Tone.Transport.bpm.value = tempo;
+                
+                drumSequence = new Tone.Sequence(
+                    (time, step) => {
+                        drumCurrentStep = step;
+                        playDrumStep(time, step);
+                        updateStepGrid();
+                    },
+                    Array.from({ length: 16 }, (_, i) => i),
+                    "16n"
+                );
+                
+                drumSequence.start(0);
+                Tone.Transport.start();
+                drumIsPlaying = true;
+                playBtn.textContent = '⏸️';
+                playBtn.classList.add('playing');
+            }
+        }
+        
+        function playDrumStep(time, step) {
+            const pattern = drumPatterns[drumCurrentPattern];
+            
+            if (pattern.kick[step].active) {
+                drumEngine.kick.triggerAttackRelease("C1", "16n", time, pattern.kick[step].velocity);
+            }
+            
+            if (pattern.snare[step].active) {
+                drumEngine.snare.triggerAttackRelease("16n", time, pattern.snare[step].velocity);
+            }
+            
+            if (pattern.hat[step].active) {
+                drumEngine.hat.triggerAttackRelease("16n", time, pattern.hat[step].velocity);
+            }
+        }
+        
+        function updateDrumTempo() {
+            const tempo = document.getElementById('drumTempo').value;
+            document.getElementById('tempoDisplay').textContent = tempo;
+            if (drumIsPlaying) {
+                Tone.Transport.bpm.rampTo(tempo, 0.1);
+            }
+        }
+        
+        function updateDrumKit() {
+            // Kit switching would update voice characteristics
+            const kit = document.getElementById('drumKit').value;
+            console.log('Switching to kit:', kit);
+            // Implementation would update the Tone.js synth parameters
+        }
+        
+        function updateDrumGroove() {
+            const swing = document.getElementById('drumSwing').value;
+            const humanize = document.getElementById('drumHumanize').value;
+            document.getElementById('swingValue').textContent = swing + '%';
+            document.getElementById('humanizeValue').textContent = humanize + '%';
+            // Implementation would affect timing in playDrumStep
+        }
+        
+        function updateDrumReverb() {
+            const kickReverb = document.getElementById('kickReverb').value;
+            const snareReverb = document.getElementById('snareReverb').value;
+            const hatReverb = document.getElementById('hatReverb').value;
+            document.getElementById('kickReverbValue').textContent = kickReverb + '%';
+            document.getElementById('snareReverbValue').textContent = snareReverb + '%';
+            document.getElementById('hatReverbValue').textContent = hatReverb + '%';
+            // Implementation would connect reverb sends
+        }
+        
+        function updateDrumSidechain() {
+            const enabled = document.getElementById('sidechainEnable').checked;
+            const amount = document.getElementById('sidechainAmount').value;
+            document.getElementById('sidechainValue').textContent = amount + '%';
+            document.getElementById('sidechainAmount').disabled = !enabled;
+            // Implementation would affect sidechain compression
+        }
+        
+        function switchPattern(pattern) {
+            drumCurrentPattern = pattern;
+            document.querySelectorAll('.pattern-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            updateStepGrid();
+        }
+        
+        function clearDrumPattern() {
+            const pattern = drumPatterns[drumCurrentPattern];
+            ['kick', 'snare', 'hat'].forEach(voice => {
+                pattern[voice].forEach(step => {
+                    step.active = false;
+                });
+            });
+            updateStepGrid();
+        }
+        
+        function randomizeDrumPattern() {
+            const pattern = drumPatterns[drumCurrentPattern];
+            ['kick', 'snare', 'hat'].forEach(voice => {
+                pattern[voice].forEach(step => {
+                    step.active = Math.random() > 0.7;
+                    step.velocity = 0.6 + Math.random() * 0.4;
+                });
+            });
+            updateStepGrid();
+        }
+        
+        function randomizeVoice(voice) {
+            const pattern = drumPatterns[drumCurrentPattern][voice];
+            pattern.forEach(step => {
+                step.active = Math.random() > 0.6;
+                step.velocity = 0.6 + Math.random() * 0.4;
+            });
+            updateStepGrid();
+        }
+        
+        function tapTempo() {
+            // Simple tap tempo implementation
+            const now = Date.now();
+            if (!window.lastTapTime) {
+                window.lastTapTime = now;
+                return;
+            }
+            
+            const interval = now - window.lastTapTime;
+            const bpm = Math.round(60000 / interval);
+            
+            if (bpm >= 60 && bpm <= 200) {
+                document.getElementById('drumTempo').value = bpm;
+                updateDrumTempo();
+            }
+            
+            window.lastTapTime = now;
+        }
+        
+        async function exportDrumWAV() {
+            alert('WAV export functionality would be implemented with offline rendering');
+        }
+        
+        async function exportDrumMIDI() {
+            alert('MIDI export functionality would generate SMF Type-0 file');
+        }
         
         // Tab Management
         function openTab(tabName) {
@@ -759,6 +1653,13 @@
             // Populate file selectors for effects and mix tabs
             if (tabName === 'effects' || tabName === 'mix') {
                 populateFileSelectors();
+            }
+            
+            // Initialize drum machine when drums tab is opened
+            if (tabName === 'drums') {
+                setTimeout(() => {
+                    initializeDrumMachine();
+                }, 100);
             }
         }
         
