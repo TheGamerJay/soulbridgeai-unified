@@ -11,7 +11,7 @@ from __future__ import annotations
 import os, json, time
 from pathlib import Path
 from datetime import datetime
-from flask import Blueprint, jsonify, request, session, g
+from flask import Blueprint, jsonify, request, session, g, render_template, redirect
 import logging
 
 logger = logging.getLogger(__name__)
@@ -208,20 +208,74 @@ def get_user_consent_status(user_id: str = None) -> dict:
 @consent_bp.route("/policy")
 def consent_policy():
     """Serve the AI training policy page"""
-    from flask import render_template
     return render_template('ai_training_policy.html')
 
 @consent_bp.route("/admin")
 def admin_dashboard():
     """Admin-only dashboard for viewing consent data and contributed content"""
-    from flask import render_template, redirect
-    
-    # Check if user is admin using your existing admin system
-    if not _is_admin():
-        # Redirect to your existing admin login
-        return redirect('/admin/login?redirect=/api/consent/admin')
-    
-    return render_template('consent_admin.html')
+    try:
+        # Check if user is admin using your existing admin system
+        if not _is_admin():
+            # Redirect to your existing admin login
+            return redirect('/admin/login?redirect=/api/consent/admin')
+        
+        return render_template('consent_admin.html')
+        
+    except Exception as e:
+        logger.error(f"Error in admin dashboard: {e}")
+        import traceback
+        logger.error(f"Full traceback: {traceback.format_exc()}")
+        return jsonify({
+            "error": "An unexpected error occurred",
+            "details": str(e)
+        }), 500
+
+@consent_bp.route("/admin/test")
+def admin_test():
+    """Test route to debug template rendering - REMOVE IN PRODUCTION"""
+    try:
+        return render_template('consent_admin.html')
+    except Exception as e:
+        import traceback
+        return jsonify({
+            "error": str(e),
+            "traceback": traceback.format_exc(),
+            "template_path": "consent_admin.html"
+        }), 500
+
+@consent_bp.route("/admin/debug")
+def admin_debug():
+    """Debug route to check admin authentication - REMOVE IN PRODUCTION"""
+    try:
+        user_id = _user_id()
+        is_admin_result = _is_admin()
+        
+        # Check session data
+        session_data = {
+            'user_id': session.get('user_id'),
+            'logged_in': session.get('logged_in'), 
+            'is_admin': session.get('is_admin'),
+            'admin_logged_in': session.get('admin_logged_in'),
+            'watchdog_admin': session.get('watchdog_admin'),
+            'admin_authenticated': session.get('admin_authenticated'),
+            'user_email': session.get('user_email'),
+            'user_roles': session.get('user_roles')
+        }
+        
+        return jsonify({
+            "user_id": user_id,
+            "is_admin": is_admin_result,
+            "session_data": session_data,
+            "admin_emails_checked": ['admin@soulbridge.ai', 'soulbridgeai.contact@gmail.com', 'watchdog@soulbridge.ai'],
+            "admin_user_ids_env": os.getenv('ADMIN_USER_IDS', 'NOT_SET')
+        })
+        
+    except Exception as e:
+        import traceback
+        return jsonify({
+            "error": str(e),
+            "traceback": traceback.format_exc()
+        }), 500
 
 @consent_bp.route("/admin/users")
 def admin_users():
