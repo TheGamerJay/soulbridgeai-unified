@@ -610,6 +610,15 @@ def create_app():
         from flask import render_template
         return render_template('creative.html')
     
+    @app.route("/creative-writing")
+    def creative_writing():
+        """Creative writing page - alias for creative tools"""
+        if not session.get('logged_in'):
+            return redirect('/auth/login?return_to=creative-writing')
+        
+        from flask import render_template
+        return render_template('creative.html')
+    
     @app.route("/decoder")
     def decoder():
         """Decoder tool - from creative blueprint"""
