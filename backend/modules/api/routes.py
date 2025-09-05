@@ -114,10 +114,7 @@ def check_companion_feature_limit(user_id, companion_id, feature):
     limits = get_companion_tier_limits(companion_tier)
     feature_limit = limits.get(feature, 0)
     
-    # Unlimited usage for 999+ limits
-    if feature_limit >= 999:
-        return True
-    
+    # Check if usage is within limit (no more "unlimited" concept)
     current_usage = get_companion_feature_usage(user_id, companion_id, feature)
     return current_usage < feature_limit
 
@@ -255,10 +252,8 @@ def tier_limits_companion_based():
         for feature, key in usage_keys.items():
             usage[feature] = session.get(key, 0)
         
-        # Convert 999 limits to "unlimited" for frontend display
-        display_limits = {}
-        for feature, limit in limits.items():
-            display_limits[feature] = "unlimited" if limit >= 999 else limit
+        # Use actual limits (no more "unlimited" conversion)
+        display_limits = limits
         
         # Check if user can access this companion tier during trial
         user_effective_plan = "gold" if trial_active else user_plan
@@ -722,13 +717,8 @@ def v1_entitlements():
             (companion_tier == "gold" and user_effective_plan == "gold")
         )
         
-        # Generate daily_limits compatible with v1 format
-        daily_limits = {}
-        for feature, limit in limits.items():
-            if limit >= 999:
-                daily_limits[feature] = "unlimited"
-            else:
-                daily_limits[feature] = limit
+        # Generate daily_limits with actual values (no more "unlimited")
+        daily_limits = limits
         
         # Return v1-compatible format with companion-tier data
         response = {
@@ -743,10 +733,10 @@ def v1_entitlements():
             "can_access": can_access,
             "daily_limits": daily_limits,  # v1 compatibility
             "entitlements": {
-                "decoder": {"enabled": True, "limit": "unlimited" if companion_tier == "gold" else "limited"},
-                "fortune": {"enabled": True, "limit": "unlimited" if companion_tier == "gold" else "limited"}, 
-                "horoscope": {"enabled": True, "limit": "unlimited" if companion_tier == "gold" else "limited"},
-                "creative_writer": {"enabled": True, "limit": "unlimited" if companion_tier == "gold" else "limited"},
+                "decoder": {"enabled": True, "limit": "premium" if companion_tier == "gold" else "limited"},
+                "fortune": {"enabled": True, "limit": "premium" if companion_tier == "gold" else "limited"}, 
+                "horoscope": {"enabled": True, "limit": "premium" if companion_tier == "gold" else "limited"},
+                "creative_writer": {"enabled": True, "limit": "premium" if companion_tier == "gold" else "limited"},
                 "ai_images": {"enabled": companion_tier in ["silver", "gold"], "limit": "credit"},
                 "voice_chat": {"enabled": companion_tier in ["silver", "gold"], "limit": "credit"},
                 "mini_studio": {"enabled": companion_tier == "gold", "limit": "credit"}
@@ -806,10 +796,10 @@ def check_companion_decoder_limit():
             'companion_id': companion_id,
             'companion_tier': companion_tier,
             'feature': 'decoder',
-            'limit': "unlimited" if decoder_limit >= 999 else decoder_limit,
+            'limit': decoder_limit,
             'usage': current_usage,
             'can_use': can_use,
-            'remaining': "unlimited" if decoder_limit >= 999 else max(0, decoder_limit - current_usage)
+            'remaining': max(0, decoder_limit - current_usage)
         })
         
     except Exception as e:
@@ -870,8 +860,8 @@ def use_companion_decoder():
             'companion_tier': companion_tier,
             'feature': 'decoder',
             'usage': current_usage,
-            'limit': "unlimited" if decoder_limit >= 999 else decoder_limit,
-            'remaining': "unlimited" if decoder_limit >= 999 else max(0, decoder_limit - current_usage),
+            'limit': decoder_limit,
+            'remaining': max(0, decoder_limit - current_usage),
             'message': f'Decoder used successfully with {companion["name"] if companion else "companion"}'
         })
         

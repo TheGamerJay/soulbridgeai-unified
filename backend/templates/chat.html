@@ -1307,7 +1307,7 @@
                     const limit = data.limits?.creative_writer || 3;
                     const usage = data.usage?.creative_writer || 0;
                     
-                    if (limit === 'unlimited' || limit >= 999) {
+                    if (limit === 'unlimited') {
                         counterEl.textContent = '∞ Unlimited Usage';
                         counterEl.style.color = '#FFD700';
                     } else {
@@ -2348,7 +2348,7 @@ Where emotion meets expression.
                     const decoderUsed = usage.decoder || 0;
                     const decoderMax = limits.decoder;
                     
-                    if (unlimited_features.includes('decoder') || decoderMax === 'unlimited' || decoderMax >= 999999) {
+                    if (unlimited_features.includes('decoder') || decoderMax === 'unlimited') {
                         decoderLimit.textContent = '∞';
                         decoderBtn.classList.add('unlimited');
                         decoderBtn.setAttribute('data-tooltip', `Unlimited decoder uses available`);
@@ -2375,7 +2375,7 @@ Where emotion meets expression.
                     const fortuneUsed = usage.fortune || 0;
                     const fortuneMax = limits.fortune;
                     
-                    if (unlimited_features.includes('fortune') || fortuneMax === 'unlimited' || fortuneMax >= 999999) {
+                    if (unlimited_features.includes('fortune') || fortuneMax === 'unlimited') {
                         fortuneLimit.textContent = '∞';
                         fortuneBtn.classList.add('unlimited');
                         fortuneBtn.setAttribute('data-tooltip', `Unlimited fortune uses available`);
@@ -2402,7 +2402,7 @@ Where emotion meets expression.
                     const horoscopeUsed = usage.horoscope || 0;
                     const horoscopeMax = limits.horoscope;
                     
-                    if (unlimited_features.includes('horoscope') || horoscopeMax === 'unlimited' || horoscopeMax >= 999999) {
+                    if (unlimited_features.includes('horoscope') || horoscopeMax === 'unlimited') {
                         horoscopeLimit.textContent = '∞';
                         horoscopeBtn.classList.add('unlimited');
                         horoscopeBtn.setAttribute('data-tooltip', `Unlimited horoscope uses available`);
@@ -2430,7 +2430,7 @@ Where emotion meets expression.
                     const creativeUsed = usage.creative_writer || 0;
                     const creativeMax = limits.creative_writer;
                     
-                    if (unlimited_features.includes('creative_writer') || creativeMax === 'unlimited' || creativeMax >= 999999) {
+                    if (unlimited_features.includes('creative_writer') || creativeMax === 'unlimited') {
                         creativeLimit.textContent = '∞';
                         creativeBtn.classList.add('unlimited');
                         creativeBtn.setAttribute('data-tooltip', `Unlimited creative writing uses available`);

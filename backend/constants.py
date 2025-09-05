@@ -15,17 +15,17 @@ PLAN_LIMITS = {
     },
     "silver": {
         "decoder": 15,
-        "fortune": 8,
+        "fortune": 12,        # Increased from 8 to 12 for better UX
         "horoscope": 10,
         "creative_writer": 15,  # 15 uses per day
         "library_chats": 50     # Save max 50 chat conversations
     },
     "gold": {
-        "decoder": 999,     # Gold tier gets 999 daily uses
-        "fortune": 999,     # Gold tier gets 999 fortune readings per day
-        "horoscope": 999,   # Gold tier gets 999 horoscope readings per day
-        "creative_writer": 999,  # Gold tier gets 999 creative writing uses per day
-        "library_chats": 999     # Gold tier gets 999 saved chats
+        "decoder": 100,      # Realistic premium limit instead of 999
+        "fortune": 150,      # Highest since it's most impulsive/quick
+        "horoscope": 50,     # Daily readings + compatibility checks
+        "creative_writer": 75, # Substantial for serious writers
+        "library_chats": 200   # Premium library storage
     }
 }
 
@@ -139,7 +139,7 @@ MONTHLY_CREDIT_RESET_AMOUNT = 650
 AI_IMAGE_LIMITS = {
     "bronze": 0,      # Bronze: No AI images (premium feature locked)
     "silver": 12,     # Silver: 12 AI images per month (enhanced tier)  
-    "gold": 999999    # Gold: Unlimited AI images per day
+    "gold": 50        # Gold: 50 AI images per month (premium but realistic)
 }
 
 AI_IMAGE_COST = 5  # 5 artistic time credits per AI image
