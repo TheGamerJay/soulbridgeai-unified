@@ -763,6 +763,7 @@ def create_app():
 
 def register_blueprints(app):
     """Register all extracted module blueprints"""
+    import traceback  # Ensure traceback is available within function scope
     try:
         # Health checks FIRST - critical for Railway deployment probes
         # Must be accessible without authentication for health monitoring
