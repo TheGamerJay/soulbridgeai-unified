@@ -14,6 +14,7 @@ from services.poem_generator import (
 )
 from security_config import require_auth, rate_limit_moderate
 from database import get_user_plan, deduct_usage
+from consent import user_has_consent
 
 logger = logging.getLogger(__name__)
 
@@ -113,6 +114,9 @@ def generate_poem():
                     'upgrade_required': user_plan == 'bronze'
                 }), 429
         
+        # Check if user wants their prompt/result saved for training
+        contribute_to_training = user_has_consent(user_id, "poems")
+        
         # Generate poem
         result = poem_generator_service.generate_poem(
             poem_type=poem_type,
@@ -120,7 +124,8 @@ def generate_poem():
             mood=mood,
             language=language,
             user_id=user_id,
-            custom_word=custom_word if poem_type == PoemType.ACROSTIC else None
+            custom_word=custom_word if poem_type == PoemType.ACROSTIC else None,
+            contribute=contribute_to_training  # Pass consent flag
         )
         
         if result['success']:
@@ -128,13 +133,14 @@ def generate_poem():
             if daily_limit != -1:
                 deduct_usage(user_id, 'poems', 1)
             
-            logger.info(f"✅ Generated {poem_type.value} for user {user_id}, theme: {theme}")
+            logger.info(f"✅ Generated {poem_type.value} for user {user_id}, theme: {theme}, contribute: {contribute_to_training}")
             
             return jsonify({
                 'success': True,
                 'poem': result['poem'],
                 'validation': result['validation'],
-                'remaining_usage': max(0, daily_limit - current_usage - 1) if daily_limit != -1 else -1
+                'remaining_usage': max(0, daily_limit - current_usage - 1) if daily_limit != -1 else -1,
+                'contribute_status': contribute_to_training
             })
         
         else:

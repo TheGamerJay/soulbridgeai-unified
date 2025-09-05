@@ -871,11 +871,19 @@ def register_blueprints(app):
 
         # Consent Management
         try:
-            from routes.consent_management import consent_bp
-            app.register_blueprint(consent_bp)
+            from routes.consent_management import consent_bp as consent_mgmt_bp
+            app.register_blueprint(consent_mgmt_bp)
             logger.info("✅ Consent management system registered")
         except Exception as e:
             logger.warning(f"⚠️  Consent management system failed to register: {e}")
+
+        # Training Consent System (Forward-Only)
+        try:
+            from consent import consent_bp
+            app.register_blueprint(consent_bp, name='training_consent')
+            logger.info("✅ Training consent system registered")
+        except Exception as e:
+            logger.warning(f"⚠️  Training consent system failed to register: {e}")
         
         # AI Images
         from modules.ai_images import ai_images_bp

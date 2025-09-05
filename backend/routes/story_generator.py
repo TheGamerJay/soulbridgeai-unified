@@ -16,6 +16,7 @@ from services.story_generator import (
 )
 from security_config import require_auth, rate_limit_moderate
 from database import get_user_plan, deduct_usage
+from consent import user_has_consent
 
 logger = logging.getLogger(__name__)
 
@@ -119,6 +120,9 @@ def generate_outline():
                     'upgrade_required': user_plan == 'bronze'
                 }), 429
         
+        # Check if user wants their prompt/result saved for training
+        contribute_to_training = user_has_consent(user_id, "stories")
+        
         # Generate outline
         outline = story_generator_service.generate_outline(
             genre=genre,
@@ -126,7 +130,8 @@ def generate_outline():
             premise=premise,
             themes=themes,
             structure_type=structure,
-            character_count=character_count
+            character_count=character_count,
+            contribute=contribute_to_training  # Pass consent flag
         )
         
         # Save outline
@@ -136,7 +141,7 @@ def generate_outline():
         if daily_limit != -1:
             deduct_usage(user_id, 'story_outlines', 1)
         
-        logger.info(f"✅ Generated {genre.value} {length.value} outline for user {user_id}")
+        logger.info(f"✅ Generated {genre.value} {length.value} outline for user {user_id}, contribute: {contribute_to_training}")
         
         # Convert outline to dict for JSON response
         outline_dict = {
@@ -182,7 +187,8 @@ def generate_outline():
         return jsonify({
             'success': True,
             'outline': outline_dict,
-            'remaining_usage': max(0, daily_limit - current_usage - 1) if daily_limit != -1 else -1
+            'remaining_usage': max(0, daily_limit - current_usage - 1) if daily_limit != -1 else -1,
+            'contribute_status': contribute_to_training
         })
         
     except Exception as e:

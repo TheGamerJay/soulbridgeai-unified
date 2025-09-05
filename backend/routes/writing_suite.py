@@ -16,6 +16,7 @@ from services.writing_suite import (
 )
 from security_config import require_auth, rate_limit_moderate
 from database import get_user_plan, deduct_usage
+from consent import user_has_consent
 
 logger = logging.getLogger(__name__)
 
@@ -122,6 +123,12 @@ def generate_writing():
                     'upgrade_required': user_plan == 'bronze'
                 }), 429
         
+        # Check if user wants their prompt/result saved for training
+        content_type = "scripts" if writing_type.value in ["screenplay", "stage_play", "tv_script", "radio_script"] else \
+                      "articles" if writing_type.value in ["news_article", "blog_post", "academic_article", "opinion_piece"] else \
+                      "letters" if "letter" in writing_type.value else "creative"
+        contribute_to_training = user_has_consent(user_id, content_type)
+        
         # Create writing prompt
         prompt = WritingPrompt(
             writing_type=writing_type,
@@ -135,7 +142,7 @@ def generate_writing():
         )
         
         # Generate writing
-        writing_output = writing_suite_service.generate_writing(prompt)
+        writing_output = writing_suite_service.generate_writing(prompt, contribute=contribute_to_training)
         
         # Save if title provided
         writing_id = None
@@ -146,7 +153,7 @@ def generate_writing():
         if daily_limit != -1:
             deduct_usage(user_id, 'writing_generation', 1)
         
-        logger.info(f"✅ Generated {writing_type.value} for user {user_id}, topic: {topic}")
+        logger.info(f"✅ Generated {writing_type.value} for user {user_id}, topic: {topic}, contribute: {contribute_to_training}")
         
         # Prepare response
         response_data = {
@@ -168,7 +175,8 @@ def generate_writing():
                 'length': length,
                 'target_audience': target_audience
             },
-            'remaining_usage': max(0, daily_limit - current_usage - 1) if daily_limit != -1 else -1
+            'remaining_usage': max(0, daily_limit - current_usage - 1) if daily_limit != -1 else -1,
+            'contribute_status': contribute_to_training
         }
         
         if writing_id:

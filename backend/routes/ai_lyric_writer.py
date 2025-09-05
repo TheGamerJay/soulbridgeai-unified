@@ -14,6 +14,7 @@ from services.lyric_writer import (
 from security_config import require_auth, rate_limit_moderate
 from database import get_user_plan, deduct_usage
 from flask import render_template
+from consent import user_has_consent
 
 logger = logging.getLogger(__name__)
 
@@ -96,6 +97,9 @@ def generate_lyrics():
                     'upgrade_required': user_plan == 'bronze'
                 }), 429
         
+        # Check if user wants their prompt/result saved for training
+        contribute_to_training = user_has_consent(user_id, "lyrics")
+        
         # Generate lyrics
         result = lyric_writer_service.generate_lyrics(
             prompt=prompt,
@@ -103,7 +107,8 @@ def generate_lyrics():
             mood=mood,
             language=language,
             user_id=user_id,
-            check_similarity=check_similarity
+            check_similarity=check_similarity,
+            contribute=contribute_to_training  # Pass consent flag
         )
         
         if result['success']:
@@ -111,14 +116,15 @@ def generate_lyrics():
             if daily_limit != -1:
                 deduct_usage(user_id, 'ai_lyrics', 1)
             
-            logger.info(f"✅ Generated lyrics for user {user_id}, genre: {genre}, mood: {mood}")
+            logger.info(f"✅ Generated lyrics for user {user_id}, genre: {genre}, mood: {mood}, contribute: {contribute_to_training}")
             
             return jsonify({
                 'success': True,
                 'lyric_id': result['lyric_id'],
                 'lyrics': result['lyrics'],
                 'metadata': result['metadata'],
-                'remaining_usage': max(0, daily_limit - current_usage - 1) if daily_limit != -1 else -1
+                'remaining_usage': max(0, daily_limit - current_usage - 1) if daily_limit != -1 else -1,
+                'contribute_status': contribute_to_training
             })
         
         else:
