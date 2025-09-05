@@ -67,9 +67,9 @@ def enhance_security_headers(app):
             # Enhanced Content Security Policy
             csp = (
                 "default-src 'self'; "
-                "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; "
-                "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
-                "font-src 'self' https://fonts.gstatic.com; "
+                "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://pagead2.googlesyndication.com https://www.googletagservices.com; "
+                "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; "
+                "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; "
                 "img-src 'self' data: blob: https:; "
                 "media-src 'self' blob: data:; "
                 "connect-src 'self' wss: https:; "
