@@ -72,24 +72,22 @@ def _save(uid: str, data: dict) -> None:
 def _is_admin() -> bool:
     """Check if current user is admin using your existing Watchdog admin system"""
     try:
-        # Get current user ID
-        user_id = _user_id()
-        if user_id == "anon":
-            return False
+        # PRIMARY CHECK: Watchdog admin authentication (matches your surveillance route)
+        if session.get('admin_authenticated'):
+            return True
             
-        # Check session flags that your existing admin system might set
+        # SECONDARY CHECKS: Other possible admin session flags
         admin_session_flags = [
             'is_admin',           # Generic admin flag
-            'admin_logged_in',    # Watchdog admin flag
+            'admin_logged_in',    # Alternative admin flag
             'watchdog_admin',     # Specific watchdog flag
-            'admin_authenticated' # Alternative admin flag
         ]
         
         for flag in admin_session_flags:
             if session.get(flag):
                 return True
         
-        # Check if user email is admin (common for admin systems)
+        # TERTIARY CHECK: Admin emails (if regular user login with admin email)
         admin_emails = [
             'admin@soulbridge.ai', 
             'soulbridgeai.contact@gmail.com',
@@ -99,12 +97,14 @@ def _is_admin() -> bool:
         if user_email in admin_emails:
             return True
         
-        # Check environment variable for admin user IDs
-        admin_user_ids = os.getenv('ADMIN_USER_IDS', '').split(',')
-        if user_id in admin_user_ids:
-            return True
+        # QUATERNARY CHECK: Environment variable for admin user IDs
+        user_id = _user_id()
+        if user_id != "anon":
+            admin_user_ids = os.getenv('ADMIN_USER_IDS', '').split(',')
+            if user_id in admin_user_ids:
+                return True
             
-        # Check if there's an admin role in session
+        # FINAL CHECK: Admin roles in session
         user_roles = session.get('user_roles', [])
         if 'admin' in user_roles or 'watchdog' in user_roles:
             return True
