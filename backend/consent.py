@@ -10,6 +10,7 @@ Semantics:
 from __future__ import annotations
 import os, json, time
 from pathlib import Path
+from datetime import datetime
 from flask import Blueprint, jsonify, request, session, g
 import logging
 
@@ -67,6 +68,52 @@ def _save(uid: str, data: dict) -> None:
         logger.info(f"✅ Consent saved for user {uid}: {data['status']}")
     except Exception as e:
         logger.error(f"❌ Error saving consent for {uid}: {e}")
+
+def _is_admin() -> bool:
+    """Check if current user is admin using your existing Watchdog admin system"""
+    try:
+        # Get current user ID
+        user_id = _user_id()
+        if user_id == "anon":
+            return False
+            
+        # Check session flags that your existing admin system might set
+        admin_session_flags = [
+            'is_admin',           # Generic admin flag
+            'admin_logged_in',    # Watchdog admin flag
+            'watchdog_admin',     # Specific watchdog flag
+            'admin_authenticated' # Alternative admin flag
+        ]
+        
+        for flag in admin_session_flags:
+            if session.get(flag):
+                return True
+        
+        # Check if user email is admin (common for admin systems)
+        admin_emails = [
+            'admin@soulbridge.ai', 
+            'soulbridgeai.contact@gmail.com',
+            'watchdog@soulbridge.ai'
+        ]
+        user_email = session.get('user_email', '').lower()
+        if user_email in admin_emails:
+            return True
+        
+        # Check environment variable for admin user IDs
+        admin_user_ids = os.getenv('ADMIN_USER_IDS', '').split(',')
+        if user_id in admin_user_ids:
+            return True
+            
+        # Check if there's an admin role in session
+        user_roles = session.get('user_roles', [])
+        if 'admin' in user_roles or 'watchdog' in user_roles:
+            return True
+            
+        return False
+        
+    except Exception as e:
+        logger.error(f"Error checking admin status: {e}")
+        return False
 
 @consent_bp.get("/get")
 def consent_get():
@@ -164,11 +211,148 @@ def consent_policy():
     from flask import render_template
     return render_template('ai_training_policy.html')
 
+@consent_bp.route("/admin")
+def admin_dashboard():
+    """Admin-only dashboard for viewing consent data and contributed content"""
+    from flask import render_template, redirect
+    
+    # Check if user is admin using your existing admin system
+    if not _is_admin():
+        # Redirect to your existing admin login
+        return redirect('/admin/login?redirect=/api/consent/admin')
+    
+    return render_template('consent_admin.html')
+
+@consent_bp.route("/admin/users")
+def admin_users():
+    """Get all users with their consent status (admin only)"""
+    if not _is_admin():
+        return jsonify({"error": "Admin access required"}), 403
+    
+    try:
+        users_data = []
+        
+        # List all consent files
+        for consent_file in ROOT.glob("*.json"):
+            user_id = consent_file.stem
+            if user_id != "anon":  # Skip anonymous user
+                consent_data = _load(user_id)
+                users_data.append({
+                    "user_id": user_id,
+                    "status": consent_data.get("status", "opt_out"),
+                    "timestamp": consent_data.get("ts"),
+                    "content_types": consent_data.get("content_types", []),
+                    "last_updated": datetime.fromtimestamp(consent_data.get("ts", 0)).isoformat() if consent_data.get("ts") else None
+                })
+        
+        # Sort by most recent first
+        users_data.sort(key=lambda x: x.get("timestamp", 0), reverse=True)
+        
+        return jsonify({
+            "success": True,
+            "users": users_data,
+            "total_users": len(users_data),
+            "opted_in": len([u for u in users_data if u["status"] == "opt_in"]),
+            "opted_out": len([u for u in users_data if u["status"] == "opt_out"])
+        })
+        
+    except Exception as e:
+        logger.error(f"Error getting admin users data: {e}")
+        return jsonify({"error": "Failed to retrieve user data"}), 500
+
+@consent_bp.route("/admin/stats")  
+def admin_stats():
+    """Get consent statistics (admin only)"""
+    if not _is_admin():
+        return jsonify({"error": "Admin access required"}), 403
+        
+    try:
+        stats = {
+            "total_users": 0,
+            "opted_in": 0,
+            "opted_out": 0,
+            "content_types": {},
+            "recent_changes": []
+        }
+        
+        # Analyze all consent files
+        for consent_file in ROOT.glob("*.json"):
+            user_id = consent_file.stem
+            if user_id != "anon":
+                consent_data = _load(user_id)
+                stats["total_users"] += 1
+                
+                if consent_data.get("status") == "opt_in":
+                    stats["opted_in"] += 1
+                else:
+                    stats["opted_out"] += 1
+                
+                # Count content types
+                for content_type in consent_data.get("content_types", []):
+                    stats["content_types"][content_type] = stats["content_types"].get(content_type, 0) + 1
+                
+                # Add to recent changes if timestamp exists
+                if consent_data.get("ts"):
+                    stats["recent_changes"].append({
+                        "user_id": user_id,
+                        "status": consent_data.get("status"),
+                        "timestamp": consent_data.get("ts"),
+                        "date": datetime.fromtimestamp(consent_data.get("ts")).isoformat()
+                    })
+        
+        # Sort recent changes by most recent
+        stats["recent_changes"].sort(key=lambda x: x["timestamp"], reverse=True)
+        stats["recent_changes"] = stats["recent_changes"][:20]  # Last 20 changes
+        
+        return jsonify({
+            "success": True,
+            "stats": stats
+        })
+        
+    except Exception as e:
+        logger.error(f"Error getting admin stats: {e}")
+        return jsonify({"error": "Failed to retrieve statistics"}), 500
+
+@consent_bp.route("/admin/export")
+def admin_export():
+    """Export all consent data (admin only)"""
+    if not _is_admin():
+        return jsonify({"error": "Admin access required"}), 403
+        
+    try:
+        export_data = {
+            "export_date": datetime.now().isoformat(),
+            "users": []
+        }
+        
+        # Export all consent data
+        for consent_file in ROOT.glob("*.json"):
+            user_id = consent_file.stem
+            if user_id != "anon":
+                consent_data = _load(user_id)
+                export_data["users"].append({
+                    "user_id": user_id,
+                    **consent_data
+                })
+        
+        return jsonify({
+            "success": True,
+            "data": export_data
+        })
+        
+    except Exception as e:
+        logger.error(f"Error exporting consent data: {e}")
+        return jsonify({"error": "Failed to export data"}), 500
+
 @consent_bp.before_request
 def require_auth():
     """Ensure user is authenticated for consent operations"""
     # Allow policy page without authentication
     if request.endpoint and 'policy' in request.endpoint:
+        return
+    
+    # Allow admin endpoints to handle their own authentication
+    if request.endpoint and 'admin' in request.endpoint:
         return
     
     if not session.get('logged_in'):
