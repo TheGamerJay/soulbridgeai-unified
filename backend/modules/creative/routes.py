@@ -60,27 +60,7 @@ def horoscope_page():
         logger.error(f"Error loading horoscope page: {e}")
         return render_template("error.html", error="Unable to load horoscope")
 
-@creative_bp.route("/creative-writing")
-@requires_login
-def creative_writing_page():
-    """Creative writing main page"""
-    try:
-        user_plan = session.get('user_plan', 'bronze')
-        trial_active = session.get('trial_active', False)
-        
-        limit = get_feature_limit('creative_writing', user_plan, trial_active)
-        usage_tracker = CreativeUsageTracker()
-        usage_today = usage_tracker.get_usage_today(get_user_id(), 'creative_writing')
-        
-        return render_template("creative_writing.html",
-                             daily_limit=limit,
-                             current_usage=usage_today,
-                             usage_today=usage_today,
-                             unlimited=limit >= 999)
-        
-    except Exception as e:
-        logger.error(f"Error loading creative writing page: {e}")
-        return render_template("error.html", error="Unable to load creative writer")
+# Old creative-writing route removed - individual routes now handle specific tools
 
 # API Endpoints for creative features
 @creative_bp.route("/api/v2/decoder", methods=["POST"])

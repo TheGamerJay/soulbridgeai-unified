@@ -730,15 +730,42 @@ def create_app():
         from flask import render_template
         return render_template('ai_image_generation.html')
     
-    # CREATIVE WRITING ROUTES (from creative module blueprint)
-    @app.route("/creative-writing")
-    def creative_writing():
-        """Creative writing page - from creative blueprint"""
+    # CREATIVE WRITING ROUTES (individual tools)
+    @app.route("/ai-lyric-writer")
+    def ai_lyric_writer():
+        """AI Lyric Writer tool"""
         if not session.get('logged_in'):
-            return redirect('/auth/login?return_to=creative-writing')
+            return redirect('/auth/login?return_to=ai-lyric-writer')
         
         from flask import render_template
-        return render_template('creative_writing.html')
+        return render_template('ai_lyric_writer.html')
+    
+    @app.route("/poem-generator")
+    def poem_generator():
+        """Poem Generator tool"""
+        if not session.get('logged_in'):
+            return redirect('/auth/login?return_to=poem-generator')
+        
+        from flask import render_template
+        return render_template('poem_generator.html')
+    
+    @app.route("/story-generator") 
+    def story_generator():
+        """Story Generator tool"""
+        if not session.get('logged_in'):
+            return redirect('/auth/login?return_to=story-generator')
+        
+        from flask import render_template
+        return render_template('story_generator.html')
+    
+    @app.route("/writing-suite")
+    def writing_suite():
+        """Writing Suite tool (scripts, essays, letters)"""
+        if not session.get('logged_in'):
+            return redirect('/auth/login?return_to=writing-suite')
+        
+        from flask import render_template
+        return render_template('writing_suite.html')
     
     # HEALTH ROUTES (from health module blueprint)
     @app.route("/health")
@@ -1069,7 +1096,7 @@ def initialize_systems(app):
     """Initialize all extracted systems with their dependencies"""
     try:
         # Initialize database manager
-        from modules.shared.database import get_database
+        from database_utils import get_database
         database_manager = get_database()
         
         # Initialize OpenAI client
