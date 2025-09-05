@@ -97,11 +97,17 @@ def _is_admin() -> bool:
         if user_email in admin_emails:
             return True
         
-        # QUATERNARY CHECK: Environment variable for admin user IDs
+        # QUATERNARY CHECK: Environment variable and hardcoded admin user IDs
         user_id = _user_id()
         if user_id != "anon":
+            # Check environment variable
             admin_user_ids = os.getenv('ADMIN_USER_IDS', '').split(',')
             if user_id in admin_user_ids:
+                return True
+                
+            # Check hardcoded admin user IDs (for SoulBridge AI owner)
+            hardcoded_admin_ids = ['104']  # Your user ID from debug output
+            if user_id in hardcoded_admin_ids:
                 return True
             
         # FINAL CHECK: Admin roles in session
