@@ -605,7 +605,7 @@
             }
         }
         
-        // Beat playback (simplified - you'd implement full Tone.js sequencer here)
+        // Beat playback with Tone.js sequencer
         async function togglePlay() {
             await initAudio();
             
@@ -616,9 +616,48 @@
                 playBtn.style.background = 'linear-gradient(135deg, #ef4444, #dc2626)';
                 isPlaying = true;
                 
-                // Simple demo playback
                 console.log('🎵 Playing beat...');
-                // Here you would implement the actual Tone.js sequencer
+                
+                // Create drum sounds using Tone.js
+                const kick = new Tone.MembraneSynth({
+                    pitchDecay: 0.05,
+                    octaves: 10,
+                    oscillator: { type: "sine" },
+                    envelope: { attack: 0.001, decay: 0.4, sustain: 0.01, release: 1.4 }
+                }).toDestination();
+                
+                const snare = new Tone.NoiseSynth({
+                    noise: { type: "white" },
+                    envelope: { attack: 0.001, decay: 0.15, sustain: 0.1, release: 0.03 }
+                }).toDestination();
+                
+                const hihat = new Tone.NoiseSynth({
+                    noise: { type: "white", playbackRate: 3 },
+                    envelope: { attack: 0.001, decay: 0.05, sustain: 0.01, release: 0.02 }
+                }).toDestination();
+                
+                // Get BPM from interface or use default
+                const bpm = parseInt(document.getElementById('bpmInput')?.value) || 120;
+                Tone.Transport.bpm.value = bpm;
+                
+                // Create a simple beat pattern (4/4 time)
+                currentSequence = new Tone.Sequence((time, note) => {
+                    if (note === "kick") {
+                        kick.triggerAttackRelease("C1", "8n", time);
+                    } else if (note === "snare") {
+                        snare.triggerAttackRelease("8n", time);
+                    } else if (note === "hihat") {
+                        hihat.triggerAttackRelease("16n", time);
+                    }
+                }, [
+                    "kick", "hihat", "snare", "hihat",
+                    "kick", "hihat", "kick", "hihat", 
+                    "snare", "hihat", "kick", "hihat",
+                    "kick", "hihat", "snare", "hihat"
+                ], "16n");
+                
+                currentSequence.start(0);
+                Tone.Transport.start();
                 
             } else {
                 playBtn.textContent = '▶ Play';
@@ -626,6 +665,15 @@
                 isPlaying = false;
                 
                 console.log('⏹ Stopping beat...');
+                
+                // Stop and dispose of the current sequence
+                if (currentSequence) {
+                    currentSequence.stop();
+                    currentSequence.dispose();
+                    currentSequence = null;
+                }
+                Tone.Transport.stop();
+                Tone.Transport.cancel();
             }
         }
         
