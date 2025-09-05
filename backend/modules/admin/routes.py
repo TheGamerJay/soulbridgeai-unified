@@ -173,7 +173,7 @@ def admin_surveillance():
             'ADMIN_DASH_KEY': 'soulbridge_admin_2024'  # For template links
         }
         
-        # Try both template paths
+        # Render surveillance template
         try:
             return render_template("admin/surveillance.html", 
                                  data=surveillance_data, 
@@ -181,10 +181,21 @@ def admin_surveillance():
                                  ADMIN_DASH_KEY='soulbridge_admin_2024')
         except Exception as template_error:
             logger.error(f"Template admin/surveillance.html failed: {template_error}")
-            return render_template("admin_surveillance.html", 
-                                 data=surveillance_data, 
-                                 surveillance_metrics=surveillance_metrics,
-                                 ADMIN_DASH_KEY='soulbridge_admin_2024')
+            # Return simple HTML response instead of looking for non-existent template
+            return f"""
+            <html>
+            <head><title>Watchdog Surveillance</title></head>
+            <body>
+                <h1>🚨 Watchdog Surveillance System</h1>
+                <p><strong>System Status:</strong> Operational</p>
+                <p><strong>Active Users:</strong> {surveillance_metrics.get('active_users', 0)}</p>
+                <p><strong>Total Users:</strong> {surveillance_metrics.get('total_users', 0)}</p>
+                <p><strong>Database:</strong> {surveillance_metrics.get('database_status', 'Unknown')}</p>
+                <p><strong>Template Error:</strong> {template_error}</p>
+                <p><a href="/admin/surveillance?key=soulbridge_admin_2024">🔄 Refresh</a></p>
+            </body>
+            </html>
+            """, 200
         
     except Exception as e:
         logger.error(f"Admin surveillance error: {e}")
