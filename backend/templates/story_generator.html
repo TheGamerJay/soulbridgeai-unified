@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Story Generator - SoulBridge AI</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            height: calc(100vh - 40px);
+        }
+
+        .panel {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-header {
+            background: linear-gradient(45deg, #6a11cb, #2575fc);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .panel-header h2 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .panel-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #6a11cb;
+            box-shadow: 0 0 0 3px rgba(106, 17, 203, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .form-row-three {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+        }
+
+        .tags-input {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            padding: 8px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            min-height: 45px;
+        }
+
+        .tag {
+            background: #6a11cb;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .tag .remove {
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .tag-input {
+            border: none;
+            outline: none;
+            flex: 1;
+            min-width: 100px;
+            padding: 4px;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #6a11cb, #2575fc);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(106, 17, 203, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            margin-top: 10px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #6a11cb;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .output-section {
+            margin-bottom: 30px;
+        }
+
+        .output-section h3 {
+            color: #6a11cb;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 5px;
+        }
+
+        .character-card {
+            background: #f8f9ff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .character-card h4 {
+            color: #6a11cb;
+            margin-bottom: 8px;
+        }
+
+        .character-detail {
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        .character-detail strong {
+            color: #333;
+        }
+
+        .plot-point {
+            background: #fff8f0;
+            border-left: 4px solid #ff9500;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .plot-point h4 {
+            color: #ff9500;
+            margin-bottom: 8px;
+        }
+
+        .chapter-outline {
+            background: #f0fff8;
+            border-left: 4px solid #00c851;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .chapter-outline h4 {
+            color: #00c851;
+            margin-bottom: 8px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: #f8f9ff;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #e0e0e0;
+        }
+
+        .stat-card .value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #6a11cb;
+            margin-bottom: 5px;
+        }
+
+        .stat-card .label {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .analysis-section {
+            margin-bottom: 20px;
+        }
+
+        .recommendation {
+            background: #fff3cd;
+            border: 1px solid #ffecb5;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        .error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .usage-info {
+            background: #e7f3ff;
+            border: 1px solid #b8daff;
+            color: #004085;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 1rem;
+            color: #666;
+            border-bottom: 2px solid transparent;
+            transition: color 0.3s, border-color 0.3s;
+        }
+
+        .tab.active {
+            color: #6a11cb;
+            border-bottom-color: #6a11cb;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+            
+            .form-row,
+            .form-row-three {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Story Generator Panel -->
+        <div class="panel">
+            <div class="panel-header">
+                <h2><i class="fas fa-book-open"></i> Story Generator</h2>
+                <p>Create compelling stories with AI-powered narrative structure</p>
+            </div>
+            <div class="panel-content">
+                <div class="tabs">
+                    <button class="tab active" onclick="switchTab('outline')">Create Outline</button>
+                    <button class="tab" onclick="switchTab('generate')">Generate Story</button>
+                    <button class="tab" onclick="switchTab('analyze')">Analyze Text</button>
+                </div>
+
+                <!-- Create Outline Tab -->
+                <div id="outline-tab" class="tab-content active">
+                    <div class="usage-info" id="usage-info">
+                        Loading usage information...
+                    </div>
+
+                    <form id="outline-form">
+                        <div class="form-group">
+                            <label for="premise">Story Premise *</label>
+                            <textarea id="premise" name="premise" placeholder="Describe your story idea, main conflict, or theme..." maxlength="500" required></textarea>
+                            <small>Max 500 characters</small>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="genre">Genre *</label>
+                                <select id="genre" name="genre" required>
+                                    <option value="">Select Genre</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="length">Story Length *</label>
+                                <select id="length" name="length" required>
+                                    <option value="">Select Length</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="structure">Narrative Structure</label>
+                                <select id="structure" name="structure">
+                                    <option value="three_act">Three Act Structure</option>
+                                    <option value="heros_journey">Hero's Journey</option>
+                                    <option value="freytag_pyramid">Freytag's Pyramid</option>
+                                    <option value="seven_point">Seven Point Story</option>
+                                    <option value="save_the_cat">Save the Cat</option>
+                                    <option value="fichtean_curve">Fichtean Curve</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="character-count">Number of Characters</label>
+                                <select id="character-count" name="character_count">
+                                    <option value="3">3 Characters</option>
+                                    <option value="4">4 Characters</option>
+                                    <option value="5">5 Characters</option>
+                                    <option value="6">6 Characters</option>
+                                    <option value="7">7 Characters</option>
+                                    <option value="8">8 Characters</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="themes">Themes</label>
+                            <div class="tags-input" id="themes-tags">
+                                <input type="text" class="tag-input" placeholder="Type theme and press Enter..." onkeypress="addTheme(event)">
+                            </div>
+                            <small>Common themes: love, betrayal, redemption, power, family, friendship, coming-of-age</small>
+                        </div>
+
+                        <button type="submit" class="btn" id="generate-outline-btn">
+                            <i class="fas fa-magic"></i> Generate Story Outline
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Generate Story Tab -->
+                <div id="generate-tab" class="tab-content">
+                    <div class="form-group">
+                        <label>Story Generation</label>
+                        <p>First create a story outline, then generate the full story content or individual chapters.</p>
+                    </div>
+                    
+                    <div id="outline-summary" style="display: none;">
+                        <h3>Current Outline</h3>
+                        <div id="outline-details"></div>
+                        
+                        <div class="form-row">
+                            <button type="button" class="btn" onclick="generateFullStory()">
+                                <i class="fas fa-file-alt"></i> Generate Full Story
+                            </button>
+                            <button type="button" class="btn btn-secondary" onclick="generateChapter()">
+                                <i class="fas fa-bookmark"></i> Generate Chapter
+                            </button>
+                        </div>
+                        
+                        <div class="form-group" id="chapter-selector" style="display: none;">
+                            <label for="chapter-number">Select Chapter</label>
+                            <select id="chapter-number"></select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Analyze Text Tab -->
+                <div id="analyze-tab" class="tab-content">
+                    <form id="analyze-form">
+                        <div class="form-group">
+                            <label for="analyze-title">Story Title (Optional)</label>
+                            <input type="text" id="analyze-title" placeholder="Enter story title...">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="analyze-content">Story Content *</label>
+                            <textarea id="analyze-content" rows="10" placeholder="Paste your story text here for analysis..." required></textarea>
+                            <small>Max 100,000 characters</small>
+                        </div>
+
+                        <button type="submit" class="btn">
+                            <i class="fas fa-chart-line"></i> Analyze Story
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Panel -->
+        <div class="panel">
+            <div class="panel-header">
+                <h2><i class="fas fa-scroll"></i> Results</h2>
+                <p>Your generated stories and analysis results</p>
+            </div>
+            <div class="panel-content" id="results-content">
+                <div style="text-align: center; padding: 40px; color: #666;">
+                    <i class="fas fa-lightbulb" style="font-size: 3rem; margin-bottom: 20px; opacity: 0.3;"></i>
+                    <p>Create a story outline or analyze existing text to see results here</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentOutline = null;
+        let themes = [];
+        let userStats = null;
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            loadGenreOptions();
+            loadUserStats();
+        });
+
+        // Tab switching
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            document.querySelector(`[onclick="switchTab('${tabName}')"]`).classList.add('active');
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+        }
+
+        // Load available genres and options
+        async function loadGenreOptions() {
+            try {
+                const response = await fetch('/api/stories/genres');
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Populate genre dropdown
+                    const genreSelect = document.getElementById('genre');
+                    data.genres.forEach(genre => {
+                        const option = document.createElement('option');
+                        option.value = genre.value;
+                        option.textContent = genre.name;
+                        option.title = genre.description;
+                        genreSelect.appendChild(option);
+                    });
+
+                    // Populate length dropdown
+                    const lengthSelect = document.getElementById('length');
+                    data.lengths.forEach(length => {
+                        const option = document.createElement('option');
+                        option.value = length.value;
+                        option.textContent = length.name;
+                        option.title = length.description;
+                        lengthSelect.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading options:', error);
+            }
+        }
+
+        // Load user stats and limits
+        async function loadUserStats() {
+            try {
+                const response = await fetch('/api/stories/stats');
+                const data = await response.json();
+                
+                if (data.success) {
+                    userStats = data.stats;
+                    updateUsageDisplay();
+                }
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        // Update usage information display
+        function updateUsageDisplay() {
+            if (!userStats) return;
+
+            const usageInfo = document.getElementById('usage-info');
+            const outlineLimit = userStats.daily_limits.story_outlines;
+            const contentLimit = userStats.daily_limits.story_content;
+            const outlineUsage = userStats.current_usage.story_outlines;
+            const contentUsage = userStats.current_usage.story_content;
+
+            let html = `<strong>${userStats.user_plan.toUpperCase()} TIER</strong><br>`;
+            
+            if (outlineLimit === -1) {
+                html += `Story Outlines: Unlimited (${outlineUsage} used today)<br>`;
+            } else {
+                html += `Story Outlines: ${userStats.remaining_usage.story_outlines}/${outlineLimit} remaining today<br>`;
+            }
+            
+            if (contentLimit === -1) {
+                html += `Story Generation: Unlimited (${contentUsage} used today)`;
+            } else {
+                html += `Story Generation: ${userStats.remaining_usage.story_content}/${contentLimit} remaining today`;
+            }
+
+            usageInfo.innerHTML = html;
+        }
+
+        // Theme management
+        function addTheme(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                const input = event.target;
+                const theme = input.value.trim();
+                
+                if (theme && !themes.includes(theme)) {
+                    themes.push(theme);
+                    renderThemes();
+                    input.value = '';
+                }
+            }
+        }
+
+        function removeTheme(theme) {
+            themes = themes.filter(t => t !== theme);
+            renderThemes();
+        }
+
+        function renderThemes() {
+            const container = document.getElementById('themes-tags');
+            const input = container.querySelector('.tag-input');
+            
+            // Clear existing tags
+            container.querySelectorAll('.tag').forEach(tag => tag.remove());
+            
+            // Add tags before input
+            themes.forEach(theme => {
+                const tagElement = document.createElement('span');
+                tagElement.className = 'tag';
+                tagElement.innerHTML = `${theme} <span class="remove" onclick="removeTheme('${theme}')">&times;</span>`;
+                container.insertBefore(tagElement, input);
+            });
+        }
+
+        // Form submissions
+        document.getElementById('outline-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            await generateOutline();
+        });
+
+        document.getElementById('analyze-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            await analyzeStory();
+        });
+
+        // Generate story outline
+        async function generateOutline() {
+            const btn = document.getElementById('generate-outline-btn');
+            const resultsContent = document.getElementById('results-content');
+            
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+            
+            resultsContent.innerHTML = '<div class="loading"><div class="spinner"></div>Generating story outline...</div>';
+
+            try {
+                const formData = new FormData(document.getElementById('outline-form'));
+                const data = {
+                    premise: formData.get('premise'),
+                    genre: formData.get('genre'),
+                    length: formData.get('length'),
+                    structure: formData.get('structure'),
+                    character_count: parseInt(formData.get('character_count')),
+                    themes: themes
+                };
+
+                const response = await fetch('/api/stories/generate-outline', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    currentOutline = result.outline;
+                    displayOutline(result.outline);
+                    updateOutlineTab();
+                    loadUserStats(); // Refresh usage
+                } else {
+                    showError(result.error);
+                }
+            } catch (error) {
+                showError('Network error: ' + error.message);
+            }
+
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-magic"></i> Generate Story Outline';
+        }
+
+        // Display story outline
+        function displayOutline(outline) {
+            const resultsContent = document.getElementById('results-content');
+            
+            let html = `
+                <div class="success">✅ Story outline generated successfully!</div>
+                
+                <div class="output-section">
+                    <h3><i class="fas fa-info-circle"></i> Story Details</h3>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="value">${outline.word_count_target.toLocaleString()}</div>
+                            <div class="label">Target Words</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="value">${outline.characters.length}</div>
+                            <div class="label">Characters</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="value">${outline.chapters.length}</div>
+                            <div class="label">Chapters</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="value">${outline.themes.length}</div>
+                            <div class="label">Themes</div>
+                        </div>
+                    </div>
+                    
+                    <p><strong>Title:</strong> ${outline.title}</p>
+                    <p><strong>Genre:</strong> ${outline.genre.replace('_', ' ')}</p>
+                    <p><strong>Length:</strong> ${outline.length.replace('_', ' ')}</p>
+                    <p><strong>Structure:</strong> ${outline.structure.type.replace('_', ' ')}</p>
+                    <p><strong>Target Audience:</strong> ${outline.target_audience}</p>
+                    <p><strong>Setting:</strong> ${outline.setting.time}, ${outline.setting.place}</p>
+                    <p><strong>Premise:</strong> ${outline.premise}</p>
+                </div>
+
+                <div class="output-section">
+                    <h3><i class="fas fa-users"></i> Characters</h3>
+            `;
+            
+            outline.characters.forEach(char => {
+                html += `
+                    <div class="character-card">
+                        <h4>${char.name} (${char.role})</h4>
+                        <div class="character-detail"><strong>Archetype:</strong> ${char.archetype}</div>
+                        <div class="character-detail"><strong>Motivation:</strong> ${char.motivation}</div>
+                        <div class="character-detail"><strong>Conflict:</strong> ${char.conflict}</div>
+                        <div class="character-detail"><strong>Age:</strong> ${char.age}</div>
+                        <div class="character-detail"><strong>Occupation:</strong> ${char.occupation}</div>
+                        <div class="character-detail"><strong>Traits:</strong> ${char.traits.join(', ')}</div>
+                    </div>
+                `;
+            });
+            
+            html += `
+                </div>
+
+                <div class="output-section">
+                    <h3><i class="fas fa-route"></i> Plot Structure</h3>
+            `;
+            
+            outline.structure.plot_points.forEach(point => {
+                html += `
+                    <div class="plot-point">
+                        <h4>${point.name} (${Math.round(point.position * 100)}%)</h4>
+                        <p>${point.description}</p>
+                        <p><strong>Chapter:</strong> ${point.chapter} | <strong>Focus:</strong> ${point.characters.join(', ')} | <strong>Conflict:</strong> ${point.conflict_type}</p>
+                    </div>
+                `;
+            });
+            
+            html += `
+                </div>
+
+                <div class="output-section">
+                    <h3><i class="fas fa-list-ol"></i> Chapter Outlines</h3>
+            `;
+            
+            outline.chapters.forEach(chapter => {
+                html += `
+                    <div class="chapter-outline">
+                        <h4>Chapter ${chapter.number}: ${chapter.title}</h4>
+                        <p><strong>Goal:</strong> ${chapter.scene_goal}</p>
+                        <p><strong>Characters:</strong> ${chapter.characters.join(', ')}</p>
+                        <p><strong>Target Words:</strong> ${chapter.word_count_target}</p>
+                        <p><strong>Conflict:</strong> ${chapter.conflict_type}</p>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            
+            resultsContent.innerHTML = html;
+        }
+
+        // Update outline tab with current outline
+        function updateOutlineTab() {
+            if (!currentOutline) return;
+            
+            const outlineSummary = document.getElementById('outline-summary');
+            const outlineDetails = document.getElementById('outline-details');
+            const chapterSelect = document.getElementById('chapter-number');
+            
+            outlineSummary.style.display = 'block';
+            
+            outlineDetails.innerHTML = `
+                <div class="character-card">
+                    <h4>${currentOutline.title}</h4>
+                    <p><strong>Genre:</strong> ${currentOutline.genre.replace('_', ' ')}</p>
+                    <p><strong>Length:</strong> ${currentOutline.length.replace('_', ' ')}</p>
+                    <p><strong>Characters:</strong> ${currentOutline.characters.length}</p>
+                    <p><strong>Chapters:</strong> ${currentOutline.chapters.length}</p>
+                </div>
+            `;
+            
+            // Populate chapter selector
+            chapterSelect.innerHTML = '';
+            currentOutline.chapters.forEach((chapter, index) => {
+                const option = document.createElement('option');
+                option.value = index + 1;
+                option.textContent = `Chapter ${index + 1}: ${chapter.title}`;
+                chapterSelect.appendChild(option);
+            });
+        }
+
+        // Generate full story
+        async function generateFullStory() {
+            if (!currentOutline) return;
+            
+            const resultsContent = document.getElementById('results-content');
+            resultsContent.innerHTML = '<div class="loading"><div class="spinner"></div>Generating full story content...</div>';
+
+            try {
+                const response = await fetch('/api/stories/generate-content', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ outline: currentOutline })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    displayStoryContent(result.content, result.word_count, 'Full Story');
+                    loadUserStats(); // Refresh usage
+                } else {
+                    showError(result.error);
+                }
+            } catch (error) {
+                showError('Network error: ' + error.message);
+            }
+        }
+
+        // Generate individual chapter
+        function generateChapter() {
+            const chapterSelector = document.getElementById('chapter-selector');
+            chapterSelector.style.display = chapterSelector.style.display === 'none' ? 'block' : 'none';
+        }
+
+        // Generate specific chapter content
+        document.getElementById('chapter-number').addEventListener('change', async function() {
+            const chapterNumber = parseInt(this.value);
+            if (!currentOutline || !chapterNumber) return;
+            
+            const resultsContent = document.getElementById('results-content');
+            resultsContent.innerHTML = '<div class="loading"><div class="spinner"></div>Generating chapter content...</div>';
+
+            try {
+                const response = await fetch('/api/stories/generate-content', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        outline: currentOutline,
+                        chapter_number: chapterNumber
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    displayStoryContent(result.content, result.word_count, `Chapter ${result.chapter}`);
+                } else {
+                    showError(result.error);
+                }
+            } catch (error) {
+                showError('Network error: ' + error.message);
+            }
+        });
+
+        // Display generated story content
+        function displayStoryContent(content, wordCount, title) {
+            const resultsContent = document.getElementById('results-content');
+            
+            resultsContent.innerHTML = `
+                <div class="success">✅ ${title} generated successfully!</div>
+                
+                <div class="output-section">
+                    <h3><i class="fas fa-file-alt"></i> ${title}</h3>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="value">${wordCount.toLocaleString()}</div>
+                            <div class="label">Words</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="value">${Math.ceil(wordCount / 250)}</div>
+                            <div class="label">Pages (est.)</div>
+                        </div>
+                    </div>
+                    
+                    <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #e0e0e0; max-height: 400px; overflow-y: auto; white-space: pre-wrap; font-family: 'Georgia', serif; line-height: 1.6;">
+${content}
+                    </div>
+                    
+                    <button class="btn btn-secondary" onclick="copyToClipboard('${content.replace(/'/g, "\\'")}')">
+                        <i class="fas fa-copy"></i> Copy to Clipboard
+                    </button>
+                </div>
+            `;
+        }
+
+        // Analyze story
+        async function analyzeStory() {
+            const title = document.getElementById('analyze-title').value;
+            const content = document.getElementById('analyze-content').value;
+            const resultsContent = document.getElementById('results-content');
+            
+            resultsContent.innerHTML = '<div class="loading"><div class="spinner"></div>Analyzing story...</div>';
+
+            try {
+                const response = await fetch('/api/stories/analyze', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title, content })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    displayAnalysis(result.analysis);
+                } else {
+                    showError(result.error);
+                }
+            } catch (error) {
+                showError('Network error: ' + error.message);
+            }
+        }
+
+        // Display story analysis
+        function displayAnalysis(analysis) {
+            const resultsContent = document.getElementById('results-content');
+            
+            let html = `
+                <div class="success">✅ Story analysis completed!</div>
+                
+                <div class="output-section">
+                    <h3><i class="fas fa-chart-bar"></i> Basic Metrics</h3>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="value">${analysis.word_count.toLocaleString()}</div>
+                            <div class="label">Words</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="value">${analysis.sentence_count}</div>
+                            <div class="label">Sentences</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="value">${analysis.paragraph_count}</div>
+                            <div class="label">Paragraphs</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="value">${analysis.avg_sentence_length}</div>
+                            <div class="label">Avg Words/Sentence</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="output-section">
+                    <h3><i class="fas fa-eye"></i> Style Analysis</h3>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="value">${analysis.readability_score}</div>
+                            <div class="label">Readability Score</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="value">${analysis.point_of_view.replace('_', ' ')}</div>
+                            <div class="label">Point of View</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="value">${analysis.tense}</div>
+                            <div class="label">Tense</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="value">${analysis.dialogue_percentage}%</div>
+                            <div class="label">Dialogue</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            if (analysis.identified_themes.length > 0) {
+                html += `
+                    <div class="output-section">
+                        <h3><i class="fas fa-lightbulb"></i> Identified Themes</h3>
+                        <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                `;
+                analysis.identified_themes.forEach(theme => {
+                    html += `<span class="tag">${theme}</span>`;
+                });
+                html += '</div></div>';
+            }
+            
+            if (Object.keys(analysis.character_mentions).length > 0) {
+                html += `
+                    <div class="output-section">
+                        <h3><i class="fas fa-users"></i> Character Mentions</h3>
+                `;
+                for (const [char, count] of Object.entries(analysis.character_mentions)) {
+                    html += `<div class="character-detail"><strong>${char}:</strong> ${count} mentions</div>`;
+                }
+                html += '</div>';
+            }
+            
+            if (analysis.recommendations && analysis.recommendations.length > 0) {
+                html += `
+                    <div class="output-section">
+                        <h3><i class="fas fa-star"></i> Writing Recommendations</h3>
+                `;
+                analysis.recommendations.forEach(rec => {
+                    html += `<div class="recommendation">${rec}</div>`;
+                });
+                html += '</div>';
+            }
+            
+            resultsContent.innerHTML = html;
+        }
+
+        // Utility functions
+        function showError(message) {
+            const resultsContent = document.getElementById('results-content');
+            resultsContent.innerHTML = `<div class="error">❌ ${message}</div>`;
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Content copied to clipboard!');
+            });
+        }
+    </script>
+</body>
+</html>

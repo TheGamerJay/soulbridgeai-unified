@@ -820,6 +820,46 @@ def register_blueprints(app):
             logger.info("✅ AI Lyric Writer system registered")
         except Exception as e:
             logger.warning(f"⚠️  AI Lyric Writer system failed to register: {e}")
+
+        # Poem Generator
+        try:
+            from routes.poem_generator import poem_generator_bp
+            app.register_blueprint(poem_generator_bp)
+            logger.info("✅ Poem Generator system registered")
+        except Exception as e:
+            logger.warning(f"⚠️  Poem Generator system failed to register: {e}")
+
+        # Story Generator
+        try:
+            from routes.story_generator import story_generator_bp
+            app.register_blueprint(story_generator_bp)
+            logger.info("✅ Story Generator system registered")
+        except Exception as e:
+            logger.warning(f"⚠️  Story Generator system failed to register: {e}")
+
+        # Writing Suite
+        try:
+            from routes.writing_suite import writing_suite_bp
+            app.register_blueprint(writing_suite_bp)
+            logger.info("✅ Writing Suite system registered")
+        except Exception as e:
+            logger.warning(f"⚠️  Writing Suite system failed to register: {e}")
+
+        # Export System
+        try:
+            from routes.export_routes import export_bp
+            app.register_blueprint(export_bp)
+            logger.info("✅ Export system registered")
+        except Exception as e:
+            logger.warning(f"⚠️  Export system failed to register: {e}")
+
+        # Health Monitoring
+        try:
+            from routes.health_endpoints import health_bp
+            app.register_blueprint(health_bp)
+            logger.info("✅ Health monitoring endpoints registered")
+        except Exception as e:
+            logger.warning(f"⚠️  Health monitoring failed to register: {e}")
         
         # AI Images
         from modules.ai_images import ai_images_bp

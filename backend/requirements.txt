@@ -36,6 +36,8 @@ watchdog>=3.0.0
 psutil>=5.9.0
 pytz>=2023.3
 sentence-transformers>=2.2.0
+reportlab>=4.0.0
+python-docx>=0.8.11
 # Audio processing (local, fast effects) - TEMPORARILY DISABLED FOR BUILD
 # numpy==1.26.4
 # scipy==1.11.4
