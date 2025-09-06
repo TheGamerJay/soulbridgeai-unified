@@ -73,7 +73,8 @@ def admin_logout():
         if not session.get('admin_authenticated') and not session.get('logged_in'):
             return jsonify({"error": "Admin access required"}), 403
     clear_admin_session()
-    flash("Admin logged out successfully", "info")
+    # Clear any lingering flash messages to prevent them showing on user pages
+    session.pop('_flashes', None)
     return redirect("/")
 
 @admin_bp.route("/dashboard")
@@ -287,13 +288,12 @@ def admin_reset_all_trials():
         
         logger.warning(f"🚨 ADMIN ACTION: All trials reset by {session.get('admin_email')} - {affected_rows} users affected")
         
-        flash(f"Successfully reset {affected_rows} trials", "success")
-        return redirect("/admin/dashboard")
+        # Return JSON response instead of flash message to prevent showing on user login
+        return jsonify({"success": True, "message": f"Successfully reset {affected_rows} trials", "affected_rows": affected_rows})
         
     except Exception as e:
         logger.error(f"Admin reset all trials error: {e}")
-        flash("Failed to reset trials", "error")
-        return redirect("/admin/dashboard")
+        return jsonify({"success": False, "error": "Failed to reset trials"}), 500
 
 @admin_bp.route("/trials/expire-all")
 def admin_expire_all_trials():
