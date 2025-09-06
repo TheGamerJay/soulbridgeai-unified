@@ -21,7 +21,14 @@ logger = logging.getLogger(__name__)
 
 def get_all_companions():
     """Get complete list of all companions with their tier information"""
-    return [
+    # Import from the centralized companion data source
+    try:
+        from ..companions.companion_data import get_all_companions as get_centralized_companions
+        return get_centralized_companions()
+    except ImportError:
+        # Fallback to hardcoded list if companion module not available
+        logger.warning("Could not import centralized companion data, using fallback")
+        return [
         # Bronze companions (10)
         {"id": "gamerjay_bronze", "name": "GamerJay", "tier": "bronze", "image_url": "/static/logos/GamerJay_Free_companion.png"},
         {"id": "blayzo_bronze", "name": "Blayzo", "tier": "bronze", "image_url": "/static/logos/Blayzo.png"},
@@ -55,11 +62,11 @@ def get_all_companions():
         {"id": "dr_madjay_gold", "name": "Dr. MadJay", "tier": "gold", "image_url": "/static/logos/Dr. MadJay.png"},
         
         # Referral companions (5)
-        {"id": "blayzike", "name": "Blayzike", "tier": "silver", "image_url": "/static/referral/blayzike.png"},
-        {"id": "nyxara", "name": "Nyxara", "tier": "silver", "image_url": "/static/logos/Nyxara.png"},
-        {"id": "blazelian", "name": "Blazelian", "tier": "gold", "image_url": "/static/referral/blazelian.png"},
-        {"id": "claude_referral", "name": "Claude Referral", "tier": "gold", "image_url": "/static/referral/claude_referral.png"},
-        {"id": "blayzo_referral", "name": "Blayzo Referral", "tier": "gold", "image_url": "/static/logos/Blayzo_Referral.png"},
+        {"id": "blayzike", "name": "Blayzike", "tier": "silver", "image_url": "/static/referral/blayzike.png", "min_referrals": 2},
+        {"id": "nyxara", "name": "Nyxara", "tier": "silver", "image_url": "/static/logos/Nyxara.png", "min_referrals": 6},
+        {"id": "blazelian", "name": "Blazelian", "tier": "gold", "image_url": "/static/referral/blazelian.png", "min_referrals": 4},
+        {"id": "claude_referral", "name": "Claude Referral", "tier": "gold", "image_url": "/static/referral/claude_referral.png", "min_referrals": 8},
+        {"id": "blayzo_referral", "name": "Blayzo Referral", "tier": "gold", "image_url": "/static/logos/Blayzo_Referral.png", "min_referrals": 10},
     ]
 
 def get_companion_by_id(companion_id):
