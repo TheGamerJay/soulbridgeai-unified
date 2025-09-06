@@ -89,16 +89,30 @@ def api_user_profile():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
         if not profile_service:
-            logger.error("Profile service is None - initialization may have failed")
+            logger.error("Profile service is None - attempting to initialize...")
             # Try to initialize the service if not already done
             try:
                 from flask import current_app
+                from database_utils import get_database
+                
+                # Try multiple methods to get database
+                database = None
                 if hasattr(current_app, 'database_manager'):
-                    profile_service = ProfileService(current_app.database_manager)
-                    logger.info("Profile service re-initialized")
+                    database = current_app.database_manager
+                    logger.info("Found database_manager in current_app")
                 else:
-                    logger.error("No database_manager found in current_app")
+                    # Fallback to direct database connection
+                    database = get_database()
+                    logger.info("Using direct database connection as fallback")
+                
+                if database:
+                    global profile_service
+                    profile_service = ProfileService(database)
+                    logger.info("Profile service re-initialized successfully")
+                else:
+                    logger.error("No database connection available")
                     return jsonify({"success": False, "error": "Database service not available"}), 503
+                    
             except Exception as init_error:
                 logger.error(f"Failed to re-initialize profile service: {init_error}")
                 return jsonify({"success": False, "error": "Profile service initialization failed"}), 503
