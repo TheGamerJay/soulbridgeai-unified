@@ -474,7 +474,11 @@
                                 </div>
                                 <div class="netflix-info">
                                     <h3>{{ companion.name }}</h3>
-                                    <p class="unlock-tier">Requires {{ companion.tier|title }} tier</p>
+                                    {% if companion.get('min_referrals', 0) > 0 %}
+                                        <p class="unlock-tier">Requires {{ companion.min_referrals }} referrals</p>
+                                    {% else %}
+                                        <p class="unlock-tier">Requires {{ companion.tier|title }} tier</p>
+                                    {% endif %}
                                     <div class="netflix-badges">
                                         <span class="badge {{ companion.tier }}">🥉 Bronze</span>
                                     </div>
