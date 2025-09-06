@@ -34,15 +34,13 @@ def can_access_companion(user_plan: str, companion_tier: str, trial_active: bool
 
 def user_can_access_companion(user_plan: str, trial_active: bool, referrals: int, comp: dict) -> bool:
     """Check if user can access a specific companion (including referral requirements)"""
-    # Check tier access first
-    if not can_access_companion(user_plan, comp["tier"], trial_active):
-        return False
+    # Special case: Referral companions are unlocked by referrals, not subscription tier
+    # Any user with enough referrals can access them regardless of tier
+    if comp.get("min_referrals", 0) > 0:
+        return referrals >= comp["min_referrals"]
     
-    # Check referral requirements
-    if comp.get("min_referrals", 0) > referrals:
-        return False
-    
-    return True
+    # Regular tier-based access for non-referral companions
+    return can_access_companion(user_plan, comp["tier"], trial_active)
 
 def companion_unlock_state_new(user_plan: str, trial_active: bool, referrals: int) -> dict:
     """Get unlock state for all companions"""
@@ -109,8 +107,8 @@ def get_user_companion_access() -> dict:
     user_plan = session.get('user_plan', 'bronze')
     trial_active = session.get('trial_active', False)
     
-    # Get referral count (would need to be implemented)
-    referrals = 0  # Placeholder
+    # Get actual referral count from session
+    referrals = int(session.get('referrals', 0))
     
     return {
         'user_plan': user_plan,
@@ -132,6 +130,6 @@ def require_companion_access(companion_id: str) -> bool:
     
     user_plan = session.get('user_plan', 'bronze')
     trial_active = session.get('trial_active', False)
-    referrals = 0  # Placeholder - would get from database
+    referrals = int(session.get('referrals', 0))
     
     return user_can_access_companion(user_plan, trial_active, referrals, companion)
