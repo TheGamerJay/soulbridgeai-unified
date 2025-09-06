@@ -273,6 +273,19 @@ def referrals_me():
         
         # Generate share URL (mock for now)
         share_url = f"https://soulbridgeai.com/register?ref={user_id}"
+        referral_code = f"SOUL{user_id}"
+        
+        # Generate social sharing links
+        from urllib.parse import quote
+        message = f"Join me on SoulBridge AI - the ultimate AI companion platform! Use my code {referral_code} to get started: {share_url}"
+        encoded_message = quote(message)
+        encoded_url = quote(share_url)
+        
+        social_sharing = {
+            "twitter": f"https://twitter.com/intent/tweet?text={encoded_message}",
+            "facebook": f"https://www.facebook.com/sharer/sharer.php?u={encoded_url}",
+            "whatsapp": f"https://wa.me/?text={encoded_message}"
+        }
         
         return jsonify({
             "success": True,
@@ -280,7 +293,8 @@ def referrals_me():
             "progress": progress, 
             "next_reward": next_reward,
             "share_url": share_url,
-            "referral_code": f"SOUL{user_id}"
+            "referral_code": referral_code,
+            "social_sharing": social_sharing
         })
         
     except Exception as e:
