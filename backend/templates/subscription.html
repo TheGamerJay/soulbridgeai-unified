@@ -696,10 +696,10 @@
 
   <!-- Tier Comparison -->
   <div style="text-align: center; margin: 60px 0; padding: 40px 20px; background: rgba(15, 23, 42, 0.3); border-radius: 20px; border: 1px solid rgba(34, 211, 238, 0.2);">
-    <h3 style="color: #22d3ee; margin-bottom: 20px; font-size: 1.8rem;">🥇 Gold Plan = Everything Included</h3>
+    <h3 style="color: #22d3ee; margin-bottom: 20px; font-size: 1.8rem;">🥇 Gold Plan = Ultimate Experience</h3>
     <p style="color: #94a3b8; font-size: 1.1rem; max-width: 600px; margin: 0 auto;">
-      All premium features that were previously separate add-ons are now included in the Gold Plan. 
-      Get the complete SoulBridge AI experience with one simple subscription.
+      Unlock unlimited access to all premium features including AI image generation, voice journaling, relationship profiles, meditation sessions, and exclusive Gold-tier companions. 
+      Experience the full potential of SoulBridge AI with our most comprehensive plan.
     </p>
   </div>
 
@@ -1099,8 +1099,15 @@ async function selectPlanViaAPI(planType, billing) {
     const statusData = await statusResponse.json();
     
     if (!statusData.logged_in) {
-      alert('Please log in to subscribe to a plan');
-      window.location.href = '/login?return_to=subscription';
+      // Show a better user experience - offer to create account or login
+      const userChoice = confirm('To subscribe to a plan, you need a SoulBridge AI account.\n\nClick OK to create a free account, or Cancel to login with existing account.');
+      if (userChoice) {
+        // Redirect to signup with plan selection
+        window.location.href = '/auth/register?return_to=subscription&selected_plan=' + planType + '&billing=' + billing;
+      } else {
+        // Redirect to login with plan selection  
+        window.location.href = '/auth/login?return_to=subscription&selected_plan=' + planType + '&billing=' + billing;
+      }
       return;
     }
 

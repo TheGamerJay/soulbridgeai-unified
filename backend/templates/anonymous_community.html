@@ -2042,6 +2042,8 @@
 
         // Utility Functions
         function refreshFeed() {
+            // Reload both user reactions and posts to ensure consistency
+            loadUserReactions();
             loadFeed();
         }
 
