@@ -1110,10 +1110,13 @@
                     Object.entries(data.reactions).forEach(([postId, emoji]) => {
                         userReactions.set(parseInt(postId), emoji);
                     });
+                    console.log(`Loaded ${Object.keys(data.reactions).length} user reactions`);
+                } else {
+                    console.log('No user reactions data received:', data);
                 }
             } catch (error) {
                 // Silent fail - reactions will start fresh
-                console.log('Could not load user reactions, starting fresh');
+                console.log('Could not load user reactions, starting fresh:', error);
             }
         }
 
@@ -2041,9 +2044,9 @@
         }
 
         // Utility Functions
-        function refreshFeed() {
-            // Reload both user reactions and posts to ensure consistency
-            loadUserReactions();
+        async function refreshFeed() {
+            // Reload user reactions first, then posts to ensure consistency
+            await loadUserReactions();
             loadFeed();
         }
 
