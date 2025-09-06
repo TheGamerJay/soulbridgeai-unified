@@ -58,7 +58,7 @@ class SessionAPI:
     def get_user_status(self) -> Dict[str, Any]:
         """Get current user status and session info"""
         try:
-            if not session.get('user_authenticated'):
+            if not session.get('logged_in'):
                 return {
                     "authenticated": False,
                     "user_id": None,
@@ -125,7 +125,7 @@ class SessionAPI:
     def sync_trial_session(self) -> Dict[str, Any]:
         """Sync trial status with session"""
         try:
-            if not session.get('user_authenticated'):
+            if not session.get('logged_in'):
                 return {
                     "success": False,
                     "error": "Not authenticated"
