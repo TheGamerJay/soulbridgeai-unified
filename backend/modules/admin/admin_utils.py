@@ -50,14 +50,14 @@ def get_active_users_count() -> int:
         if db.use_postgres:
             cursor.execute("""
                 SELECT COUNT(DISTINCT user_id) 
-                FROM user_activity 
-                WHERE activity_time >= NOW() - INTERVAL '24 hours'
+                FROM user_activity_log 
+                WHERE created_at >= NOW() - INTERVAL '24 hours'
             """)
         else:
             cursor.execute("""
                 SELECT COUNT(DISTINCT user_id) 
-                FROM user_activity 
-                WHERE activity_time >= datetime('now', '-24 hours')
+                FROM user_activity_log 
+                WHERE created_at >= datetime('now', '-24 hours')
             """)
         
         result = cursor.fetchone()
