@@ -9,10 +9,10 @@ logger = logging.getLogger(__name__)
 # Tier limits based on CLAUDE.md specification
 TIER_LIMITS = {
     "bronze": {
-        "decoder": 3,
-        "fortune": 3,
-        "horoscope": 3,
-        "creative_writer": 2,
+        "decoder": 5,
+        "fortune": 5,
+        "horoscope": 5,
+        "creative_writer": 5,
         "credits": 0,
         "premium_features": False,
         "mini_studio": False,

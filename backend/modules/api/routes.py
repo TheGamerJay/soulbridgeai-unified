@@ -166,17 +166,19 @@ def session_refresh():
         }), 500
 
 @api_bp.route('/user-status', methods=['GET'])
-@requires_login
 def user_status():
-    """Get current user status"""
+    """Get current user status (handles both authenticated and unauthenticated users)"""
     try:
         status = session_api.get_user_status()
+        # Add logged_in field for frontend compatibility
+        status["logged_in"] = status.get("authenticated", False)
         return jsonify(status)
         
     except Exception as e:
         logger.error(f"Error in user status endpoint: {e}")
         return jsonify({
             "authenticated": False,
+            "logged_in": False,
             "error": str(e)
         }), 500
 
