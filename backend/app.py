@@ -696,6 +696,32 @@ def create_app():
                              ad_free=ad_free,
                              user_session=session)
     
+    @app.route("/soul-riddle")
+    def soul_riddle():
+        """Soul Riddle - Interactive brain teaser mini game"""
+        if not session.get('logged_in'):
+            return redirect('/auth/login?return_to=soul-riddle')
+        
+        from flask import render_template
+        
+        # Check if user has ad-free subscription
+        user_id = session.get('user_id')
+        ad_free = False
+        if user_id:
+            try:
+                from modules.user_profile.profile_service import ProfileService
+                profile_service = ProfileService()
+                user_profile_result = profile_service.get_user_profile(user_id)
+                user_profile = user_profile_result.get('user') if user_profile_result.get('success') else None
+                ad_free = user_profile.get('ad_free', False) if user_profile else False
+            except Exception as e:
+                logger.error(f"Error checking ad-free status: {e}")
+                ad_free = False
+        
+        return render_template('soul_riddle.html', 
+                             ad_free=ad_free,
+                             user_session=session)
+    
     # LIBRARY ROUTES (handled by library module blueprint)
     # @app.route("/library") - DISABLED: Using blueprint instead
     

@@ -1,0 +1,1082 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soul Riddle - SoulBridge AI</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    
+    <!-- Ad-Free Detection Script -->
+    <script>
+        window.__AD_FREE__ = {{ 'true' if ad_free else 'false' }};
+        window.__USER_SESSION__ = {{ user_session | tojson | safe }};
+    </script>
+    
+    <!-- Conditional AdSense Loading (Only for non-ad-free users) -->
+    <script>
+        (function() {
+            var adFree = (window.__AD_FREE__ === true || window.__AD_FREE__ === 'true');
+            if (!adFree) {
+                var s = document.createElement('script');
+                s.async = true;
+                s.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3869471953521437";
+                s.crossOrigin = "anonymous";
+                document.head.appendChild(s);
+                console.log('📺 AdSense loaded for Soul Riddle page');
+            } else {
+                console.log('🚫 AdSense blocked - user has ad-free subscription');
+            }
+        })();
+    </script>
+    
+    <!-- React dependencies -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Zustand for state management -->
+    <script src="https://unpkg.com/zustand@4.4.1/vanilla.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a3e 50%, #2a1810 100%);
+            color: #e2e8f0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .soul-riddle-game {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .game-header {
+            background: rgba(15, 15, 35, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 2px solid rgba(139, 92, 246, 0.3);
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .game-title h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(45deg, #8b5cf6, #06b6d4, #10b981);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 5px;
+        }
+
+        .game-title p {
+            color: rgba(226, 232, 240, 0.7);
+            font-size: 1.1rem;
+        }
+
+        .close-btn {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid #ef4444;
+            color: #ef4444;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+        }
+
+        .close-btn:hover {
+            background: rgba(239, 68, 68, 0.3);
+            transform: scale(1.05);
+        }
+
+        .game-content {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .loading-screen {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .loading-spinner {
+            font-size: 4rem;
+            animation: spin 2s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 1.5rem;
+            color: rgba(226, 232, 240, 0.8);
+            margin-bottom: 20px;
+        }
+
+        .loading-subtext {
+            color: rgba(226, 232, 240, 0.6);
+            font-size: 1rem;
+        }
+
+        /* Navigation buttons */
+        .nav-buttons {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 1001;
+        }
+
+        .nav-btn {
+            background: rgba(15, 15, 35, 0.9);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            color: #e2e8f0;
+            padding: 10px 15px;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .nav-btn:hover {
+            background: rgba(139, 92, 246, 0.2);
+            border-color: rgba(139, 92, 246, 0.5);
+            transform: translateY(-2px);
+        }
+
+        /* Ad slots for non-ad-free users */
+        .ad-container {
+            margin: 20px 0;
+            text-align: center;
+            padding: 10px;
+            border: 1px dashed rgba(139, 92, 246, 0.3);
+            border-radius: 8px;
+            background: rgba(15, 15, 35, 0.3);
+        }
+
+        .ad-container.hidden {
+            display: none;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .game-header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+            
+            .game-title h1 {
+                font-size: 2rem;
+            }
+            
+            .nav-buttons {
+                position: relative;
+                top: auto;
+                left: auto;
+                justify-content: center;
+                margin-bottom: 20px;
+            }
+            
+            .game-content {
+                padding: 10px;
+            }
+        }
+
+        /* Error fallback styles */
+        .error-message {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid #ef4444;
+            color: #ef4444;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            margin: 20px;
+        }
+
+        .error-message h3 {
+            margin-bottom: 10px;
+            font-size: 1.5rem;
+        }
+
+        .error-message p {
+            color: rgba(239, 68, 68, 0.8);
+            margin-bottom: 15px;
+        }
+
+        .retry-btn {
+            background: rgba(139, 92, 246, 0.2);
+            border: 1px solid #8b5cf6;
+            color: #8b5cf6;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .retry-btn:hover {
+            background: rgba(139, 92, 246, 0.3);
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation buttons -->
+    <div class="nav-buttons">
+        <a href="javascript:history.back()" class="nav-btn">
+            ← Back to Chat
+        </a>
+        <a href="/intro" class="nav-btn">
+            🏠 Home
+        </a>
+    </div>
+
+    <!-- Ad slot for non-ad-free users (top banner) -->
+    <div class="ad-container" id="top-ad" style="display: none;">
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="ca-pub-3869471953521437"
+             data-ad-slot="1234567890"
+             data-ad-format="auto"
+             data-full-width-responsive="true"></ins>
+    </div>
+
+    <!-- Main game container -->
+    <div id="soul-riddle-root" class="soul-riddle-game">
+        <!-- Loading screen while React loads -->
+        <div class="game-header">
+            <div class="game-title">
+                <h1>🧩 Soul Riddle</h1>
+                <p>Test your wits with mystical brain teasers</p>
+            </div>
+        </div>
+        
+        <div class="game-content">
+            <div class="loading-screen">
+                <div class="loading-spinner">🧩</div>
+                <div class="loading-text">Loading Soul Riddle...</div>
+                <div class="loading-subtext">Prepare your mind for the challenge ahead</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ad slot for non-ad-free users (bottom banner) -->
+    <div class="ad-container" id="bottom-ad" style="display: none;">
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="ca-pub-3869471953521437"
+             data-ad-slot="9876543210"
+             data-ad-format="auto"
+             data-full-width-responsive="true"></ins>
+    </div>
+
+    <!-- Error fallback if React fails to load -->
+    <div id="react-error-fallback" style="display: none;">
+        <div class="error-message">
+            <h3>🔧 Technical Difficulty</h3>
+            <p>The Soul Riddle game couldn't load properly. This might be due to a network issue or browser compatibility.</p>
+            <button class="retry-btn" onclick="location.reload()">
+                🔄 Retry Loading
+            </button>
+            <br><br>
+            <a href="javascript:history.back()" class="nav-btn">← Return to Chat</a>
+        </div>
+    </div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useCallback } = React;
+
+        // Simple Zustand-like store implementation for this page
+        const createStore = (createState) => {
+            let state;
+            let listeners = new Set();
+            
+            const setState = (partial) => {
+                const nextState = typeof partial === 'function' ? partial(state) : partial;
+                state = Object.assign({}, state, nextState);
+                listeners.forEach(listener => listener(state));
+            };
+            
+            const getState = () => state;
+            
+            const subscribe = (listener) => {
+                listeners.add(listener);
+                return () => listeners.delete(listener);
+            };
+            
+            state = createState(setState, getState);
+            
+            return { getState, setState, subscribe };
+        };
+
+        // Game Store
+        const gameStore = createStore((set, get) => ({
+            user: {
+                credits: 100,
+                plan: window.__USER_SESSION__?.plan || 'bronze',
+                trial: {
+                    active: false,
+                    timeRemaining: 0,
+                    creditsRemaining: 0,
+                },
+            },
+            
+            session: null,
+            
+            stats: {
+                totalPlayed: parseInt(localStorage.getItem('soulriddle_total_played') || '0'),
+                totalCorrect: parseInt(localStorage.getItem('soulriddle_total_correct') || '0'),
+                totalWrong: parseInt(localStorage.getItem('soulriddle_total_wrong') || '0'),
+                streak: 0,
+                bestStreak: parseInt(localStorage.getItem('soulriddle_best_streak') || '0'),
+            },
+            
+            settings: {
+                soundEnabled: localStorage.getItem('soulriddle_sound') !== 'false',
+                difficulty: localStorage.getItem('soulriddle_difficulty') || 'medium',
+                autoAdvance: localStorage.getItem('soulriddle_auto_advance') !== 'false',
+            },
+            
+            riddles: [
+                {
+                    id: '1',
+                    question: 'What has keys but no locks, space but no room, and you can enter but not go inside?',
+                    answer: 'keyboard',
+                    difficulty: 'easy',
+                    category: 'Technology',
+                    hint: 'You use it to type'
+                },
+                {
+                    id: '2', 
+                    question: 'I speak without a mouth and hear without ears. I have no body, but come alive with wind. What am I?',
+                    answer: 'echo',
+                    difficulty: 'medium',
+                    category: 'Nature',
+                    hint: 'Sound that returns to you'
+                },
+                {
+                    id: '3',
+                    question: 'The more you take, the more you leave behind. What am I?',
+                    answer: 'footsteps',
+                    difficulty: 'easy',
+                    category: 'Movement',
+                    hint: 'You make them when walking'
+                },
+                {
+                    id: '4',
+                    question: 'What can travel around the world while staying in a corner?',
+                    answer: 'stamp',
+                    difficulty: 'medium',
+                    category: 'Objects',
+                    hint: 'Found on letters'
+                },
+                {
+                    id: '5',
+                    question: 'I am not alive, but I grow; I don\'t have lungs, but I need air; I don\'t have a mouth, but water kills me.',
+                    answer: 'fire',
+                    difficulty: 'hard',
+                    category: 'Elements',
+                    hint: 'Hot and bright'
+                }
+            ],
+
+            // Actions
+            startGame: (mode, difficulty) => {
+                const state = get();
+                const availableRiddles = state.riddles.filter(r => r.difficulty === difficulty);
+                
+                if (availableRiddles.length === 0) return;
+                
+                const newSession = {
+                    mode,
+                    difficulty,
+                    startTime: Date.now(),
+                    currentRiddle: availableRiddles[0],
+                    riddleIndex: 1,
+                    score: 0,
+                    lives: mode === 'classic' ? 3 : mode === 'timed' ? 1 : Infinity,
+                    timeRemaining: mode === 'timed' ? 300 : undefined,
+                    isGameOver: false,
+                    isPaused: false,
+                    hintsUsed: 0,
+                    riddlesAnswered: [],
+                };
+                
+                set({ session: newSession });
+            },
+            
+            endGame: () => set(state => ({
+                session: state.session ? {
+                    ...state.session,
+                    endTime: Date.now(),
+                    isGameOver: true,
+                } : null
+            })),
+            
+            answerRiddle: (answer, timeSpent) => {
+                const state = get();
+                const session = state.session;
+                
+                if (!session || !session.currentRiddle) return false;
+                
+                const isCorrect = answer.toLowerCase().trim() === session.currentRiddle.answer.toLowerCase();
+                
+                // Update stats
+                const newStats = {
+                    ...state.stats,
+                    totalPlayed: state.stats.totalPlayed + 1,
+                    totalCorrect: isCorrect ? state.stats.totalCorrect + 1 : state.stats.totalCorrect,
+                    totalWrong: isCorrect ? state.stats.totalWrong : state.stats.totalWrong + 1,
+                    streak: isCorrect ? state.stats.streak + 1 : 0,
+                    bestStreak: isCorrect ? Math.max(state.stats.bestStreak, state.stats.streak + 1) : state.stats.bestStreak,
+                };
+                
+                // Save to localStorage
+                localStorage.setItem('soulriddle_total_played', newStats.totalPlayed.toString());
+                localStorage.setItem('soulriddle_total_correct', newStats.totalCorrect.toString());
+                localStorage.setItem('soulriddle_total_wrong', newStats.totalWrong.toString());
+                localStorage.setItem('soulriddle_best_streak', newStats.bestStreak.toString());
+                
+                // Update session
+                set({
+                    session: {
+                        ...session,
+                        score: isCorrect ? session.score + (session.currentRiddle.difficulty === 'easy' ? 10 : session.currentRiddle.difficulty === 'medium' ? 20 : 30) : session.score,
+                        lives: !isCorrect && session.mode !== 'endless' ? Math.max(0, session.lives - 1) : session.lives,
+                        riddlesAnswered: [...session.riddlesAnswered, session.currentRiddle],
+                    },
+                    stats: newStats
+                });
+                
+                // Check game over
+                if (!isCorrect && session.lives <= 1 && session.mode !== 'endless') {
+                    setTimeout(() => get().endGame(), 1000);
+                }
+                
+                return isCorrect;
+            },
+            
+            nextRiddle: () => {
+                const state = get();
+                const session = state.session;
+                
+                if (!session) return;
+                
+                const availableRiddles = state.riddles.filter(r => r.difficulty === session.difficulty);
+                
+                if (availableRiddles.length === 0) {
+                    get().endGame();
+                    return;
+                }
+                
+                const nextRiddle = availableRiddles[session.riddleIndex % availableRiddles.length];
+                
+                set({
+                    session: {
+                        ...session,
+                        currentRiddle: nextRiddle,
+                        riddleIndex: session.riddleIndex + 1,
+                    }
+                });
+            },
+        }));
+
+        // Hook to use the store
+        const useGameStore = () => {
+            const [state, setState] = useState(gameStore.getState());
+            
+            useEffect(() => {
+                return gameStore.subscribe(setState);
+            }, []);
+            
+            return state;
+        };
+
+        // Main Soul Riddle Component
+        const SoulRiddleGame = () => {
+            const store = useGameStore();
+            const [userAnswer, setUserAnswer] = useState('');
+            const [showHint, setShowHint] = useState(false);
+            const [riddleStartTime, setRiddleStartTime] = useState(Date.now());
+            const [gameMode, setGameMode] = useState('classic');
+            const [gameDifficulty, setGameDifficulty] = useState('medium');
+            const [showStats, setShowStats] = useState(false);
+            const [currentTime, setCurrentTime] = useState(0);
+
+            useEffect(() => {
+                let interval;
+                
+                if (store.session && !store.session.isPaused && !store.session.isGameOver) {
+                    interval = setInterval(() => {
+                        setCurrentTime(Date.now() - riddleStartTime);
+                        
+                        if (store.session.timeRemaining !== undefined) {
+                            const elapsed = Math.floor((Date.now() - store.session.startTime) / 1000);
+                            const remaining = Math.max(0, 300 - elapsed);
+                            
+                            if (remaining <= 0) {
+                                gameStore.getState().endGame();
+                            }
+                        }
+                    }, 100);
+                }
+                
+                return () => {
+                    if (interval) clearInterval(interval);
+                };
+            }, [store.session, riddleStartTime]);
+
+            useEffect(() => {
+                if (store.session?.currentRiddle) {
+                    setRiddleStartTime(Date.now());
+                    setCurrentTime(0);
+                    setUserAnswer('');
+                    setShowHint(false);
+                }
+            }, [store.session?.currentRiddle]);
+
+            const handleStartGame = () => {
+                gameStore.getState().startGame(gameMode, gameDifficulty);
+            };
+
+            const handleSubmitAnswer = (e) => {
+                e.preventDefault();
+                
+                if (!store.session || !userAnswer.trim()) return;
+                
+                const timeSpent = Math.floor(currentTime / 1000);
+                const isCorrect = gameStore.getState().answerRiddle(userAnswer, timeSpent);
+                
+                setTimeout(() => {
+                    if (!gameStore.getState().session?.isGameOver) {
+                        gameStore.getState().nextRiddle();
+                    }
+                }, 1500);
+            };
+
+            const formatTime = (ms) => {
+                const seconds = Math.floor(ms / 1000);
+                const minutes = Math.floor(seconds / 60);
+                const remainingSeconds = seconds % 60;
+                
+                if (minutes > 0) {
+                    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+                }
+                return `${remainingSeconds}s`;
+            };
+
+            const getDifficultyColor = (difficulty) => {
+                switch (difficulty) {
+                    case 'easy': return '#10B981';
+                    case 'medium': return '#F59E0B';
+                    case 'hard': return '#EF4444';
+                    default: return '#6B7280';
+                }
+            };
+
+            // Render game menu if no session
+            if (!store.session) {
+                return (
+                    <div className="soul-riddle-game">
+                        <div className="game-header">
+                            <div className="game-title">
+                                <h1>🧩 Soul Riddle</h1>
+                                <p>Test your wits with mystical brain teasers</p>
+                            </div>
+                        </div>
+
+                        <div className="game-content">
+                            <div style={{
+                                background: 'rgba(15, 15, 35, 0.8)',
+                                borderRadius: '20px',
+                                padding: '40px',
+                                maxWidth: '600px',
+                                width: '100%',
+                                border: '2px solid rgba(139, 92, 246, 0.3)',
+                                textAlign: 'center'
+                            }}>
+                                <div style={{ marginBottom: '30px' }}>
+                                    <div style={{
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '15px',
+                                        background: 'rgba(139, 92, 246, 0.2)',
+                                        padding: '15px 25px',
+                                        borderRadius: '12px',
+                                        border: '1px solid rgba(139, 92, 246, 0.3)',
+                                        marginBottom: '20px'
+                                    }}>
+                                        <span style={{ fontSize: '1.5rem' }}>💎</span>
+                                        <span style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>{store.user.credits}</span>
+                                        <span style={{ color: 'rgba(226, 232, 240, 0.7)' }}>Credits</span>
+                                    </div>
+                                    <div style={{
+                                        display: 'inline-block',
+                                        background: store.user.plan === 'gold' ? 'linear-gradient(45deg, #F59E0B, #EAB308)' : 
+                                                   store.user.plan === 'silver' ? 'linear-gradient(45deg, #6B7280, #9CA3AF)' : 
+                                                   'linear-gradient(45deg, #CD7F32, #B8860B)',
+                                        color: '#000',
+                                        padding: '8px 16px',
+                                        borderRadius: '20px',
+                                        fontWeight: 'bold',
+                                        fontSize: '0.9rem',
+                                        textTransform: 'uppercase'
+                                    }}>
+                                        {store.user.plan}
+                                    </div>
+                                </div>
+
+                                <h3 style={{ marginBottom: '20px', color: '#8b5cf6' }}>Choose Game Mode</h3>
+                                <div style={{ display: 'flex', gap: '15px', marginBottom: '30px', flexWrap: 'wrap' }}>
+                                    {(['classic', 'timed', 'endless']).map((mode) => (
+                                        <button
+                                            key={mode}
+                                            style={{
+                                                flex: '1',
+                                                minWidth: '150px',
+                                                background: gameMode === mode ? 'rgba(139, 92, 246, 0.3)' : 'rgba(15, 15, 35, 0.8)',
+                                                border: `2px solid ${gameMode === mode ? '#8b5cf6' : 'rgba(139, 92, 246, 0.3)'}`,
+                                                color: '#e2e8f0',
+                                                padding: '15px',
+                                                borderRadius: '12px',
+                                                cursor: 'pointer',
+                                                transition: 'all 0.3s ease'
+                                            }}
+                                            onClick={() => setGameMode(mode)}
+                                        >
+                                            <div style={{ fontSize: '2rem', marginBottom: '8px' }}>
+                                                {mode === 'classic' ? '🎯' : mode === 'timed' ? '⏰' : '∞'}
+                                            </div>
+                                            <div style={{ fontWeight: 'bold', marginBottom: '5px', textTransform: 'capitalize' }}>
+                                                {mode}
+                                            </div>
+                                            <div style={{ fontSize: '0.8rem', color: 'rgba(226, 232, 240, 0.7)' }}>
+                                                {mode === 'classic' && '3 lives, increasing difficulty'}
+                                                {mode === 'timed' && '5 minutes, score as many as possible'}
+                                                {mode === 'endless' && 'No limits, pure brain training'}
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
+
+                                <h3 style={{ marginBottom: '15px', color: '#8b5cf6' }}>Difficulty Level</h3>
+                                <div style={{ display: 'flex', gap: '15px', marginBottom: '30px' }}>
+                                    {(['easy', 'medium', 'hard']).map((difficulty) => (
+                                        <button
+                                            key={difficulty}
+                                            style={{
+                                                flex: '1',
+                                                background: gameDifficulty === difficulty ? 'rgba(139, 92, 246, 0.3)' : 'rgba(15, 15, 35, 0.8)',
+                                                border: `2px solid ${getDifficultyColor(difficulty)}`,
+                                                color: getDifficultyColor(difficulty),
+                                                padding: '12px',
+                                                borderRadius: '8px',
+                                                cursor: 'pointer',
+                                                fontWeight: 'bold',
+                                                textTransform: 'capitalize',
+                                                transition: 'all 0.3s ease'
+                                            }}
+                                            onClick={() => setGameDifficulty(difficulty)}
+                                        >
+                                            {difficulty}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                <button
+                                    style={{
+                                        background: 'linear-gradient(45deg, #8b5cf6, #06b6d4)',
+                                        border: 'none',
+                                        color: '#fff',
+                                        padding: '15px 30px',
+                                        borderRadius: '12px',
+                                        fontSize: '1.2rem',
+                                        fontWeight: 'bold',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.3s ease',
+                                        marginBottom: '20px'
+                                    }}
+                                    onClick={handleStartGame}
+                                >
+                                    🚀 Start Game
+                                </button>
+
+                                <div>
+                                    <button
+                                        style={{
+                                            background: 'rgba(15, 15, 35, 0.8)',
+                                            border: '1px solid rgba(139, 92, 246, 0.3)',
+                                            color: '#e2e8f0',
+                                            padding: '10px 20px',
+                                            borderRadius: '8px',
+                                            cursor: 'pointer',
+                                            marginRight: '10px'
+                                        }}
+                                        onClick={() => setShowStats(true)}
+                                    >
+                                        📊 Stats
+                                    </button>
+                                </div>
+
+                                {showStats && (
+                                    <div style={{
+                                        position: 'fixed',
+                                        top: 0,
+                                        left: 0,
+                                        right: 0,
+                                        bottom: 0,
+                                        background: 'rgba(0, 0, 0, 0.8)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        zIndex: 2000
+                                    }} onClick={() => setShowStats(false)}>
+                                        <div style={{
+                                            background: 'rgba(15, 15, 35, 0.95)',
+                                            padding: '30px',
+                                            borderRadius: '15px',
+                                            border: '2px solid rgba(139, 92, 246, 0.3)',
+                                            maxWidth: '500px',
+                                            width: '90%'
+                                        }} onClick={(e) => e.stopPropagation()}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                                                <h3 style={{ color: '#8b5cf6' }}>📊 Your Stats</h3>
+                                                <button
+                                                    style={{
+                                                        background: 'none',
+                                                        border: 'none',
+                                                        color: '#ef4444',
+                                                        fontSize: '1.5rem',
+                                                        cursor: 'pointer'
+                                                    }}
+                                                    onClick={() => setShowStats(false)}
+                                                >
+                                                    ✕
+                                                </button>
+                                            </div>
+                                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '15px' }}>
+                                                <div style={{ textAlign: 'center', padding: '15px', background: 'rgba(139, 92, 246, 0.1)', borderRadius: '8px' }}>
+                                                    <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#8b5cf6' }}>{store.stats.totalPlayed}</div>
+                                                    <div style={{ color: 'rgba(226, 232, 240, 0.7)' }}>Total Played</div>
+                                                </div>
+                                                <div style={{ textAlign: 'center', padding: '15px', background: 'rgba(16, 185, 129, 0.1)', borderRadius: '8px' }}>
+                                                    <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#10b981' }}>{store.stats.totalCorrect}</div>
+                                                    <div style={{ color: 'rgba(226, 232, 240, 0.7)' }}>Correct</div>
+                                                </div>
+                                                <div style={{ textAlign: 'center', padding: '15px', background: 'rgba(245, 158, 11, 0.1)', borderRadius: '8px' }}>
+                                                    <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#f59e0b' }}>
+                                                        {Math.round((store.stats.totalCorrect / Math.max(store.stats.totalPlayed, 1)) * 100)}%
+                                                    </div>
+                                                    <div style={{ color: 'rgba(226, 232, 240, 0.7)' }}>Accuracy</div>
+                                                </div>
+                                                <div style={{ textAlign: 'center', padding: '15px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '8px' }}>
+                                                    <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#ef4444' }}>{store.stats.bestStreak}</div>
+                                                    <div style={{ color: 'rgba(226, 232, 240, 0.7)' }}>Best Streak</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            // Game in progress
+            if (store.session.isGameOver) {
+                return (
+                    <div className="soul-riddle-game">
+                        <div className="game-header">
+                            <div className="game-title">
+                                <h1>🎯 Game Over!</h1>
+                                <p>Thanks for playing Soul Riddle</p>
+                            </div>
+                        </div>
+
+                        <div className="game-content">
+                            <div style={{
+                                background: 'rgba(15, 15, 35, 0.8)',
+                                borderRadius: '20px',
+                                padding: '40px',
+                                maxWidth: '500px',
+                                width: '100%',
+                                border: '2px solid rgba(139, 92, 246, 0.3)',
+                                textAlign: 'center'
+                            }}>
+                                <h2 style={{ marginBottom: '30px', color: '#8b5cf6' }}>Final Results</h2>
+                                
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '20px', marginBottom: '30px' }}>
+                                    <div style={{ textAlign: 'center' }}>
+                                        <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#f59e0b' }}>{store.session.score}</div>
+                                        <div style={{ color: 'rgba(226, 232, 240, 0.7)' }}>Final Score</div>
+                                    </div>
+                                    <div style={{ textAlign: 'center' }}>
+                                        <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#10b981' }}>{store.session.riddlesAnswered.length}</div>
+                                        <div style={{ color: 'rgba(226, 232, 240, 0.7)' }}>Riddles Solved</div>
+                                    </div>
+                                    <div style={{ textAlign: 'center' }}>
+                                        <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#6366f1' }}>{store.session.hintsUsed}</div>
+                                        <div style={{ color: 'rgba(226, 232, 240, 0.7)' }}>Hints Used</div>
+                                    </div>
+                                </div>
+
+                                <div style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
+                                    <button
+                                        style={{
+                                            background: 'linear-gradient(45deg, #8b5cf6, #06b6d4)',
+                                            border: 'none',
+                                            color: '#fff',
+                                            padding: '12px 25px',
+                                            borderRadius: '10px',
+                                            fontSize: '1.1rem',
+                                            fontWeight: 'bold',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.3s ease'
+                                        }}
+                                        onClick={() => {
+                                            gameStore.getState().endGame();
+                                            gameStore.getState().startGame(store.session.mode, store.session.difficulty);
+                                        }}
+                                    >
+                                        🔄 Play Again
+                                    </button>
+                                    <button
+                                        style={{
+                                            background: 'rgba(15, 15, 35, 0.8)',
+                                            border: '1px solid rgba(139, 92, 246, 0.3)',
+                                            color: '#e2e8f0',
+                                            padding: '12px 25px',
+                                            borderRadius: '10px',
+                                            fontSize: '1.1rem',
+                                            cursor: 'pointer'
+                                        }}
+                                        onClick={() => gameStore.setState({ session: null })}
+                                    >
+                                        📋 Main Menu
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            // Active game
+            return (
+                <div className="soul-riddle-game">
+                    <div className="game-header">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                            <div style={{ fontSize: '2rem' }}>
+                                {store.session.mode === 'classic' ? '🎯' : store.session.mode === 'timed' ? '⏰' : '∞'}
+                            </div>
+                            <div>
+                                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', textTransform: 'uppercase' }}>
+                                    {store.session.mode}
+                                </div>
+                                <div style={{ color: 'rgba(226, 232, 240, 0.7)' }}>
+                                    Score: {store.session.score} | Lives: {'❤️'.repeat(Math.max(0, store.session.lives))}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div style={{ display: 'flex', gap: '10px' }}>
+                            <button
+                                style={{
+                                    background: 'rgba(15, 15, 35, 0.8)',
+                                    border: '1px solid rgba(139, 92, 246, 0.3)',
+                                    color: '#e2e8f0',
+                                    padding: '8px 12px',
+                                    borderRadius: '6px',
+                                    cursor: 'pointer'
+                                }}
+                                onClick={() => gameStore.getState().endGame()}
+                            >
+                                🛑 End Game
+                            </button>
+                        </div>
+                    </div>
+
+                    {store.session.currentRiddle && (
+                        <div className="game-content">
+                            <div style={{
+                                background: 'rgba(15, 15, 35, 0.8)',
+                                borderRadius: '20px',
+                                padding: '40px',
+                                maxWidth: '800px',
+                                width: '100%',
+                                border: '2px solid rgba(139, 92, 246, 0.3)'
+                            }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                                    <div>
+                                        <span style={{
+                                            background: 'rgba(139, 92, 246, 0.2)',
+                                            padding: '5px 10px',
+                                            borderRadius: '15px',
+                                            fontSize: '0.9rem',
+                                            marginRight: '10px'
+                                        }}>
+                                            {store.session.currentRiddle.category}
+                                        </span>
+                                        <span style={{
+                                            color: getDifficultyColor(store.session.currentRiddle.difficulty),
+                                            fontWeight: 'bold',
+                                            textTransform: 'uppercase'
+                                        }}>
+                                            {store.session.currentRiddle.difficulty}
+                                        </span>
+                                    </div>
+                                    <div style={{ color: 'rgba(226, 232, 240, 0.7)' }}>
+                                        Time: {formatTime(currentTime)}
+                                    </div>
+                                </div>
+
+                                <div style={{
+                                    background: 'rgba(139, 92, 246, 0.1)',
+                                    padding: '25px',
+                                    borderRadius: '15px',
+                                    marginBottom: '25px',
+                                    border: '1px solid rgba(139, 92, 246, 0.2)'
+                                }}>
+                                    <h3 style={{ fontSize: '1.3rem', lineHeight: '1.6', color: '#e2e8f0', marginBottom: '0' }}>
+                                        {store.session.currentRiddle.question}
+                                    </h3>
+                                </div>
+
+                                {showHint && store.session.currentRiddle.hint && (
+                                    <div style={{
+                                        background: 'rgba(245, 158, 11, 0.1)',
+                                        border: '1px solid rgba(245, 158, 11, 0.3)',
+                                        padding: '15px',
+                                        borderRadius: '10px',
+                                        marginBottom: '20px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '10px'
+                                    }}>
+                                        <div style={{ fontSize: '1.5rem' }}>💡</div>
+                                        <div style={{ color: '#f59e0b' }}>{store.session.currentRiddle.hint}</div>
+                                    </div>
+                                )}
+
+                                <form onSubmit={handleSubmitAnswer} style={{ textAlign: 'center' }}>
+                                    <input
+                                        type="text"
+                                        value={userAnswer}
+                                        onChange={(e) => setUserAnswer(e.target.value)}
+                                        placeholder="Type your answer here..."
+                                        style={{
+                                            width: '100%',
+                                            padding: '15px',
+                                            fontSize: '1.1rem',
+                                            border: '2px solid rgba(139, 92, 246, 0.3)',
+                                            borderRadius: '10px',
+                                            background: 'rgba(15, 15, 35, 0.8)',
+                                            color: '#e2e8f0',
+                                            marginBottom: '20px',
+                                            outline: 'none'
+                                        }}
+                                        autoFocus
+                                    />
+                                    <div style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
+                                        <button
+                                            type="submit"
+                                            disabled={!userAnswer.trim()}
+                                            style={{
+                                                background: userAnswer.trim() ? 'linear-gradient(45deg, #8b5cf6, #06b6d4)' : 'rgba(107, 114, 128, 0.3)',
+                                                border: 'none',
+                                                color: '#fff',
+                                                padding: '12px 30px',
+                                                borderRadius: '10px',
+                                                fontSize: '1.1rem',
+                                                fontWeight: 'bold',
+                                                cursor: userAnswer.trim() ? 'pointer' : 'not-allowed',
+                                                transition: 'all 0.3s ease'
+                                            }}
+                                        >
+                                            Submit Answer
+                                        </button>
+                                        {store.session.currentRiddle.hint && !showHint && (
+                                            <button
+                                                type="button"
+                                                disabled={store.user.credits < 5}
+                                                style={{
+                                                    background: store.user.credits >= 5 ? 'rgba(245, 158, 11, 0.2)' : 'rgba(107, 114, 128, 0.3)',
+                                                    border: '1px solid rgba(245, 158, 11, 0.3)',
+                                                    color: store.user.credits >= 5 ? '#f59e0b' : '#6b7280',
+                                                    padding: '12px 20px',
+                                                    borderRadius: '10px',
+                                                    fontSize: '1rem',
+                                                    cursor: store.user.credits >= 5 ? 'pointer' : 'not-allowed',
+                                                    transition: 'all 0.3s ease'
+                                                }}
+                                                onClick={() => setShowHint(true)}
+                                            >
+                                                💡 Hint (5 💎)
+                                            </button>
+                                        )}
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        // Render the game
+        ReactDOM.render(<SoulRiddleGame />, document.getElementById('soul-riddle-root'));
+
+        // Show ads for non-ad-free users
+        window.addEventListener('load', function() {
+            const adFree = (window.__AD_FREE__ === true || window.__AD_FREE__ === 'true');
+            
+            if (!adFree) {
+                // Show ad containers
+                document.getElementById('top-ad').style.display = 'block';
+                document.getElementById('bottom-ad').style.display = 'block';
+                
+                // Initialize ads
+                if (window.adsbygoogle) {
+                    (adsbygoogle = window.adsbygoogle || []).push({});
+                    (adsbygoogle = window.adsbygoogle || []).push({});
+                }
+            }
+        });
+
+        // Error handling
+        window.addEventListener('error', function(e) {
+            console.error('React loading error:', e);
+            document.getElementById('soul-riddle-root').style.display = 'none';
+            document.getElementById('react-error-fallback').style.display = 'block';
+        });
+    </script>
+</body>
+</html>

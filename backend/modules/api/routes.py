@@ -968,6 +968,131 @@ def use_companion_decoder():
             'error': 'Failed to use decoder'
         }), 500
 
+# =============================================================================
+# SOUL RIDDLE API ENDPOINTS
+# =============================================================================
+
+@api_bp.route('/soul-riddle/check-limit', methods=['GET'])
+@requires_login
+def check_soul_riddle_limit():
+    """Check Soul Riddle usage limits"""
+    try:
+        from unified_tier_system import get_feature_limit, get_feature_usage_today
+        
+        user_id = get_user_id()
+        user_plan = session.get('user_plan', 'bronze')
+        trial_active = session.get('trial_active', False)
+        
+        # Get limits and usage
+        daily_limit = get_feature_limit(user_plan, 'soul_riddle', trial_active) 
+        usage_today = get_feature_usage_today(user_id, 'soul_riddle')
+        remaining = max(0, daily_limit - usage_today)
+        unlimited = daily_limit >= 999999
+        
+        return jsonify({
+            'success': True,
+            'feature': 'soul_riddle',
+            'daily_limit': daily_limit,
+            'usage_today': usage_today,
+            'remaining': remaining,
+            'unlimited': unlimited,
+            'user_plan': user_plan,
+            'trial_active': trial_active
+        })
+        
+    except Exception as e:
+        logger.error(f"Soul Riddle limit check error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to check Soul Riddle limits'
+        }), 500
+
+@api_bp.route('/soul-riddle/use', methods=['POST'])
+@requires_login
+def use_soul_riddle():
+    """Track Soul Riddle usage"""
+    try:
+        from unified_tier_system import get_feature_limit, get_feature_usage_today, track_feature_usage
+        
+        user_id = get_user_id()
+        user_plan = session.get('user_plan', 'bronze')
+        trial_active = session.get('trial_active', False)
+        
+        # Check if user has remaining uses
+        daily_limit = get_feature_limit(user_plan, 'soul_riddle', trial_active)
+        usage_today = get_feature_usage_today(user_id, 'soul_riddle')
+        
+        if usage_today >= daily_limit:
+            return jsonify({
+                'success': False,
+                'error': 'Daily limit reached for Soul Riddle',
+                'usage_today': usage_today,
+                'daily_limit': daily_limit
+            }), 429
+        
+        # Track usage
+        success = track_feature_usage(user_id, 'soul_riddle')
+        if not success:
+            return jsonify({
+                'success': False,
+                'error': 'Failed to track usage'
+            }), 500
+        
+        # Get updated stats
+        new_usage = get_feature_usage_today(user_id, 'soul_riddle')
+        remaining = max(0, daily_limit - new_usage)
+        
+        return jsonify({
+            'success': True,
+            'feature': 'soul_riddle',
+            'usage_today': new_usage,
+            'daily_limit': daily_limit,
+            'remaining': remaining,
+            'message': 'Soul Riddle game started successfully'
+        })
+        
+    except Exception as e:
+        logger.error(f"Soul Riddle usage error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to track Soul Riddle usage'
+        }), 500
+
+@api_bp.route('/soul-riddle/stats', methods=['GET'])
+@requires_login
+def get_soul_riddle_stats():
+    """Get Soul Riddle statistics"""
+    try:
+        user_id = get_user_id()
+        
+        # For now, return basic stats structure
+        # In a real implementation, these would come from a database
+        stats = {
+            'total_played': 0,
+            'total_correct': 0,
+            'total_wrong': 0,
+            'streak': 0,
+            'best_streak': 0,
+            'average_time': 0,
+            'difficulty_stats': {
+                'easy': {'played': 0, 'correct': 0, 'best_time': 0},
+                'medium': {'played': 0, 'correct': 0, 'best_time': 0},
+                'hard': {'played': 0, 'correct': 0, 'best_time': 0}
+            }
+        }
+        
+        return jsonify({
+            'success': True,
+            'stats': stats
+        })
+        
+    except Exception as e:
+        logger.error(f"Soul Riddle stats error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to get Soul Riddle stats'
+        }), 500
+
 # Set up API blueprint middleware
 @api_bp.before_request
 def log_api_request():
