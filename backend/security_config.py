@@ -85,7 +85,7 @@ def enhance_security_headers(app):
             response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
             response.headers['Permissions-Policy'] = (
                 'camera=(), microphone=(), geolocation=(), '
-                'payment=(), usb=(), magnetometer=(), gyroscope=()'
+                'payment=(self), usb=(), magnetometer=(), gyroscope=()'
             )
             
             # HSTS for HTTPS (only in production)
