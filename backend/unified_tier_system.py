@@ -347,7 +347,7 @@ def check_active_subscription(user_id, plan):
 
 # DAILY LIMITS (non-credit features)
 DAILY_LIMITS = {
-    "bronze":  {"decoder": 5,  "fortune": 5,  "horoscope": 5, "creative_writer": 5, "soul_riddle": 5},    # Bronze tier - 5/5/5/5/5 per CLAUDE.md
+    "bronze":  {"decoder": 5,  "fortune": 5,  "horoscope": 5, "creative_writer": 5, "soul_riddle": 3},    # Bronze tier - Soul Riddle 3/day ad-supported
     "silver":  {"decoder": 15, "fortune": 8,  "horoscope": 10, "creative_writer": 20, "soul_riddle": 20},  # Silver tier  
     "gold":    {"decoder": 999, "fortune": 999, "horoscope": 999, "creative_writer": 999, "soul_riddle": 999}  # Gold tier
 }
