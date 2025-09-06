@@ -1064,6 +1064,11 @@ def register_blueprints(app):
         app.register_blueprint(admin_bp, url_prefix='/admin')
         logger.info("✅ Admin system registered")
         
+        # Database fix route for emergency schema fixes
+        from routes.database_fix_route import db_fix_bp
+        app.register_blueprint(db_fix_bp)
+        logger.info("✅ Database fix route registered")
+        
         # Health and monitoring (now handled by Railway-compatible health.py at top)
         # from modules.health import health_bp  # Removed to avoid duplicate registration
         # app.register_blueprint(health_bp)     # Railway health endpoints registered first
