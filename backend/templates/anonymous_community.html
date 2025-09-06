@@ -356,6 +356,18 @@
             border-color: #00ffff;
             color: #00ffff;
         }
+        
+        .reaction-btn .emoji {
+            font-size: 1.1em;
+            line-height: 1;
+        }
+        
+        .reaction-btn .count {
+            font-size: 0.85em;
+            font-weight: 600;
+            color: inherit;
+            line-height: 1;
+        }
 
         .post-actions {
             display: flex;
@@ -1502,7 +1514,7 @@
                                             data-reaction="${emoji}"
                                             title="${meaning}"
                                             style="${isActive ? 'background: rgba(0, 255, 255, 0.2); border: 1px solid rgba(0, 255, 255, 0.4);' : ''}">
-                                        ${emoji}${count > 0 ? ' ' + count : ''}
+                                        <span class="emoji">${emoji}</span>${count > 0 ? `<span class="count">${count}</span>` : ''}
                                     </button>
                                 `;
                             }).join('')}
@@ -1570,7 +1582,7 @@
                         const count = data.reaction_counts[btnEmoji] || 0;
                         
                         // Update button display
-                        btn.innerHTML = count > 0 ? `${btnEmoji} ${count}` : btnEmoji;
+                        btn.innerHTML = count > 0 ? `<span class="emoji">${btnEmoji}</span><span class="count">${count}</span>` : `<span class="emoji">${btnEmoji}</span>`;
                         
                         // Highlight user's permanent reaction
                         if (btnEmoji === emoji) {
