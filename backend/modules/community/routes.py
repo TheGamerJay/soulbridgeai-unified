@@ -31,11 +31,34 @@ content_moderator = None
 companion_manager = None
 weekly_events_service = None
 
+# Global storage for post reaction counts (in-memory for now)
+post_reactions = {}
+
+def get_post_reaction_counts(post_id):
+    """Get reaction counts for a specific post"""
+    return post_reactions.get(str(post_id), {
+        "❤️": 0, "✨": 0, "🌿": 0, "🔥": 0, "🙏": 0, "⭐": 0, "👏": 0, "🫶": 0
+    })
+
+def store_post_reaction_counts(post_id, counts):
+    """Store reaction counts for a specific post"""
+    post_reactions[str(post_id)] = counts.copy()
+
+def init_mock_reactions():
+    """Initialize some mock reactions for demo"""
+    # Add some sample reactions to posts
+    post_reactions['1'] = {"❤️": 5, "✨": 3, "🌿": 2, "🔥": 0, "🙏": 1, "⭐": 4, "👏": 0, "🫶": 1}
+    post_reactions['2'] = {"❤️": 2, "✨": 1, "🌿": 0, "🔥": 3, "🙏": 0, "⭐": 2, "👏": 1, "🫶": 0}
+    post_reactions['3'] = {"❤️": 8, "✨": 2, "🌿": 4, "🔥": 1, "🙏": 3, "⭐": 1, "👏": 2, "🫶": 2}
+
 def init_community_services(database=None, openai_client=None):
     """Initialize community services with dependencies"""
     global community_service, wellness_gallery, content_moderator, companion_manager, weekly_events_service
     
     try:
+        # Initialize mock reactions
+        init_mock_reactions()
+        
         companion_manager = CompanionManager()
         content_moderator = ContentModerator(openai_client)
         wellness_gallery = WellnessGallery(database, content_moderator)
@@ -273,6 +296,13 @@ def community_posts():
         total_posts = len(mock_posts)
         paginated_posts = mock_posts[offset:offset + limit]
         
+        # Add reaction data to each post
+        for post in paginated_posts:
+            post_id = post['id']
+            reactions = get_post_reaction_counts(post_id)
+            post['reactions'] = reactions
+            post['total_reactions'] = sum(reactions.values())
+        
         return jsonify({
             "success": True,
             "posts": paginated_posts,
@@ -371,22 +401,17 @@ def react_to_post(post_id):
         session[user_reactions_key] = user_reactions
         session.modified = True
         
-        # Initialize empty reaction counts (clean slate for demo)
-        reaction_counts = {
-            "❤️": 0,
-            "✨": 0, 
-            "🌿": 0,
-            "🔥": 0,
-            "🙏": 0,
-            "⭐": 0,
-            "👏": 0,
-            "🫶": 0
-        }
+        # Get all reactions for this post from all users
+        reaction_counts = get_post_reaction_counts(post_id)
         
-        # Set count to 1 only for the user's current reaction (if any)
-        current_reaction = user_reactions.get(str(post_id))
-        if current_reaction:
-            reaction_counts[current_reaction] = 1
+        # Update counts with the new reaction (only add since user hasn't reacted before)
+        if emoji in reaction_counts:
+            reaction_counts[emoji] += 1
+        else:
+            reaction_counts[emoji] = 1
+        
+        # Store the updated reaction counts
+        store_post_reaction_counts(post_id, reaction_counts)
         
         logger.info(f"[COMMUNITY] User {user_id} reacted to post {post_id} with {emoji}")
         
