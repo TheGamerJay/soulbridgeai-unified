@@ -217,6 +217,76 @@ def referral_redirect():
     """Redirect /referral to /referrals for backward compatibility"""
     return redirect("/referrals", 301)
 
+@community_bp.route("/referrals/me")
+def referrals_me():
+    """API endpoint for user's referral data"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        # Get user referral data from session
+        user_id = session.get('user_id')
+        referrals = int(session.get('referrals', 0))
+        
+        # Calculate progress and next reward
+        thresholds = [
+            {"threshold": 2, "cosmetic": "Blayzike"},
+            {"threshold": 4, "cosmetic": "Blazelian"}, 
+            {"threshold": 6, "cosmetic": "Nyxara"},
+            {"threshold": 8, "cosmetic": "Claude Referral"},
+            {"threshold": 10, "cosmetic": "Blayzo Referral"}
+        ]
+        
+        # Find next reward
+        next_reward = None
+        completed_all = True
+        progress_percent = 100
+        
+        for reward in thresholds:
+            if referrals < reward["threshold"]:
+                next_reward = {
+                    "cosmetic": reward["cosmetic"],
+                    "referrals_needed": reward["threshold"] - referrals,
+                    "threshold": reward["threshold"]
+                }
+                completed_all = False
+                # Calculate progress to next reward
+                prev_threshold = 0
+                if reward != thresholds[0]:
+                    prev_idx = thresholds.index(reward) - 1
+                    prev_threshold = thresholds[prev_idx]["threshold"]
+                
+                progress_percent = int(((referrals - prev_threshold) / (reward["threshold"] - prev_threshold)) * 100)
+                break
+        
+        # Mock stats for now - in real app would come from database
+        stats = {
+            "total_referrals": referrals,
+            "verified_referrals": referrals,  
+            "pending_referrals": 0
+        }
+        
+        progress = {
+            "completed_all": completed_all,
+            "progress_percent": max(0, min(100, progress_percent))
+        }
+        
+        # Generate share URL (mock for now)
+        share_url = f"https://soulbridgeai.com/register?ref={user_id}"
+        
+        return jsonify({
+            "success": True,
+            "stats": stats,
+            "progress": progress, 
+            "next_reward": next_reward,
+            "share_url": share_url,
+            "referral_code": f"SOUL{user_id}"
+        })
+        
+    except Exception as e:
+        logger.error(f"Referrals me API error: {e}")
+        return jsonify({"success": False, "error": "Failed to load referral data"}), 500
+
 # =============================================================================
 # COMMUNITY API ENDPOINTS
 # =============================================================================
