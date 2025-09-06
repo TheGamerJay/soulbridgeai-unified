@@ -202,11 +202,11 @@ class CompanionManager:
             min_referrals = companion.get('min_referrals', 0)
             companion_tier = companion['tier']
             
-            # Check referral requirements
-            if min_referrals > 0 and referrals < min_referrals:
+            # Check referral requirements - referral companions ALWAYS show referral requirements
+            if min_referrals > 0:
                 return f"Requires {min_referrals} referrals"
             
-            # Check tier requirements
+            # Check tier requirements (only for non-referral companions)
             effective_plan = 'gold' if (trial_active and user_plan == 'bronze') else user_plan
             
             if companion_tier == 'silver' and effective_plan == 'bronze':

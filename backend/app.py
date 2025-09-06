@@ -582,6 +582,7 @@ def create_app():
         user_plan = session.get('user_plan', 'bronze')
         effective_plan = get_effective_plan()  # This handles trial upgrades
         current_companion = session.get('selected_companion')
+        referrals = int(session.get('referrals', 0))
         
         # Get all companions
         all_companions = get_all_companions()
@@ -595,7 +596,12 @@ def create_app():
             can_access = False
             lock_reason = ""
             
-            if companion_tier == 'bronze':
+            # Check if this is a referral companion (always show referral requirement)
+            min_referrals = companion.get('min_referrals', 0)
+            if min_referrals > 0:
+                lock_reason = f"Requires {min_referrals} referrals"
+                can_access = referrals >= min_referrals
+            elif companion_tier == 'bronze':
                 can_access = True
             elif companion_tier == 'silver':
                 if effective_plan in ['silver', 'gold']:
