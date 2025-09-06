@@ -348,6 +348,7 @@ def get_user_companion_info(user_id: int) -> Dict[str, Any]:
 
 def get_user_community_avatar(user_id: int) -> Optional[Dict[str, Any]]:
     """Get user's chosen community avatar companion"""
+    logger.info(f"🔍 DEBUG: Getting community avatar for user_id={user_id}")
     try:
         import os
         from database_utils import get_database
@@ -355,7 +356,9 @@ def get_user_community_avatar(user_id: int) -> Optional[Dict[str, Any]]:
         try:
             db = get_database()
             conn = db.get_connection()
+            logger.info(f"✅ DEBUG: Database connection successful for user {user_id}")
         except Exception as e:
+            logger.error(f"❌ DEBUG: Database connection failed for user {user_id}: {e}")
             return None
         cursor = conn.cursor()
         
@@ -367,19 +370,25 @@ def get_user_community_avatar(user_id: int) -> Optional[Dict[str, Any]]:
         """, (user_id,))
         
         result = cursor.fetchone()
+        logger.info(f"🔍 DEBUG: Query result for user {user_id}: {result}")
         conn.close()
         
         if result:
-            return {
+            avatar_data = {
                 'companion_id': result[0],
                 'skin_id': None,
                 'name': result[1],
                 'rarity': result[2],
                 'image_url': result[3]
             }
+            logger.info(f"✅ DEBUG: Returning avatar data for user {user_id}: {avatar_data}")
+            return avatar_data
+            
+        logger.warning(f"⚠️ DEBUG: No avatar found for user {user_id}")
         return None
         
-    except Exception:
+    except Exception as e:
+        logger.error(f"❌ DEBUG: Error getting community avatar for user {user_id}: {e}")
         return None
 
 def set_user_community_avatar(user_id: int, companion_data: Dict[str, Any]) -> bool:
