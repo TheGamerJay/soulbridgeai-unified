@@ -601,12 +601,12 @@ def create_app():
                 if effective_plan in ['silver', 'gold']:
                     can_access = True
                 else:
-                    lock_reason = "Requires Silver or Gold tier"
+                    lock_reason = "Requires Silver upgrade"
             elif companion_tier == 'gold':
                 if effective_plan == 'gold':
                     can_access = True
                 else:
-                    lock_reason = "Requires Gold tier"
+                    lock_reason = "Requires Gold upgrade"
             
             # Mark if this is the current companion
             is_current = (current_companion == companion['id'])

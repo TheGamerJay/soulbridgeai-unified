@@ -210,9 +210,9 @@ class CompanionManager:
             effective_plan = 'gold' if (trial_active and user_plan == 'bronze') else user_plan
             
             if companion_tier == 'silver' and effective_plan == 'bronze':
-                return "Requires Silver or Gold tier"
+                return "Requires Silver upgrade"
             elif companion_tier == 'gold' and effective_plan in ['bronze', 'silver']:
-                return "Requires Gold tier"
+                return "Requires Gold upgrade"
             
             return ""
             

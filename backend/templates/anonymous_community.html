@@ -2664,10 +2664,10 @@
         function showUpgradePrompt(requirement) {
             let message, upgradeUrl;
             
-            if (requirement === 'silver') {
+            if (requirement === 'silver' || requirement.includes('Silver upgrade')) {
                 message = 'This companion requires Silver tier subscription. Would you like to upgrade to unlock all Silver companions and premium features?';
                 upgradeUrl = '/tiers';
-            } else if (requirement === 'gold') {
+            } else if (requirement === 'gold' || requirement.includes('Gold upgrade')) {
                 message = 'This companion requires Gold tier subscription. Would you like to upgrade to unlock all Gold companions and unlimited features?';
                 upgradeUrl = '/tiers';
             } else if (requirement.includes('referrals')) {

@@ -310,9 +310,9 @@ class CompanionSystem:
     def _get_lock_reason(self, companion: Companion, user_tier: str, referral_points: int) -> str:
         """Get the reason why a companion is locked"""
         if companion.tier == CompanionTier.SILVER:
-            return "Requires Silver or Gold subscription"
+            return "Requires Silver upgrade"
         elif companion.tier == CompanionTier.MAX:
-            return "Requires Max subscription" 
+            return "Requires Gold upgrade" 
         elif companion.tier == CompanionTier.REFERRAL:
             required_points = companion.unlock_requirements.get('referral_points', 0)
             return f"Requires {required_points} referral points (you have {referral_points})"
