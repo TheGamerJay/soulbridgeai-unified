@@ -233,11 +233,71 @@ function refreshFeed() {
 ```
 **Files Modified**: `backend/templates/anonymous_community.html`
 
+### 16. **Soul Riddle Mini Game Implementation** ✅ COMPLETED
+**Problem**: User requested new interactive brain teaser game feature to be added alongside existing features  
+**Root Cause**: Missing game feature in the feature sidebar  
+**Solution**: Implemented complete React/TypeScript Soul Riddle Mini Game with full backend integration
+```typescript
+// Full React implementation with Zustand store
+interface GameSession {
+  mode: 'classic' | 'timed' | 'endless';
+  difficulty: 'easy' | 'medium' | 'hard';
+  currentRiddle: Riddle | null;
+  score: number;
+  lives: number;
+  // ... complete game state
+}
+```
+
+**Backend Implementation**:
+- Added `/soul-riddle` route in app.py with ad-free support
+- Created API endpoints: `/api/soul-riddle/check-limit`, `/api/soul-riddle/use`, `/api/soul-riddle/stats`
+- Added 'soul_riddle' to DAILY_LIMITS: Bronze: 5, Silver: 20, Gold: 999
+- Updated unified_tier_system.py with correct Bronze limits (5/5/5/5/5)
+
+**Frontend Implementation**:
+- Complete React component with game logic, timer, scoring system
+- Zustand store for state management with persistence
+- CSS styling with dark theme and responsive design  
+- HTML template with React loading and error handling
+- 5 sample riddles across Technology, Nature, Movement, Objects, Elements
+
+**Game Features**:
+- **Multiple Game Modes**: Classic (3 lives), Timed (5 min), Endless (no limits)
+- **Difficulty Levels**: Easy (10pts), Medium (20pts), Hard (30pts)
+- **Hint System**: Costs 5 credits, reveals helpful clues
+- **Statistics Tracking**: LocalStorage-based with streaks and accuracy
+- **Tier Integration**: Proper daily limits and usage tracking
+- **Mobile Responsive**: Works on all screen sizes
+
+**Files Modified**:
+- `backend/app.py` - Added Soul Riddle route handler
+- `backend/modules/api/routes.py` - Added API endpoints
+- `backend/templates/chat.html` - Added Soul Riddle button to sidebar
+- `backend/unified_tier_system.py` - Updated feature limits
+- `backend/templates/soul_riddle.html` - Complete game template
+- `src/components/SoulRiddleGame.tsx` - React game component
+- `src/stores/gameStore.ts` - Zustand state management
+- `src/components/SoulRiddleGame.css` - Game styling
+
+### 17. **Database Table Name Error Fix** ✅ FIXED
+**Problem**: Railway deployment showing continuous PostgreSQL errors every 30 seconds: "relation 'user_activity' does not exist at character 71"  
+**Root Cause**: `get_active_users_count()` function in admin_utils.py querying non-existent `user_activity` table  
+**Solution**: Fixed incorrect table and column references to match actual database schema
+```python
+# Before: Wrong table/column names
+FROM user_activity WHERE activity_time >= NOW() - INTERVAL '24 hours'
+
+# After: Correct table/column names
+FROM user_activity_log WHERE created_at >= NOW() - INTERVAL '24 hours'
+```
+**Files Modified**: `backend/modules/admin/admin_utils.py`
+
 ---
 
 ## 🎉 **FINAL STATUS: ALL ISSUES COMPLETED** ✅
 
-### **Original 15 Issues: ALL FIXED**
+### **All 17 Issues Successfully Resolved**
 - ✅ Sapphire guide 404 error
 - ✅ Community avatar images and tier locks  
 - ✅ Profile page Firebase CSP violations
@@ -359,11 +419,13 @@ interface GameSession {
 - ✅ Subscription button UX enhancement  
 - ✅ Community reaction highlighting fix
 - ✅ **NEW: Soul Riddle Mini Game implementation**
+- ✅ **NEW: Database table name error fix (Railway crashes)**
 
 ## 🚀 **Final Deployment**
 
 **Git Commits**: 
-- `08ac150` - Soul Riddle Mini Game implementation
+- `287c10d` - Database table name error fix (Railway crashes)
+- `08ac150` - Soul Riddle Mini Game implementation  
 - `ca4a79b` - Comprehensive website fixes
 - `d813073` - Community system fix
 
