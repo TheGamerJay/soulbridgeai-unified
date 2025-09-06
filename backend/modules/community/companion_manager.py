@@ -89,9 +89,9 @@ class CompanionManager:
             companion_tier = companion["tier"]
             min_referrals = companion.get("min_referrals", 0)
             
-            # Check referral requirements first
-            if min_referrals > 0 and referrals < min_referrals:
-                return False
+            # Check referral requirements - referral companions only need referrals, not tiers
+            if min_referrals > 0:
+                return referrals >= min_referrals
             
             # Determine effective plan (trial gives Gold access for companions)
             if trial_active and user_plan == 'bronze':
@@ -99,7 +99,7 @@ class CompanionManager:
             else:
                 effective_plan = user_plan
             
-            # Check tier access
+            # Check tier access (only for non-referral companions)
             user_tier_level = self._get_tier_level(effective_plan)
             companion_tier_level = self._get_tier_level(companion_tier)
             
