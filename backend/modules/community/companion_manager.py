@@ -16,7 +16,7 @@ class CompanionManager:
         self.tier_hierarchy = ['bronze', 'silver', 'gold']
         self.referral_thresholds = {
             "blayzike": 2,
-            "blazelian": 5,
+            "blazelian": 4,
             "claude_referral": 8,
             "blayzo_skin": 10
         }
@@ -58,8 +58,8 @@ class CompanionManager:
             
             # Referral-locked companions
             {"id":"blayzike","name":"Blayzike","tier":"silver","image_url":"/static/referral/blayzike.png","min_referrals":2},
-            {"id":"nyxara","name":"Nyxara","tier":"silver","image_url":"/static/logos/Nyxara.png","min_referrals":3},
-            {"id":"blazelian","name":"Blazelian","tier":"gold","image_url":"/static/referral/blazelian.png","min_referrals":5},
+            {"id":"blazelian","name":"Blazelian","tier":"gold","image_url":"/static/referral/blazelian.png","min_referrals":4},
+            {"id":"nyxara","name":"Nyxara","tier":"silver","image_url":"/static/logos/Nyxara.png","min_referrals":6},
             {"id":"claude_referral","name":"Claude Referral","tier":"gold","image_url":"/static/referral/claude_referral.png","min_referrals":8},
             {"id":"blayzo_referral","name":"Blayzo Referral","tier":"gold","image_url":"/static/logos/Blayzo_Referral.png","min_referrals":10},
         ]

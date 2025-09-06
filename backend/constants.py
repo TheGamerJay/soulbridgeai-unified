@@ -54,12 +54,13 @@ FEATURE_ACCESS = {
     }
 }
 
-# Referral system thresholds
+# Referral system thresholds  
 REFERRAL_THRESHOLDS = {
     "blayzike": 2,
-    "blazelian": 5,
+    "blazelian": 4,
+    "nyxara": 6,
     "claude_referral": 8,
-    "blayzo_skin": 10
+    "blayzo_referral": 10
 }
 
 # Trial system settings
