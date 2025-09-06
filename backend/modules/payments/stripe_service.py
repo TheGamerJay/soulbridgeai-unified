@@ -138,7 +138,7 @@ class StripeService:
                 "error": "Failed to create payment session"
             }
     
-    def create_adfree_checkout(self, user_email: str) -> dict:
+    def create_adfree_checkout(self, user_email: str, billing: str = 'monthly') -> dict:
         """Create Stripe checkout session for ad-free subscription"""
         try:
             if not self.stripe:
@@ -149,6 +149,18 @@ class StripeService:
             
             base_url = request.host_url
             
+            # Calculate pricing based on billing period
+            if billing == 'yearly':
+                # Yearly pricing: $45/year (25% savings from $60)
+                unit_amount = 4500  # $45.00
+                interval = 'year'
+                description = 'Remove ads from Bronze tier experience (Annual)'
+            else:
+                # Monthly pricing: $5/month
+                unit_amount = ADFREE_PRICE  # $5.00
+                interval = 'month'
+                description = 'Remove ads from Bronze tier experience (Monthly)'
+            
             # Create checkout session for ad-free subscription
             checkout_session = self.stripe.checkout.Session.create(
                 customer_email=user_email,
@@ -157,11 +169,11 @@ class StripeService:
                         'currency': 'usd',
                         'product_data': {
                             'name': 'SoulBridge AI - Ad-Free Experience',
-                            'description': 'Remove ads from Bronze tier experience',
+                            'description': description,
                         },
-                        'unit_amount': ADFREE_PRICE,
+                        'unit_amount': unit_amount,
                         'recurring': {
-                            'interval': 'month'
+                            'interval': interval
                         }
                     },
                     'quantity': 1,

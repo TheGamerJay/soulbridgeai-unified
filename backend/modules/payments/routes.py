@@ -158,6 +158,12 @@ def create_adfree_checkout():
         if not user_email:
             return jsonify({"success": False, "error": "User email not found"}), 400
         
+        # Get billing period from request (default to monthly)
+        data = request.get_json() or {}
+        billing = data.get('billing_period', data.get('billing', 'monthly'))
+        if billing not in ['monthly', 'yearly']:
+            billing = 'monthly'
+        
         # Create Stripe checkout for ad-free
         stripe_service = StripeService()
         
@@ -167,7 +173,7 @@ def create_adfree_checkout():
                 "error": "Payment processing is being configured. Please try again later."
             }), 503
         
-        result = stripe_service.create_adfree_checkout(user_email)
+        result = stripe_service.create_adfree_checkout(user_email, billing)
         
         if result["success"]:
             logger.info(f"Ad-free checkout created for {user_email}")
