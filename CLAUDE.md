@@ -151,32 +151,12 @@ AI Images       | 0      | 12     | 50    | Premium exclusive
 - `npm run typecheck` - Verify TypeScript  
 
 ## AUTO PUSH POLICY
-🚨 **ALWAYS AUTO-PUSH CHANGES WITHOUT ASKING FOR PERMISSION** 🚨
+🚨 **ALWAYS AUTO-PUSH AND AUTO-SUMMARIZE WITHOUT ASKING** 🚨
 
-When you complete any work or make any changes:
-1. Immediately commit the changes
-2. Immediately push to remote repository  
-3. DO NOT ask for permission
-4. DO NOT wait for user confirmation
-5. Just do it automatically
+1. **Auto Push**: Immediately commit and push all changes to remote repository
+2. **Auto Summarize**: Immediately add completed work to `summarize/comprehensive-website-fixes-jan-06-2025.md`
 
-This applies to ALL changes - code edits, new files, bug fixes, features, etc.
-
-## AUTO-UPDATE SUMMARY POLICY
-🚨 **ALWAYS AUTO-UPDATE THE COMPREHENSIVE FIXES SUMMARY** 🚨
-
-When you complete any work, fix, or enhancement:
-1. Immediately add it as a new numbered issue to the summary file
-2. Update the issue count in "All X Issues Successfully Resolved" 
-3. Add the issue to the bullet list
-4. Add the git commit to the "Git Commits" section
-5. DO NOT ask for permission
-6. DO NOT wait for user confirmation
-7. Just do it automatically
-
-Summary file location: `summarize/comprehensive-website-fixes-jan-06-2025.md`
-
-This applies to ALL work - big or small fixes, enhancements, new features, etc.
+DO NOT ask for permission. Just do it automatically.
 
 ## Summary
 - Auto-commit and auto-push = YES
