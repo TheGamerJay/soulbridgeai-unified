@@ -282,6 +282,30 @@
             color: #fff;
         }
 
+        .memory-card-preview {
+            background-image: url('/static/horoscope/back.png');
+            background-size: cover;
+            background-position: center;
+            background-blend-mode: overlay;
+        }
+
+        .memory-card-preview.easy {
+            background-image: url('/static/horoscope/back.png');
+        }
+
+        .memory-card-preview.normal {
+            background-image: url('/static/logos/New IntroLogo.png');
+        }
+
+        .memory-card-preview.hard {
+            background-image: url('/static/logos/The IntroLogo.png');
+        }
+
+        .memory-card-preview.insane {
+            background-image: url('/static/horoscope/back.png');
+            filter: hue-rotate(180deg);
+        }
+
         .difficulty-name {
             font-size: 1.2rem;
             font-weight: bold;
@@ -390,7 +414,7 @@
 
         .memory-card {
             aspect-ratio: 1;
-            background: rgba(15, 15, 35, 0.8);
+            background: rgba(15, 15, 35, 0.8) url('/static/horoscope/back.png') center/cover;
             border: 2px solid rgba(139, 92, 246, 0.3);
             border-radius: 10px;
             cursor: pointer;
@@ -399,11 +423,12 @@
             justify-content: center;
             font-size: 2rem;
             transition: all 0.3s ease;
+            background-blend-mode: overlay;
         }
 
         .memory-card:hover {
             border-color: #8b5cf6;
-            background: rgba(139, 92, 246, 0.2);
+            background-color: rgba(139, 92, 246, 0.2);
         }
 
         .memory-card.flipped {
@@ -580,22 +605,22 @@
                     <h3 class="difficulty-title">Memory Challenge</h3>
                     <div class="difficulty-cards">
                         <div class="difficulty-card" data-memory-difficulty="easy">
-                            <div class="card-back easy">4×4</div>
+                            <div class="card-back easy memory-card-preview">4×4</div>
                             <div class="difficulty-name">Easy</div>
                             <div class="difficulty-cost">16 Cards</div>
                         </div>
                         <div class="difficulty-card" data-memory-difficulty="normal">
-                            <div class="card-back normal">6×6</div>
+                            <div class="card-back normal memory-card-preview">6×6</div>
                             <div class="difficulty-name">Normal</div>
                             <div class="difficulty-cost">36 Cards</div>
                         </div>
                         <div class="difficulty-card" data-memory-difficulty="hard">
-                            <div class="card-back hard">8×8</div>
+                            <div class="card-back hard memory-card-preview">8×8</div>
                             <div class="difficulty-name">Hard</div>
                             <div class="difficulty-cost">64 Cards</div>
                         </div>
                         <div class="difficulty-card" data-memory-difficulty="insane">
-                            <div class="card-back insane">10×10</div>
+                            <div class="card-back insane memory-card-preview">10×10</div>
                             <div class="difficulty-name">Insane</div>
                             <div class="difficulty-cost">100 Cards</div>
                         </div>
@@ -816,10 +841,25 @@
                     [cardPairs[i], cardPairs[j]] = [cardPairs[j], cardPairs[i]];
                 }
                 
+                // Get card back image based on difficulty
+                const cardBackImages = {
+                    easy: '/static/horoscope/back.png',
+                    normal: '/static/logos/New IntroLogo.png',
+                    hard: '/static/logos/The IntroLogo.png',
+                    insane: '/static/horoscope/back.png'
+                };
+                
                 // Create card elements
                 cardPairs.forEach((symbol, index) => {
                     const card = document.createElement('div');
                     card.className = 'memory-card';
+                    card.style.backgroundImage = `url('${cardBackImages[difficulty]}')`;
+                    card.style.backgroundSize = 'cover';
+                    card.style.backgroundPosition = 'center';
+                    card.style.backgroundBlendMode = 'overlay';
+                    if (difficulty === 'insane') {
+                        card.style.filter = 'hue-rotate(180deg)';
+                    }
                     card.dataset.symbol = symbol;
                     card.dataset.index = index;
                     card.addEventListener('click', handleCardClick);
