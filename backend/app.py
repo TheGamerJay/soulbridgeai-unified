@@ -571,21 +571,61 @@ def create_app():
     
     @app.route("/api/companions")
     def api_companions():
-        """Companions API - from companions blueprint"""
+        """Companions API - Complete companion list with tier access"""
         if not session.get('logged_in'):
             return jsonify({'success': False, 'error': 'Not authenticated'}), 401
         
-        companions = [
-            {"id": "gamerjay_bronze", "name": "GamerJay", "tier": "bronze", "image_url": "/static/logos/GamerJay_Free_companion.png"},
-            {"id": "blayzo_bronze", "name": "Blayzo", "tier": "bronze", "image_url": "/static/logos/Blayzo.png"},
-            {"id": "blayzica_bronze", "name": "Blayzica", "tier": "bronze", "image_url": "/static/logos/Blayzica.png"},
-            {"id": "claude_bronze", "name": "Claude", "tier": "bronze", "image_url": "/static/logos/Claude_Free.png"},
-        ]
+        # Import the helper functions from API routes
+        from modules.api.routes import get_all_companions, get_effective_plan
+        
+        # Get user's plan and effective access level
+        user_plan = session.get('user_plan', 'bronze')
+        effective_plan = get_effective_plan()  # This handles trial upgrades
+        current_companion = session.get('selected_companion')
+        
+        # Get all companions
+        all_companions = get_all_companions()
+        
+        # Add access control logic to each companion
+        companions_with_access = []
+        for companion in all_companions:
+            companion_tier = companion['tier']
+            
+            # Determine if user can access this companion
+            can_access = False
+            lock_reason = ""
+            
+            if companion_tier == 'bronze':
+                can_access = True
+            elif companion_tier == 'silver':
+                if effective_plan in ['silver', 'gold']:
+                    can_access = True
+                else:
+                    lock_reason = "Requires Silver or Gold tier"
+            elif companion_tier == 'gold':
+                if effective_plan == 'gold':
+                    can_access = True
+                else:
+                    lock_reason = "Requires Gold tier"
+            
+            # Mark if this is the current companion
+            is_current = (current_companion == companion['id'])
+            
+            companion_data = {
+                **companion,
+                'can_access': can_access,
+                'lock_reason': lock_reason,
+                'is_current': is_current,
+                'display_name': companion['name']
+            }
+            
+            companions_with_access.append(companion_data)
         
         return jsonify({
             'success': True,
-            'companions': companions,
-            'user_plan': session.get('user_plan', 'bronze')
+            'companions': companions_with_access,
+            'user_plan': user_plan,
+            'effective_plan': effective_plan
         })
     
     @app.route("/api/session/companion")

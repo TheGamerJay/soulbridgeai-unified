@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Purchase Trainer Credits - SoulBridge AI</title>
+    <title>Purchase Artistic Time - SoulBridge AI</title>
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='logos/favicon.ico') }}">
     <script src="https://js.stripe.com/v3/"></script>
     <style>
@@ -337,7 +337,7 @@
 
     <div class="credit-container">
         <div class="header">
-            <h1>💎 Purchase Trainer Credits</h1>
+            <h1>💎 Purchase Artistic Time</h1>
             <p>Get additional artistic time for premium AI features</p>
         </div>
 
@@ -349,7 +349,7 @@
             <!-- Current Balance Display -->
             <div class="current-balance">
                 <div class="balance-amount" id="currentBalance">0</div>
-                <div class="balance-label">Current Trainer Credits</div>
+                <div class="balance-label">Current Artistic Time</div>
             </div>
 
             <!-- Warning about rollover policy -->
@@ -359,7 +359,7 @@
                     <h3 class="warning-title">Important: No Rollover Policy</h3>
                 </div>
                 <p class="warning-text">
-                    <strong>All trainer credits reset on your billing cycle and unused credits do NOT carry over.</strong> 
+                    <strong>All artistic time resets on your billing cycle and unused time does NOT carry over.</strong> 
                     Purchase additional credits only when you're sure you'll use them within your current billing period. 
                     Any credits not used before your next monthly reset will be lost.
                 </p>
@@ -427,7 +427,7 @@
             <h2 class="lock-title">Silver or Gold Plan Required</h2>
             <p class="lock-text">
                 Credit purchases are only available for Silver and Gold plan subscribers. 
-                Upgrade your plan to unlock the ability to purchase additional trainer credits when you run out of your monthly allocation.
+                Upgrade your plan to unlock the ability to purchase additional artistic time when you run out of your monthly allocation.
             </p>
             <div class="upgrade-buttons">
                 <a href="/subscription" class="upgrade-btn silver">
@@ -512,7 +512,7 @@
         async function purchaseCredits(credits, price, packageType) {
             try {
                 // Confirmation dialog
-                const confirmed = confirm(`Purchase ${credits} trainer credits for $${price.toFixed(2)}?\n\n⚠️ IMPORTANT: Credits will be added instantly but reset at your monthly billing cycle with NO ROLLOVER. Only purchase if you'll use them before your next reset.\n\nContinue with purchase?`);
+                const confirmed = confirm(`Purchase ${credits} artistic time for $${price.toFixed(2)}?\n\n⚠️ IMPORTANT: Time will be added instantly but reset at your monthly billing cycle with NO ROLLOVER. Only purchase if you'll use it before your next reset.\n\nContinue with purchase?`);
                 
                 if (!confirmed) {
                     return;

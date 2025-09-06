@@ -1191,7 +1191,7 @@
                 </div>
 
                 <div class="user-info">
-                    <div class="info-label">Trainer Credits</div>
+                    <div class="info-label">Artistic Time</div>
                     <div id="creditsDisplay">
                         <div class="credits-info">💎 0 Credits</div>
                     </div>
@@ -1228,19 +1228,19 @@
                     <div class="stats-grid" style="grid-template-columns: repeat(2, 1fr); gap: 0.5rem;">
                         <div class="stat-item">
                             <span class="stat-label">Decoder</span>
-                            <span class="stat-number"><span id="decoderLimit" class="limit-display basic">3 daily</span></span>
+                            <span class="stat-number"><span id="decoderLimit" class="limit-display basic">5 daily</span></span>
                         </div>
                         <div class="stat-item">
                             <span class="stat-label">Fortune</span>
-                            <span class="stat-number"><span id="fortuneLimit" class="limit-display basic">2 daily</span></span>
+                            <span class="stat-number"><span id="fortuneLimit" class="limit-display basic">5 daily</span></span>
                         </div>
                         <div class="stat-item">
                             <span class="stat-label">Horoscope</span>
-                            <span class="stat-number"><span id="horoscopeLimit" class="limit-display basic">3 daily</span></span>
+                            <span class="stat-number"><span id="horoscopeLimit" class="limit-display basic">5 daily</span></span>
                         </div>
                         <div class="stat-item">
                             <span class="stat-label">Creative Writer</span>
-                            <span class="stat-number"><span id="creativeWriterLimit" class="limit-display basic">2 daily</span></span>
+                            <span class="stat-number"><span id="creativeWriterLimit" class="limit-display basic">5 daily</span></span>
                         </div>
                     </div>
                 </div>
@@ -2786,7 +2786,7 @@
 
         // Trial activation function
         window.activateTrial = async () => {
-            if (!confirm('Start your 5-hour trial? This will unlock Silver and Gold features for 5 hours and give you 60 trainer credits.')) {
+            if (!confirm('Start your 5-hour trial? This will unlock Silver and Gold features for 5 hours and give you 60 artistic time.')) {
                 return;
             }
 
@@ -2808,7 +2808,7 @@
                 const result = await response.json();
                 
                 if (response.ok && result.success) {
-                    alert('🎉 Trial activated! You now have access to Silver and Gold features for 5 hours, plus 60 trainer credits!');
+                    alert('🎉 Trial activated! You now have access to Silver and Gold features for 5 hours, plus 60 artistic time!');
                     
                     // Reload profile to update trial status
                     window.location.reload();

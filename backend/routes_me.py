@@ -111,14 +111,36 @@ def me():
             artistic_time += access['trial_credits']
         
         # Build response
+        # Try to get companion from multiple sources
+        current_companion = session.get("selected_companion")
+        if not current_companion:
+            # Try other session keys that might have companion data
+            current_companion = session.get("companion_id") or session.get("current_companion")
+        
+        # If still no companion, try to load from database
+        if not current_companion:
+            try:
+                user_row = db_fetch_user_row(uid)
+                if user_row:
+                    # Check if there's a companion field in user data
+                    current_companion = user_row.get('selected_companion') or user_row.get('last_companion')
+            except Exception as e:
+                logger.debug(f"Could not load companion from database for user {uid}: {e}")
+        
+        # Final fallback
+        if not current_companion:
+            current_companion = "Blayzo"
+        
         user_data = {
             "id": uid,
+            "uid": uid,  # Add uid alias for frontend compatibility
+            "userID": uid,  # Add userID alias for frontend compatibility  
             "email": session.get("email", "unknown@soulbridgeai.com"),
             "displayName": session.get("display_name", "User"),
             "plan": plan,
             "artistic_time": artistic_time,
             "profileImage": session.get("profile_image", "/static/logos/New IntroLogo.png"),
-            "companion": session.get("selected_companion", "Blayzo")  # Current companion
+            "companion": current_companion
         }
         
         access_data = {
@@ -140,9 +162,23 @@ def me():
                 else:
                     expires_at_str = trial_expires_at.isoformat()
             
+            # Check trial eligibility from database
+            trial_used_permanently = session.get('trial_used_permanently', False)
+            
+            # If not in session, check database
+            if not trial_used_permanently:
+                try:
+                    user_row = db_fetch_user_row(uid)
+                    if user_row and user_row.get('trial_used_permanently'):
+                        trial_used_permanently = True
+                        session['trial_used_permanently'] = True
+                except Exception as e:
+                    logger.warning(f"Could not check trial_used_permanently for user {uid}: {e}")
+                    trial_used_permanently = False
+            
             trial_data = {
                 "active": trial_active,
-                "eligible": True,  # Simplified for now
+                "eligible": not trial_used_permanently,  # Eligible if never used permanently
                 "expires_at": expires_at_str,
                 "credits_remaining": access.get("trial_credits", 0)
             }

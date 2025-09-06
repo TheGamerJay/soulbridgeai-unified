@@ -87,7 +87,20 @@ def api_user_profile():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
         if not profile_service:
-            return jsonify({"success": False, "error": "Profile service not available"}), 503
+            logger.error("Profile service is None - initialization may have failed")
+            # Try to initialize the service if not already done
+            try:
+                from flask import current_app
+                if hasattr(current_app, 'database_manager'):
+                    global profile_service
+                    profile_service = ProfileService(current_app.database_manager)
+                    logger.info("Profile service re-initialized")
+                else:
+                    logger.error("No database_manager found in current_app")
+                    return jsonify({"success": False, "error": "Database service not available"}), 503
+            except Exception as init_error:
+                logger.error(f"Failed to re-initialize profile service: {init_error}")
+                return jsonify({"success": False, "error": "Profile service initialization failed"}), 503
         
         user_id = session.get('user_id')
         

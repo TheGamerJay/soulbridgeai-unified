@@ -184,7 +184,7 @@ class PageRenderer:
             "bronze": {
                 "name": "Bronze",
                 "price": "Free",
-                "features": ["3 daily decoder uses", "2 daily fortune uses", "3 daily horoscope uses", "Basic AI companions", "Ads supported"]
+                "features": ["5 daily decoder uses", "5 daily fortune uses", "5 daily horoscope uses", "5 daily creative writer uses", "Basic AI companions", "Ads supported"]
             },
             "silver": {
                 "name": "Silver", 

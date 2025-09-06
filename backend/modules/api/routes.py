@@ -71,6 +71,18 @@ def get_companion_tier_limits(companion_tier):
     """Get limits for a specific companion tier"""
     return PLAN_LIMITS.get(companion_tier, PLAN_LIMITS["bronze"])
 
+def get_effective_plan():
+    """Get effective user plan considering trial status"""
+    user_plan = session.get('user_plan', 'bronze')
+    trial_active = session.get('trial_active', False)
+    
+    # If user is on trial, they get Gold access for companion selection
+    # (but not for feature limits - that stays at their actual tier)
+    if trial_active and user_plan == 'bronze':
+        return 'gold'
+    
+    return user_plan
+
 def get_companion_usage_keys(user_id, companion_id):
     """Generate per-companion usage keys for session storage"""
     today = datetime.now().strftime('%Y-%m-%d')
@@ -482,6 +494,90 @@ def feature_preview_seen():
         return jsonify({
             "success": False,
             "error": "Failed to mark preview as seen"
+        }), 500
+
+# =============================================================================
+# SAPPHIRE GUIDE CHARACTER
+# =============================================================================
+
+@api_bp.route('/sapphire-chat', methods=['POST'])
+@requires_login
+def sapphire_chat():
+    """Sapphire AI Navigation Assistant - Real OpenAI Integration"""
+    try:
+        from openai import OpenAI
+        import os
+        
+        data = request.get_json()
+        if not data or 'message' not in data:
+            return jsonify({"error": "Invalid request"}), 400
+            
+        message = data['message'].strip()
+        if not message:
+            return jsonify({"error": "Please provide a message"}), 400
+            
+        if len(message) > 500:
+            return jsonify({"error": "Message too long"}), 400
+        
+        # Get user context safely
+        user_plan = session.get('user_plan', 'bronze')
+        trial_active = session.get('trial_active', False)
+        
+        # Initialize OpenAI client
+        client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+        
+        # System prompt for Sapphire
+        system_prompt = f"""You are Sapphire 💎, the WARM & CARING NAVIGATION ASSISTANT for SoulBridge AI. Your purpose is to make every user feel welcomed and supported while helping them navigate the app.
+
+PERSONALITY TRAITS:
+- 💎 Warm, caring, and genuinely helpful
+- 🌟 Patient and understanding
+- ✨ Encouraging and positive
+- 🔮 Knowledgeable about all app features
+- 💫 Makes complex things simple to understand
+
+CORE RESPONSIBILITIES:
+1. Help users understand SoulBridge AI features and navigation
+2. Guide users to the right tools for their needs
+3. Answer questions about subscription tiers and features
+4. Provide warm, supportive assistance
+5. Make users feel welcomed and valued
+
+INTERACTION STYLE:
+- Use the 💎 emoji occasionally to maintain brand identity
+- Be concise but warm (2-3 sentences max)
+- Always offer next steps or suggestions
+- Use encouraging language
+- Make users feel supported
+
+USER CONTEXT:
+- User tier: {user_plan}
+- Trial status: {trial_active}
+
+Remember: You're here to help users navigate and succeed with SoulBridge AI. Be their supportive guide! 💎"""
+        
+        # Call OpenAI API
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": message}
+            ],
+            max_tokens=150,
+            temperature=0.7
+        )
+        
+        sapphire_response = response.choices[0].message.content.strip()
+        
+        # Log interaction
+        logger.info(f"Sapphire chat request from user {get_user_id()}")
+        
+        return jsonify({"message": sapphire_response})
+        
+    except Exception as e:
+        logger.error(f"Sapphire chat error: {e}")
+        return jsonify({
+            "error": "💎 I'm temporarily unavailable, but I'll be back soon! Try checking our help section in your profile."
         }), 500
 
 # Debug Endpoints (restricted to debug mode)
