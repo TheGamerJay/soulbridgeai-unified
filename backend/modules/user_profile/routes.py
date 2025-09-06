@@ -82,6 +82,8 @@ def profile_page():
 @profile_bp.route("/api/user/profile", methods=["GET", "POST"])
 def api_user_profile():
     """User profile API endpoint"""
+    global profile_service
+    
     try:
         if not is_logged_in():
             return jsonify({"success": False, "error": "Authentication required"}), 401
@@ -92,7 +94,6 @@ def api_user_profile():
             try:
                 from flask import current_app
                 if hasattr(current_app, 'database_manager'):
-                    global profile_service
                     profile_service = ProfileService(current_app.database_manager)
                     logger.info("Profile service re-initialized")
                 else:

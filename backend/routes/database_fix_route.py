@@ -4,7 +4,6 @@ Database Fix Route - Fix Railway PostgreSQL Schema Issues
 
 import logging
 from flask import Blueprint, jsonify, request
-import psycopg2
 import os
 
 # Create blueprint
@@ -25,7 +24,8 @@ def fix_database_schema():
         if not DATABASE_URL:
             return jsonify({'error': 'DATABASE_URL not found'}), 500
         
-        # Connect to PostgreSQL
+        # Connect to PostgreSQL using existing pattern
+        import psycopg2
         conn = psycopg2.connect(DATABASE_URL)
         cursor = conn.cursor()
         
@@ -54,7 +54,7 @@ def fix_database_schema():
             columns = cursor.fetchall()
             
             # Check if id column is auto-increment
-            has_serial_id = any(col for col in columns if col[0] == 'id' and 'nextval' in str(col[2]) if col[2] else False)
+            has_serial_id = any(col for col in columns if col[0] == 'id' and col[2] and 'nextval' in str(col[2]))
             
             if not has_serial_id:
                 # Recreate table with proper ID
