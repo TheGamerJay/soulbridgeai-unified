@@ -162,6 +162,22 @@ When you complete any work or make any changes:
 
 This applies to ALL changes - code edits, new files, bug fixes, features, etc.
 
+## AUTO-UPDATE SUMMARY POLICY
+🚨 **ALWAYS AUTO-UPDATE THE COMPREHENSIVE FIXES SUMMARY** 🚨
+
+When you complete any work, fix, or enhancement:
+1. Immediately add it as a new numbered issue to the summary file
+2. Update the issue count in "All X Issues Successfully Resolved" 
+3. Add the issue to the bullet list
+4. Add the git commit to the "Git Commits" section
+5. DO NOT ask for permission
+6. DO NOT wait for user confirmation
+7. Just do it automatically
+
+Summary file location: `summarize/comprehensive-website-fixes-jan-06-2025.md`
+
+This applies to ALL work - big or small fixes, enhancements, new features, etc.
+
 ## Summary
 - Auto-commit and auto-push = YES
 - Ask permission = NO
