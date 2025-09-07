@@ -95,6 +95,7 @@
             border-radius: 20px;
             padding: 35px;
             margin-bottom: 40px;
+            -webkit-backdrop-filter: blur(10px);
             backdrop-filter: blur(10px);
             box-shadow: 0 8px 30px rgba(0, 255, 255, 0.1);
         }
@@ -165,6 +166,17 @@
             gap: 15px;
         }
 
+        .sr-only {
+            position: absolute !important;
+            width: 1px !important;
+            height: 1px !important;
+            padding: 0 !important;
+            margin: -1px !important;
+            overflow: hidden !important;
+            clip: rect(0,0,0,0) !important;
+            border: 0 !important;
+        }
+
         .category-select {
             background: rgba(0, 255, 255, 0.1);
             border: 2px solid rgba(0, 255, 255, 0.3);
@@ -215,6 +227,7 @@
             border: 2px solid rgba(0, 255, 255, 0.3);
             border-radius: 20px;
             padding: 35px;
+            -webkit-backdrop-filter: blur(10px);
             backdrop-filter: blur(10px);
             box-shadow: 0 8px 30px rgba(0, 255, 255, 0.1);
         }
@@ -448,7 +461,19 @@
             width: 100%;
             height: 100%;
             background: rgba(0, 0, 0, 0.8);
+            -webkit-backdrop-filter: blur(5px);
             backdrop-filter: blur(5px);
+        }
+
+        /* Fallback for browsers without backdrop-filter support */
+        @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+            .post-composer,
+            .feed-container {
+                background: rgba(0, 0, 0, 0.9);
+            }
+            .modal {
+                background: rgba(0, 0, 0, 0.85);
+            }
         }
 
         .modal-content {
@@ -914,6 +939,7 @@
             
             <div class="composer-bottom">
                 <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+                    <label for="post-category" class="sr-only">Post category</label>
                     <select id="post-category" class="category-select">
                         <option value="general">💬 General - Share anything meaningful</option>
                         <option value="gratitude">🙏 Gratitude - Share what you're thankful for</option>
@@ -937,6 +963,7 @@
             <div class="feed-header">
                 <h2 class="feed-title">Community Feed</h2>
                 <div class="feed-controls">
+                    <label for="feed-category" class="sr-only">Feed category</label>
                     <select id="feed-category" class="filter-select">
                         <option value="all">All Categories</option>
                         <option value="general">💬 General</option>
@@ -948,6 +975,7 @@
                         <option value="mood">🌙 Mood</option>
                         <option value="stress_relief">🌿 Stress Relief</option>
                     </select>
+                    <label for="feed-sort" class="sr-only">Feed sort</label>
                     <select id="feed-sort" class="filter-select">
                         <option value="new">✨ Newest</option>
                         <option value="top_week">🔥 Top this week</option>
