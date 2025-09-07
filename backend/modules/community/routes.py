@@ -100,6 +100,8 @@ def anonymous_community():
         if not is_logged_in():
             return redirect("/login")
         
+        logger.info("🚨 DEBUG: Community route called from BLUEPRINT (not app.py)")
+        
         # SERVER-SIDE AVATAR LOADING - Eliminates race condition!
         user_id = session.get('user_id')
         current_avatar = None
@@ -120,12 +122,16 @@ def anonymous_community():
                 result = cursor.fetchone()
                 conn.close()
                 
+                logger.info(f"🚨 DEBUG: Database query result: {result}")
+                
                 if result and result[0]:
                     # Parse community avatar data from JSON (matches saving logic)
                     import json
                     import time
                     try:
+                        logger.info(f"🚨 DEBUG: Raw companion_data from DB: {result[0]}")
                         companion_data = json.loads(result[0])  # Parse JSON from companion_data column
+                        logger.info(f"🚨 DEBUG: Parsed companion_data: {companion_data}")
                         cache_buster = int(time.time())
                         avatar_url = companion_data.get('image_url')  # JSON uses image_url
                         if avatar_url and '?' not in avatar_url:
@@ -176,6 +182,12 @@ def anonymous_community():
                 'tier': 'bronze'
             }
             logger.info(f"🔄 SERVER-SIDE: Using default avatar for user {user_id}")
+        
+        logger.info(f"🎭 DEBUG: Final current_avatar being passed to template: {current_avatar}")
+        if current_avatar:
+            logger.info(f"🎭 DEBUG: Avatar details - name: {current_avatar.get('name')}, url: {current_avatar.get('avatar_url')}")
+        else:
+            logger.info("🎭 DEBUG: No current_avatar - template will show fallback")
         
         return render_template("anonymous_community.html", current_avatar=current_avatar)
     except Exception as e:
