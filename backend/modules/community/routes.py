@@ -581,7 +581,7 @@ def community_posts():
         
         # Build query with category filter
         base_query = """
-            SELECT cp.id, cp.title, cp.content, cp.category, cp.created_at, cp.tags,
+            SELECT cp.id, cp.content, cp.text, cp.category, cp.created_at, cp.hashtags,
                    u.email as author_email, c.name as companion_name, c.avatar_url, c.image_url
             FROM community_posts cp
             JOIN users u ON cp.user_id = u.id
@@ -622,13 +622,23 @@ def community_posts():
             # Use companion avatar if available, fallback to default
             avatar_url = post[8] or post[9] or "/static/images/companions/default.png"
             
+            # Use content or text field, whichever has data
+            post_content = post[1] or post[2] or ""
+            
+            # Parse hashtags JSON
+            try:
+                import json
+                hashtags = json.loads(post[5]) if post[5] else []
+            except:
+                hashtags = []
+            
             formatted_post = {
                 "id": post[0],
-                "title": post[1],
-                "content": post[2],
+                "title": post_content[:50] + "..." if len(post_content) > 50 else post_content,
+                "content": post_content,
                 "category": post[3],
                 "created_at": post[4].isoformat() + "Z" if post[4] else "",
-                "tags": post[5] or [],
+                "tags": hashtags,
                 "author": "Anonymous Companion",  # Keep anonymous
                 "companion_avatar": avatar_url,
                 "hearts": 0  # Will be updated below with reaction counts
@@ -678,9 +688,30 @@ def create_community_post():
         if len(text) > 700:
             return jsonify({"success": False, "error": "Post content too long (max 700 characters)"}), 400
         
-        # Mock post creation - in real app would save to database
+        # Save post to database
+        from backend.database_utils import get_db_connection
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Get current user info
+        user_id = session.get('user_id')
+        companion_id = session.get('selected_companion_id')
+        
+        # Insert post into database
+        insert_query = """
+            INSERT INTO community_posts 
+            (user_id, companion_id, category, content, text, status, created_at)
+            VALUES (%s, %s, %s, %s, %s, 'approved', CURRENT_TIMESTAMP)
+        """
+        
+        cursor.execute(insert_query, (user_id, companion_id, category, text, text))
+        post_id = cursor.lastrowid
+        
+        cursor.close()
+        conn.close()
+        
         new_post = {
-            "id": 999,  # Mock ID
+            "id": post_id,
             "title": text[:50] + "..." if len(text) > 50 else text,
             "content": text,
             "author": "Anonymous Companion",
