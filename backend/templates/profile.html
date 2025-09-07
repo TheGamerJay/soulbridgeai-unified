@@ -1271,7 +1271,7 @@
                                     <img id="selectedCompanionImage" 
                                          style="width: 140px; height: 140px; object-fit: contain; display: none;" 
                                          alt="Selected Companion"
-                                         onerror="this.style.display='none'; document.getElementById('selectedCompanionAvatar').style.display='flex';">
+                                         onerror="handleAvatarImgError(this)">
                                     <div id="selectedCompanionAvatar" 
                                          style="width: 140px; height: 140px; background: linear-gradient(135deg, #22d3ee, #0891b2); display: flex; align-items: center; justify-content: center; font-size: 3rem; font-weight: bold; color: #000;">
                                          ?
@@ -3291,24 +3291,20 @@
                         console.warn('🤖 Using default fallback companion:', companionToDisplay);
                     }
                     
-                    // 1) Load persisted avatar first
                     const saved = await loadSavedAvatar();
-
                     if (saved) {
-                        applyCompanion(saved); // single source of truth from DB
+                        applyCompanion(saved);
                     } else {
-                        // Fallback: if you have a detected/default selection:
                         const fallbackId = localStorage.getItem('lastUsedCompanionId') || 'soul';
-                        const fallback = {
-                            name: fallbackId === 'soul' ? 'Soul' : fallbackId, // adjust to your map
+                        applyCompanion({
+                            name: fallbackId === 'soul' ? 'Soul' : fallbackId,
                             companion_id: fallbackId,
                             avatar_url: `/static/companions/${fallbackId}.png`,
                             tier: 'bronze'
-                        };
-                        applyCompanion(fallback);
+                        });
                     }
 
-                    // 2) Now that UI is consistent, load grids, etc.
+                    // Now populate grids, etc. (after avatar is set)
                     const userTier = (userData.user_plan || 'bronze').toLowerCase();
                     const trialActive = (responseData.access && responseData.access.trial_live) || false;
                     populateCompanionGrids(userTier, localStorage.getItem('lastUsedCompanionId') || 'soul', trialActive);
@@ -3803,28 +3799,23 @@
 
         // Handle companion selection from dropdown
         function selectCompanionFromDropdown(companionId, companionName, companionData) {
-            // Apply immediately
             applyCompanion({
                 name: companionName,
                 companion_id: companionId,
                 avatar_url: (companionData && companionData.image) || `/static/companions/${companionId}.png`,
-                tier: getTierFromCompanionId(companionId)
+                tier: getTierFromCompanionId(companionId),
             });
-
+            
             // Close UI
             const dropdown = document.getElementById('companionDropdown');
             const arrow = document.querySelector('.dropdown-arrow');
             if (dropdown) dropdown.style.display = 'none';
             if (arrow) arrow.style.transform = 'rotate(0deg)';
-
+            
             showNotification(`Selected ${companionName} as your companion!`, 'success');
-
+            
             // Persist
-            saveCompanionToDatabase(companionId, companionName, companionData).then(r => {
-                if (!r?.success) {
-                    console.warn('⚠️ DB save failed; UI shows cached selection but will fall back next load.');
-                }
-            });
+            saveCompanionToDatabase(companionId, companionName, companionData);
         }
 
         // Save companion selection to database
@@ -3874,42 +3865,53 @@
             return 'bronze'; // default fallback
         }
 
-        // PURE: fetch & return object, do NOT mutate the DOM here
+        // PURE fetch (no DOM writes)
         async function loadSavedAvatar() {
             try {
-                const res = await fetch('/community/avatar', { 
-                    method: 'GET', 
-                    headers: { 'Content-Type': 'application/json' } 
-                });
+                const res = await fetch('/community/avatar', { method: 'GET', headers: { 'Content-Type': 'application/json' }});
                 const json = await res.json();
-                if (json.success && json.companion) {
-                    console.log('✅ Avatar loaded from database:', json.companion);
-                    return json.companion; // { name, companion_id, avatar_url, tier }
-                }
-                return null;
+                return (json.success && json.companion) ? json.companion : null;
             } catch (e) {
-                console.error('❌ Error loading saved avatar:', e);
+                console.error('❌ loadSavedAvatar:', e);
                 return null;
             }
         }
-        
-        // Use a single "apply" function for the UI, and call it once at bootstrap
+
+        // Single source of truth -> UI + localStorage
         function applyCompanion(comp) {
-            // Normalize fields to the shape your UI expects
-            const companionData = {
+            const normalized = {
                 name: comp.name,
                 id: comp.companion_id,
                 image: comp.avatar_url,
                 tier: comp.tier,
-                bio: comp.bio || '' // optional
+                bio: comp.bio || ''
             };
+            updateSelectedCompanionDisplay(normalized.name, normalized);
+            updateCompanionDisplay(normalized.name); // if this only needs the name, OK
+            localStorage.setItem('lastUsedCompanionId', normalized.id);
+        }
 
-            updateSelectedCompanionDisplay(companionData.name, companionData);
-            updateCompanionDisplay(companionData.name); // if this only handles name, OK
+        // Versioned image setting to prevent stale 404s
+        function setAvatarImg(imageEl, url) {
+            const ver = Date.now().toString();
+            imageEl.dataset.ver = ver;          // current version
+            imageEl.src = `${url}?v=${ver}`;    // cache-bust + tie to version
+        }
 
-            // Prefer storing ID, not name
-            localStorage.setItem('lastUsedCompanionId', companionData.id);
-            localStorage.setItem('lastUsedCompanion', companionData.name); // keep for compatibility
+        // Guarded error handler
+        function handleAvatarImgError(img) {
+            // Only act if this error belongs to the current version
+            const currentVer = img.dataset.ver;
+            if (!currentVer) return; // nothing to do
+
+            // Fall back to letter tile
+            const avatarEl = document.getElementById('selectedCompanionAvatar');
+            if (avatarEl) {
+                avatarEl.style.display = 'flex';
+                avatarEl.textContent = (document.getElementById('selectedCompanionName')?.textContent || '?')
+                    .slice(0,1).toUpperCase();
+            }
+            img.style.display = 'none';
         }
 
         // Update the selected companion display in the dropdown header
@@ -4015,14 +4017,13 @@
             }
 
             if (imageEl && companionData.image) {
-                // Add cache-buster to avoid stale 404s and ensure fresh image loads
-                imageEl.src = companionData.image + `?v=${Date.now()}`;
+                setAvatarImg(imageEl, companionData.image);
                 imageEl.style.display = 'block';
                 if (avatarEl) avatarEl.style.display = 'none';
             } else {
                 if (avatarEl) {
                     avatarEl.style.display = 'flex';
-                    avatarEl.textContent = (companionData.name || companionData.avatar || '?').slice(0,1).toUpperCase();
+                    avatarEl.textContent = (companionData.name || '?').slice(0,1).toUpperCase();
                 }
                 if (imageEl) imageEl.style.display = 'none';
             }

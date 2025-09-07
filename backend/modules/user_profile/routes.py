@@ -489,7 +489,7 @@ def apply_theme_preset():
 
 @profile_bp.route("/community/avatar", methods=["GET"])
 def get_community_avatar():
-    """Get current user's community avatar/companion with database fallback"""
+    """Get current user's community avatar/companion - PURE: always returns valid record"""
     try:
         if not is_logged_in():
             return jsonify({"success": False, "error": "Authentication required"}), 401
@@ -505,8 +505,6 @@ def get_community_avatar():
             if database:
                 conn = database.get_connection()
                 cursor = conn.cursor()
-
-                # Normalize user_id for PG to avoid text/int mismatch
                 uid = int(user_id) if database.use_postgres else user_id
 
                 if database.use_postgres:
@@ -523,7 +521,6 @@ def get_community_avatar():
             logger.warning(f"Database avatar load failed for user {user_id}: {db_error}")
 
         if not companion_info:
-            # Final fallback
             companion_info = {
                 "name": "Soul",
                 "companion_id": "soul",
@@ -531,11 +528,11 @@ def get_community_avatar():
                 "tier": "bronze"
             }
 
-        # Safety: ensure avatar_url exists if missing
+        # Safety: ensure avatar_url is set when companion_id exists
         if not companion_info.get("avatar_url") and companion_info.get("companion_id"):
             companion_info["avatar_url"] = f"/static/companions/{companion_info['companion_id']}.png"
 
-        # Cache in session (optional)
+        # Cache (optional)
         session["companion_info"] = companion_info
         session.modified = True
 
