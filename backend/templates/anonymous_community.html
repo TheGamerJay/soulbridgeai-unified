@@ -1127,20 +1127,37 @@
         let userReactions = new Map(); // postId -> emoji (one reaction per post max, permanent)
 
         // Initialize the page
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', async function() {
             console.log('📋 DOM LOADED - Starting initialization');
             console.log('🔄 About to call: initializeComposer, loadUserReactions, loadWeeklyEvent, loadFeed');
             
             initializeComposer();
-            loadUserReactions();
+            
+            // Load user reactions FIRST, then load feed to ensure buttons get active state
+            await loadUserReactions();
+            console.log('✅ User reactions loaded, now loading feed...');
+            
+            // Load feed and events in parallel since they don't depend on reactions
             loadWeeklyEvent();
             loadFeed();
             setupEventListeners();
         });
         
-        // Load user's existing reactions from backend
+        // Load user's existing reactions from backend with localStorage backup
         async function loadUserReactions() {
             try {
+                // First, try loading from localStorage as immediate backup
+                const savedReactions = localStorage.getItem('userReactions');
+                if (savedReactions) {
+                    const reactions = JSON.parse(savedReactions);
+                    Object.entries(reactions).forEach(([postId, emoji]) => {
+                        userReactions.set(parseInt(postId), emoji);
+                    });
+                    console.log(`Loaded ${Object.keys(reactions).length} reactions from localStorage backup`);
+                    updateExistingReactionButtons();
+                }
+                
+                // Then, fetch fresh data from server
                 const response = await fetch(`${API_BASE}/user-reactions`);
                 const data = await response.json();
                 
@@ -1150,14 +1167,38 @@
                     Object.entries(data.reactions).forEach(([postId, emoji]) => {
                         userReactions.set(parseInt(postId), emoji);
                     });
-                    console.log(`Loaded ${Object.keys(data.reactions).length} user reactions`);
+                    console.log(`Loaded ${Object.keys(data.reactions).length} user reactions from server`);
+                    
+                    // Save to localStorage for next time
+                    localStorage.setItem('userReactions', JSON.stringify(data.reactions));
+                    
+                    // Update existing reaction buttons that are already rendered
+                    updateExistingReactionButtons();
                 } else {
-                    console.log('No user reactions data received:', data);
+                    console.log('No user reactions data received from server, keeping localStorage data');
                 }
             } catch (error) {
-                // Silent fail - reactions will start fresh
-                console.log('Could not load user reactions, starting fresh:', error);
+                console.log('Could not load user reactions from server, using localStorage backup:', error);
             }
+        }
+
+        // Update existing reaction buttons with user's saved reactions
+        function updateExistingReactionButtons() {
+            console.log('🔄 Updating existing reaction buttons with saved reactions...');
+            
+            userReactions.forEach((emoji, postId) => {
+                const postElement = document.querySelector(`[data-post-id="${postId}"]`);
+                if (postElement) {
+                    const reactionButtons = postElement.querySelectorAll('.reaction-btn');
+                    reactionButtons.forEach(btn => {
+                        const btnEmoji = btn.textContent.trim().split(' ')[0]; // Get emoji from button
+                        if (btnEmoji === emoji) {
+                            btn.classList.add('active');
+                            console.log(`✅ Highlighted ${emoji} reaction for post ${postId}`);
+                        }
+                    });
+                }
+            });
         }
 
         // Initialize post composer
@@ -1591,6 +1632,10 @@
             
             // Add permanent reaction
             userReactions.set(postId, emoji);
+            
+            // Save to localStorage immediately for persistence
+            const reactionsObj = Object.fromEntries(userReactions);
+            localStorage.setItem('userReactions', JSON.stringify(reactionsObj));
             
             try {
                 const response = await fetch(`${API_BASE}/posts/${postId}/react`, {
