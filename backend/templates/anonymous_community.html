@@ -1841,7 +1841,7 @@
                         postElement.remove();
                     }
                     // Refresh the posts list to ensure consistency
-                    await loadCommunityPosts();
+                    await loadFeed();
                 } else {
                     showMessage(data.error || 'Failed to delete post', 'error');
                 }
