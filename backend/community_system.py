@@ -60,6 +60,45 @@ COMMUNITY_CONFIG = {
 }
 
 # ===============================
+# UTILITIES
+# ===============================
+
+def normalize_companion_id(value) -> str:
+    """Normalize companion ID to string format"""
+    return str(value).strip()
+
+def resolve_avatar_url(companion_id, fallback="/static/logos/GamerJay_Free_companion.png"):
+    """Resolve avatar URL from companion ID with fallback"""
+    # Known numeric IDs
+    name_map = {
+        1: 'GamerJay_Free_companion',
+        2: 'Sky_a_premium_companion',
+        3: 'Crimson',
+        4: 'Violet',
+        7: 'GamerJay_premium_companion',
+        8: 'Claude_Free',
+        20: 'Claude_Growth',
+        30: 'Claude_Max',
+        25: 'Lumen_Bronze',
+        26: 'Lumen_Silver',
+        27: 'blayzo_free_tier',
+    }
+    try:
+        # try numeric first
+        cid_int = int(str(companion_id))
+        name = name_map.get(cid_int)
+        if name:
+            return f"/static/logos/{name}.png"
+    except:
+        pass
+    # string IDs – allow direct logo by id token if you use them
+    cid_str = str(companion_id).strip()
+    if cid_str:
+        # try a sane default pattern for string IDs you use (e.g. "Lumen_Bronze")
+        return f"/static/logos/{cid_str}.png"
+    return fallback
+
+# ===============================
 # DATABASE SCHEMA INITIALIZATION
 # ===============================
 
@@ -443,14 +482,8 @@ def set_user_community_avatar(user_id: int, companion_data: Dict[str, Any]) -> b
         # Insert or update avatar preference
         logger.info(f"🔍 Attempting to insert companion data: user_id={user_id}, companion_id={companion_data['companion_id']}, name={companion_data['name']}")
         
-        # TEMPORARY FIX: Handle both string and integer companion IDs
-        companion_id_to_insert = companion_data['companion_id']
-        
-        # If companion_id is a string like 'lumen_bronze', convert to a simple integer hash
-        if isinstance(companion_id_to_insert, str):
-            # Create a simple hash for string IDs to work with existing INTEGER columns
-            companion_id_to_insert = abs(hash(companion_id_to_insert)) % 1000000
-            logger.info(f"🔄 Converted string companion_id to integer: {companion_data['companion_id']} -> {companion_id_to_insert}")
+        # Normalize companion ID as string
+        companion_id_to_insert = normalize_companion_id(companion_data['companion_id'])
         
         try:
             cursor.execute("""
@@ -581,12 +614,10 @@ def record_avatar_change(user_id: int, old_companion_data: Dict, new_companion_d
         old_companion_id = old_companion_data.get('companion_id') if old_companion_data else None
         new_companion_id = new_companion_data.get('companion_id')
         
-        # Convert string IDs to integer hashes for database compatibility
-        if old_companion_id and isinstance(old_companion_id, str):
-            old_companion_id = abs(hash(old_companion_id)) % 1000000
+        # Normalize companion IDs as strings
+        old_companion_id = normalize_companion_id(old_companion_id) if old_companion_id else None
             
-        if new_companion_id and isinstance(new_companion_id, str):
-            new_companion_id = abs(hash(new_companion_id)) % 1000000
+        new_companion_id = normalize_companion_id(new_companion_id)
         
         logger.info(f"🔍 Recording avatar change: old_id={old_companion_id}, new_id={new_companion_id}, type={change_type}")
 
@@ -1026,18 +1057,10 @@ def get_community_feed():
             
             # Calculate time ago
             post_time = datetime.fromisoformat(created_at)
-            time_ago = self._format_time_ago(post_time)
+            time_ago = _format_time_ago(post_time)
             
-            # Get companion avatar info - use actual companion names
-            companion_names = {
-                1: 'GamerJay Free companion',
-                2: 'Sky a premium companion', 
-                3: 'Crimson',
-                4: 'Violet',
-                7: 'GamerJay premium companion'
-            }
-            companion_name = companion_names.get(companion_id, 'GamerJay Free companion')
-            avatar_url = f"/static/logos/{companion_name}.png"
+            # Get companion avatar info - use resilient URL resolution
+            avatar_url = resolve_avatar_url(companion_id)
             
             posts.append({
                 'id': post_id,
@@ -1327,6 +1350,9 @@ def get_community_avatar():
             return jsonify({"error": "Authentication required"}), 401
         
         companion_info = get_user_companion_info(user_id)
+        # Normalize companion ID in response
+        if companion_info:
+            companion_info['companion_id'] = normalize_companion_id(companion_info.get('companion_id'))
         
         return jsonify({
             'success': True,
@@ -1804,7 +1830,7 @@ def get_companions():
         
         # Get user's current community avatar
         current_avatar = get_user_community_avatar(user_id)
-        current_companion_id = current_avatar.get('companion_id') if current_avatar else None
+        current_companion_id = normalize_companion_id(current_avatar.get('companion_id')) if current_avatar else None
         
         # Show ALL companions with access status
         all_companions = []
@@ -1840,7 +1866,7 @@ def get_companions():
                 'avatar_url': companion.get('image_url', f"/static/companions/{companion['name'].lower()}.png"),
                 'tier': companion_tier,
                 'can_access': can_access,
-                'is_current': companion['id'] == current_companion_id,
+                'is_current': normalize_companion_id(companion['id']) == current_companion_id,
                 'unlock_requirement': unlock_requirement
             }
             
