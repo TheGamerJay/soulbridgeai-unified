@@ -1132,9 +1132,9 @@ def join_weekly_event():
         logger.error(f"Error joining weekly event: {e}")
         return jsonify({"success": False, "error": "Failed to join event"}), 500
 
-@community_bp.route("/community/avatar")
+@community_bp.route("/community/avatar-legacy")
 def community_get_avatar():
-    """Get current user's community avatar/companion"""
+    """Get current user's community avatar/companion - LEGACY ROUTE - Use /community/avatar instead"""
     try:
         if not is_logged_in():
             return jsonify({"success": False, "error": "Authentication required"}), 401

@@ -3874,6 +3874,9 @@
                         'Content-Type': 'application/json'
                     }
                 });
+                
+                // Debug: Check what endpoint we're actually hitting
+                console.log('🔍 Avatar load response URL:', response.url);
 
                 const result = await response.json();
                 

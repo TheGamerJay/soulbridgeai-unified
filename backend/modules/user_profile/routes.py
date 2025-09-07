@@ -657,6 +657,71 @@ def check_avatar_cooldown():
         logger.error(f"Avatar cooldown check error: {e}")
         return jsonify({"success": False, "error": "Failed to check cooldown"}), 500
 
+@profile_bp.route("/community/avatar/debug", methods=["GET"])
+def debug_avatar_database():
+    """Debug endpoint to check what's actually in the database"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        user_id = session.get('user_id')
+        
+        # Check what's in the database
+        from database_utils import get_database
+        import json
+        
+        database = get_database()
+        if not database:
+            return jsonify({"success": False, "error": "Database not available"}), 503
+            
+        conn = database.get_connection()
+        cursor = conn.cursor()
+        
+        if database.use_postgres:
+            cursor.execute("SELECT id, companion_data FROM users WHERE id = %s", (user_id,))
+        else:
+            cursor.execute("SELECT id, companion_data FROM users WHERE id = ?", (user_id,))
+        
+        result = cursor.fetchone()
+        conn.close()
+        
+        if result:
+            raw_data = result[1]
+            parsed_data = None
+            data_type = type(raw_data).__name__
+            
+            try:
+                if isinstance(raw_data, dict):
+                    parsed_data = raw_data
+                elif raw_data:
+                    parsed_data = json.loads(raw_data)
+            except Exception as parse_error:
+                parsed_data = f"Parse error: {parse_error}"
+            
+            return jsonify({
+                "success": True,
+                "debug_info": {
+                    "user_id": user_id,
+                    "raw_data": str(raw_data)[:500],  # Limit size
+                    "data_type": data_type,
+                    "parsed_data": parsed_data,
+                    "database_type": "postgresql" if database.use_postgres else "sqlite"
+                }
+            })
+        else:
+            return jsonify({
+                "success": True,
+                "debug_info": {
+                    "user_id": user_id,
+                    "raw_data": None,
+                    "message": "No data found for user"
+                }
+            })
+        
+    except Exception as e:
+        logger.error(f"Avatar debug error: {e}")
+        return jsonify({"success": False, "error": f"Debug failed: {e}"}), 500
+
 # ================================
 # UTILITY FUNCTIONS
 # ================================
