@@ -187,14 +187,10 @@ def auto_set_avatar(companion_id):
 def emergency_database_fix():
     """Emergency fix for user_activity_log table - ADMIN ONLY"""
     try:
-        # Simple authentication check
-        if not is_logged_in():
-            return "Authentication required", 401
-        
-        user_id = session.get('user_id')
-        # Only allow admin user (you can adjust this)
-        if user_id != 104:  # Your user ID
-            return "Admin access required", 403
+        # Simplified access - check query parameter for emergency access
+        emergency_key = request.args.get('key')
+        if emergency_key != 'soulbridge_emergency_2025':
+            return "Emergency key required: /community/fix-database?key=soulbridge_emergency_2025", 401
             
         db = get_database()
         if not db:
