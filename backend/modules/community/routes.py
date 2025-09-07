@@ -573,53 +573,67 @@ def community_posts():
         limit = min(int(request.args.get('limit', 20)), 50)  # Max 50 items
         offset = int(request.args.get('offset', 0))
         
-        # Query real community posts from database
+        # Query real community posts from database with proper transaction handling
         try:
             from database_utils import get_db_connection, get_placeholder
             
             conn = get_db_connection()
-            cursor = conn.cursor()
             placeholder = get_placeholder()
             
             logger.info(f"Community posts query: category={category}, sort={sort_by}, limit={limit}, placeholder={placeholder}")
             
-            # Build query with category filter - use only cp.image_url (schema-safe)
-            base_query = f"""
-                SELECT cp.id, cp.content, cp.text, cp.category, cp.created_at, cp.hashtags,
-                       u.email as author_email, c.name as companion_name, 
-                       cp.image_url as image_url
-                FROM community_posts cp
-                JOIN users u ON cp.author_uid = u.id
-                LEFT JOIN companions c ON cp.companion_id = c.id
-            """
+            # Use proper transaction pattern for reads too
+            with conn:  # Fresh transaction for consistent read
+                with conn.cursor() as cursor:
+                    # Build query with category filter - use only cp.image_url (schema-safe)
+                    base_query = f"""
+                        SELECT cp.id, cp.content, cp.text, cp.category, cp.created_at, cp.hashtags,
+                               u.email as author_email, c.name as companion_name, 
+                               cp.image_url as image_url
+                        FROM community_posts cp
+                        JOIN users u ON cp.author_uid = u.id
+                        LEFT JOIN companions c ON cp.companion_id = c.id
+                    """
+                    
+                    params = []
+                    if category != 'all':
+                        base_query += f" WHERE cp.category = {placeholder}"
+                        params.append(category)
+                        
+                    # Add sorting
+                    if sort_by == 'new':
+                        base_query += " ORDER BY cp.created_at DESC"
+                    elif sort_by == 'popular':
+                        base_query += " ORDER BY cp.id DESC"  # Simple fallback for now
+                        
+                    # Add pagination
+                    base_query += f" LIMIT {placeholder} OFFSET {placeholder}"
+                    params.extend([limit, offset])
+                    
+                    logger.info(f"Executing query: {base_query}")
+                    logger.info(f"Query params: {params}")
+                    
+                    cursor.execute(base_query, params)
+                    posts = cursor.fetchall()
+                    
+                    logger.info(f"Query returned {len(posts)} posts")
+                    
+                    # Get total count for pagination in same transaction
+                    count_query = "SELECT COUNT(*) FROM community_posts"
+                    count_params = []
+                    if category != 'all':
+                        count_query += f" WHERE category = {placeholder}"
+                        count_params.append(category)
+                        
+                    cursor.execute(count_query, count_params)
+                    total_posts = cursor.fetchone()[0]
             
-            params = []
-            if category != 'all':
-                base_query += f" WHERE cp.category = {placeholder}"
-                params.append(category)
-                
-            # Add sorting
-            if sort_by == 'new':
-                base_query += " ORDER BY cp.created_at DESC"
-            elif sort_by == 'popular':
-                base_query += " ORDER BY cp.id DESC"  # Simple fallback for now
-                
-            # Add pagination
-            base_query += f" LIMIT {placeholder} OFFSET {placeholder}"
-            params.extend([limit, offset])
-            
-            logger.info(f"Executing query: {base_query}")
-            logger.info(f"Query params: {params}")
-            
-            cursor.execute(base_query, params)
-            posts = cursor.fetchall()
-            
-            logger.info(f"Query returned {len(posts)} posts")
+            conn.close()
             
         except Exception as db_error:
             logger.error(f"Database query failed: {str(db_error)}")
-            cursor.close() if 'cursor' in locals() else None
-            conn.close() if 'conn' in locals() else None
+            if 'conn' in locals():
+                conn.close()
             
             # Return empty result instead of failing
             return jsonify({
@@ -631,16 +645,6 @@ def community_posts():
                 "sort_options": ["new", "popular"],
                 "error_debug": str(db_error) if logger.level <= 20 else None  # Only in debug mode
             })
-        
-        # Get total count for pagination
-        count_query = "SELECT COUNT(*) FROM community_posts"
-        count_params = []
-        if category != 'all':
-            count_query += f" WHERE category = {placeholder}"
-            count_params.append(category)
-            
-        cursor.execute(count_query, count_params)
-        total_posts = cursor.fetchone()[0]
         
         # Format posts for response
         paginated_posts = []
@@ -714,11 +718,10 @@ def create_community_post():
         if len(text) > 700:
             return jsonify({"success": False, "error": "Post content too long (max 700 characters)"}), 400
         
-        # Save post to database
+        # Save post to database with proper transaction handling
         try:
             from database_utils import get_db_connection, get_placeholder
             conn = get_db_connection()
-            cursor = conn.cursor()
             placeholder = get_placeholder()
             
             # Get current user info and avatar
@@ -732,26 +735,27 @@ def create_community_post():
             
             logger.info(f"Creating post: user_id={user_id}, companion_id={companion_id}, category={category}, image_url={image_url}")
             
-            # Insert post into database with snapshotted avatar
-            insert_query = f"""
-                INSERT INTO community_posts 
-                (author_uid, companion_id, category, content, text, status, created_at, author_email, image_url)
-                VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder}, 'approved', CURRENT_TIMESTAMP, {placeholder}, {placeholder})
-                RETURNING id
-            """
+            # Use proper transaction pattern
+            with conn:  # Auto-commit on success, rollback on exception
+                with conn.cursor() as cursor:
+                    insert_query = f"""
+                        INSERT INTO community_posts 
+                        (author_uid, companion_id, category, content, text, status, created_at, author_email, image_url)
+                        VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder}, 'approved', CURRENT_TIMESTAMP, {placeholder}, {placeholder})
+                        RETURNING id
+                    """
+                    
+                    cursor.execute(insert_query, (user_id, companion_id, category, text, text, user_email, image_url))
+                    post_id = cursor.fetchone()[0]
+                    
+                    logger.info(f"Post created successfully: ID={post_id}")
             
-            cursor.execute(insert_query, (user_id, companion_id, category, text, text, user_email, image_url))
-            post_id = cursor.fetchone()[0]
-            
-            cursor.close()
             conn.close()
-            
-            logger.info(f"Post created successfully: ID={post_id}")
             
         except Exception as db_error:
             logger.error(f"Failed to save post to database: {str(db_error)}")
-            cursor.close() if 'cursor' in locals() else None
-            conn.close() if 'conn' in locals() else None
+            if 'conn' in locals():
+                conn.close()
             
             # Return success but with mock ID for now
             post_id = 999
