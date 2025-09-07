@@ -1327,16 +1327,19 @@
                 console.log('📋 Response data:', data);
                 
                 if (data.success) {
-                    showMessage('Post shared successfully! 🌸', 'success');
+                    // Clear the form
                     document.getElementById('post-text').value = '';
                     document.getElementById('char-count').textContent = '0';
                     document.getElementById('post-category').selectedIndex = 0; // Reset to General
                     
-                    // Small delay to ensure database persistence, then refresh feed
-                    console.log('⏳ Waiting 500ms before refreshing feed...');
+                    // Show success message
+                    showMessage('Post shared successfully! 🌸 Refreshing page...', 'success');
+                    
+                    // Hard refresh the page to ensure new post appears
+                    // TODO: Fix the JS feed refresh issue later
                     setTimeout(() => {
-                        loadFeed(); // Refresh feed
-                    }, 500);
+                        window.location.reload();
+                    }, 1000);
                 } else {
                     throw new Error(data.error || 'Failed to create post');
                 }
