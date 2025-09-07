@@ -1223,8 +1223,15 @@
 
             // Submit post
             submitBtn.addEventListener('click', function() {
+                console.log('🚀 Share button clicked!');
+                console.log('📝 Button disabled?', submitBtn.disabled);
+                console.log('📝 Text content:', document.getElementById('post-text').value);
+                
                 if (!submitBtn.disabled) {
+                    console.log('✅ Calling createPost()...');
                     createPost();
+                } else {
+                    console.log('❌ Share button is disabled - not creating post');
                 }
             });
 
@@ -1243,10 +1250,18 @@
 
         // Create a new post with AI validation
         async function createPost() {
+            console.log('🚀 createPost() function called');
+            
             const textContent = document.getElementById('post-text').value.trim();
             const category = document.getElementById('post-category').value;
             
-            if (!textContent) return;
+            console.log('📝 Text content:', textContent);
+            console.log('📂 Category:', category);
+            
+            if (!textContent) {
+                console.log('❌ No text content - returning early');
+                return;
+            }
 
             // Step 1: AI Content Validation (if not General category)
             if (category !== 'general') {
@@ -1284,23 +1299,32 @@
             const originalText = submitBtn.textContent;
             
             try {
+                console.log('📡 Sending POST request to:', `${API_BASE}/posts`);
+                
                 submitBtn.disabled = true;
                 submitBtn.textContent = 'Sharing...';
+                
+                const requestBody = {
+                    text: textContent,
+                    category: document.getElementById('post-category').value,
+                    hashtags: [],
+                    ai_validation: category !== 'general' ? await validateContentCategory(textContent, category) : null
+                };
+                
+                console.log('📦 Request body:', requestBody);
                 
                 const response = await fetch(`${API_BASE}/posts`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({
-                        text: textContent,
-                        category: document.getElementById('post-category').value, // Use current value (might have changed)
-                        hashtags: [],
-                        ai_validation: category !== 'general' ? await validateContentCategory(textContent, category) : null
-                    })
+                    body: JSON.stringify(requestBody)
                 });
                 
+                console.log('📨 Response status:', response.status, response.statusText);
+                
                 const data = await response.json();
+                console.log('📋 Response data:', data);
                 
                 if (data.success) {
                     showMessage('Post shared successfully! 🌸', 'success');
