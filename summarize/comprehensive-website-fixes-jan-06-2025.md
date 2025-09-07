@@ -1,7 +1,7 @@
 # 🔧 Comprehensive Website Fixes - January 6-7, 2025
 
 **Date**: January 6-7, 2025  
-**Scope**: Major website functionality, display issues, and database schema fixes  
+**Scope**: Major website functionality, display issues, database schema fixes, and avatar persistence  
 **Status**: ✅ COMPLETED
 
 ---
@@ -319,11 +319,49 @@ card.style.backgroundPosition = 'center';
 - Maintained all game functionality and hover effects
 **Files Modified**: `backend/templates/soul_riddle.html`
 
+### 19. **Avatar Disappearing on Page Refresh** ✅ FIXED
+**Problem**: Selected avatar/companion resets to default when page refreshes  
+**Root Cause**: Avatar selection only saved to localStorage/session, not persisted to database  
+**Solution**: Implemented complete avatar persistence system
+```javascript
+// Frontend: Added database save on avatar selection
+async function saveCompanionToDatabase(companionId, companionName, companionData) {
+    const payload = {
+        companion_id: companionId,
+        name: companionName, 
+        avatar_url: companionData?.image,
+        tier: getTierFromCompanionId(companionId)
+    };
+    await fetch('/community/avatar', { method: 'POST', body: JSON.stringify(payload) });
+}
+
+// Frontend: Added database load on page refresh
+async function loadSavedAvatar() {
+    const response = await fetch('/community/avatar');
+    // Updates avatar display with database data
+}
+```
+```python
+# Backend: Enhanced avatar API with database persistence
+@profile_bp.route("/community/avatar", methods=["POST", "GET"])
+def community_avatar():
+    # POST: Save avatar to database using companion_data column
+    # GET: Load avatar from database with fallback chain
+    save_result = save_user_avatar_persistent(user_id, companion_data, database)
+```
+**Fix Flow**:
+1. User selects avatar → Frontend updates UI immediately
+2. Frontend calls `/community/avatar` POST → Backend saves to `companion_data` column 
+3. On page refresh → Frontend calls `/community/avatar` GET → Backend loads from database
+4. Database data overrides localStorage/session → Avatar persists correctly
+
+**Files Modified**: `backend/modules/user_profile/routes.py`, `backend/templates/profile.html`
+
 ---
 
 ## 🎉 **FINAL STATUS: ALL ISSUES COMPLETED** ✅
 
-### **All 18 Issues Successfully Resolved**
+### **All 19 Issues Successfully Resolved**
 - ✅ Sapphire guide 404 error
 - ✅ Community avatar images and tier locks  
 - ✅ Profile page Firebase CSP violations
@@ -339,6 +377,7 @@ card.style.backgroundPosition = 'center';
 - ✅ Account Management premium features verified
 - ✅ Subscription button UX enhancement  
 - ✅ Community reaction highlighting fix
+- ✅ Avatar disappearing on page refresh
 
 ---
 

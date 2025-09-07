@@ -499,14 +499,24 @@ def get_community_avatar():
         
         # Try to get from database first (persistent across sessions)
         try:
-            from backend.avatar_persistence_helper import load_user_avatar_persistent
-            from backend.database_utils import get_database
+            from database_utils import get_database
+            import json
             
             database = get_database()
             if database:
-                load_result = load_user_avatar_persistent(user_id, database)
-                if load_result.get('success'):
-                    companion_info = load_result['data']
+                conn = database.get_connection()
+                cursor = conn.cursor()
+                
+                if database.use_postgres:
+                    cursor.execute("SELECT companion_data FROM users WHERE id = %s", (user_id,))
+                else:
+                    cursor.execute("SELECT companion_data FROM users WHERE id = ?", (user_id,))
+                
+                result = cursor.fetchone()
+                conn.close()
+                
+                if result and result[0]:
+                    companion_info = json.loads(result[0])
                     logger.info(f"✅ Avatar loaded from database for user {user_id}")
                     
                     # Update session cache for faster subsequent requests
@@ -554,6 +564,16 @@ def set_community_avatar():
         
         user_id = session.get('user_id')
         
+        # Import required modules
+        from datetime import datetime
+        import sys
+        import os
+        
+        # Add backend directory to path for imports
+        backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        if backend_dir not in sys.path:
+            sys.path.insert(0, backend_dir)
+        
         # Build companion data for persistence
         companion_data = {
             'name': data.get('name', 'Soul'),
@@ -563,16 +583,45 @@ def set_community_avatar():
             'updated_at': datetime.now().isoformat()
         }
         
-        # Save to database using avatar persistence manager
-        from backend.avatar_persistence_helper import save_user_avatar_persistent
-        from backend.database_utils import get_database
-        from datetime import datetime
-        
-        database = get_database()
-        if database:
-            save_result = save_user_avatar_persistent(user_id, companion_data, database)
-            if not save_result.get('success'):
-                logger.warning(f"Database save failed for user {user_id}: {save_result.get('error')}")
+        # Save to database - simplified approach without helper
+        database_success = False
+        try:
+            from database_utils import get_database
+            import json
+            
+            database = get_database()
+            if database:
+                conn = database.get_connection()
+                cursor = conn.cursor()
+                
+                companion_json = json.dumps(companion_data)
+                
+                if database.use_postgres:
+                    cursor.execute("""
+                        UPDATE users 
+                        SET companion_data = %s, updated_at = CURRENT_TIMESTAMP
+                        WHERE id = %s
+                    """, (companion_json, user_id))
+                else:
+                    cursor.execute("""
+                        UPDATE users 
+                        SET companion_data = ?, updated_at = CURRENT_TIMESTAMP
+                        WHERE id = ?
+                    """, (companion_json, user_id))
+                
+                if cursor.rowcount > 0:
+                    conn.commit()
+                    database_success = True
+                    logger.info(f"✅ Avatar saved to database for user {user_id}")
+                else:
+                    logger.warning(f"⚠️ No rows updated for user {user_id}")
+                    
+                conn.close()
+            else:
+                logger.warning("Database not available")
+                
+        except Exception as db_error:
+            logger.error(f"❌ Database save failed for user {user_id}: {db_error}")
         
         # Update session with new companion info (immediate UI update)
         session['companion_info'] = companion_data
@@ -583,7 +632,8 @@ def set_community_avatar():
         return jsonify({
             "success": True,
             "message": "Avatar updated and saved successfully",
-            "companion": companion_data
+            "companion": companion_data,
+            "database_saved": database_success
         })
         
     except Exception as e:
