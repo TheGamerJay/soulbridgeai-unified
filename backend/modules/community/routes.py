@@ -585,11 +585,12 @@ def community_posts():
             # Use proper transaction pattern for reads too
             with conn:  # Fresh transaction for consistent read
                 with conn.cursor() as cursor:
-                    # Build query with category filter - use only cp.image_url (schema-safe)
+                    # Build query with category filter - use COALESCE for unified message field
                     base_query = f"""
-                        SELECT cp.id, cp.content, cp.text, cp.category, cp.created_at, cp.hashtags,
+                        SELECT cp.id, cp.category, cp.created_at, cp.hashtags,
                                u.email as author_email, c.name as companion_name, 
-                               cp.image_url as image_url
+                               cp.image_url as image_url,
+                               COALESCE(NULLIF(cp.text, ''), NULLIF(cp.content, '')) AS message
                         FROM community_posts cp
                         JOIN users u ON cp.author_uid = u.id
                         LEFT JOIN companions c ON cp.companion_id = c.id
@@ -649,34 +650,38 @@ def community_posts():
         # Format posts for response
         paginated_posts = []
         for post in posts:
-            # Use COALESCE result (cp.image_url or c.avatar_url), fallback to default
-            avatar_url = post[8] or "/static/images/companions/default.png"
+            # Query fields: id, category, created_at, hashtags, author_email, companion_name, image_url, message
+            post_id = post[0]
+            category = post[1] 
+            created_at = post[2]
+            hashtags_json = post[3]
+            author_email = post[4]
+            companion_name = post[5]
+            image_url = post[6]
+            message = post[7] or ""  # Use unified COALESCE message field
             
-            # Use content or text field, whichever has data
-            post_content = post[1] or post[2] or ""
+            # Use image_url, fallback to default
+            avatar_url = image_url or "/static/images/companions/default.png"
             
             # Parse hashtags JSON
             try:
                 import json
-                hashtags = json.loads(post[5]) if post[5] else []
+                hashtags = json.loads(hashtags_json) if hashtags_json else []
             except:
                 hashtags = []
             
             formatted_post = {
-                "id": post[0],
-                "title": post_content[:50] + "..." if len(post_content) > 50 else post_content,
-                "content": post_content,
-                "category": post[3],
-                "created_at": post[4].isoformat() + "Z" if post[4] else "",
+                "id": post_id,
+                "title": message[:50] + "..." if len(message) > 50 else message,
+                "content": message,
+                "category": category,
+                "created_at": created_at.isoformat() + "Z" if created_at else "",
                 "tags": hashtags,
                 "author": "Anonymous Companion",  # Keep anonymous
                 "companion_avatar": avatar_url,
                 "hearts": 0  # Will be updated below with reaction counts
             }
             paginated_posts.append(formatted_post)
-            
-        cursor.close()
-        conn.close()
         
         # Add reaction data to each post
         for post in paginated_posts:
@@ -709,13 +714,14 @@ def create_community_post():
         if not data:
             return jsonify({"success": False, "error": "No data provided"}), 400
         
-        text = data.get('text', '').strip()
+        # Normalize incoming field - accept either text or content
+        msg = (data.get("text") or data.get("content") or "").strip()
         category = data.get('category', 'general')
         
-        if not text:
-            return jsonify({"success": False, "error": "Post content is required"}), 400
+        if not msg:
+            return jsonify({"success": False, "error": "Message cannot be empty"}), 400
         
-        if len(text) > 700:
+        if len(msg) > 700:
             return jsonify({"success": False, "error": "Post content too long (max 700 characters)"}), 400
         
         # Save post to database with proper transaction handling
@@ -745,7 +751,7 @@ def create_community_post():
                         RETURNING id
                     """
                     
-                    cursor.execute(insert_query, (user_id, companion_id, category, text, text, user_email, image_url))
+                    cursor.execute(insert_query, (user_id, companion_id, category, msg, msg, user_email, image_url))
                     post_id = cursor.fetchone()[0]
                     
                     logger.info(f"Post created successfully: ID={post_id}")
@@ -762,8 +768,8 @@ def create_community_post():
         
         new_post = {
             "id": post_id,
-            "title": text[:50] + "..." if len(text) > 50 else text,
-            "content": text,
+            "title": msg[:50] + "..." if len(msg) > 50 else msg,
+            "content": msg,
             "author": "Anonymous Companion",
             "companion_avatar": "/static/logos/New IntroLogo.png",
             "category": category,
@@ -772,7 +778,7 @@ def create_community_post():
             "tags": []
         }
         
-        logger.info(f"[COMMUNITY] Created post: {text[:50]}... in {category}")
+        logger.info(f"[COMMUNITY] Created post: {msg[:50]}... in {category}")
         
         return jsonify({
             "success": True,

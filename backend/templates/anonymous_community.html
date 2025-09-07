@@ -1610,7 +1610,7 @@
                     </div>
                     
                     <div class="post-content">
-                        ${escapeHtml(post.text)}
+                        ${escapeHtml(post.content || post.text || '')}
                     </div>
                     
                     <div class="post-reactions">
@@ -1636,7 +1636,7 @@
                             <button class="action-btn" onclick="reportPost(${post.id})">
                                 Report
                             </button>
-                            <button class="action-btn" onclick="flagCategoryMismatch(${post.id}, '${post.category}', \`${escapeHtml(post.text)}\`)">
+                            <button class="action-btn" onclick="flagCategoryMismatch(${post.id}, '${post.category}', \`${escapeHtml(post.content || post.text || '')}\`)">
                                 Flag Category
                             </button>
                             <button class="action-btn" onclick="suggestMuteContent(${post.id}, '${post.author_hash}', '${post.category}', ${post.companion_id})">
@@ -2373,7 +2373,8 @@
             container.innerHTML = leaderboard.map((post, index) => {
                 const rank = index + 1;
                 const rankEmoji = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `${rank}.`;
-                const preview = post.content.length > 100 ? post.content.substring(0, 100) + '...' : post.content;
+                const content = post.content || post.text || '';
+                const preview = content.length > 100 ? content.substring(0, 100) + '...' : content;
                 
                 return `
                     <div class="leaderboard-item">
