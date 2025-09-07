@@ -583,11 +583,11 @@ def community_posts():
             
             logger.info(f"Community posts query: category={category}, sort={sort_by}, limit={limit}, placeholder={placeholder}")
             
-            # Build query with category filter - use COALESCE for image fallback
+            # Build query with category filter - use only cp.image_url (schema-safe)
             base_query = f"""
                 SELECT cp.id, cp.content, cp.text, cp.category, cp.created_at, cp.hashtags,
                        u.email as author_email, c.name as companion_name, 
-                       COALESCE(cp.image_url, c.avatar_url) as image_url
+                       cp.image_url as image_url
                 FROM community_posts cp
                 JOIN users u ON cp.author_uid = u.id
                 LEFT JOIN companions c ON cp.companion_id = c.id
@@ -721,22 +721,26 @@ def create_community_post():
             cursor = conn.cursor()
             placeholder = get_placeholder()
             
-            # Get current user info
+            # Get current user info and avatar
             user_id = session.get('user_id')
             companion_id = session.get('selected_companion_id')
-            user_email = session.get('email', 'anonymous@soulbridgeai.com')  # Fallback email
+            user_email = session.get('email', 'anonymous@soulbridgeai.com')
             
-            logger.info(f"Creating post: user_id={user_id}, companion_id={companion_id}, category={category}")
+            # Snapshot the current avatar image into the post (denormalized for performance)
+            current_avatar = session.get('current_avatar', {})
+            image_url = current_avatar.get('avatar_url', '/static/images/companions/default.png')
             
-            # Insert post into database - use RETURNING id for PostgreSQL
+            logger.info(f"Creating post: user_id={user_id}, companion_id={companion_id}, category={category}, image_url={image_url}")
+            
+            # Insert post into database with snapshotted avatar
             insert_query = f"""
                 INSERT INTO community_posts 
-                (author_uid, companion_id, category, content, text, status, created_at, author_email)
-                VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder}, 'approved', CURRENT_TIMESTAMP, {placeholder})
+                (author_uid, companion_id, category, content, text, status, created_at, author_email, image_url)
+                VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder}, 'approved', CURRENT_TIMESTAMP, {placeholder}, {placeholder})
                 RETURNING id
             """
             
-            cursor.execute(insert_query, (user_id, companion_id, category, text, text, user_email))
+            cursor.execute(insert_query, (user_id, companion_id, category, text, text, user_email, image_url))
             post_id = cursor.fetchone()[0]
             
             cursor.close()
