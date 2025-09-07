@@ -2730,6 +2730,110 @@
         function upgradePrompt(tier) {
             showUpgradePrompt(tier);
         }
+
+        // Community Avatar Persistence System
+        (function () {
+            let avatarLocked = false;
+
+            function applyCommunityCompanion(comp) {
+                if (!comp) return;
+                avatarLocked = true;
+
+                const imgUrl = (comp.avatar_url || `/static/companions/${comp.companion_id}.png`) + `?v=${Date.now()}`;
+                
+                const avatarContainer = document.getElementById('composer-avatar');
+                const companionName = document.getElementById('companion-name');
+
+                if (avatarContainer) {
+                    // Find or create img element in the container
+                    let img = avatarContainer.querySelector('img');
+                    if (!img) {
+                        img = document.createElement('img');
+                        img.style.cssText = 'width: 40px; height: 40px; border-radius: 50%; object-fit: cover;';
+                        avatarContainer.appendChild(img);
+                    }
+                    img.src = imgUrl;
+                    img.alt = comp.name || comp.companion_id || 'Companion avatar';
+                }
+
+                if (companionName) {
+                    companionName.textContent = comp.name || comp.companion_id || 'Soul';
+                    companionName.dataset.companionId = comp.companion_id || '';
+                }
+            }
+
+            async function loadCommunityCompanion() {
+                try {
+                    const r = await fetch('/community/avatar', { credentials: 'include' });
+                    if (!r.ok) return;
+                    const j = await r.json();
+                    if (j && j.success && j.companion) {
+                        applyCommunityCompanion(j.companion);
+                    }
+                } catch (e) {
+                    console.warn('Community avatar fetch failed', e);
+                }
+            }
+
+            // Lock avatar updates after first successful apply
+            Object.defineProperty(window, '__avatarLocked', {
+                get() { return avatarLocked; }
+            });
+
+            // Load companion on page load
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', loadCommunityCompanion);
+            } else {
+                loadCommunityCompanion();
+            }
+
+            // Hook into the existing saveCompanionChoice function to ensure UI updates
+            const _originalSaveCompanionChoice = window.saveCompanionChoice;
+            window.saveCompanionChoice = async function() {
+                // Call the original function first
+                if (typeof _originalSaveCompanionChoice === 'function') {
+                    const result = await _originalSaveCompanionChoice();
+                    
+                    // After successful save, refresh the avatar display
+                    setTimeout(() => {
+                        loadCommunityCompanion();
+                    }, 100);
+                    
+                    return result;
+                }
+                
+                // Fallback if original function doesn't exist
+                const selected = document.querySelector('#companion-list [data-selected="true"]');
+                if (!selected) return;
+
+                const companion_id = selected.dataset.id;
+                const name = selected.dataset.name || companion_id;
+                const avatar_url = selected.dataset.image || `/static/companions/${companion_id}.png`;
+
+                try {
+                    const r = await fetch('/community/avatar', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify({ companion_id, name, avatar_url })
+                    });
+                    const j = await r.json();
+                    if (j && j.success && j.companion) {
+                        applyCommunityCompanion(j.companion);
+                        closeModal('companion-modal');
+                    }
+                } catch (e) {
+                    console.warn('Save community companion failed', e);
+                }
+            };
+
+            // Guard against old fallback functions overwriting DB values
+            const _oldUpdate = window.updateCompanionDisplay;
+            window.updateCompanionDisplay = function(name) {
+                if (window.__avatarLocked) return; // Don't overwrite after DB apply
+                if (typeof _oldUpdate === 'function') return _oldUpdate(name);
+            };
+        })();
     </script>
 </body>
     <script src="/static/js/mini-assistant-modal.js"></script>
