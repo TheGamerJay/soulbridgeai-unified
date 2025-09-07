@@ -923,7 +923,7 @@
             <div class="composer-avatar">
                 <div class="avatar-container" id="composer-avatar">
                     {% if current_avatar and current_avatar.avatar_url %}
-                        <img src="{{ current_avatar.avatar_url }}" alt="{{ current_avatar.name }}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+                        <img src="{{ current_avatar.avatar_url }}" alt="{{ current_avatar.name }}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
                     {% else %}
                         👤
                     {% endif %}
@@ -2653,7 +2653,7 @@
                     const avatarElement = document.getElementById('composer-avatar');
                     if (avatarElement) {
                         if (selectedCompanion.image_url) {
-                            avatarElement.innerHTML = `<img src="${selectedCompanion.image_url}" alt="${selectedCompanion.display_name || selectedCompanion.name}" style="width: 100%; height: 100%; object-fit: contain;" onerror="this.style.display='none'; this.parentElement.innerHTML='${getCompanionEmoji(selectedCompanion.id)}';">`;
+                            avatarElement.innerHTML = `<img src="${selectedCompanion.image_url}" alt="${selectedCompanion.display_name || selectedCompanion.name}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;" onerror="this.style.display='none'; this.parentElement.innerHTML='${getCompanionEmoji(selectedCompanion.id)}';">`;
                         } else {
                             avatarElement.innerHTML = getCompanionEmoji(selectedCompanion.id);
                         }
@@ -2749,7 +2749,7 @@
                     let img = avatarContainer.querySelector('img');
                     if (!img) {
                         img = document.createElement('img');
-                        img.style.cssText = 'width: 40px; height: 40px; border-radius: 50%; object-fit: cover;';
+                        img.style.cssText = 'width: 100%; height: 100%; border-radius: 50%; object-fit: cover;';
                         avatarContainer.appendChild(img);
                     }
                     img.src = imgUrl;
