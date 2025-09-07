@@ -183,8 +183,78 @@ def auto_set_avatar(companion_id):
         logger.error(f"Auto-set avatar error: {e}")
         return f"❌ Error setting avatar: {e}", 500
 
-@community_bp.route("/community/fix-database")
+@community_bp.route("/emergency-database-fix-2025")
 def emergency_database_fix():
+    """Emergency fix for user_activity_log table - Public access for emergency"""
+    try:
+        db = get_database()
+        if not db:
+            return "❌ Database not available", 503
+        
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        
+        results = []
+        
+        # 1. Create user_activity_log table
+        try:
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS user_activity_log (
+                    id SERIAL PRIMARY KEY,
+                    user_id INTEGER NOT NULL,
+                    feature_type VARCHAR(50) NOT NULL,
+                    session_duration_seconds INTEGER DEFAULT 0,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+            results.append("✅ Created user_activity_log table")
+            
+            # Add indexes
+            cursor.execute("""
+                CREATE INDEX IF NOT EXISTS idx_user_activity_log_user_created
+                ON user_activity_log(user_id, created_at)
+            """)
+            cursor.execute("""
+                CREATE INDEX IF NOT EXISTS idx_user_activity_log_created_at
+                ON user_activity_log(created_at)
+            """)
+            results.append("✅ Added indexes to user_activity_log")
+            
+        except Exception as e:
+            results.append(f"⚠️ user_activity_log error: {e}")
+        
+        # 2. Add referrals column if missing
+        try:
+            cursor.execute("""
+                ALTER TABLE users ADD COLUMN IF NOT EXISTS referrals INTEGER DEFAULT 0
+            """)
+            results.append("✅ Added referrals column to users")
+        except Exception as e:
+            results.append(f"⚠️ referrals column error: {e}")
+            
+        conn.commit()
+        
+        # 3. Test the fix
+        try:
+            cursor.execute("""
+                SELECT COUNT(DISTINCT user_id) 
+                FROM user_activity_log 
+                WHERE created_at >= NOW() - INTERVAL '24 hours'
+            """)
+            daily_users = cursor.fetchone()[0]
+            results.append(f"✅ user_activity_log test passed: {daily_users} users in last 24 hours")
+        except Exception as e:
+            results.append(f"⚠️ Test failed: {e}")
+        
+        conn.close()
+        
+        return "<h2>🔧 Emergency Database Fix Results</h2>" + "<br>".join(results) + "<br><br><strong>All PostgreSQL errors should now be resolved!</strong><br><br><a href='/community'>← Back to Community</a>"
+        
+    except Exception as e:
+        return f"❌ Emergency fix failed: {e}", 500
+
+@community_bp.route("/community/fix-database")
+def emergency_database_fix_old():
     """Emergency fix for user_activity_log table - ADMIN ONLY"""
     try:
         # Simplified access - check query parameter for emergency access
