@@ -583,10 +583,10 @@ def community_posts():
             
             logger.info(f"Community posts query: category={category}, sort={sort_by}, limit={limit}, placeholder={placeholder}")
             
-            # Build query with category filter - use author_uid instead of user_id for PostgreSQL
+            # Build query with category filter - adjust for PostgreSQL schema
             base_query = f"""
                 SELECT cp.id, cp.content, cp.text, cp.category, cp.created_at, cp.hashtags,
-                       u.email as author_email, c.name as companion_name, c.avatar_url, c.image_url
+                       u.email as author_email, c.name as companion_name, c.image_url
                 FROM community_posts cp
                 JOIN users u ON cp.author_uid = u.id
                 LEFT JOIN companions c ON cp.companion_id = c.id
@@ -644,8 +644,8 @@ def community_posts():
         # Format posts for response
         paginated_posts = []
         for post in posts:
-            # Use companion avatar if available, fallback to default
-            avatar_url = post[8] or post[9] or "/static/images/companions/default.png"
+            # Use companion image_url if available, fallback to default
+            avatar_url = post[8] or "/static/images/companions/default.png"
             
             # Use content or text field, whichever has data
             post_content = post[1] or post[2] or ""
@@ -723,17 +723,18 @@ def create_community_post():
             # Get current user info
             user_id = session.get('user_id')
             companion_id = session.get('selected_companion_id')
+            user_email = session.get('email', 'anonymous@soulbridgeai.com')  # Fallback email
             
             logger.info(f"Creating post: user_id={user_id}, companion_id={companion_id}, category={category}")
             
-            # Insert post into database - use author_uid instead of user_id for PostgreSQL
+            # Insert post into database - include author_email to satisfy constraint
             insert_query = f"""
                 INSERT INTO community_posts 
-                (author_uid, companion_id, category, content, text, status, created_at)
-                VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder}, 'approved', CURRENT_TIMESTAMP)
+                (author_uid, companion_id, category, content, text, status, created_at, author_email)
+                VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder}, 'approved', CURRENT_TIMESTAMP, {placeholder})
             """
             
-            cursor.execute(insert_query, (user_id, companion_id, category, text, text))
+            cursor.execute(insert_query, (user_id, companion_id, category, text, text, user_email))
             post_id = cursor.lastrowid
             
             cursor.close()
