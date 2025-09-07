@@ -2,6 +2,7 @@
 SoulBridge AI - User Profile Routes
 All user profile management endpoints extracted from backend/app.py
 Flask Blueprint for modular architecture
+Fixed: Global declaration syntax error resolved
 """
 import logging
 from flask import Blueprint, request, jsonify, session, redirect, render_template, Response
