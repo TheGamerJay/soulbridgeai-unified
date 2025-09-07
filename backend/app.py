@@ -484,15 +484,8 @@ def create_app():
             logger.error(f"❌ Error in companion chat: {e}")
             return render_template("error.html", error="Unable to load chat page")
     
-    # COMMUNITY ROUTES (from community module blueprint)
-    @app.route("/community")
-    def community():
-        """Community page - from community blueprint"""
-        if not session.get('logged_in'):
-            return redirect('/auth/login?return_to=community')
-        
-        from flask import render_template
-        return render_template('anonymous_community.html')
+    # COMMUNITY ROUTES - Handled by community blueprint
+    # Removed duplicate route - let blueprint handle /community
     
     # PROFILE ROUTES (from user_profile module blueprint)  
     @app.route("/profile")

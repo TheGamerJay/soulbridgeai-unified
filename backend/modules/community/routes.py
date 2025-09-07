@@ -111,30 +111,36 @@ def anonymous_community():
                 conn = db.get_connection()
                 cursor = conn.cursor()
                 
-                # Get saved community avatar from community avatar table
+                # Get saved community avatar from users.companion_data (matches saving logic)
                 if db.use_postgres:
-                    cursor.execute("SELECT companion_id, companion_name, companion_rarity, avatar_url FROM user_community_avatars WHERE user_id = %s", (user_id,))
+                    cursor.execute("SELECT companion_data FROM users WHERE id = %s", (user_id,))
                 else:
-                    cursor.execute("SELECT companion_id, companion_name, companion_rarity, avatar_url FROM user_community_avatars WHERE user_id = ?", (user_id,))
+                    cursor.execute("SELECT companion_data FROM users WHERE id = ?", (user_id,))
                     
                 result = cursor.fetchone()
                 conn.close()
                 
-                if result:
-                    # Parse community avatar data (no JSON needed - direct columns)
+                if result and result[0]:
+                    # Parse community avatar data from JSON (matches saving logic)
+                    import json
                     import time
-                    cache_buster = int(time.time())
-                    avatar_url = result[3]  # avatar_url column
-                    if avatar_url and '?' not in avatar_url:
-                        avatar_url += f"?t={cache_buster}"
-                    
-                    current_avatar = {
-                        'name': result[1] or 'Soul',  # companion_name
-                        'companion_id': result[0] or 'soul',  # companion_id
-                        'avatar_url': avatar_url or f'/static/logos/New IntroLogo.png?t={cache_buster}',
-                        'tier': result[2] or 'bronze'  # companion_rarity
-                    }
-                    logger.info(f"✅ SERVER-SIDE: Loaded COMMUNITY avatar for user {user_id}: {current_avatar['name']} from {avatar_url}")
+                    try:
+                        companion_data = json.loads(result[0])  # Parse JSON from companion_data column
+                        cache_buster = int(time.time())
+                        avatar_url = companion_data.get('image_url')  # JSON uses image_url
+                        if avatar_url and '?' not in avatar_url:
+                            avatar_url += f"?t={cache_buster}"
+                        
+                        current_avatar = {
+                            'name': companion_data.get('name', 'Soul'),
+                            'companion_id': companion_data.get('id', 'soul'),  
+                            'avatar_url': avatar_url or f'/static/logos/New IntroLogo.png?t={cache_buster}',
+                            'tier': companion_data.get('tier', 'bronze')
+                        }
+                        logger.info(f"✅ SERVER-SIDE: Loaded COMMUNITY avatar for user {user_id}: {current_avatar['name']} from {avatar_url}")
+                    except (json.JSONDecodeError, KeyError) as e:
+                        logger.warning(f"⚠️ Could not parse companion_data JSON: {e}")
+                        current_avatar = None
                 else:
                     logger.info(f"⚠️ SERVER-SIDE: No community avatar found for user {user_id}, using fallback")
             
