@@ -48,19 +48,38 @@ After setting the key and deploying:
 
 For high-traffic apps, use Redis for server-side sessions:
 
-```python
-# Add to app.py
-import redis
+#### 5.1 Add Redis to Railway
 
-app.config.update(
-    SESSION_TYPE="redis",
-    SESSION_REDIS=redis.from_url(os.environ["REDIS_URL"]),  
-    SESSION_PERMANENT=True,
-    PERMANENT_SESSION_LIFETIME=timedelta(days=30),
-)
+1. Go to Railway dashboard → Your project
+2. Click **+ New** → **Add Service** → **Database** 
+3. Select **Redis**
+4. Wait for deployment (creates `REDIS_URL` automatically)
+
+#### 5.2 Verify Redis Configuration
+
+The app already supports Redis sessions automatically:
+
+```python
+# Already implemented in app.py
+redis_url = os.environ.get("REDIS_URL")
+if redis_url:
+    app.config.update(
+        SESSION_TYPE="redis",
+        SESSION_REDIS=redis.from_url(redis_url),
+        SESSION_PERMANENT=True,
+        PERMANENT_SESSION_LIFETIME=timedelta(days=30),
+        SESSION_USE_SIGNER=True,
+        SESSION_KEY_PREFIX="soulbridge:",
+    )
+    Session(app)
 ```
 
-Set `REDIS_URL` in Railway to your Redis instance.
+#### 5.3 Benefits of Redis Sessions
+
+- ✅ **Survives all deploys** - sessions stored externally
+- ✅ **Scales across instances** - shared session storage  
+- ✅ **Better performance** - faster than filesystem
+- ✅ **Automatic fallback** - uses filesystem if Redis fails
 
 ## Security Notes
 

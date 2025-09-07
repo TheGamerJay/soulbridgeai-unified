@@ -50,13 +50,46 @@ def create_app():
     # Without this, Flask may think the request is http and set cookies wrong.
     app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
-    # ----- Session cookie settings -----
-    # Use sane defaults that work for normal same-site navigations (form POST -> redirect -> GET).
+    # ----- Session configuration -----
+    # Try Redis-backed sessions first (best for production)
+    redis_url = os.environ.get("REDIS_URL")
+    if redis_url:
+        try:
+            import redis
+            from flask_session import Session
+            
+            app.config.update(
+                SESSION_TYPE="redis",
+                SESSION_REDIS=redis.from_url(redis_url),
+                SESSION_PERMANENT=True,
+                PERMANENT_SESSION_LIFETIME=timedelta(days=30),
+                SESSION_USE_SIGNER=True,
+                SESSION_KEY_PREFIX="soulbridge:",
+            )
+            Session(app)
+            logger.info("✅ Redis sessions configured successfully")
+            
+        except Exception as redis_error:
+            logger.warning(f"⚠️ Redis sessions failed, falling back to filesystem: {redis_error}")
+            redis_url = None
+    
+    # Fallback: Filesystem sessions (default Flask behavior with enhanced config)
+    if not redis_url:
+        app.config.update(
+            SESSION_PERMANENT=True,
+            PERMANENT_SESSION_LIFETIME=timedelta(days=30),
+            SESSION_COOKIE_NAME="session",
+            SESSION_COOKIE_HTTPONLY=True,
+            SESSION_COOKIE_PATH="/",
+            SESSION_REFRESH_EACH_REQUEST=True,
+        )
+        logger.info("✅ Filesystem sessions configured (fallback)")
+    
+    # Cookie security settings (applies to both Redis and filesystem)
     app.config.update(
         SESSION_COOKIE_NAME="session",
         SESSION_COOKIE_HTTPONLY=True,
         SESSION_COOKIE_PATH="/",
-        PERMANENT_SESSION_LIFETIME=timedelta(days=7),
         SESSION_REFRESH_EACH_REQUEST=True,
     )
 

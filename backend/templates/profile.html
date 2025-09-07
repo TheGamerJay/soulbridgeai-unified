@@ -3833,6 +3833,7 @@
                     headers: {
                         'Content-Type': 'application/json'
                     },
+                    credentials: 'include',
                     body: JSON.stringify(payload)
                 });
 
@@ -3868,7 +3869,7 @@
         // PURE fetch (no DOM writes)
         async function loadSavedAvatar() {
             try {
-                const res = await fetch('/community/avatar', { method: 'GET', headers: { 'Content-Type': 'application/json' }});
+                const res = await fetch('/community/avatar', { method: 'GET', headers: { 'Content-Type': 'application/json' }, credentials: 'include' });
                 
                 if (res.status === 401) {
                     console.warn('🔐 Not authenticated; session may have expired after deploy');
