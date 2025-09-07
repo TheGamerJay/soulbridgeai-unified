@@ -583,12 +583,12 @@ def community_posts():
             
             logger.info(f"Community posts query: category={category}, sort={sort_by}, limit={limit}, placeholder={placeholder}")
             
-            # Build query with category filter
+            # Build query with category filter - use author_uid instead of user_id for PostgreSQL
             base_query = f"""
                 SELECT cp.id, cp.content, cp.text, cp.category, cp.created_at, cp.hashtags,
                        u.email as author_email, c.name as companion_name, c.avatar_url, c.image_url
                 FROM community_posts cp
-                JOIN users u ON cp.user_id = u.id
+                JOIN users u ON cp.author_uid = u.id
                 LEFT JOIN companions c ON cp.companion_id = c.id
             """
             
@@ -726,10 +726,10 @@ def create_community_post():
             
             logger.info(f"Creating post: user_id={user_id}, companion_id={companion_id}, category={category}")
             
-            # Insert post into database
+            # Insert post into database - use author_uid instead of user_id for PostgreSQL
             insert_query = f"""
                 INSERT INTO community_posts 
-                (user_id, companion_id, category, content, text, status, created_at)
+                (author_uid, companion_id, category, content, text, status, created_at)
                 VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder}, 'approved', CURRENT_TIMESTAMP)
             """
             
