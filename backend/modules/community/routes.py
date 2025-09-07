@@ -365,7 +365,11 @@ def anonymous_community():
                     import time
                     try:
                         logger.info(f"🚨 DEBUG: Raw companion_data from DB: {result[0]}")
-                        companion_data = json.loads(result[0])  # Parse JSON from companion_data column
+                        # Handle both JSON string and dictionary (PostgreSQL JSONB returns dict)
+                        if isinstance(result[0], dict):
+                            companion_data = result[0]  # Already a dictionary
+                        else:
+                            companion_data = json.loads(result[0])  # Parse JSON string
                         logger.info(f"🚨 DEBUG: Parsed companion_data: {companion_data}")
                         cache_buster = int(time.time())
                         avatar_url = companion_data.get('image_url')  # JSON uses image_url
@@ -1156,7 +1160,11 @@ def community_get_avatar():
                 if result and result[0]:
                     import json
                     try:
-                        companion_data = json.loads(result[0])
+                        # Handle both JSON string and dictionary (PostgreSQL JSONB returns dict)
+                        if isinstance(result[0], dict):
+                            companion_data = result[0]  # Already a dictionary
+                        else:
+                            companion_data = json.loads(result[0])  # Parse JSON string
                         logger.info(f"✅ Found saved avatar for user {user_id}: {companion_data.get('name', 'Unknown')}")
                         
                         # Add cache busting

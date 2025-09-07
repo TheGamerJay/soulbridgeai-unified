@@ -599,13 +599,13 @@ def set_community_avatar():
                 if database.use_postgres:
                     cursor.execute("""
                         UPDATE users 
-                        SET companion_data = %s, updated_at = CURRENT_TIMESTAMP
+                        SET companion_data = %s
                         WHERE id = %s
                     """, (companion_json, user_id))
                 else:
                     cursor.execute("""
                         UPDATE users 
-                        SET companion_data = ?, updated_at = CURRENT_TIMESTAMP
+                        SET companion_data = ?
                         WHERE id = ?
                     """, (companion_json, user_id))
                 
