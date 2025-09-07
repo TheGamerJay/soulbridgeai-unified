@@ -3291,6 +3291,15 @@
                         console.warn('🤖 Using default fallback companion:', companionToDisplay);
                     }
                     
+                    // Load saved avatar from database FIRST (before any display updates)
+                    const savedCompanionName = await loadSavedAvatar();
+                    
+                    // Use saved companion if found, otherwise use the detected one
+                    if (savedCompanionName) {
+                        companionToDisplay = savedCompanionName;
+                        console.log('✅ Using saved companion from database:', companionToDisplay);
+                    }
+                    
                     // Add race condition delay to ensure DOM is ready and avoid flickering
                     setTimeout(() => {
                         updateCompanionDisplay(companionToDisplay);
@@ -3303,9 +3312,6 @@
                         const trialActive = (responseData.access && responseData.access.trial_live) || false;
                         populateCompanionGrids(userTier, companionToDisplay, trialActive);
                     }, 150);
-                    
-                    // Load saved avatar from database (overrides localStorage/session data)
-                    loadSavedAvatar();
                     
                     // Update credits display and trial status
                     updateCreditsDisplay(userData, responseData.access);
@@ -3896,12 +3902,16 @@
                     // Update localStorage to match database
                     localStorage.setItem('lastUsedCompanion', companion.name);
                     
+                    // Return the loaded companion name to override any default selection
+                    return companion.name;
                 } else {
                     console.log('ℹ️ No saved avatar found in database, using current selection');
+                    return null;
                 }
             } catch (error) {
                 console.error('❌ Error loading saved avatar:', error);
                 // Graceful fallback - continue with existing avatar selection
+                return null;
             }
         }
 
