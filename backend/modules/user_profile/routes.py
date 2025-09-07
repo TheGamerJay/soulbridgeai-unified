@@ -491,7 +491,10 @@ def apply_theme_preset():
 def get_community_avatar():
     """Get current user's community avatar/companion - PURE: always returns valid record"""
     try:
+        logger.info(f"GET /community/avatar user={session.get('user_id')} -> {'authed' if is_logged_in() else 'anon'}")
+        
         if not is_logged_in():
+            logger.warning(f"GET /community/avatar: User not authenticated, returning 401")
             return jsonify({"success": False, "error": "Authentication required"}), 401
 
         from database_utils import get_database
@@ -546,7 +549,10 @@ def get_community_avatar():
 def set_community_avatar():
     """Set user's community avatar/companion with database persistence"""
     try:
+        logger.info(f"POST /community/avatar user={session.get('user_id')} -> {'authed' if is_logged_in() else 'anon'}")
+        
         if not is_logged_in():
+            logger.warning(f"POST /community/avatar: User not authenticated, returning 401")
             return jsonify({"success": False, "error": "Authentication required"}), 401
 
         data = request.get_json() or {}
@@ -606,6 +612,8 @@ def set_community_avatar():
         session["companion_info"] = companion_data
         session.modified = True
 
+        logger.info(f"POST /community/avatar user={user_id} saved={database_saved} companion={companion_id}")
+        
         return jsonify({
             "success": True,
             "message": "Avatar updated",

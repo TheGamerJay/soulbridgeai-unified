@@ -35,7 +35,12 @@ def create_app():
     
     # ----- Core secrets -----
     # IMPORTANT: keep SECRET_KEY stable across deploys/instances
-    app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-only-change-me")
+    secret_key = os.environ.get("FLASK_SECRET_KEY") or os.environ.get("SECRET_KEY")
+    if not secret_key or secret_key == "dev-only-change-me":
+        if IS_RAILWAY:
+            logger.error("❌ FLASK_SECRET_KEY not set in production - sessions will not survive deploys!")
+        secret_key = "dev-only-change-me-in-production"
+    app.config["SECRET_KEY"] = secret_key
 
     # Detect prod on Railway
     IS_RAILWAY = bool(os.environ.get("RAILWAY_PROJECT_ID"))

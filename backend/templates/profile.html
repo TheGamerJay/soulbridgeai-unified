@@ -3869,6 +3869,18 @@
         async function loadSavedAvatar() {
             try {
                 const res = await fetch('/community/avatar', { method: 'GET', headers: { 'Content-Type': 'application/json' }});
+                
+                if (res.status === 401) {
+                    console.warn('🔐 Not authenticated; session may have expired after deploy');
+                    // Don't fallback to default - let the user know they need to re-login
+                    showNotification('Session expired. Please refresh to re-login.', 'warning');
+                    // Optional: redirect to login after delay
+                    setTimeout(() => {
+                        window.location.assign('/login?next=' + encodeURIComponent(window.location.pathname));
+                    }, 3000);
+                    return null; // IMPORTANT: don't apply default here
+                }
+                
                 const json = await res.json();
                 return (json.success && json.companion) ? json.companion : null;
             } catch (e) {
