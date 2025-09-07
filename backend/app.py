@@ -362,6 +362,40 @@ def create_app():
             return render_template("error.html", error="Unable to load companion selection")
     
     
+    @app.route("/chat")
+    def chat_default():
+        """Default chat route - redirect to companion selection or last selected companion"""
+        if not session.get('logged_in'):
+            return redirect('/auth/login')
+        
+        # Check if user has a previously selected companion (session first, then database)
+        selected_companion = session.get('selected_companion')
+        
+        # If not in session, try to load from database
+        if not selected_companion and session.get('user_id'):
+            try:
+                from database_utils import get_database
+                database = get_database()
+                if database:
+                    result = database.execute(
+                        "SELECT selected_companion FROM users WHERE id = ?", 
+                        (session.get('user_id'),)
+                    ).fetchone()
+                    if result and result[0]:
+                        selected_companion = result[0]
+                        session['selected_companion'] = selected_companion  # Restore to session
+                        session.modified = True
+                        logger.info(f"Restored companion from database: {selected_companion}")
+            except Exception as db_error:
+                logger.warning(f"⚠️ Could not load companion from database: {db_error}")
+        
+        if selected_companion:
+            logger.info(f"Redirecting to previously selected companion: {selected_companion}")
+            return redirect(f'/chat/{selected_companion}')
+        else:
+            logger.info("No companion selected, redirecting to companion selection")
+            return redirect('/companion-selection')
+
     @app.route("/chat/<companion_id>")
     def companion_specific_chat(companion_id):
         """Chat with specific companion - from companions blueprint"""
@@ -369,9 +403,23 @@ def create_app():
             if not session.get('logged_in'):
                 return redirect('/auth/login')
             
-            # Set selected companion
+            # Set selected companion and persist it
             session['selected_companion'] = companion_id
             session.modified = True
+            
+            # Also update user database if needed (for persistence across sessions)
+            try:
+                from database_utils import get_database
+                database = get_database()
+                if database and session.get('user_id'):
+                    database.execute(
+                        "UPDATE users SET selected_companion = ? WHERE id = ?",
+                        (companion_id, session.get('user_id'))
+                    )
+                    database.commit()
+                    logger.info(f"✅ Saved companion selection to database: {companion_id}")
+            except Exception as db_error:
+                logger.warning(f"⚠️ Could not save companion to database: {db_error}")
             
             # Find companion data - All 31 companions
             companions = [
@@ -418,7 +466,8 @@ def create_app():
             # Find the specific companion
             companion = next((c for c in companions if c['id'] == companion_id), None)
             if not companion:
-                # Fallback companion data
+                logger.warning(f"⚠️ Companion '{companion_id}' not found, using fallback")
+                # Fallback companion data - but don't change the companion_id in session
                 companion = {"id": companion_id, "name": companion_id.replace('_bronze', '').replace('_', ' ').title(), "tier": "bronze"}
             
             logger.info(f"✅ Loading chat for companion: {companion_id}")
