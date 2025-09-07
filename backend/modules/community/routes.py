@@ -590,7 +590,7 @@ def community_posts():
         
         params = []
         if category != 'all':
-            base_query += " WHERE cp.category = %s"
+            base_query += " WHERE cp.category = ?"
             params.append(category)
             
         # Add sorting
@@ -600,7 +600,7 @@ def community_posts():
             base_query += " ORDER BY cp.id DESC"  # Simple fallback for now
             
         # Add pagination
-        base_query += " LIMIT %s OFFSET %s"
+        base_query += " LIMIT ? OFFSET ?"
         params.extend([limit, offset])
         
         cursor.execute(base_query, params)
@@ -610,7 +610,7 @@ def community_posts():
         count_query = "SELECT COUNT(*) FROM community_posts"
         count_params = []
         if category != 'all':
-            count_query += " WHERE category = %s"
+            count_query += " WHERE category = ?"
             count_params.append(category)
             
         cursor.execute(count_query, count_params)
@@ -701,7 +701,7 @@ def create_community_post():
         insert_query = """
             INSERT INTO community_posts 
             (user_id, companion_id, category, content, text, status, created_at)
-            VALUES (%s, %s, %s, %s, %s, 'approved', CURRENT_TIMESTAMP)
+            VALUES (?, ?, ?, ?, ?, 'approved', CURRENT_TIMESTAMP)
         """
         
         cursor.execute(insert_query, (user_id, companion_id, category, text, text))
