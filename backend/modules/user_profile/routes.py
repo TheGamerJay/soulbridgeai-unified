@@ -106,7 +106,6 @@ def api_user_profile():
                     logger.info("Using direct database connection as fallback")
                 
                 if database:
-                    global profile_service
                     profile_service = ProfileService(database)
                     logger.info("Profile service re-initialized successfully")
                 else:
