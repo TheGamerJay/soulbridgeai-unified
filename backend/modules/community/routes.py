@@ -583,10 +583,11 @@ def community_posts():
             
             logger.info(f"Community posts query: category={category}, sort={sort_by}, limit={limit}, placeholder={placeholder}")
             
-            # Build query with category filter - adjust for PostgreSQL schema
+            # Build query with category filter - use COALESCE for image fallback
             base_query = f"""
                 SELECT cp.id, cp.content, cp.text, cp.category, cp.created_at, cp.hashtags,
-                       u.email as author_email, c.name as companion_name, c.image_url
+                       u.email as author_email, c.name as companion_name, 
+                       COALESCE(cp.image_url, c.avatar_url) as image_url
                 FROM community_posts cp
                 JOIN users u ON cp.author_uid = u.id
                 LEFT JOIN companions c ON cp.companion_id = c.id
@@ -644,7 +645,7 @@ def community_posts():
         # Format posts for response
         paginated_posts = []
         for post in posts:
-            # Use companion image_url if available, fallback to default
+            # Use COALESCE result (cp.image_url or c.avatar_url), fallback to default
             avatar_url = post[8] or "/static/images/companions/default.png"
             
             # Use content or text field, whichever has data
@@ -727,15 +728,16 @@ def create_community_post():
             
             logger.info(f"Creating post: user_id={user_id}, companion_id={companion_id}, category={category}")
             
-            # Insert post into database - include author_email to satisfy constraint
+            # Insert post into database - use RETURNING id for PostgreSQL
             insert_query = f"""
                 INSERT INTO community_posts 
                 (author_uid, companion_id, category, content, text, status, created_at, author_email)
                 VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder}, 'approved', CURRENT_TIMESTAMP, {placeholder})
+                RETURNING id
             """
             
             cursor.execute(insert_query, (user_id, companion_id, category, text, text, user_email))
-            post_id = cursor.lastrowid
+            post_id = cursor.fetchone()[0]
             
             cursor.close()
             conn.close()
