@@ -372,7 +372,8 @@ def anonymous_community():
                             companion_data = json.loads(result[0])  # Parse JSON string
                         logger.info(f"🚨 DEBUG: Parsed companion_data: {companion_data}")
                         cache_buster = int(time.time())
-                        avatar_url = companion_data.get('image_url')  # JSON uses image_url
+                        # Try both 'avatar_url' and 'image_url' field names (DB inconsistency)
+                        avatar_url = companion_data.get('avatar_url') or companion_data.get('image_url')
                         if avatar_url and '?' not in avatar_url:
                             avatar_url += f"?t={cache_buster}"
                         
@@ -1170,7 +1171,7 @@ def community_get_avatar():
                         # Add cache busting
                         import time
                         cache_buster = int(time.time())
-                        avatar_url = companion_data.get('image_url') or companion_data.get('avatar_url', '/static/logos/New IntroLogo.png')
+                        avatar_url = companion_data.get('avatar_url') or companion_data.get('image_url', '/static/logos/New IntroLogo.png')
                         if '?' not in avatar_url:
                             avatar_url += f"?t={cache_buster}"
                         
