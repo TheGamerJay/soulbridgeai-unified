@@ -573,67 +573,70 @@ def community_posts():
         limit = min(int(request.args.get('limit', 20)), 50)  # Max 50 items
         offset = int(request.args.get('offset', 0))
         
-        # Mock community posts data for now
-        mock_posts = [
-            {
-                "id": 1,
-                "title": "Finding Peace Through Meditation",
-                "content": "Today I discovered a wonderful guided meditation that helped me find inner calm...",
-                "author": "Anonymous Companion",
-                "companion_avatar": "/static/images/companions/aurora.png",
-                "category": "wellness",
-                "hearts": 12,
-                "created_at": "2024-01-15T10:30:00Z",
-                "tags": ["meditation", "mindfulness", "peace"]
-            },
-            {
-                "id": 2,
-                "title": "Creative Writing Journey",
-                "content": "Sharing my latest poem about self-discovery and growth...",
-                "author": "Anonymous Companion", 
-                "companion_avatar": "/static/images/companions/sage.png",
-                "category": "creative",
-                "hearts": 8,
-                "created_at": "2024-01-14T14:20:00Z",
-                "tags": ["poetry", "creativity", "growth"]
-            },
-            {
-                "id": 3,
-                "title": "Daily Reflection Practice",
-                "content": "How I started my morning reflection routine and the positive changes it brought...",
-                "author": "Anonymous Companion",
-                "companion_avatar": "/static/images/companions/luna.png", 
-                "category": "wellness",
-                "hearts": 15,
-                "created_at": "2024-01-13T09:15:00Z",
-                "tags": ["reflection", "morning", "routine"]
-            },
-            {
-                "id": 4,
-                "title": "Artistic Expression",
-                "content": "Created this beautiful mandala during my art therapy session...",
-                "author": "Anonymous Companion",
-                "companion_avatar": "/static/images/companions/phoenix.png",
-                "category": "creative", 
-                "hearts": 20,
-                "created_at": "2024-01-12T16:45:00Z",
-                "tags": ["art", "therapy", "mandala"]
-            }
-        ]
+        # Query real community posts from database
+        from backend.database_utils import get_db_connection
         
-        # Filter by category if specified
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Build query with category filter
+        base_query = """
+            SELECT cp.id, cp.title, cp.content, cp.category, cp.created_at, cp.tags,
+                   u.email as author_email, c.name as companion_name, c.avatar_url, c.image_url
+            FROM community_posts cp
+            JOIN users u ON cp.user_id = u.id
+            LEFT JOIN companions c ON cp.companion_id = c.id
+        """
+        
+        params = []
         if category != 'all':
-            mock_posts = [post for post in mock_posts if post['category'] == category]
+            base_query += " WHERE cp.category = %s"
+            params.append(category)
+            
+        # Add sorting
+        if sort_by == 'new':
+            base_query += " ORDER BY cp.created_at DESC"
+        elif sort_by == 'popular':
+            base_query += " ORDER BY cp.id DESC"  # Simple fallback for now
+            
+        # Add pagination
+        base_query += " LIMIT %s OFFSET %s"
+        params.extend([limit, offset])
         
-        # Sort posts
-        if sort_by == 'popular':
-            mock_posts.sort(key=lambda x: x['hearts'], reverse=True)
-        elif sort_by == 'new':
-            mock_posts.sort(key=lambda x: x['created_at'], reverse=True)
+        cursor.execute(base_query, params)
+        posts = cursor.fetchall()
         
-        # Apply pagination
-        total_posts = len(mock_posts)
-        paginated_posts = mock_posts[offset:offset + limit]
+        # Get total count for pagination
+        count_query = "SELECT COUNT(*) FROM community_posts"
+        count_params = []
+        if category != 'all':
+            count_query += " WHERE category = %s"
+            count_params.append(category)
+            
+        cursor.execute(count_query, count_params)
+        total_posts = cursor.fetchone()[0]
+        
+        # Format posts for response
+        paginated_posts = []
+        for post in posts:
+            # Use companion avatar if available, fallback to default
+            avatar_url = post[8] or post[9] or "/static/images/companions/default.png"
+            
+            formatted_post = {
+                "id": post[0],
+                "title": post[1],
+                "content": post[2],
+                "category": post[3],
+                "created_at": post[4].isoformat() + "Z" if post[4] else "",
+                "tags": post[5] or [],
+                "author": "Anonymous Companion",  # Keep anonymous
+                "companion_avatar": avatar_url,
+                "hearts": 0  # Will be updated below with reaction counts
+            }
+            paginated_posts.append(formatted_post)
+            
+        cursor.close()
+        conn.close()
         
         # Add reaction data to each post
         for post in paginated_posts:
