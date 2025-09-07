@@ -93,6 +93,96 @@ def get_feature_limit(plan: str, feature: str) -> int:
 # COMMUNITY PAGES
 # =============================================================================
 
+@community_bp.route("/community/set-avatar/<companion_id>")
+def auto_set_avatar(companion_id):
+    """Auto-set community avatar via URL - for testing and convenience"""
+    try:
+        if not is_logged_in():
+            return redirect("/login")
+        
+        user_id = session.get('user_id')
+        logger.info(f"🔗 AUTO-SET AVATAR: User {user_id} setting avatar to {companion_id} via URL")
+        
+        # Real companion mapping (same as POST endpoint)
+        companion_map = {
+            # BRONZE
+            'gamerjay_bronze': {'name': 'GamerJay', 'image_url': '/static/logos/GamerJay_Free_companion.png', 'tier': 'bronze'},
+            'blayzo_bronze': {'name': 'Blayzo', 'image_url': '/static/logos/Blayzo.png', 'tier': 'bronze'},
+            'claude_bronze': {'name': 'Claude', 'image_url': '/static/logos/Claude_Free.png', 'tier': 'bronze'},
+            'lumen_bronze': {'name': 'Lumen', 'image_url': '/static/logos/Lumen_Bronze.png', 'tier': 'bronze'},
+            'blayzica_bronze': {'name': 'Blayzica', 'image_url': '/static/logos/Blayzica.png', 'tier': 'bronze'},
+            'blayzia_bronze': {'name': 'Blayzia', 'image_url': '/static/logos/Blayzia.png', 'tier': 'bronze'},
+            'blayzion_bronze': {'name': 'Blayzion', 'image_url': '/static/logos/Blayzion.png', 'tier': 'bronze'},
+            'blayzo2_bronze': {'name': 'Blayzo.2', 'image_url': '/static/logos/blayzo_free_tier.png', 'tier': 'bronze'},
+            'crimson_bronze': {'name': 'Crimson', 'image_url': '/static/logos/Crimson_Free.png', 'tier': 'bronze'},
+            'violet_bronze': {'name': 'Violet', 'image_url': '/static/logos/Violet_Free.png', 'tier': 'bronze'},
+            # SILVER  
+            'sky_silver': {'name': 'Sky', 'image_url': '/static/logos/Sky_a_premium_companion.png', 'tier': 'silver'},
+            'gamerjay_silver': {'name': 'GamerJay.2', 'image_url': '/static/logos/GamerJay_premium_companion.png', 'tier': 'silver'},
+            'claude_silver': {'name': 'Claude.3', 'image_url': '/static/logos/Claude_Growth.png', 'tier': 'silver'},
+            'rozia_silver': {'name': 'Rozia', 'image_url': '/static/logos/Rozia_Silver.png', 'tier': 'silver'},
+            'blayzo_silver': {'name': 'Blayzo.3', 'image_url': '/static/logos/Blayzo_premium_companion.png', 'tier': 'silver'},
+            'blayzica_silver': {'name': 'Blayzica.2', 'image_url': '/static/logos/Blayzica_Pro.png', 'tier': 'silver'},
+            'lumen_silver': {'name': 'Lumen.2', 'image_url': '/static/logos/Lumen_Silver.png', 'tier': 'silver'},
+            'watchdog_silver': {'name': 'WatchDog', 'image_url': '/static/logos/WatchDog_a_Premium_companion.png', 'tier': 'silver'},
+            # GOLD
+            'crimson_gold': {'name': 'Crimson', 'image_url': '/static/logos/Crimson_a_Max_companion.png', 'tier': 'gold'},
+            'violet_gold': {'name': 'Violet', 'image_url': '/static/logos/Violet_a_Max_companion.png', 'tier': 'gold'},
+            'claude_gold': {'name': 'Claude.2', 'image_url': '/static/logos/Claude_Max.png', 'tier': 'gold'},
+            'royal_gold': {'name': 'Royal', 'image_url': '/static/logos/Royal_a_Max_companion.png', 'tier': 'gold'},
+            'ven_sky_gold': {'name': 'Ven Sky', 'image_url': '/static/logos/Ven_Sky_a_Max_companion.png', 'tier': 'gold'},
+            'watchdog_gold': {'name': 'WatchDog.2', 'image_url': '/static/logos/WatchDog_Max_companion.png', 'tier': 'gold'},
+            'dr_madjay_gold': {'name': 'Dr. MadJay', 'image_url': '/static/logos/Dr_MadJay_Max_companion.png', 'tier': 'gold'},
+            'lumen_gold': {'name': 'Lumen.3', 'image_url': '/static/logos/Lumen_Gold.png', 'tier': 'gold'},
+        }
+        
+        if companion_id not in companion_map:
+            return f"❌ Unknown companion: {companion_id}<br><br>Available companions:<br>" + "<br>".join([f"• {k}: {v['name']}" for k, v in companion_map.items()]), 400
+        
+        companion = companion_map[companion_id]
+        
+        # Create companion info
+        from datetime import datetime, timezone
+        import json
+        
+        companion_info = {
+            'id': companion_id,
+            'name': companion['name'],
+            'image_url': companion['image_url'],
+            'tier': companion['tier'],
+            'saved_at': datetime.now(timezone.utc).isoformat()
+        }
+        
+        # Save to database (same logic as POST endpoint)
+        db = get_database()
+        if not db:
+            return "❌ Database not available", 503
+        
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        
+        json_data = json.dumps(companion_info)
+        logger.info(f"🔗 AUTO-SET: Saving {companion_id} for user {user_id}")
+        
+        if db.use_postgres:
+            cursor.execute("UPDATE users SET companion_data = %s WHERE id = %s", (json_data, user_id))
+        else:
+            cursor.execute("UPDATE users SET companion_data = ? WHERE id = ?", (json_data, user_id))
+        
+        rows_affected = cursor.rowcount
+        conn.commit()
+        conn.close()
+        
+        if rows_affected > 0:
+            # Redirect to community page to see the result
+            return redirect(f"/community?success=Avatar set to {companion['name']}")
+        else:
+            return f"❌ Failed to set avatar for user {user_id}", 500
+            
+    except Exception as e:
+        logger.error(f"Auto-set avatar error: {e}")
+        return f"❌ Error setting avatar: {e}", 500
+
 @community_bp.route("/community")
 def anonymous_community():
     """Anonymous Community - privacy-first sharing with companion avatars"""
