@@ -493,55 +493,53 @@ def get_community_avatar():
     try:
         if not is_logged_in():
             return jsonify({"success": False, "error": "Authentication required"}), 401
-        
-        user_id = session.get('user_id')
+
+        from database_utils import get_database
+        import json
+
+        user_id = session.get("user_id")
         companion_info = None
-        
-        # Try to get from database first (persistent across sessions)
+
         try:
-            from database_utils import get_database
-            import json
-            
             database = get_database()
             if database:
                 conn = database.get_connection()
                 cursor = conn.cursor()
-                
+
+                # Normalize user_id for PG to avoid text/int mismatch
+                uid = int(user_id) if database.use_postgres else user_id
+
                 if database.use_postgres:
-                    cursor.execute("SELECT companion_data FROM users WHERE id = %s", (user_id,))
+                    cursor.execute("SELECT companion_data FROM users WHERE id = %s", (uid,))
                 else:
-                    cursor.execute("SELECT companion_data FROM users WHERE id = ?", (user_id,))
-                
-                result = cursor.fetchone()
+                    cursor.execute("SELECT companion_data FROM users WHERE id = ?", (uid,))
+                row = cursor.fetchone()
                 conn.close()
-                
-                if result and result[0]:
-                    companion_info = json.loads(result[0])
+
+                if row and row[0]:
+                    companion_info = json.loads(row[0]) if isinstance(row[0], str) else row[0]
                     logger.info(f"✅ Avatar loaded from database for user {user_id}")
-                    
-                    # Update session cache for faster subsequent requests
-                    session['companion_info'] = companion_info
-                    session.modified = True
         except Exception as db_error:
             logger.warning(f"Database avatar load failed for user {user_id}: {db_error}")
-        
-        # Fallback to session cache
+
         if not companion_info:
-            companion_info = session.get('companion_info')
-            
-        # Final fallback to default
-        if not companion_info:
+            # Final fallback
             companion_info = {
-                'name': 'Soul',
-                'companion_id': 'soul',
-                'avatar_url': '/static/companions/soul.png',
-                'tier': 'bronze'
+                "name": "Soul",
+                "companion_id": "soul",
+                "avatar_url": "/static/companions/soul.png",
+                "tier": "bronze"
             }
-        
-        return jsonify({
-            "success": True,
-            "companion": companion_info
-        })
+
+        # Safety: ensure avatar_url exists if missing
+        if not companion_info.get("avatar_url") and companion_info.get("companion_id"):
+            companion_info["avatar_url"] = f"/static/companions/{companion_info['companion_id']}.png"
+
+        # Cache in session (optional)
+        session["companion_info"] = companion_info
+        session.modified = True
+
+        return jsonify({"success": True, "companion": companion_info})
         
     except Exception as e:
         logger.error(f"Get community avatar error: {e}")
@@ -553,87 +551,69 @@ def set_community_avatar():
     try:
         if not is_logged_in():
             return jsonify({"success": False, "error": "Authentication required"}), 401
-        
-        data = request.get_json()
-        if not data:
-            return jsonify({"success": False, "error": "No data provided"}), 400
-        
-        companion_id = data.get('companion_id')
+
+        data = request.get_json() or {}
+        companion_id = data.get("companion_id")
         if not companion_id:
             return jsonify({"success": False, "error": "Companion ID required"}), 400
-        
-        user_id = session.get('user_id')
-        
-        # Import required modules
+
+        from database_utils import get_database
         from datetime import datetime
-        import sys
-        import os
-        
-        # Add backend directory to path for imports
-        backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        if backend_dir not in sys.path:
-            sys.path.insert(0, backend_dir)
-        
-        # Build companion data for persistence
+        import json
+
+        user_id = session.get("user_id")
+        now_iso = datetime.now().isoformat()
+
         companion_data = {
-            'name': data.get('name', 'Soul'),
-            'companion_id': companion_id,
-            'avatar_url': data.get('avatar_url'),
-            'tier': data.get('tier', 'bronze'),
-            'updated_at': datetime.now().isoformat()
+            "name": data.get("name", "Soul"),
+            "companion_id": companion_id,
+            "avatar_url": data.get("avatar_url") or f"/static/companions/{companion_id}.png",
+            "tier": data.get("tier", "bronze"),
+            "updated_at": now_iso,
         }
-        
-        # Save to database - simplified approach without helper
-        database_success = False
+
+        database_saved = False
         try:
-            from database_utils import get_database
-            import json
-            
             database = get_database()
             if database:
                 conn = database.get_connection()
                 cursor = conn.cursor()
-                
-                companion_json = json.dumps(companion_data)
-                
+                payload = json.dumps(companion_data)
+                uid = int(user_id) if database.use_postgres else user_id
+
                 if database.use_postgres:
-                    cursor.execute("""
-                        UPDATE users 
-                        SET companion_data = %s
-                        WHERE id = %s
-                    """, (companion_json, user_id))
+                    cursor.execute(
+                        "UPDATE users SET companion_data = %s WHERE id = %s RETURNING id",
+                        (payload, uid),
+                    )
+                    row = cursor.fetchone()
+                    if row:
+                        conn.commit()
+                        database_saved = True
+                        logger.info(f"✅ Avatar saved to database for user {user_id}")
+                    else:
+                        logger.warning(f"⚠️ No user row matched id={uid} when saving companion_data")
                 else:
-                    cursor.execute("""
-                        UPDATE users 
-                        SET companion_data = ?
-                        WHERE id = ?
-                    """, (companion_json, user_id))
-                
-                if cursor.rowcount > 0:
-                    conn.commit()
-                    database_success = True
-                    logger.info(f"✅ Avatar saved to database for user {user_id}")
-                else:
-                    logger.warning(f"⚠️ No rows updated for user {user_id}")
-                    
+                    cursor.execute("UPDATE users SET companion_data = ? WHERE id = ?", (payload, uid))
+                    if cursor.rowcount > 0:
+                        conn.commit()
+                        database_saved = True
+                        logger.info(f"✅ Avatar saved to database for user {user_id}")
+                    else:
+                        logger.warning(f"⚠️ No user row matched id={uid} when saving companion_data (SQLite)")
                 conn.close()
-            else:
-                logger.warning("Database not available")
-                
         except Exception as db_error:
             logger.error(f"❌ Database save failed for user {user_id}: {db_error}")
-        
-        # Update session with new companion info (immediate UI update)
-        session['companion_info'] = companion_data
+
+        # Session cache
+        session["companion_info"] = companion_data
         session.modified = True
-        
-        logger.info(f"✅ Avatar updated for user {user_id}: {companion_id}")
-        
+
         return jsonify({
             "success": True,
-            "message": "Avatar updated and saved successfully",
+            "message": "Avatar updated",
             "companion": companion_data,
-            "database_saved": database_success
+            "database_saved": database_saved
         })
         
     except Exception as e:

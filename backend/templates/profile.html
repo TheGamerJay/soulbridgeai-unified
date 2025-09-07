@@ -3291,27 +3291,27 @@
                         console.warn('🤖 Using default fallback companion:', companionToDisplay);
                     }
                     
-                    // Load saved avatar from database FIRST (before any display updates)
-                    const savedCompanionName = await loadSavedAvatar();
-                    
-                    // Use saved companion if found, otherwise use the detected one
-                    if (savedCompanionName) {
-                        companionToDisplay = savedCompanionName;
-                        console.log('✅ Using saved companion from database:', companionToDisplay);
+                    // 1) Load persisted avatar first
+                    const saved = await loadSavedAvatar();
+
+                    if (saved) {
+                        applyCompanion(saved); // single source of truth from DB
+                    } else {
+                        // Fallback: if you have a detected/default selection:
+                        const fallbackId = localStorage.getItem('lastUsedCompanionId') || 'soul';
+                        const fallback = {
+                            name: fallbackId === 'soul' ? 'Soul' : fallbackId, // adjust to your map
+                            companion_id: fallbackId,
+                            avatar_url: `/static/companions/${fallbackId}.png`,
+                            tier: 'bronze'
+                        };
+                        applyCompanion(fallback);
                     }
-                    
-                    // Add race condition delay to ensure DOM is ready and avoid flickering
-                    setTimeout(() => {
-                        updateCompanionDisplay(companionToDisplay);
-                        // Store in localStorage for future page loads
-                        localStorage.setItem('lastUsedCompanion', companionToDisplay);
-                        
-                        // Populate companion grids with current user data
-                        const userTier = (userData.user_plan || 'bronze').toLowerCase();
-                        // Use trial_live from access data for accurate trial status
-                        const trialActive = (responseData.access && responseData.access.trial_live) || false;
-                        populateCompanionGrids(userTier, companionToDisplay, trialActive);
-                    }, 150);
+
+                    // 2) Now that UI is consistent, load grids, etc.
+                    const userTier = (userData.user_plan || 'bronze').toLowerCase();
+                    const trialActive = (responseData.access && responseData.access.trial_live) || false;
+                    populateCompanionGrids(userTier, localStorage.getItem('lastUsedCompanionId') || 'soul', trialActive);
                     
                     // Update credits display and trial status
                     updateCreditsDisplay(userData, responseData.access);
@@ -3803,26 +3803,28 @@
 
         // Handle companion selection from dropdown
         function selectCompanionFromDropdown(companionId, companionName, companionData) {
-            // Update selected companion display
-            updateSelectedCompanionDisplay(companionName, companionData);
-            
-            // Update current companion display (for other parts of the app)
-            updateCompanionDisplay(companionName);
-            
-            // Close dropdown
+            // Apply immediately
+            applyCompanion({
+                name: companionName,
+                companion_id: companionId,
+                avatar_url: (companionData && companionData.image) || `/static/companions/${companionId}.png`,
+                tier: getTierFromCompanionId(companionId)
+            });
+
+            // Close UI
             const dropdown = document.getElementById('companionDropdown');
             const arrow = document.querySelector('.dropdown-arrow');
-            dropdown.style.display = 'none';
+            if (dropdown) dropdown.style.display = 'none';
             if (arrow) arrow.style.transform = 'rotate(0deg)';
-            
-            // Save selection locally for immediate response
-            localStorage.setItem('lastUsedCompanion', companionName);
-            
-            // Save to database for persistence across sessions
-            saveCompanionToDatabase(companionId, companionName, companionData);
-            
-            console.log('🤖 Selected companion:', companionId, companionName);
+
             showNotification(`Selected ${companionName} as your companion!`, 'success');
+
+            // Persist
+            saveCompanionToDatabase(companionId, companionName, companionData).then(r => {
+                if (!r?.success) {
+                    console.warn('⚠️ DB save failed; UI shows cached selection but will fall back next load.');
+                }
+            });
         }
 
         // Save companion selection to database
@@ -3847,11 +3849,14 @@
                 
                 if (result.success) {
                     console.log('✅ Companion saved to database:', companionName);
+                    return result;
                 } else {
                     console.warn('⚠️ Failed to save companion to database:', result.error);
+                    return result;
                 }
             } catch (error) {
                 console.error('❌ Error saving companion to database:', error);
+                return { success: false, error: error.message };
             }
         }
 
@@ -3869,50 +3874,42 @@
             return 'bronze'; // default fallback
         }
 
-        // Load saved avatar from database on page load
+        // PURE: fetch & return object, do NOT mutate the DOM here
         async function loadSavedAvatar() {
             try {
-                console.log('🔄 Loading saved avatar from database...');
-                
-                const response = await fetch('/community/avatar', {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
+                const res = await fetch('/community/avatar', { 
+                    method: 'GET', 
+                    headers: { 'Content-Type': 'application/json' } 
                 });
-                
-                // Debug: Check what endpoint we're actually hitting
-                console.log('🔍 Avatar load response URL:', response.url);
-
-                const result = await response.json();
-                
-                if (result.success && result.companion) {
-                    const companion = result.companion;
-                    console.log('✅ Avatar loaded from database:', companion);
-                    
-                    // Update display with database data (overrides all other sources)
-                    updateCompanionDisplay(companion.name);
-                    updateSelectedCompanionDisplay(companion.name, {
-                        name: companion.name,
-                        id: companion.companion_id,
-                        image: companion.avatar_url,
-                        tier: companion.tier
-                    });
-                    
-                    // Update localStorage to match database
-                    localStorage.setItem('lastUsedCompanion', companion.name);
-                    
-                    // Return the loaded companion name to override any default selection
-                    return companion.name;
-                } else {
-                    console.log('ℹ️ No saved avatar found in database, using current selection');
-                    return null;
+                const json = await res.json();
+                if (json.success && json.companion) {
+                    console.log('✅ Avatar loaded from database:', json.companion);
+                    return json.companion; // { name, companion_id, avatar_url, tier }
                 }
-            } catch (error) {
-                console.error('❌ Error loading saved avatar:', error);
-                // Graceful fallback - continue with existing avatar selection
+                return null;
+            } catch (e) {
+                console.error('❌ Error loading saved avatar:', e);
                 return null;
             }
+        }
+        
+        // Use a single "apply" function for the UI, and call it once at bootstrap
+        function applyCompanion(comp) {
+            // Normalize fields to the shape your UI expects
+            const companionData = {
+                name: comp.name,
+                id: comp.companion_id,
+                image: comp.avatar_url,
+                tier: comp.tier,
+                bio: comp.bio || '' // optional
+            };
+
+            updateSelectedCompanionDisplay(companionData.name, companionData);
+            updateCompanionDisplay(companionData.name); // if this only handles name, OK
+
+            // Prefer storing ID, not name
+            localStorage.setItem('lastUsedCompanionId', companionData.id);
+            localStorage.setItem('lastUsedCompanion', companionData.name); // keep for compatibility
         }
 
         // Update the selected companion display in the dropdown header
@@ -3999,15 +3996,15 @@
                 };
             }
 
-            // Update display elements
+            // Update display elements - BULLETPROOF VERSION
             const nameEl = document.getElementById('selectedCompanionName');
             const descEl = document.getElementById('selectedCompanionDescription');
             const greetingEl = document.getElementById('selectedCompanionGreeting');
             const imageEl = document.getElementById('selectedCompanionImage');
             const avatarEl = document.getElementById('selectedCompanionAvatar');
 
-            if (nameEl) nameEl.textContent = companionData.name;
-            if (descEl) descEl.textContent = companionData.bio;
+            if (nameEl) nameEl.textContent = companionData.name || companionName || '—';
+            if (descEl) descEl.textContent = companionData.bio || '';
             if (greetingEl) {
                 if (companionData.greeting) {
                     greetingEl.textContent = companionData.greeting;
@@ -4016,14 +4013,17 @@
                     greetingEl.style.display = 'none';
                 }
             }
-            
+
             if (imageEl && companionData.image) {
-                imageEl.src = companionData.image;
+                // Add cache-buster to avoid stale 404s and ensure fresh image loads
+                imageEl.src = companionData.image + `?v=${Date.now()}`;
                 imageEl.style.display = 'block';
                 if (avatarEl) avatarEl.style.display = 'none';
-            } else if (avatarEl) {
-                avatarEl.style.display = 'flex';
-                avatarEl.textContent = companionData.avatar;
+            } else {
+                if (avatarEl) {
+                    avatarEl.style.display = 'flex';
+                    avatarEl.textContent = (companionData.name || companionData.avatar || '?').slice(0,1).toUpperCase();
+                }
                 if (imageEl) imageEl.style.display = 'none';
             }
 
