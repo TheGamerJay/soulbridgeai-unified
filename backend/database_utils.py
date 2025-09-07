@@ -25,3 +25,25 @@ def get_database():
             _db_instance = None
     
     return _db_instance
+
+
+def get_db_connection():
+    """Get database connection for direct SQL queries"""
+    db = get_database()
+    if db:
+        return db.get_connection()
+    else:
+        raise Exception("Database not initialized")
+
+
+def is_postgres():
+    """Check if we're using PostgreSQL"""
+    db = get_database()
+    if db and hasattr(db, 'use_postgres'):
+        return db.use_postgres
+    return False
+
+
+def get_placeholder():
+    """Get the correct parameter placeholder for current database"""
+    return "%s" if is_postgres() else "?"

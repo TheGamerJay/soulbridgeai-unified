@@ -574,13 +574,14 @@ def community_posts():
         offset = int(request.args.get('offset', 0))
         
         # Query real community posts from database
-        from backend.database_utils import get_db_connection
+        from database_utils import get_db_connection, get_placeholder
         
         conn = get_db_connection()
         cursor = conn.cursor()
+        placeholder = get_placeholder()
         
         # Build query with category filter
-        base_query = """
+        base_query = f"""
             SELECT cp.id, cp.content, cp.text, cp.category, cp.created_at, cp.hashtags,
                    u.email as author_email, c.name as companion_name, c.avatar_url, c.image_url
             FROM community_posts cp
@@ -590,7 +591,7 @@ def community_posts():
         
         params = []
         if category != 'all':
-            base_query += " WHERE cp.category = ?"
+            base_query += f" WHERE cp.category = {placeholder}"
             params.append(category)
             
         # Add sorting
@@ -600,7 +601,7 @@ def community_posts():
             base_query += " ORDER BY cp.id DESC"  # Simple fallback for now
             
         # Add pagination
-        base_query += " LIMIT ? OFFSET ?"
+        base_query += f" LIMIT {placeholder} OFFSET {placeholder}"
         params.extend([limit, offset])
         
         cursor.execute(base_query, params)
@@ -610,7 +611,7 @@ def community_posts():
         count_query = "SELECT COUNT(*) FROM community_posts"
         count_params = []
         if category != 'all':
-            count_query += " WHERE category = ?"
+            count_query += f" WHERE category = {placeholder}"
             count_params.append(category)
             
         cursor.execute(count_query, count_params)
@@ -689,19 +690,20 @@ def create_community_post():
             return jsonify({"success": False, "error": "Post content too long (max 700 characters)"}), 400
         
         # Save post to database
-        from backend.database_utils import get_db_connection
+        from database_utils import get_db_connection, get_placeholder
         conn = get_db_connection()
         cursor = conn.cursor()
+        placeholder = get_placeholder()
         
         # Get current user info
         user_id = session.get('user_id')
         companion_id = session.get('selected_companion_id')
         
         # Insert post into database
-        insert_query = """
+        insert_query = f"""
             INSERT INTO community_posts 
             (user_id, companion_id, category, content, text, status, created_at)
-            VALUES (?, ?, ?, ?, ?, 'approved', CURRENT_TIMESTAMP)
+            VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder}, 'approved', CURRENT_TIMESTAMP)
         """
         
         cursor.execute(insert_query, (user_id, companion_id, category, text, text))
