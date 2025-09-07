@@ -1811,12 +1811,16 @@ def test_avatar_save():
         
         if db.use_postgres:
             logger.info(f"🐘 Using PostgreSQL UPDATE for user {user_id}")
-            # PostgreSQL can handle dict directly for jsonb columns
-            cursor.execute("UPDATE users SET companion_data = %s WHERE id = %s", (companion_data, user_id))
+            # PostgreSQL JSONB columns also need JSON string (fixed!)
+            json_data = json.dumps(companion_data)
+            logger.info(f"🐘 JSON data being saved: {json_data}")
+            cursor.execute("UPDATE users SET companion_data = %s WHERE id = %s", (json_data, user_id))
         else:
             logger.info(f"🗃️ Using SQLite UPDATE for user {user_id}")
             # SQLite needs JSON string
-            cursor.execute("UPDATE users SET companion_data = ? WHERE id = ?", (json.dumps(companion_data), user_id))
+            json_data = json.dumps(companion_data)
+            logger.info(f"🗃️ JSON data being saved: {json_data}")
+            cursor.execute("UPDATE users SET companion_data = ? WHERE id = ?", (json_data, user_id))
         
         rows_affected = cursor.rowcount
         logger.info(f"💾 PRE-COMMIT: {rows_affected} rows affected for user {user_id}")
