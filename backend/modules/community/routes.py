@@ -590,7 +590,8 @@ def community_posts():
                         SELECT cp.id, cp.category, cp.created_at, cp.hashtags,
                                u.email as author_email, c.name as companion_name, 
                                cp.image_url as image_url,
-                               COALESCE(NULLIF(cp.text, ''), NULLIF(cp.content, '')) AS message
+                               COALESCE(NULLIF(cp.text, ''), NULLIF(cp.content, '')) AS message,
+                               cp.author_uid
                         FROM community_posts cp
                         JOIN users u ON cp.author_uid = u.id
                         LEFT JOIN companions c ON cp.companion_id = c.id
@@ -649,8 +650,10 @@ def community_posts():
         
         # Format posts for response
         paginated_posts = []
+        current_user_id = session.get('user_id')
+        
         for post in posts:
-            # Query fields: id, category, created_at, hashtags, author_email, companion_name, image_url, message
+            # Query fields: id, category, created_at, hashtags, author_email, companion_name, image_url, message, author_uid
             post_id = post[0]
             category = post[1] 
             created_at = post[2]
@@ -659,6 +662,7 @@ def community_posts():
             companion_name = post[5]
             image_url = post[6]
             message = post[7] or ""  # Use unified COALESCE message field
+            author_uid = post[8]
             
             # Use image_url, fallback to default
             avatar_url = image_url or "/static/images/companions/default.png"
@@ -679,7 +683,8 @@ def community_posts():
                 "tags": hashtags,
                 "author": "Anonymous Companion",  # Keep anonymous
                 "companion_avatar": avatar_url,
-                "hearts": 0  # Will be updated below with reaction counts
+                "hearts": 0,  # Will be updated below with reaction counts
+                "is_mine": current_user_id == author_uid  # Flag for ownership
             }
             paginated_posts.append(formatted_post)
         
@@ -789,6 +794,65 @@ def create_community_post():
     except Exception as e:
         logger.error(f"Error creating post: {e}")
         return jsonify({"success": False, "error": "Failed to create post"}), 500
+
+
+@community_bp.route("/community/posts/<int:post_id>", methods=["DELETE"])
+def delete_community_post(post_id):
+    """Delete a community post (only by author)"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        current_user_id = session.get('user_id')
+        if not current_user_id:
+            return jsonify({"success": False, "error": "User ID not found"}), 401
+        
+        # Verify ownership and delete post
+        try:
+            from database_utils import get_db_connection, get_placeholder
+            conn = get_db_connection()
+            placeholder = get_placeholder()
+            
+            with conn:  # Transaction for consistency
+                with conn.cursor() as cursor:
+                    # First check if post exists and user owns it
+                    check_query = f"SELECT author_uid FROM community_posts WHERE id = {placeholder}"
+                    cursor.execute(check_query, (post_id,))
+                    result = cursor.fetchone()
+                    
+                    if not result:
+                        return jsonify({"success": False, "error": "Post not found"}), 404
+                    
+                    author_uid = result[0]
+                    if author_uid != current_user_id:
+                        return jsonify({"success": False, "error": "You can only delete your own posts"}), 403
+                    
+                    # Delete the post
+                    delete_query = f"DELETE FROM community_posts WHERE id = {placeholder} AND author_uid = {placeholder}"
+                    cursor.execute(delete_query, (post_id, current_user_id))
+                    
+                    if cursor.rowcount == 0:
+                        return jsonify({"success": False, "error": "Post not found or not authorized"}), 404
+                    
+                    logger.info(f"Post deleted successfully: ID={post_id}, User={current_user_id}")
+            
+            conn.close()
+            
+            return jsonify({
+                "success": True,
+                "message": "Post deleted successfully"
+            })
+            
+        except Exception as db_error:
+            logger.error(f"Database error deleting post {post_id}: {str(db_error)}")
+            if 'conn' in locals():
+                conn.close()
+            return jsonify({"success": False, "error": "Database error"}), 500
+            
+    except Exception as e:
+        logger.error(f"Error deleting post {post_id}: {e}")
+        return jsonify({"success": False, "error": "Failed to delete post"}), 500
+
 
 @community_bp.route("/community/posts/<int:post_id>/react", methods=["POST"])
 def react_to_post(post_id):
