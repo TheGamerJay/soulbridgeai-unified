@@ -33,6 +33,10 @@ def create_app():
     """Application factory pattern"""
     app = Flask(__name__)
     
+    # Detect prod on Railway first
+    IS_RAILWAY = bool(os.environ.get("RAILWAY_PROJECT_ID"))
+    IS_PROD = os.environ.get("ENVIRONMENT") == "production" or IS_RAILWAY
+    
     # ----- Core secrets -----
     # IMPORTANT: keep SECRET_KEY stable across deploys/instances
     secret_key = os.environ.get("FLASK_SECRET_KEY") or os.environ.get("SECRET_KEY")
@@ -41,10 +45,6 @@ def create_app():
             logger.error("❌ FLASK_SECRET_KEY not set in production - sessions will not survive deploys!")
         secret_key = "dev-only-change-me-in-production"
     app.config["SECRET_KEY"] = secret_key
-
-    # Detect prod on Railway
-    IS_RAILWAY = bool(os.environ.get("RAILWAY_PROJECT_ID"))
-    IS_PROD = os.environ.get("ENVIRONMENT") == "production" or IS_RAILWAY
 
     # Make Flask trust Railway's reverse proxy so it sees HTTPS correctly.
     # Without this, Flask may think the request is http and set cookies wrong.
