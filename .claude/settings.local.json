@@ -33,7 +33,12 @@
       "Bash(railway-errors:*)",
       "Bash(railway --version)",
       "Bash(railway logs:*)",
-      "Bash(PYTHONIOENCODING=utf-8 DATABASE_URL=\"postgresql://postgres:sDCOyvWZKSxyJvnJBZNSJemzZKbbSjIT@postgres-wj-8.railway.internal:5432/railway\" python fix_railway_database.py)"
+      "Bash(PYTHONIOENCODING=utf-8 DATABASE_URL=\"postgresql://postgres:sDCOyvWZKSxyJvnJBZNSJemzZKbbSjIT@postgres-wj-8.railway.internal:5432/railway\" python fix_railway_database.py)",
+      "Bash(PYTHONIOENCODING=utf-8 DATABASE_URL=\"postgresql://postgres:sDCOyvWZKSxyJvnJBZNSJemzZKbbSjIT@postgres-wj-8.railway.internal:5432/railway\" python fix_user_activity_log.py)",
+      "Bash(railway status:*)",
+      "Bash(railway domain:*)",
+      "Bash(railway variables:*)",
+      "Bash(sqlite3:*)"
     ],
     "deny": [],
     "ask": [],

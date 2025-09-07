@@ -489,17 +489,44 @@ def apply_theme_preset():
 
 @profile_bp.route("/community/avatar", methods=["GET"])
 def get_community_avatar():
-    """Get current user's community avatar/companion"""
+    """Get current user's community avatar/companion with database fallback"""
     try:
         if not is_logged_in():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
-        # Get user's current companion from session
-        companion_info = session.get('companion_info', {
-            'name': 'Soul',
-            'companion_id': 'soul',
-            'avatar_url': '/static/companions/soul.png'
-        })
+        user_id = session.get('user_id')
+        companion_info = None
+        
+        # Try to get from database first (persistent across sessions)
+        try:
+            from backend.avatar_persistence_helper import load_user_avatar_persistent
+            from backend.database_utils import get_database
+            
+            database = get_database()
+            if database:
+                load_result = load_user_avatar_persistent(user_id, database)
+                if load_result.get('success'):
+                    companion_info = load_result['data']
+                    logger.info(f"✅ Avatar loaded from database for user {user_id}")
+                    
+                    # Update session cache for faster subsequent requests
+                    session['companion_info'] = companion_info
+                    session.modified = True
+        except Exception as db_error:
+            logger.warning(f"Database avatar load failed for user {user_id}: {db_error}")
+        
+        # Fallback to session cache
+        if not companion_info:
+            companion_info = session.get('companion_info')
+            
+        # Final fallback to default
+        if not companion_info:
+            companion_info = {
+                'name': 'Soul',
+                'companion_id': 'soul',
+                'avatar_url': '/static/companions/soul.png',
+                'tier': 'bronze'
+            }
         
         return jsonify({
             "success": True,
@@ -512,7 +539,7 @@ def get_community_avatar():
 
 @profile_bp.route("/community/avatar", methods=["POST"])
 def set_community_avatar():
-    """Set user's community avatar/companion"""
+    """Set user's community avatar/companion with database persistence"""
     try:
         if not is_logged_in():
             return jsonify({"success": False, "error": "Authentication required"}), 401
@@ -525,20 +552,38 @@ def set_community_avatar():
         if not companion_id:
             return jsonify({"success": False, "error": "Companion ID required"}), 400
         
-        # TODO: Validate companion access based on user's plan
-        # This would require importing companion data and tier checking
+        user_id = session.get('user_id')
         
-        # Update session with new companion info
-        session['companion_info'] = {
+        # Build companion data for persistence
+        companion_data = {
             'name': data.get('name', 'Soul'),
             'companion_id': companion_id,
-            'avatar_url': data.get('avatar_url')
+            'avatar_url': data.get('avatar_url'),
+            'tier': data.get('tier', 'bronze'),
+            'updated_at': datetime.now().isoformat()
         }
+        
+        # Save to database using avatar persistence manager
+        from backend.avatar_persistence_helper import save_user_avatar_persistent
+        from backend.database_utils import get_database
+        from datetime import datetime
+        
+        database = get_database()
+        if database:
+            save_result = save_user_avatar_persistent(user_id, companion_data, database)
+            if not save_result.get('success'):
+                logger.warning(f"Database save failed for user {user_id}: {save_result.get('error')}")
+        
+        # Update session with new companion info (immediate UI update)
+        session['companion_info'] = companion_data
         session.modified = True
+        
+        logger.info(f"✅ Avatar updated for user {user_id}: {companion_id}")
         
         return jsonify({
             "success": True,
-            "message": "Avatar updated successfully"
+            "message": "Avatar updated and saved successfully",
+            "companion": companion_data
         })
         
     except Exception as e:

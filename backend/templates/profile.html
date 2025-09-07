@@ -3304,6 +3304,9 @@
                         populateCompanionGrids(userTier, companionToDisplay, trialActive);
                     }, 150);
                     
+                    // Load saved avatar from database (overrides localStorage/session data)
+                    loadSavedAvatar();
+                    
                     // Update credits display and trial status
                     updateCreditsDisplay(userData, responseData.access);
                     
@@ -3806,10 +3809,97 @@
             dropdown.style.display = 'none';
             if (arrow) arrow.style.transform = 'rotate(0deg)';
             
-            // Save selection and show notification
+            // Save selection locally for immediate response
             localStorage.setItem('lastUsedCompanion', companionName);
+            
+            // Save to database for persistence across sessions
+            saveCompanionToDatabase(companionId, companionName, companionData);
+            
             console.log('🤖 Selected companion:', companionId, companionName);
             showNotification(`Selected ${companionName} as your companion!`, 'success');
+        }
+
+        // Save companion selection to database
+        async function saveCompanionToDatabase(companionId, companionName, companionData) {
+            try {
+                const payload = {
+                    companion_id: companionId,
+                    name: companionName,
+                    avatar_url: companionData?.image || `/static/companions/${companionId}.png`,
+                    tier: getTierFromCompanionId(companionId)
+                };
+
+                const response = await fetch('/community/avatar', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    console.log('✅ Companion saved to database:', companionName);
+                } else {
+                    console.warn('⚠️ Failed to save companion to database:', result.error);
+                }
+            } catch (error) {
+                console.error('❌ Error saving companion to database:', error);
+            }
+        }
+
+        // Helper function to extract tier from companion ID
+        function getTierFromCompanionId(companionId) {
+            if (companionId.includes('bronze') || ['gamerjay_bronze', 'blayzo_bronze', 'blayzica_bronze'].includes(companionId)) {
+                return 'bronze';
+            } else if (companionId.includes('silver') || ['crimson_silver', 'violet_silver'].includes(companionId)) {
+                return 'silver';
+            } else if (companionId.includes('gold') || ['phoenix_gold', 'aurora_gold'].includes(companionId)) {
+                return 'gold';
+            } else if (companionId.includes('referral')) {
+                return 'referral';
+            }
+            return 'bronze'; // default fallback
+        }
+
+        // Load saved avatar from database on page load
+        async function loadSavedAvatar() {
+            try {
+                console.log('🔄 Loading saved avatar from database...');
+                
+                const response = await fetch('/community/avatar', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const result = await response.json();
+                
+                if (result.success && result.companion) {
+                    const companion = result.companion;
+                    console.log('✅ Avatar loaded from database:', companion);
+                    
+                    // Update display with database data (overrides all other sources)
+                    updateCompanionDisplay(companion.name);
+                    updateSelectedCompanionDisplay(companion.name, {
+                        name: companion.name,
+                        id: companion.companion_id,
+                        image: companion.avatar_url,
+                        tier: companion.tier
+                    });
+                    
+                    // Update localStorage to match database
+                    localStorage.setItem('lastUsedCompanion', companion.name);
+                    
+                } else {
+                    console.log('ℹ️ No saved avatar found in database, using current selection');
+                }
+            } catch (error) {
+                console.error('❌ Error loading saved avatar:', error);
+                // Graceful fallback - continue with existing avatar selection
+            }
         }
 
         // Update the selected companion display in the dropdown header
