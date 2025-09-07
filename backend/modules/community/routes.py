@@ -35,14 +35,65 @@ weekly_events_service = None
 post_reactions = {}
 
 def get_post_reaction_counts(post_id):
-    """Get reaction counts for a specific post"""
-    return post_reactions.get(str(post_id), {
-        "❤️": 0, "✨": 0, "🌿": 0, "🔥": 0, "🙏": 0, "⭐": 0, "👏": 0, "🫶": 0
-    })
+    """Get reaction counts for a specific post from database"""
+    try:
+        from database_utils import get_db_connection, get_placeholder
+        conn = get_db_connection()
+        placeholder = get_placeholder()
+        
+        with conn:
+            with conn.cursor() as cursor:
+                query = f"SELECT reaction_counts_json FROM community_posts WHERE id = {placeholder}"
+                cursor.execute(query, (post_id,))
+                result = cursor.fetchone()
+                
+                if result and result[0]:
+                    import json
+                    return json.loads(result[0])
+                else:
+                    # Return default empty reactions
+                    return {"❤️": 0, "✨": 0, "🌿": 0, "🔥": 0, "🙏": 0, "⭐": 0, "👏": 0, "🫶": 0}
+        
+        conn.close()
+        
+    except Exception as e:
+        logger.error(f"Error getting reaction counts for post {post_id}: {e}")
+        # Fallback to memory storage if database fails
+        return post_reactions.get(str(post_id), {
+            "❤️": 0, "✨": 0, "🌿": 0, "🔥": 0, "🙏": 0, "⭐": 0, "👏": 0, "🫶": 0
+        })
 
 def store_post_reaction_counts(post_id, counts):
-    """Store reaction counts for a specific post"""
-    post_reactions[str(post_id)] = counts.copy()
+    """Store reaction counts for a specific post in database"""
+    try:
+        from database_utils import get_db_connection, get_placeholder
+        conn = get_db_connection()
+        placeholder = get_placeholder()
+        
+        import json
+        counts_json = json.dumps(counts)
+        total_reactions = sum(counts.values())
+        
+        with conn:
+            with conn.cursor() as cursor:
+                query = f"""
+                    UPDATE community_posts 
+                    SET reaction_counts_json = {placeholder}, total_reactions = {placeholder}
+                    WHERE id = {placeholder}
+                """
+                cursor.execute(query, (counts_json, total_reactions, post_id))
+                
+                logger.info(f"Stored reactions for post {post_id}: {counts} (total: {total_reactions})")
+        
+        conn.close()
+        
+        # Also store in memory as backup
+        post_reactions[str(post_id)] = counts.copy()
+        
+    except Exception as e:
+        logger.error(f"Error storing reaction counts for post {post_id}: {e}")
+        # Fallback to memory storage if database fails
+        post_reactions[str(post_id)] = counts.copy()
 
 def init_mock_reactions():
     """Initialize some mock reactions for demo"""
@@ -751,12 +802,14 @@ def create_community_post():
                 with conn.cursor() as cursor:
                     insert_query = f"""
                         INSERT INTO community_posts 
-                        (author_uid, companion_id, category, content, text, status, created_at, author_email, image_url)
-                        VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder}, 'approved', CURRENT_TIMESTAMP, {placeholder}, {placeholder})
+                        (author_uid, companion_id, category, content, text, status, created_at, author_email, image_url, reaction_counts_json, total_reactions)
+                        VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder}, 'approved', CURRENT_TIMESTAMP, {placeholder}, {placeholder}, {placeholder}, 0)
                         RETURNING id
                     """
                     
-                    cursor.execute(insert_query, (user_id, companion_id, category, msg, msg, user_email, image_url))
+                    # Initialize with empty reactions
+                    empty_reactions_json = '{"❤️": 0, "✨": 0, "🌿": 0, "🔥": 0, "🙏": 0, "⭐": 0, "👏": 0, "🫶": 0}'
+                    cursor.execute(insert_query, (user_id, companion_id, category, msg, msg, user_email, image_url, empty_reactions_json))
                     post_id = cursor.fetchone()[0]
                     
                     logger.info(f"Post created successfully: ID={post_id}")
