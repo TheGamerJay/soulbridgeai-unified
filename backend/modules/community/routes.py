@@ -1470,6 +1470,69 @@ def community_get_avatar():
         logger.error(f"Community get avatar error: {e}")
         return jsonify({"success": False, "error": "Failed to load avatar"}), 500
 
+@community_bp.route("/community/avatar", methods=["GET"])
+def community_get_avatar_new():
+    """Get current user's community avatar/companion - NEW GET ENDPOINT"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        user_id = session.get('user_id')
+        
+        # Direct database check for saved companion
+        try:
+            db = get_database()
+            if db:
+                conn = db.get_connection()
+                cursor = conn.cursor()
+                
+                if db.use_postgres:
+                    cursor.execute("SELECT companion_data FROM users WHERE id = %s", (user_id,))
+                else:
+                    cursor.execute("SELECT companion_data FROM users WHERE id = ?", (user_id,))
+                
+                result = cursor.fetchone()
+                conn.close()
+                
+                if result and result[0]:
+                    try:
+                        companion_data = json.loads(result[0])
+                        logger.info(f"✅ Found saved companion for user {user_id}: {companion_data.get('name', 'Unknown')}")
+                        
+                        return jsonify({
+                            "success": True,
+                            "companion": {
+                                "name": companion_data.get('name'),
+                                "companion_id": companion_data.get('id'),
+                                "avatar_url": companion_data.get('image_url'),
+                                "image_url": companion_data.get('image_url'),
+                                "tier": companion_data.get('tier', 'bronze')
+                            }
+                        })
+                    except (json.JSONDecodeError, KeyError) as e:
+                        logger.warning(f"⚠️ Invalid companion data for user {user_id}: {e}")
+                        
+        except Exception as e:
+            logger.error(f"Database error getting avatar: {e}")
+        
+        # Default fallback - Soul companion
+        import time
+        cache_buster = int(time.time())
+        return jsonify({
+            "success": True,
+            "companion": {
+                "name": "Soul",
+                "companion_id": "soul",
+                "avatar_url": f"/static/logos/New IntroLogo.png?t={cache_buster}",
+                "image_url": f"/static/logos/New IntroLogo.png?t={cache_buster}",
+                "tier": "bronze"
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Community get avatar error: {e}")
+        return jsonify({"success": False, "error": "Failed to load avatar"}), 500
+
 @community_bp.route("/community/avatar", methods=["POST"])
 def community_set_avatar():
     """Set user's community avatar/companion"""

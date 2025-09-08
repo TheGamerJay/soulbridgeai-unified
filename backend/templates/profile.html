@@ -1705,7 +1705,7 @@
                 // Update user information with null checks
                 const userIDElement = document.getElementById('userID');
                 if (userIDElement) {
-                    userIDElement.textContent = this.userData.uid || this.userData.userID || 'Unknown';
+                    userIDElement.textContent = this.userData.id || this.userData.uid || this.userData.userID || 'Unknown';
                 }
                 
                 const userEmailElement = document.getElementById('userEmail');
@@ -1886,20 +1886,27 @@
                 if (trialBtn && trialUsedMsg) {
                     const plan = this.userData.plan || 'bronze';
                     const trialActive = this.userTrial?.active || false;
-                    const trialEligible = this.userTrial?.eligible === true; // From /api/me endpoint
+                    const trialUsedPermanently = this.userTrial?.usedPermanently || false;
+                    
+                    console.log('🔍 Trial status check:', {
+                        plan,
+                        trialActive, 
+                        trialUsedPermanently,
+                        trialData: this.userTrial
+                    });
                     
                     if (plan === 'bronze') {
-                        if (!trialActive && trialEligible) {
-                            // Show activation button for eligible Bronze users
-                            trialBtn.style.display = 'block';
+                        if (trialActive) {
+                            // Trial is currently active - hide both
+                            trialBtn.style.display = 'none';
                             trialUsedMsg.style.display = 'none';
-                        } else if (!trialActive && !trialEligible) {
-                            // Show "trial used" message for ineligible Bronze users
+                        } else if (trialUsedPermanently) {
+                            // Trial was used permanently - show "trial used" message
                             trialBtn.style.display = 'none';
                             trialUsedMsg.style.display = 'block';
                         } else {
-                            // Trial is active - hide both
-                            trialBtn.style.display = 'none';
+                            // Trial available - show activation button
+                            trialBtn.style.display = 'block';
                             trialUsedMsg.style.display = 'none';
                         }
                     } else {
@@ -2554,17 +2561,23 @@
             if (fileExtension === 'mp4') {
                 try {
                     const duration = await getVideoDuration(file);
-                    if (duration > 11) {
+                    if (isNaN(duration) || duration === 0) {
+                        console.warn('⚠️ Video appears to have no duration - allowing upload');
+                    } else if (duration > 11) {
                         alert(`🎬 Video too long! MP4 videos must be 11 seconds or less.\n\nYour video: ${duration.toFixed(1)} seconds`);
                         activeInput.value = '';
                         return;
+                    } else {
+                        console.log(`🎥 MP4 video duration: ${duration.toFixed(1)}s - Perfect! ✅`);
                     }
-                    console.log(`🎥 MP4 video duration: ${duration.toFixed(1)}s - Perfect! ✅`);
                 } catch (error) {
                     console.error('Error checking video duration:', error);
-                    alert('❌ Unable to validate video duration. Please try again.');
-                    activeInput.value = '';
-                    return;
+                    if (error.message === 'Invalid video file') {
+                        alert('❌ Invalid video file. Please select a valid MP4 video.');
+                    } else {
+                        alert('⚠️ Unable to validate video - uploading anyway. If issues occur, try a different video file.');
+                    }
+                    // Don't return - allow upload to proceed for edge cases
                 }
             }
             
@@ -3239,7 +3252,7 @@
                     console.log('🆔 User ID element found:', !!userIDEl);
                     console.log('🆔 User ID from API:', userData.uid || userData.userID);
                     if (userIDEl) {
-                        userIDEl.textContent = userData.uid || userData.userID || 'N/A';
+                        userIDEl.textContent = userData.id || userData.uid || userData.userID || 'N/A';
                     }
                     
                     // Update email  
