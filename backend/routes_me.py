@@ -131,49 +131,41 @@ def me():
         if not current_companion:
             current_companion = "Blayzo"
         
-        # Get display name and profile image - always check database for latest values
-        # This prevents race conditions where session has stale data
+        # DIRECT: Get display name and profile image from database  
         display_name = "User"  # Default fallback
         db_profile_image = None
         try:
             user_row = db_fetch_user_row(uid)
             if user_row:
-                # Handle display name
-                if user_row.get('display_name'):
-                    db_name = user_row['display_name'].strip() if user_row['display_name'] else ""
-                    if db_name:  # Non-empty display name from database
-                        display_name = db_name
-                        # Sync session with confirmed database value
-                        session['display_name'] = display_name
-                        session['user_name'] = display_name
-                        session.modified = True
-                    else:
-                        # Database has empty/null display name, clear session
-                        session['display_name'] = ""
-                        session['user_name'] = ""
-                        session.modified = True
-                        display_name = "User"
+                # DIRECT: display name from database column
+                db_name = user_row.get('display_name')
+                if db_name and db_name.strip():
+                    display_name = db_name.strip()
+                    # Light session sync (no overcomplication)
+                    session['display_name'] = display_name
+                    session['user_name'] = display_name
+                    session.modified = True
+                    logger.info(f"✅ DIRECT: User ID {uid} display name '{display_name}'")
+                else:
+                    # Fallback to email prefix
+                    email = user_row.get('email', '')
+                    display_name = email.split('@')[0] if email else "User"
+                    logger.info(f"📧 FALLBACK: User ID {uid} using '{display_name}'")
                         
-                # Handle profile image from database
-                if user_row.get('profile_image_data') or user_row.get('profile_image'):
-                    if user_row.get('profile_image_data'):
-                        # User has profile image data, use API endpoint
-                        db_profile_image = f"/api/profile-image/{uid}"
-                    elif (user_row.get('profile_image') and 
-                          not user_row['profile_image'].endswith(('Sapphire.png', 'New IntroLogo.png'))):
-                        # User has custom profile image path
-                        db_profile_image = user_row['profile_image']
+                # DIRECT: profile image from database columns
+                if user_row.get('profile_image_data'):
+                    # User has profile image data, use API endpoint
+                    db_profile_image = f"/api/profile-image/{uid}"
+                elif (user_row.get('profile_image') and 
+                      not user_row['profile_image'].endswith(('Sapphire.png', 'New IntroLogo.png'))):
+                    # User has custom profile image path
+                    db_profile_image = user_row['profile_image']
             else:
-                # No user found, use fallback
+                logger.warning(f"User ID {uid} not found in database")
                 display_name = "User"
         except Exception as e:
-            logger.warning(f"Failed to get user data from database for user {uid}: {e}")
-            # Fallback to session value if database fails
-            session_name = session.get("display_name")
-            if session_name and session_name.strip():
-                display_name = session_name.strip()
-            else:
-                display_name = "User"
+            logger.error(f"Failed to get user data for user {uid}: {e}")
+            display_name = session.get("display_name", "User")
 
         # Use database profile image if we got one, otherwise session/default
         if db_profile_image:

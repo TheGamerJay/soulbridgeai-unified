@@ -157,7 +157,7 @@ class ProfileService:
             return {'success': False, 'error': f'Failed to update profile: {str(e)}'}
     
     def get_display_name(self, user_id: int) -> str:
-        """Get user's display name with fallback"""
+        """Get user's display name - DIRECT from database column"""
         try:
             if not self.database:
                 return "User"
@@ -172,7 +172,17 @@ class ProfileService:
             conn.close()
             
             if result:
-                return result[0] or result[1].split('@')[0]  # Fallback to email prefix
+                display_name = result[0]
+                email = result[1]
+                
+                if display_name and display_name.strip():
+                    logger.info(f"✅ DIRECT: User ID {user_id} display name '{display_name.strip()}'")
+                    return display_name.strip()
+                else:
+                    # Fallback to email prefix
+                    fallback = email.split('@')[0] if email else "User"
+                    logger.info(f"📧 FALLBACK: User ID {user_id} using '{fallback}'")
+                    return fallback
             
             return "User"
             
@@ -181,7 +191,7 @@ class ProfileService:
             return "User"
     
     def set_display_name(self, user_id: int, display_name: str) -> Dict[str, Any]:
-        """Set user's display name"""
+        """Set user's display name - DIRECT to database column"""
         try:
             if not display_name or not display_name.strip():
                 return {'success': False, 'error': 'Display name cannot be empty'}
@@ -191,7 +201,23 @@ class ProfileService:
             if len(display_name) > 50:
                 return {'success': False, 'error': 'Display name must be 50 characters or less'}
             
-            return self.update_profile(user_id, {'displayName': display_name})
+            # DIRECT UPDATE: user_id -> display_name column (no ProfileService complexity)
+            conn = self.database.get_connection()
+            cursor = conn.cursor()
+            
+            placeholder = "%s" if hasattr(self.database, 'use_postgres') and self.database.use_postgres else "?"
+            cursor.execute(f"UPDATE users SET display_name = {placeholder} WHERE id = {placeholder}", 
+                         (display_name, user_id))
+            
+            success = cursor.rowcount > 0
+            conn.commit()
+            conn.close()
+            
+            if success:
+                logger.info(f"✅ DIRECT: User ID {user_id} display name set to '{display_name}'")
+                return {'success': True, 'message': 'Display name updated successfully'}
+            else:
+                return {'success': False, 'error': 'User not found'}
             
         except Exception as e:
             logger.error(f"Failed to set display name: {e}")

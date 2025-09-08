@@ -187,20 +187,22 @@ def api_user_profile():
             # Update user profile
             data = request.get_json() or {}
             
-            # Update profile in database FIRST
-            result = profile_service.update_profile(user_id, data)
-            
-            # Only update session if database update succeeded
-            if result.get('success'):
-                if 'displayName' in data:
-                    # Update session with the confirmed database value
-                    display_value = data['displayName'] if data['displayName'].strip() else ""
-                    session['display_name'] = display_value
-                    session['user_name'] = display_value
+            # Handle display name update DIRECTLY
+            if 'displayName' in data:
+                result = profile_service.set_display_name(user_id, data['displayName'])
+                
+                # Only sync session if database update succeeded
+                if result.get('success'):
+                    session['display_name'] = data['displayName'].strip()
+                    session['user_name'] = data['displayName'].strip()  
                     session.modified = True
-                    logger.info(f"📝 Session updated for user {user_id}: display_name='{display_value}'")
-            
-            return jsonify(result)
+                    logger.info(f"✅ DIRECT: User ID {user_id} display name saved and synced")
+                
+                return jsonify(result)
+            else:
+                # Handle other profile updates normally
+                result = profile_service.update_profile(user_id, data)
+                return jsonify(result)
     
     except Exception as e:
         logger.error(f"Profile API error: {e}")
