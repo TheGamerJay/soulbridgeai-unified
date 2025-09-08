@@ -3,7 +3,7 @@ Clean Display Name Routes - One Writer, One Reader
 """
 from flask import Blueprint, request, jsonify, session
 from security_config import require_auth
-from display_name_helpers import set_display_name, get_display_name, get_profile_image
+from display_name_helpers import set_display_name, get_display_name, get_profile_image, get_companion_data, set_companion_data
 import logging
 
 logger = logging.getLogger(__name__)
@@ -61,9 +61,10 @@ def me():
         if not user_id:
             return jsonify({'success': False, 'error': 'No user ID in session'}), 401
         
-        # DB read first - source of truth for both display name and profile image
+        # DB read first - source of truth for display name, profile image, and companion
         name = get_display_name(user_id)
         profile_image_url = get_profile_image(user_id)
+        companion_data = get_companion_data(user_id)
         
         # Session mirrors DB (never overrides it)
         session['display_name'] = name if name != "User" else ""
@@ -71,10 +72,11 @@ def me():
         session['profile_image'] = profile_image_url
         session.modified = True
         
-        # Response shape: { success: true, user: { id, displayName, ... } }
+        # Response shape: { success: true, user: { id, displayName, companion, ... } }
         user_data = {
             'id': user_id,
             'displayName': name,
+            'companion': companion_data,
             # Add other user fields as needed
             'email': session.get('email', ''),
             'plan': session.get('user_plan', 'bronze'),
@@ -92,4 +94,49 @@ def me():
         
     except Exception as e:
         logger.error(f"Me endpoint error: {e}")
+        return jsonify({'success': False, 'error': 'Server error'}), 500
+
+# POST /api/companion - COMPANION WRITER
+@clean_display_bp.route('/api/companion', methods=['POST'])
+@require_auth
+def update_companion():
+    """Single writer endpoint for companion selection"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({'success': False, 'error': 'No user ID in session'}), 401
+            
+        data = request.get_json() or {}
+        
+        # Extract companion data
+        companion_id = data.get('companion_id', '').strip()
+        name = data.get('name', '').strip()
+        tier = data.get('tier', 'bronze').strip()
+        
+        # Validation
+        if not companion_id:
+            return jsonify({'success': False, 'error': 'Companion ID cannot be empty'}), 400
+            
+        if not name:
+            return jsonify({'success': False, 'error': 'Companion name cannot be empty'}), 400
+            
+        # Prepare companion data
+        companion_data = {
+            'companion_id': companion_id,
+            'name': name,
+            'tier': tier,
+            'avatar_url': data.get('avatar_url', f'/static/companions/{companion_id}.png')
+        }
+        
+        # DB write with commit
+        success = set_companion_data(user_id, companion_data)
+        
+        if success:
+            logger.info(f"✅ COMPANION WRITER SUCCESS: User {user_id} → '{name}' ({companion_id})")
+            return jsonify({'success': True, 'companion': companion_data})
+        else:
+            return jsonify({'success': False, 'error': 'Failed to update companion'}), 500
+            
+    except Exception as e:
+        logger.error(f"Companion update error: {e}")
         return jsonify({'success': False, 'error': 'Server error'}), 500

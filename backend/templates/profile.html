@@ -3177,40 +3177,23 @@
                         console.warn('❌ Profile image element not found in DOM');
                     }
                     
-                    // Update companion info with race condition prevention
+                    // Apply companion from database (no community avatar mixing)
                     console.log('🤖 Companion data from API:', user.companion);
-                    console.log('🤖 Full user keys:', Object.keys(user));
                     
-                    // PRIORITY: Use last chat companion from backend (not community avatar)
-                    let companionToDisplay = '{{ last_chat_companion }}';
-                    
-                    if (companionToDisplay && companionToDisplay !== 'None' && companionToDisplay !== 'null') {
-                        console.log('🎯 Using LAST CHAT companion from backend:', companionToDisplay);
+                    if (user.companion) {
+                        console.log('✅ Applying companion from database:', user.companion.name);
+                        applyCompanion(user.companion);
+                        // Also store in localStorage for consistency
+                        localStorage.setItem('lastUsedCompanionId', user.companion.companion_id);
                     } else {
-                        // Fallback chain only if backend didn't provide chat companion
-                        if (user.selected_companion) {
-                            companionToDisplay = user.selected_companion;
-                            console.log('🤖 Using companion from API selected_companion:', companionToDisplay);
-                        } else if (localStorage.getItem('lastUsedCompanion')) {
-                            companionToDisplay = localStorage.getItem('lastUsedCompanion');
-                            console.log('🤖 Using companion from localStorage:', companionToDisplay);
-                        } else {
-                            companionToDisplay = 'Blayzo';
-                            console.warn('🤖 Using default fallback companion:', companionToDisplay);
-                        }
-                    }
-                    
-                    const saved = await loadSavedAvatar();
-                    if (saved) {
-                        applyCompanion(saved);
-                    } else {
-                        const fallbackId = localStorage.getItem('lastUsedCompanionId') || 'soul';
-                        applyCompanion({
-                            name: fallbackId === 'soul' ? 'Soul' : fallbackId,
-                            companion_id: fallbackId,
-                            avatar_url: `/static/companions/${fallbackId}.png`,
+                        console.warn('⚠️ No companion data from API, using default');
+                        const defaultCompanion = {
+                            name: 'Soul',
+                            companion_id: 'soul',
+                            avatar_url: '/static/companions/soul.png',
                             tier: 'bronze'
-                        });
+                        };
+                        applyCompanion(defaultCompanion);
                     }
 
                     // Now populate grids, etc. (after avatar is set)
@@ -3739,12 +3722,12 @@
                     tier: getTierFromCompanionId(companionId)
                 };
 
-                const response = await fetch('/community/avatar', {
+                const response = await fetch('/api/companion', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    credentials: 'include',
+                    credentials: 'same-origin',
                     body: JSON.stringify(payload)
                 });
 
@@ -3777,29 +3760,7 @@
             return 'bronze'; // default fallback
         }
 
-        // PURE fetch (no DOM writes)
-        async function loadSavedAvatar() {
-            try {
-                const res = await fetch('/community/avatar', { method: 'GET', headers: { 'Content-Type': 'application/json' }, credentials: 'include' });
-                
-                if (res.status === 401) {
-                    console.warn('🔐 Not authenticated; session may have expired after deploy');
-                    // Don't fallback to default - let the user know they need to re-login
-                    showNotification('Session expired. Please refresh to re-login.', 'warning');
-                    // Optional: redirect to login after delay
-                    setTimeout(() => {
-                        window.location.assign('/login?next=' + encodeURIComponent(window.location.pathname));
-                    }, 3000);
-                    return null; // IMPORTANT: don't apply default here
-                }
-                
-                const json = await res.json();
-                return (json.success && json.companion) ? json.companion : null;
-            } catch (e) {
-                console.error('❌ loadSavedAvatar:', e);
-                return null;
-            }
-        }
+        // Note: loadSavedAvatar() function removed - now using database-first companion system
 
         // Single source of truth -> UI + localStorage
         function applyCompanion(comp) {

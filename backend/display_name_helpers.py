@@ -125,3 +125,77 @@ def get_profile_image(user_id: int) -> str:
     except Exception as e:
         logger.error(f"Failed to get profile image for user {user_id}: {e}")
         return "/static/logos/New IntroLogo.png"
+
+def get_companion_data(user_id: int) -> dict:
+    """Get companion data - DB read only"""
+    try:
+        db = get_database()
+        if not db:
+            logger.error("Database not available")
+            return {"companion_id": "soul", "name": "Soul", "tier": "bronze"}
+            
+        conn = db.get_connection()
+        try:
+            placeholder = "%s" if hasattr(db, 'use_postgres') and db.use_postgres else "?"
+            query = f"SELECT companion_data FROM users WHERE id = {placeholder}"
+            
+            cur = conn.cursor()
+            cur.execute(query, (user_id,))
+            result = cur.fetchone()
+            
+            if result and result[0]:
+                import json
+                try:
+                    companion_data = json.loads(result[0])
+                    logger.info(f"✅ READER: User {user_id} companion '{companion_data.get('name', 'Unknown')}'")
+                    return companion_data
+                except json.JSONDecodeError:
+                    logger.warning(f"Invalid companion JSON for user {user_id}")
+                    pass
+            
+            # Default companion
+            default = {"companion_id": "soul", "name": "Soul", "tier": "bronze"}
+            logger.info(f"🤖 READER: User {user_id} using default companion 'Soul'")
+            return default
+                
+        finally:
+            conn.close()
+            
+    except Exception as e:
+        logger.error(f"Failed to get companion data for user {user_id}: {e}")
+        return {"companion_id": "soul", "name": "Soul", "tier": "bronze"}
+
+def set_companion_data(user_id: int, companion_data: dict) -> bool:
+    """Set companion data - DB write with commit"""
+    try:
+        db = get_database()
+        if not db:
+            logger.error("Database not available")
+            return False
+            
+        conn = db.get_connection()
+        try:
+            import json
+            companion_json = json.dumps(companion_data)
+            
+            placeholder = "%s" if hasattr(db, 'use_postgres') and db.use_postgres else "?"
+            query = f"UPDATE users SET companion_data = {placeholder} WHERE id = {placeholder}"
+            
+            cur = conn.cursor()
+            cur.execute(query, (companion_json, user_id))
+            conn.commit()
+            
+            success = cur.rowcount > 0
+            if success:
+                logger.info(f"✅ WRITER: User {user_id} companion set to '{companion_data.get('name', 'Unknown')}'")
+            else:
+                logger.error(f"❌ WRITER: User {user_id} not found")
+                
+            return success
+            
+        finally:
+            conn.close()
+            
+    except Exception as e:
+        logger.error(f"Failed to set companion data for user {user_id}: {e}")
+        return False
