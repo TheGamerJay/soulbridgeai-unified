@@ -1603,7 +1603,7 @@
                     <div class="post-header">
                         <div class="post-avatar">
                             ${post.companion_avatar && !post.companion_avatar.includes('/static/images/companions/default.png')
-                                ? `<img src="${post.companion_avatar}" alt="Companion" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;" onerror="this.parentElement.innerHTML='${getCompanionEmoji(post.companion_id)}';">`
+                                ? `<img src="${post.companion_avatar}" alt="Companion" style="width: 40px; height: 40px; border-radius: 50%; object-fit: contain;" onerror="this.parentElement.innerHTML='${getCompanionEmoji(post.companion_id)}';">`
                                 : getCompanionEmoji(post.companion_id)
                             }
                         </div>
