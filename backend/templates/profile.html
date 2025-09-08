@@ -1719,16 +1719,13 @@
                 
                 const displayNameInput = document.getElementById('displayNameInput');
                 if (displayNameInput) {
-                    // Set display name from user data or fall back to email prefix
-                    if (this.userData.displayName) {
+                    // Set display name from user data if available (avoid default "User" fallback)
+                    if (this.userData.displayName && this.userData.displayName !== 'User') {
                         displayNameInput.value = this.userData.displayName;
                         console.log('✅ Set display name from userData:', this.userData.displayName);
-                    } else if (this.userData.email) {
-                        displayNameInput.value = this.userData.email.split('@')[0];
-                        console.log('✅ Set display name from email prefix:', this.userData.email.split('@')[0]);
                     } else {
                         displayNameInput.value = '';
-                        console.log('⚠️ No displayName or email, leaving input empty');
+                        console.log('⚠️ No custom displayName set, leaving input empty for user to fill');
                     }
                 }
                 

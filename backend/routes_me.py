@@ -131,12 +131,27 @@ def me():
         if not current_companion:
             current_companion = "Blayzo"
         
+        # Get display name from session, but fallback to database if needed
+        display_name = session.get("display_name", "User")
+        if display_name == "User":
+            # Session doesn't have display name, check database
+            try:
+                user_row = db_fetch_user_row(uid)
+                if user_row and user_row.get('display_name'):
+                    display_name = user_row['display_name']
+                    # Update session with database value
+                    session['display_name'] = display_name
+                    session['user_name'] = display_name
+                    session.modified = True
+            except Exception as e:
+                logger.warning(f"Failed to fetch display name from database: {e}")
+
         user_data = {
             "id": uid,
             "uid": uid,  # Add uid alias for frontend compatibility
             "userID": uid,  # Add userID alias for frontend compatibility  
             "email": session.get("email", "unknown@soulbridgeai.com"),
-            "displayName": session.get("display_name", "User"),
+            "displayName": display_name,
             "plan": plan,
             "artistic_time": artistic_time,
             "profileImage": session.get("profile_image", "/static/logos/New IntroLogo.png"),
