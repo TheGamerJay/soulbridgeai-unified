@@ -187,14 +187,18 @@ def api_user_profile():
             # Update user profile
             data = request.get_json() or {}
             
-            # Update session data with new profile info
-            if 'displayName' in data:
-                session['display_name'] = data['displayName']
-                session['user_name'] = data['displayName']
-                session.modified = True
-            
-            # Update profile in database
+            # Update profile in database FIRST
             result = profile_service.update_profile(user_id, data)
+            
+            # Only update session if database update succeeded
+            if result.get('success'):
+                if 'displayName' in data:
+                    # Update session with the confirmed database value
+                    display_value = data['displayName'] if data['displayName'].strip() else ""
+                    session['display_name'] = display_value
+                    session['user_name'] = display_value
+                    session.modified = True
+                    logger.info(f"📝 Session updated for user {user_id}: display_name='{display_value}'")
             
             return jsonify(result)
     

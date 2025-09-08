@@ -131,24 +131,35 @@ def me():
         if not current_companion:
             current_companion = "Blayzo"
         
-        # Get display name from session, but fallback to database if needed
-        # Treat "", None, and "User" as "missing"
-        display_name = session.get("display_name")
-        if not display_name or display_name == "User":
-            # Session doesn't have display name, check database
-            try:
-                user_row = db_fetch_user_row(uid)
-                if user_row and user_row.get('display_name'):
-                    db_name = user_row['display_name'].strip() if user_row['display_name'] else ""
-                    display_name = db_name if db_name else "User"
-                    # Update session with database value (blank it if it's the placeholder)
-                    session['display_name'] = display_name if display_name != "User" else ""
-                    session['user_name'] = session['display_name']
+        # Get display name - always check database for latest value
+        # This prevents race conditions where session has stale data
+        display_name = "User"  # Default fallback
+        try:
+            user_row = db_fetch_user_row(uid)
+            if user_row and user_row.get('display_name'):
+                db_name = user_row['display_name'].strip() if user_row['display_name'] else ""
+                if db_name:  # Non-empty display name from database
+                    display_name = db_name
+                    # Sync session with confirmed database value
+                    session['display_name'] = display_name
+                    session['user_name'] = display_name
                     session.modified = True
                 else:
+                    # Database has empty/null display name, clear session
+                    session['display_name'] = ""
+                    session['user_name'] = ""
+                    session.modified = True
                     display_name = "User"
-            except Exception as e:
-                logger.warning(f"Failed to fetch display name from database: {e}")
+            else:
+                # No user found or no display name field, use fallback
+                display_name = "User"
+        except Exception as e:
+            logger.warning(f"Failed to get display name from database for user {uid}: {e}")
+            # Fallback to session value if database fails
+            session_name = session.get("display_name")
+            if session_name and session_name.strip():
+                display_name = session_name.strip()
+            else:
                 display_name = "User"
 
         # Get profile image from session, but fallback to ProfileService if needed
