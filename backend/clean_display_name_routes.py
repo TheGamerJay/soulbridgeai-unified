@@ -3,7 +3,7 @@ Clean Display Name Routes - One Writer, One Reader
 """
 from flask import Blueprint, request, jsonify, session
 from security_config import require_auth
-from display_name_helpers import set_display_name, get_display_name
+from display_name_helpers import set_display_name, get_display_name, get_profile_image
 import logging
 
 logger = logging.getLogger(__name__)
@@ -61,12 +61,14 @@ def me():
         if not user_id:
             return jsonify({'success': False, 'error': 'No user ID in session'}), 401
         
-        # DB read first - source of truth
+        # DB read first - source of truth for both display name and profile image
         name = get_display_name(user_id)
+        profile_image_url = get_profile_image(user_id)
         
         # Session mirrors DB (never overrides it)
         session['display_name'] = name if name != "User" else ""
         session['user_name'] = session['display_name']
+        session['profile_image'] = profile_image_url
         session.modified = True
         
         # Response shape: { success: true, user: { id, displayName, ... } }
@@ -76,7 +78,7 @@ def me():
             # Add other user fields as needed
             'email': session.get('email', ''),
             'plan': session.get('user_plan', 'bronze'),
-            'profileImage': session.get('profile_image', '/static/logos/New IntroLogo.png')
+            'profileImage': profile_image_url
         }
         
         response = jsonify({'success': True, 'user': user_data})
@@ -85,7 +87,7 @@ def me():
         response.headers['Cache-Control'] = 'no-store'
         response.headers['Vary'] = 'Cookie'
         
-        logger.info(f"✅ READER SUCCESS: User {user_id} → '{name}'")
+        logger.info(f"✅ READER SUCCESS: User {user_id} → '{name}' | Image: {profile_image_url}")
         return response
         
     except Exception as e:
