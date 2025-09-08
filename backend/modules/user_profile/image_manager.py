@@ -1,7 +1,7 @@
 """
-SoulBridge AI - Profile Image Manager
-Handles user profile image upload, storage, and serving
-Extracted from backend/app.py with improvements
+SoulBridge AI - Profile Media Manager
+Handles user profile image and video upload, storage, and serving
+Extracted from backend/app.py with improvements - now supports MP4 videos
 """
 import logging
 import base64
@@ -13,37 +13,45 @@ import mimetypes
 logger = logging.getLogger(__name__)
 
 class ProfileImageManager:
-    """Manager for user profile images"""
+    """Manager for user profile images and videos"""
     
     def __init__(self, database=None):
         self.database = database
-        self.allowed_formats = {'JPEG', 'JPG', 'PNG', 'WEBP'}
-        self.max_file_size = 5 * 1024 * 1024  # 5MB
-        self.max_dimension = 1024  # Max width/height
+        self.allowed_image_formats = {'JPEG', 'JPG', 'PNG', 'WEBP'}
+        self.allowed_video_formats = {'MP4'}
+        self.max_image_size = 5 * 1024 * 1024  # 5MB for images
+        self.max_video_size = 50 * 1024 * 1024  # 50MB for videos
+        self.max_dimension = 1024  # Max width/height for images
         self.quality = 85  # JPEG quality
     
-    def upload_profile_image(self, user_id: int, image_file) -> Dict[str, Any]:
-        """Upload and process user profile image"""
+    def upload_profile_image(self, user_id: int, media_file) -> Dict[str, Any]:
+        """Upload and process user profile image or video"""
         try:
-            if not image_file or not image_file.filename:
-                return {'success': False, 'error': 'No image file provided'}
+            if not media_file or not media_file.filename:
+                return {'success': False, 'error': 'No file provided'}
             
-            # Validate file
-            validation_result = self._validate_image_file(image_file)
+            # Validate file (images or videos)
+            validation_result = self._validate_media_file(media_file)
             if not validation_result['valid']:
                 return {'success': False, 'error': validation_result['error']}
             
-            # Read and process image
-            image_file.seek(0)
-            image_data = image_file.read()
+            # Read media data
+            media_file.seek(0)
+            media_data = media_file.read()
             
-            # Process image (resize, optimize)
-            processed_result = self._process_image(image_data)
-            if not processed_result['success']:
-                return processed_result
+            # Process based on file type
+            if validation_result['media_type'] == 'image':
+                # Process image (resize, optimize)
+                processed_result = self._process_image(media_data)
+                if not processed_result['success']:
+                    return processed_result
+                final_data = processed_result['image_data']
+            else:  # video
+                # For videos, store as-is (no processing needed)
+                final_data = base64.b64encode(media_data).decode('utf-8')
             
             # Save to database
-            save_result = self._save_image_to_database(user_id, processed_result['image_data'])
+            save_result = self._save_image_to_database(user_id, final_data)
             if not save_result['success']:
                 return save_result
             
@@ -96,7 +104,7 @@ class ProfileImageManager:
             return {'success': False, 'error': str(e)}
     
     def serve_profile_image(self, user_id: int) -> Tuple[Optional[bytes], Optional[str]]:
-        """Serve profile image data for HTTP response"""
+        """Serve profile image or video data for HTTP response"""
         try:
             if not self.database:
                 return None, None
@@ -113,27 +121,41 @@ class ProfileImageManager:
             if not result or not result[0]:
                 return None, None
             
-            # Decode base64 image data
+            # Decode base64 media data (image or video)
             try:
                 # Remove data URL prefix if present
-                image_data = result[0]
-                if image_data.startswith('data:image/'):
+                media_data = result[0]
+                if media_data.startswith('data:'):
                     # Extract just the base64 data
-                    header, data = image_data.split(',', 1)
+                    header, data = media_data.split(',', 1)
                     mime_type = header.split(':')[1].split(';')[0]
                 else:
-                    data = image_data
-                    mime_type = 'image/jpeg'  # Default
+                    data = media_data
+                    # Try to detect file type from first few bytes after decoding
+                    try:
+                        decoded_sample = base64.b64decode(data[:100])  # Just check first chunk
+                        if decoded_sample.startswith(b'\xFF\xD8\xFF'):
+                            mime_type = 'image/jpeg'
+                        elif decoded_sample.startswith(b'\x89PNG'):
+                            mime_type = 'image/png'
+                        elif b'WEBP' in decoded_sample:
+                            mime_type = 'image/webp'
+                        elif b'ftyp' in decoded_sample:
+                            mime_type = 'video/mp4'
+                        else:
+                            mime_type = 'image/jpeg'  # Default fallback
+                    except:
+                        mime_type = 'image/jpeg'  # Default fallback
                 
-                image_bytes = base64.b64decode(data)
-                return image_bytes, mime_type
+                media_bytes = base64.b64decode(data)
+                return media_bytes, mime_type
                 
             except Exception as decode_error:
-                logger.error(f"Failed to decode profile image: {decode_error}")
+                logger.error(f"Failed to decode profile media: {decode_error}")
                 return None, None
             
         except Exception as e:
-            logger.error(f"Failed to serve profile image: {e}")
+            logger.error(f"Failed to serve profile media: {e}")
             return None, None
     
     def delete_profile_image(self, user_id: int) -> Dict[str, Any]:
@@ -191,50 +213,65 @@ class ProfileImageManager:
             logger.error(f"Failed to get profile image URL: {e}")
             return '/static/logos/New IntroLogo.png'
     
-    def _validate_image_file(self, image_file) -> Dict[str, Any]:
-        """Validate uploaded image file"""
+    def _validate_media_file(self, media_file) -> Dict[str, Any]:
+        """Validate uploaded image or video file"""
         try:
             # Check file size
-            image_file.seek(0, 2)  # Seek to end
-            file_size = image_file.tell()
-            image_file.seek(0)  # Reset
-            
-            if file_size > self.max_file_size:
-                return {
-                    'valid': False, 
-                    'error': f'Image too large. Maximum size: {self.max_file_size // (1024*1024)}MB'
-                }
-            
-            if file_size < 100:  # Less than 100 bytes
-                return {'valid': False, 'error': 'Image file appears to be empty'}
+            media_file.seek(0, 2)  # Seek to end
+            file_size = media_file.tell()
+            media_file.seek(0)  # Reset
             
             # Check file format by reading header
-            image_file.seek(0)
-            header = image_file.read(12)
-            image_file.seek(0)
+            media_file.seek(0)
+            header = media_file.read(12)
+            media_file.seek(0)
             
             # Detect format from header
             if header.startswith(b'\xFF\xD8\xFF'):
                 format_type = 'JPEG'
+                media_type = 'image'
+                max_size = self.max_image_size
             elif header.startswith(b'\x89PNG\r\n\x1a\n'):
                 format_type = 'PNG'
+                media_type = 'image'
+                max_size = self.max_image_size
             elif header.startswith(b'RIFF') and b'WEBP' in header:
                 format_type = 'WEBP'
+                media_type = 'image'
+                max_size = self.max_image_size
+            elif header.startswith(b'\x00\x00\x00') and b'ftyp' in header:
+                # MP4 file signature
+                format_type = 'MP4'
+                media_type = 'video'
+                max_size = self.max_video_size
             else:
-                return {'valid': False, 'error': 'Unsupported image format. Please use JPEG, PNG, or WEBP.'}
+                return {'valid': False, 'error': 'Unsupported file format. Please use JPEG, PNG, WEBP, or MP4.'}
             
-            if format_type not in self.allowed_formats:
+            # Check size limit based on file type
+            if file_size > max_size:
+                return {
+                    'valid': False, 
+                    'error': f'File too large. Maximum size for {media_type}s: {max_size // (1024*1024)}MB'
+                }
+            
+            if file_size < 100:  # Less than 100 bytes
+                return {'valid': False, 'error': 'File appears to be empty'}
+            
+            # Validate format is allowed
+            allowed_formats = self.allowed_image_formats if media_type == 'image' else self.allowed_video_formats
+            if format_type not in allowed_formats:
                 return {'valid': False, 'error': f'Unsupported format: {format_type}'}
             
             return {
                 'valid': True,
                 'format': format_type,
+                'media_type': media_type,
                 'size': file_size
             }
             
         except Exception as e:
-            logger.error(f"Image validation error: {e}")
-            return {'valid': False, 'error': 'Failed to validate image file'}
+            logger.error(f"Media validation error: {e}")
+            return {'valid': False, 'error': 'Failed to validate media file'}
     
     def _process_image(self, image_data: bytes) -> Dict[str, Any]:
         """Process image (resize, optimize, convert to base64)"""
