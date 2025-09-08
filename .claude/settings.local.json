@@ -9,7 +9,9 @@
       "Bash(git commit:*)",
       "Bash(git push:*)",
       "Bash(sqlite3:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(curl:*)",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": [],

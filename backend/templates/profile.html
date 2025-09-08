@@ -3136,48 +3136,50 @@
             console.log('🔄 Starting loadUserData...');
             try {
                 const r = await fetch('/api/me', { credentials:'same-origin', cache:'no-store' });
-                const { user } = await r.json();
                 
-                // Set global profile data
-                if (typeof profile !== 'undefined') {
-                    profile.userData = user;
-                }
-                
-                // Update display name input - only from API response
-                const input = document.getElementById('displayNameInput');
-                if (input) {
-                    input.value = user.displayName || '';
-                }
-                
-                console.log('✅ User data loaded:', user.displayName);
-                
-                // Update user ID  
-                const userIDEl = document.getElementById('userID');
-                if (userIDEl) {
-                    userIDEl.textContent = user.id || 'N/A';
+                if (r.ok) {
+                    const { user } = await r.json();
+                    
+                    // Set global profile data
+                    if (typeof profile !== 'undefined') {
+                        profile.userData = user;
                     }
                     
+                    // Update display name input - only from API response
+                    const input = document.getElementById('displayNameInput');
+                    if (input) {
+                        input.value = user.displayName || '';
+                    }
+                    
+                    console.log('✅ User data loaded:', user.displayName);
+                    
+                    // Update user ID  
+                    const userIDEl = document.getElementById('userID');
+                    if (userIDEl) {
+                        userIDEl.textContent = user.id || 'N/A';
+                    }
+                        
                     // Update email  
                     const userEmailEl = document.getElementById('userEmail');
                     if (userEmailEl) {
-                        userEmailEl.textContent = userData.email || 'No email found';
+                        userEmailEl.textContent = user.email || 'No email found';
                     }
                     
                     // Update profile image
                     const profileImageEl = document.getElementById('userProfileImage');
                     console.log('🖼️ Profile image element found:', !!profileImageEl);
-                    console.log('🖼️ Profile image URL from API:', userData.profileImage);
+                    console.log('🖼️ Profile image URL from API:', user.profileImage);
                     
                     if (profileImageEl) {
                         console.log('🖼️ Setting profile media using new function');
-                        await setProfileMedia(userData.profileImage);
+                        await setProfileMedia(user.profileImage);
                     } else {
                         console.warn('❌ Profile image element not found in DOM');
                     }
                     
                     // Update companion info with race condition prevention
-                    console.log('🤖 Companion data from API:', userData.companion);
-                    console.log('🤖 Full userData keys:', Object.keys(userData));
+                    console.log('🤖 Companion data from API:', user.companion);
+                    console.log('🤖 Full user keys:', Object.keys(user));
                     
                     // PRIORITY: Use last chat companion from backend (not community avatar)
                     let companionToDisplay = '{{ last_chat_companion }}';
@@ -3186,8 +3188,8 @@
                         console.log('🎯 Using LAST CHAT companion from backend:', companionToDisplay);
                     } else {
                         // Fallback chain only if backend didn't provide chat companion
-                        if (userData.selected_companion) {
-                            companionToDisplay = userData.selected_companion;
+                        if (user.selected_companion) {
+                            companionToDisplay = user.selected_companion;
                             console.log('🤖 Using companion from API selected_companion:', companionToDisplay);
                         } else if (localStorage.getItem('lastUsedCompanion')) {
                             companionToDisplay = localStorage.getItem('lastUsedCompanion');
@@ -3212,16 +3214,18 @@
                     }
 
                     // Now populate grids, etc. (after avatar is set)
-                    const userTier = (userData.user_plan || 'bronze').toLowerCase();
-                    const trialActive = (responseData.access && responseData.access.trial_live) || false;
+                    const userTier = (user.user_plan || 'bronze').toLowerCase();
+                    const trialActive = false; // TODO: implement trial status from /api/me
                     populateCompanionGrids(userTier, localStorage.getItem('lastUsedCompanionId') || 'soul', trialActive);
                     
-                    // Update credits display and trial status
-                    updateCreditsDisplay(userData, responseData.access);
+                    // Update credits display (simplified since responseData.access doesn't exist in clean API)
+                    if (typeof updateCreditsDisplay === 'function') {
+                        updateCreditsDisplay(user, null);
+                    }
                     
                 } else {
-                    console.error('❌ Failed to load user data. Status:', response.status);
-                    const errorText = await response.text();
+                    console.error('❌ Failed to load user data. Status:', r.status);
+                    const errorText = await r.text();
                     console.error('❌ Error response:', errorText);
                     // Show friendly fallback data
                     const userIDEl = document.getElementById('userID');
