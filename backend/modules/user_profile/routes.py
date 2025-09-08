@@ -88,7 +88,29 @@ def profile_page():
             if profile_result['success']:
                 user_data = profile_result['user']
         
-        return render_template("profile.html", user=user_data, user_email=user_email)
+        # Get last used chat companion (not community avatar)
+        last_chat_companion = session.get('selected_companion')
+        
+        # If not in session, try to get from database
+        if not last_chat_companion and user_id:
+            try:
+                from database_utils import get_database
+                database = get_database()
+                if database:
+                    result = database.execute(
+                        "SELECT selected_companion FROM users WHERE id = ?", 
+                        (user_id,)
+                    ).fetchone()
+                    if result and result[0]:
+                        last_chat_companion = result[0]
+                        logger.info(f"Retrieved last chat companion from database: {last_chat_companion}")
+            except Exception as e:
+                logger.warning(f"Could not retrieve last chat companion: {e}")
+        
+        logger.info(f"📋 Profile page - last chat companion: {last_chat_companion}")
+        
+        return render_template("profile.html", user=user_data, user_email=user_email, 
+                             last_chat_companion=last_chat_companion)
         
     except Exception as e:
         logger.error(f"❌ PROFILE ERROR: {e}")

@@ -1718,8 +1718,14 @@
                 await setProfileMedia(rawProfileURL);
                 
                 const displayNameInput = document.getElementById('displayNameInput');
-                if (displayNameInput && this.userData.displayName) {
-                    displayNameInput.value = this.userData.displayName;
+                if (displayNameInput) {
+                    // Use the saved displayName from user data, keep existing value if displayName is null
+                    if (this.userData.displayName) {
+                        displayNameInput.value = this.userData.displayName;
+                        console.log('✅ Set display name from userData:', this.userData.displayName);
+                    } else {
+                        console.log('⚠️ No displayName in userData, keeping current value:', displayNameInput.value);
+                    }
                 }
                 
                 // Handle account creation date for stats display (short format)
@@ -1797,8 +1803,10 @@
                     daysActiveElement.textContent = daysSinceCreation;
                 }
 
-                // Update companion info
-                this.updateCompanionInfo(this.userData.companion || 'Blayzo');
+                // Update companion info - prioritize last chat companion from backend
+                const lastChatCompanion = '{{ last_chat_companion }}' || this.userData.companion || 'Blayzo';
+                console.log('🎯 Using last chat companion for profile:', lastChatCompanion);
+                this.updateCompanionInfo(lastChatCompanion);
 
                 // Update settings
                 this.updateSettingsDisplay();
@@ -3165,31 +3173,23 @@
                     console.log('🤖 Companion data from API:', userData.companion);
                     console.log('🤖 Full userData keys:', Object.keys(userData));
                     
-                    // Get companion with fallback chain and race condition prevention
-                    let companionToDisplay = null;
+                    // PRIORITY: Use last chat companion from backend (not community avatar)
+                    let companionToDisplay = '{{ last_chat_companion }}';
                     
-                    // Try multiple sources in order of preference
-                    if (userData.companion && userData.companion !== 'Blayzo') {
-                        companionToDisplay = userData.companion;
-                        console.log('🤖 Using companion from API primary:', companionToDisplay);
-                    } else if (localStorage.getItem('lastUsedCompanion')) {
-                        // Check localStorage for most recently used companion (persists across sessions)
-                        companionToDisplay = localStorage.getItem('lastUsedCompanion');
-                        console.log('🤖 Using companion from localStorage:', companionToDisplay);
-                    } else if (sessionStorage.getItem('currentCompanion')) {
-                        // Check sessionStorage for current session companion
-                        companionToDisplay = sessionStorage.getItem('currentCompanion');
-                        console.log('🤖 Using companion from sessionStorage:', companionToDisplay);
+                    if (companionToDisplay && companionToDisplay !== 'None' && companionToDisplay !== 'null') {
+                        console.log('🎯 Using LAST CHAT companion from backend:', companionToDisplay);
                     } else {
-                        // Try to get from any other userData fields
-                        companionToDisplay = userData.last_companion || userData.current_companion || userData.selected_companion || userData.companion;
-                        console.log('🤖 Using companion from fallback fields:', companionToDisplay);
-                    }
-                    
-                    // Always have a fallback
-                    if (!companionToDisplay || companionToDisplay === 'undefined' || companionToDisplay === 'null') {
-                        companionToDisplay = 'Blayzo';
-                        console.warn('🤖 Using default fallback companion:', companionToDisplay);
+                        // Fallback chain only if backend didn't provide chat companion
+                        if (userData.selected_companion) {
+                            companionToDisplay = userData.selected_companion;
+                            console.log('🤖 Using companion from API selected_companion:', companionToDisplay);
+                        } else if (localStorage.getItem('lastUsedCompanion')) {
+                            companionToDisplay = localStorage.getItem('lastUsedCompanion');
+                            console.log('🤖 Using companion from localStorage:', companionToDisplay);
+                        } else {
+                            companionToDisplay = 'Blayzo';
+                            console.warn('🤖 Using default fallback companion:', companionToDisplay);
+                        }
                     }
                     
                     const saved = await loadSavedAvatar();
