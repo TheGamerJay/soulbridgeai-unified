@@ -191,6 +191,7 @@ def api_user_profile():
             if 'displayName' in data:
                 session['display_name'] = data['displayName']
                 session['user_name'] = data['displayName']
+                session.modified = True
             
             # Update profile in database
             result = profile_service.update_profile(user_id, data)

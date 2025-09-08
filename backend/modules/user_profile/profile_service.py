@@ -109,8 +109,10 @@ class ProfileService:
             filtered_updates = {}
             
             for field, value in updates.items():
-                if field == 'displayName':
-                    filtered_updates['display_name'] = str(value).strip()
+                if field == 'displayName' and value is not None:
+                    stripped_value = str(value).strip()
+                    # Allow empty string (user wants to clear display name), but not None
+                    filtered_updates['display_name'] = stripped_value
                 elif field == 'themePreferences' and isinstance(value, dict):
                     filtered_updates['theme_preferences'] = json.dumps(value)
             

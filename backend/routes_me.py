@@ -132,19 +132,24 @@ def me():
             current_companion = "Blayzo"
         
         # Get display name from session, but fallback to database if needed
-        display_name = session.get("display_name", "User")
-        if display_name == "User":
+        # Treat "", None, and "User" as "missing"
+        display_name = session.get("display_name")
+        if not display_name or display_name == "User":
             # Session doesn't have display name, check database
             try:
                 user_row = db_fetch_user_row(uid)
                 if user_row and user_row.get('display_name'):
-                    display_name = user_row['display_name']
-                    # Update session with database value
-                    session['display_name'] = display_name
-                    session['user_name'] = display_name
+                    db_name = user_row['display_name'].strip() if user_row['display_name'] else ""
+                    display_name = db_name if db_name else "User"
+                    # Update session with database value (blank it if it's the placeholder)
+                    session['display_name'] = display_name if display_name != "User" else ""
+                    session['user_name'] = session['display_name']
                     session.modified = True
+                else:
+                    display_name = "User"
             except Exception as e:
                 logger.warning(f"Failed to fetch display name from database: {e}")
+                display_name = "User"
 
         user_data = {
             "id": uid,
