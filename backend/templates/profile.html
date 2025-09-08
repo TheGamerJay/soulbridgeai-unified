@@ -2306,19 +2306,30 @@
             }
             
             try {
-                const response = await fetch('/api/user/update-display-name', {
+                const response = await fetch('/api/users', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ display_name: newName })
+                    body: JSON.stringify({ displayName: newName })
                 });
                 
                 if (response.ok) {
-                    showMessage('Display name updated successfully! ✨', 'success');
+                    const result = await response.json();
+                    if (result.success) {
+                        showMessage('Display name updated successfully! ✨', 'success');
+                        // Update the userData object with the new display name
+                        if (typeof profile !== 'undefined' && profile.userData) {
+                            profile.userData.displayName = newName;
+                        }
+                    } else {
+                        showMessage(`Failed to update display name: ${result.error || 'Unknown error'}`, 'error');
+                    }
                 } else {
-                    showMessage('Display name saved locally', 'info');
+                    const errorData = await response.json();
+                    showMessage(`Failed to update display name: ${errorData.error || 'Server error'}`, 'error');
                 }
             } catch (error) {
-                showMessage('Display name saved locally', 'info');
+                console.error('Display name update error:', error);
+                showMessage('Failed to update display name. Please try again.', 'error');
             }
         };
 
@@ -3819,8 +3830,14 @@
 
         // Update the selected companion display in the dropdown header
         function updateSelectedCompanionDisplay(companionName, companionData = null) {
+            // PRIORITY: Use passed companionData if it has the essential fields
+            if (companionData && companionData.name && companionData.image) {
+                // Use the passed data directly - this handles custom/saved companions
+                // Skip all the hardcoded data searching below
+                console.log(`🎯 Using passed companion data for ${companionData.name}:`, companionData);
+            }
             // Get companion data if not provided - search through all the companion data we have
-            if (!companionData && companionName) {
+            else if (!companionData && companionName) {
                 // Search through the companion dropdown data that's already defined
                 const searchInTiers = ['bronze', 'silver', 'gold', 'referral'];
                 const allCompanionData = {
@@ -3890,15 +3907,16 @@
                 }
             }
 
-            // Fallback data
-            if (!companionData) {
-                companionData = {
-                    name: 'Blayzo',
-                    avatar: 'B',
-                    bio: 'Wise and calm mentor for thoughtful guidance',
-                    greeting: '🧘 Wisdom flows to those who seek peace',
-                    image: '/static/logos/blayzo.png'
-                };
+                // Fallback data when the hardcoded search failed
+                if (!companionData) {
+                    companionData = {
+                        name: 'Blayzo',
+                        avatar: 'B',
+                        bio: 'Wise and calm mentor for thoughtful guidance',
+                        greeting: '🧘 Wisdom flows to those who seek peace',
+                        image: '/static/logos/blayzo.png'
+                    };
+                }
             }
 
             // Update display elements - BULLETPROOF VERSION
