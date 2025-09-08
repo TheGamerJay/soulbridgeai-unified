@@ -3134,8 +3134,8 @@
         async function loadUserData() {
             console.log('🔄 Starting loadUserData...');
             try {
-                console.log('📡 Making API call to /api/user/profile');
-                const response = await fetch('/api/user/profile', {
+                console.log('📡 Making API call to /api/me');
+                const response = await fetch('/api/me', {
                     method: 'GET',
                     headers: { 'Content-Type': 'application/json' },
                     credentials: 'same-origin'
@@ -3150,6 +3150,26 @@
                     // Extract user data from the response
                     const userData = responseData.user || responseData;
                     console.log('👤 Extracted userData:', userData);
+                    
+                    // Sync with profile instance if it exists
+                    if (typeof profile !== 'undefined') {
+                        profile.userData = userData;
+                        profile.userAccess = responseData.access || {};
+                        profile.userTrial = responseData.trial || null;
+                        console.log('✅ Synced data with profile instance');
+                    }
+                    
+                    // Update display name input
+                    const displayNameInput = document.getElementById('displayNameInput');
+                    if (displayNameInput) {
+                        if (userData.displayName && userData.displayName !== 'User') {
+                            displayNameInput.value = userData.displayName;
+                            console.log('✅ Set display name from API:', userData.displayName);
+                        } else {
+                            displayNameInput.value = '';
+                            console.log('⚠️ No custom displayName, leaving input empty');
+                        }
+                    }
                     
                     // Update user ID
                     const userIDEl = document.getElementById('userID');
