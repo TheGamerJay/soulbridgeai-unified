@@ -121,6 +121,9 @@ class ProfileService:
             conn = self.database.get_connection()
             cursor = conn.cursor()
             
+            # Ensure required columns exist
+            self._ensure_profile_columns(cursor)
+            
             # Build update query
             set_clauses = []
             values = []
@@ -133,6 +136,7 @@ class ProfileService:
             values.append(user_id)  # For WHERE clause
             
             query = f"UPDATE users SET {', '.join(set_clauses)} WHERE id = {placeholder}"
+            logger.info(f"📝 Executing update query: {query} with values: {values}")
             cursor.execute(query, values)
             
             updated = cursor.rowcount > 0
@@ -140,10 +144,11 @@ class ProfileService:
             conn.close()
             
             if updated:
-                logger.info(f"📝 Updated profile for user {user_id}: {list(filtered_updates.keys())}")
+                logger.info(f"📝 Successfully updated profile for user {user_id}: {list(filtered_updates.keys())}")
                 return {'success': True, 'message': 'Profile updated successfully'}
             else:
-                return {'success': False, 'error': 'User not found'}
+                logger.warning(f"📝 Update query returned 0 rows for user {user_id}")
+                return {'success': False, 'error': 'User not found or no changes made'}
             
         except Exception as e:
             logger.error(f"Failed to update profile: {e}")
