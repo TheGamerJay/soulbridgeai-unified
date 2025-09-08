@@ -1043,11 +1043,11 @@
             width: 200%;
             height: 200%;
             background: linear-gradient(45deg, transparent, rgba(255, 215, 0, 0.1), transparent);
-            animation: shimmer 3s infinite;
+            animation: headerShimmer 3s infinite;
             pointer-events: none;
         }
 
-        @keyframes shimmer {
+        @keyframes headerShimmer {
             0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
             100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
         }
@@ -1127,7 +1127,7 @@
                         <!-- Method 3: GIF celebration button -->
                         <input type="file" id="profileImageInputGif" accept=".gif" style="display: none;" onchange="handleProfileImageUpload()">
                         
-                        <button onclick="document.getElementById('profileImageInput').click()" class="profile-btn">
+                        <button id="uploadBtn" onclick="document.getElementById('profileImageInput').click()" class="profile-btn">
                             📷 Upload Profile Picture
                         </button>
                         <br><br>
@@ -1264,7 +1264,7 @@
                                  border-radius: 12px; 
                                  transition: all 0.3s ease;
                                  margin-bottom: 15px;
-                             "
+                             ">
                             
                             <div style="display: flex; align-items: center; margin-right: 15px;">
                                 <div class="selected-companion-avatar" style="position: relative; margin-right: 12px;">
@@ -2109,17 +2109,17 @@
 
                 const info = companionData[companion] || companionData['Blayzo'];
                 
-                const companionAvatarElement = document.getElementById('companionAvatar');
+                const companionAvatarElement = document.getElementById('selectedCompanionAvatar');
                 if (companionAvatarElement) {
                     companionAvatarElement.textContent = info.avatar;
                 }
                 
-                const companionNameElement = document.getElementById('companionName');
+                const companionNameElement = document.getElementById('selectedCompanionName');
                 if (companionNameElement) {
                     companionNameElement.textContent = info.name;
                 }
                 
-                const companionDescriptionElement = document.getElementById('companionDescription');
+                const companionDescriptionElement = document.getElementById('selectedCompanionDescription');
                 if (companionDescriptionElement) {
                     companionDescriptionElement.textContent = info.description;
                 }
@@ -2737,58 +2737,13 @@
             }
         };
 
-        window.updateDisplayName = async () => {
-            const displayNameInput = document.getElementById('displayNameInput');
-            if (!displayNameInput) {
-                alert('Display name input field not found.');
-                return;
-            }
-            const displayName = displayNameInput.value.trim();
-            if (!displayName) {
-                alert('Please enter a display name.');
-                return;
-            }
-            
-            if (displayName.length > 50) {
-                alert('Display name must be 50 characters or less.');
-                return;
-            }
-            
-            try {
-                const response = await fetch('/api/users', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ displayName: displayName })
-                });
-                
-                const result = await response.json();
-                if (result.success) {
-                    alert('Display name updated successfully!');
-                } else {
-                    alert('Update failed: ' + result.error);
-                }
-            } catch (error) {
-                alert('Update failed. Please try again.');
-                console.error('Update error:', error);
-            }
-        };
+        // Consolidate duplicate functions - keep class methods, add thin wrappers
+        window.updateDisplayName = () => profile?.updateDisplayName?.() ?? showMessage('Update unavailable','error');
 
         window.downloadChatHistory = () => profile.downloadChatHistory();
         window.exportUserData = () => profile.exportUserData();
 
-        window.clearChatHistory = async () => {
-            if (confirm('Are you sure you want to clear your chat history? This cannot be undone.')) {
-                try {
-                    if (window.SoulBridgeFirebase && window.SoulBridgeFirebase.clearChatHistory) {
-                        await window.SoulBridgeFirebase.clearChatHistory();
-                        profile.showSuccess('Chat history cleared successfully!');
-                        location.reload();
-                    }
-                } catch (error) {
-                    profile.showError('Failed to clear chat history');
-                }
-            }
-        };
+        window.clearChatHistory = () => profile?.clearChatHistory?.() ?? showMessage('Clear unavailable','error');
 
         window.deleteAccount = () => {
             const confirmation = prompt('Type "DELETE" to confirm account deletion:');
@@ -2797,48 +2752,7 @@
             }
         };
 
-        // Trial activation function
-        window.activateTrial = async () => {
-            if (!confirm('Start your 5-hour trial? This will unlock Silver and Gold features for 5 hours and give you 60 artistic time.')) {
-                return;
-            }
-
-            const trialBtn = document.getElementById('trialActivationBtn');
-            if (trialBtn) {
-                trialBtn.disabled = true;
-                trialBtn.textContent = 'Activating...';
-            }
-
-            try {
-                const response = await fetch('/api/trial/activate', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    credentials: 'same-origin'
-                });
-
-                const result = await response.json();
-                
-                if (response.ok && result.success) {
-                    alert('🎉 Trial activated! You now have access to Silver and Gold features for 5 hours, plus 60 artistic time!');
-                    
-                    // Reload profile to update trial status
-                    window.location.reload();
-                } else {
-                    throw new Error(result.error || 'Trial activation failed');
-                }
-            } catch (error) {
-                console.error('Trial activation error:', error);
-                alert('❌ Failed to activate trial: ' + error.message);
-                
-                // Reset button
-                if (trialBtn) {
-                    trialBtn.disabled = false;
-                    trialBtn.textContent = '⏰ Start 5-Hour Trial';
-                }
-            }
-        };
+        window.activateTrial = () => profile?.activateTrial?.() ?? showMessage('Trial unavailable','error');
 
         // Trial timer functionality
         window.startTrialTimer = function(trialData) {
@@ -2913,56 +2827,19 @@
             window.location.href = '/help';
         };
 
-        window.showCompanionStats = () => {
-            const companion = profile.userData?.companion || 'Blayzo';
-            const messageCount = profile.userData?.chatHistory?.length || 0;
-            const totalSessions = Math.ceil(messageCount / 10) || 1;
-            
-            const statsHtml = `
-                <div style="text-align: center; padding: 20px;">
-                    <h3 style="color: #22d3ee; margin-bottom: 20px;">📊 ${companion} Stats</h3>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;">
-                        <div style="background: rgba(34, 211, 238, 0.1); padding: 15px; border-radius: 8px;">
-                            <div style="font-size: 1.5rem; font-weight: bold; color: #22d3ee;">${messageCount}</div>
-                            <div style="color: #94a3b8; font-size: 0.9rem;">Total Messages</div>
-                        </div>
-                        <div style="background: rgba(34, 211, 238, 0.1); padding: 15px; border-radius: 8px;">
-                            <div style="font-size: 1.5rem; font-weight: bold; color: #22d3ee;">${totalSessions}</div>
-                            <div style="color: #94a3b8; font-size: 0.9rem;">Conversations</div>
-                        </div>
-                        <div style="background: rgba(34, 211, 238, 0.1); padding: 15px; border-radius: 8px;">
-                            <div style="font-size: 1.5rem; font-weight: bold; color: #22d3ee;">${companion}</div>
-                            <div style="color: #94a3b8; font-size: 0.9rem;">Current Companion</div>
-                        </div>
-                    </div>
-                    <p style="color: #94a3b8; margin-top: 15px; font-size: 0.9rem;">Your spiritual journey analytics</p>
-                </div>
-            `;
-            
-            // Show in a simple modal/alert for now
-            const modal = document.createElement('div');
-            modal.style.cssText = `
-                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-                background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center;
-                z-index: 10000; backdrop-filter: blur(5px);
-            `;
-            
-            modal.innerHTML = `
-                <div style="background: linear-gradient(135deg, #0a0e1a 0%, #1a202c 100%); 
-                           padding: 30px; border-radius: 15px; max-width: 500px; width: 90%;
-                           border: 2px solid rgba(34, 211, 238, 0.3);">
-                    ${statsHtml}
-                    <button onclick="this.closest('div').parentElement.remove()" 
-                            style="width: 100%; margin-top: 20px; padding: 12px; 
-                                   background: linear-gradient(135deg, #22d3ee 0%, #0891b2 100%);
-                                   border: none; border-radius: 8px; color: #000; font-weight: 600; cursor: pointer;">
-                        Close
-                    </button>
-                </div>
-            `;
-            
-            document.body.appendChild(modal);
-        };
+        window.showCompanionStats = () => profile?.showCompanionStats?.() ?? showMessage('Stats unavailable','error');
+
+        // Add missing showTrialCountdown wrapper function
+        function showTrialCountdown(containerEl, expiresAt) {
+            if (!containerEl || !expiresAt) return;
+            containerEl.style.display = 'block';
+            // simple label while timer renders
+            containerEl.innerHTML = `<div class="trial-countdown"><div class="countdown-header">⏰ Trial Active</div></div>`;
+            // use the class instance's method that already updates the DOM every second
+            if (typeof profile?.startTrialCountdown === 'function') {
+                profile.startTrialCountdown(expiresAt, ['Silver', 'Gold']); // or pass real unlocked tiers
+            }
+        }
         
         // ========================================
         // AUTO-LOGOUT ON IDLE (Security Feature)

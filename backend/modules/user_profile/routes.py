@@ -24,12 +24,23 @@ def init_profile_routes(app, database):
     """Initialize profile routes with dependencies"""
     global profile_service, theme_manager, image_manager
     
-    profile_service = ProfileService(database)
-    theme_manager = ThemeManager(database)
-    image_manager = ProfileImageManager(database)
-    
-    # Blueprint already registered in main app - just initialize services
-    logger.info("✅ Profile routes initialized")
+    try:
+        logger.info("🚀 Starting profile routes initialization...")
+        profile_service = ProfileService(database)
+        logger.info("✅ ProfileService created")
+        
+        theme_manager = ThemeManager(database)
+        logger.info("✅ ThemeManager created")
+        
+        image_manager = ProfileImageManager(database)
+        logger.info("✅ ProfileImageManager created")
+        
+        # Blueprint already registered in main app - just initialize services
+        logger.info("✅ Profile routes initialized successfully")
+    except Exception as e:
+        logger.error(f"❌ Profile routes initialization failed: {e}")
+        import traceback
+        logger.error(traceback.format_exc())
 
 def is_logged_in():
     """Check if user is logged in"""
@@ -180,12 +191,39 @@ def get_user_stats():
 @profile_bp.route("/api/upload-profile-image", methods=["POST"])
 def upload_profile_image():
     """Upload and set user profile image"""
+    global image_manager
+    
     try:
         if not is_logged_in():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
+        # Lazy initialization of image manager if not initialized
         if not image_manager:
-            return jsonify({"success": False, "error": "Image service not available"}), 503
+            logger.error("📷 ProfileImageManager is None - attempting to initialize...")
+            try:
+                from flask import current_app
+                from database_utils import get_database
+                
+                # Try multiple methods to get database
+                database = None
+                if hasattr(current_app, 'database_manager'):
+                    database = current_app.database_manager
+                    logger.info("Found database_manager in current_app for image manager")
+                else:
+                    # Fallback to direct database connection
+                    database = get_database()
+                    logger.info("Using direct database connection as fallback for image manager")
+                
+                if database:
+                    image_manager = ProfileImageManager(database)
+                    logger.info("📷 ProfileImageManager initialized lazily")
+                else:
+                    logger.error("No database connection available for ProfileImageManager")
+                    return jsonify({"success": False, "error": "Database service not available"}), 503
+                    
+            except Exception as init_error:
+                logger.error(f"Failed to initialize ProfileImageManager: {init_error}")
+                return jsonify({"success": False, "error": "Image service initialization failed"}), 503
         
         file = request.files.get('profileImage')
         if not file or file.filename == '':
@@ -208,9 +246,34 @@ def upload_profile_image():
 @profile_bp.route("/api/profile-image/<int:user_id>")
 def serve_profile_image(user_id):
     """Serve user's profile image"""
+    global image_manager
+    
     try:
+        # Lazy initialization of image manager if not initialized
         if not image_manager:
-            return redirect('/static/logos/New IntroLogo.png')
+            logger.warning("📷 ProfileImageManager is None for serve - attempting to initialize...")
+            try:
+                from flask import current_app
+                from database_utils import get_database
+                
+                # Try multiple methods to get database
+                database = None
+                if hasattr(current_app, 'database_manager'):
+                    database = current_app.database_manager
+                else:
+                    # Fallback to direct database connection
+                    database = get_database()
+                
+                if database:
+                    image_manager = ProfileImageManager(database)
+                    logger.info("📷 ProfileImageManager initialized lazily for serve")
+                else:
+                    logger.error("No database connection available for ProfileImageManager serve")
+                    return redirect('/static/logos/New IntroLogo.png')
+                    
+            except Exception as init_error:
+                logger.error(f"Failed to initialize ProfileImageManager for serve: {init_error}")
+                return redirect('/static/logos/New IntroLogo.png')
         
         image_bytes, mime_type = image_manager.serve_profile_image(user_id)
         
