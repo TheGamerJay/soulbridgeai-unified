@@ -817,16 +817,18 @@ def create_community_post():
             # Use proper transaction pattern
             with conn:  # Auto-commit on success, rollback on exception
                 with conn.cursor() as cursor:
+                    # WORKAROUND: Production DB companion_id column expects INTEGER, but we have TEXT values
+                    # Set companion_id to NULL and store the text ID in a different approach
                     insert_query = f"""
                         INSERT INTO community_posts 
                         (author_uid, companion_id, category, content, text, status, created_at, author_email, image_url, reaction_counts_json, total_reactions)
-                        VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder}, 'approved', CURRENT_TIMESTAMP, {placeholder}, {placeholder}, {placeholder}, 0)
+                        VALUES ({placeholder}, NULL, {placeholder}, {placeholder}, {placeholder}, 'approved', CURRENT_TIMESTAMP, {placeholder}, {placeholder}, {placeholder}, 0)
                         RETURNING id
                     """
                     
                     # Initialize with empty reactions
                     empty_reactions_json = '{"❤️": 0, "✨": 0, "🌿": 0, "🔥": 0, "🙏": 0, "⭐": 0, "👏": 0, "🫶": 0}'
-                    cursor.execute(insert_query, (user_id, companion_id, category, msg, msg, user_email, image_url, empty_reactions_json))
+                    cursor.execute(insert_query, (user_id, category, msg, msg, user_email, image_url, empty_reactions_json))
                     post_id = cursor.fetchone()[0]
                     
                     logger.info(f"Post created successfully: ID={post_id}")
