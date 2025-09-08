@@ -2322,7 +2322,7 @@
             }
             
             try {
-                const response = await fetch('/api/user/profile', {
+                const response = await fetch('/api/display-name', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     credentials: 'same-origin',
@@ -3135,49 +3135,26 @@
         async function loadUserData() {
             console.log('🔄 Starting loadUserData...');
             try {
-                console.log('📡 Making API call to /api/me');
-                const response = await fetch('/api/me', {
-                    method: 'GET',
-                    headers: { 'Content-Type': 'application/json' },
-                    credentials: 'same-origin'
-                });
-
-                console.log('📡 API Response status:', response.status);
+                const r = await fetch('/api/me', { credentials:'same-origin', cache:'no-store' });
+                const { user } = await r.json();
                 
-                if (response.ok) {
-                    const responseData = await response.json();
-                    console.log('✅ Profile API Response:', responseData); // Debug log
-                    
-                    // Extract user data from the response
-                    const userData = responseData.user || responseData;
-                    console.log('👤 Extracted userData:', userData);
-                    
-                    // Sync with profile instance if it exists
-                    if (typeof profile !== 'undefined') {
-                        profile.userData = userData;
-                        profile.userAccess = responseData.access || {};
-                        profile.userTrial = responseData.trial || null;
-                        console.log('✅ Synced data with profile instance');
-                    }
-                    
-                    // Update display name input
-                    const displayNameInput = document.getElementById('displayNameInput');
-                    if (displayNameInput) {
-                        if (userData.displayName && userData.displayName !== 'User') {
-                            displayNameInput.value = userData.displayName;
-                            console.log('✅ Set display name from API:', userData.displayName);
-                        } else {
-                            displayNameInput.value = '';
-                            console.log('⚠️ No custom displayName, leaving input empty');
-                        }
-                    }
-                    
-                    // Update user ID
-                    const userIDEl = document.getElementById('userID');
-                    console.log('🆔 User ID element found:', !!userIDEl);
-                    console.log('🆔 User ID from API:', userData.uid || userData.userID);
-                    if (userIDEl) {
-                        userIDEl.textContent = userData.id || userData.uid || userData.userID || 'N/A';
+                // Set global profile data
+                if (typeof profile !== 'undefined') {
+                    profile.userData = user;
+                }
+                
+                // Update display name input - only from API response
+                const input = document.getElementById('displayNameInput');
+                if (input) {
+                    input.value = user.displayName || '';
+                }
+                
+                console.log('✅ User data loaded:', user.displayName);
+                
+                // Update user ID  
+                const userIDEl = document.getElementById('userID');
+                if (userIDEl) {
+                    userIDEl.textContent = user.id || 'N/A';
                     }
                     
                     // Update email  

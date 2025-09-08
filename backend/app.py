@@ -985,6 +985,11 @@ def register_blueprints(app, database_manager=None):
         app.register_blueprint(core_bp)
         logger.info("✅ Core routes registered")
         
+        # Clean display name system - ONE WRITER, ONE READER
+        from clean_display_name_routes import clean_display_bp
+        app.register_blueprint(clean_display_bp)
+        logger.info("✅ Clean display name system registered")
+        
         # Authentication system
         from modules.auth import auth_bp
         app.register_blueprint(auth_bp, url_prefix='/auth')
