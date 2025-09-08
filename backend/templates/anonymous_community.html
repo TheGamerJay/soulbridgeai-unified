@@ -1601,7 +1601,12 @@
             return `
                 <div class="post" data-post-id="${post.id}">
                     <div class="post-header">
-                        <div class="post-avatar">${getCompanionEmoji(post.companion_id)}</div>
+                        <div class="post-avatar">
+                            ${post.companion_avatar 
+                                ? `<img src="${post.companion_avatar}" alt="Companion" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;" onerror="this.parentElement.innerHTML='${getCompanionEmoji(post.companion_id)}';">`
+                                : getCompanionEmoji(post.companion_id)
+                            }
+                        </div>
                         <div class="post-meta">
                             <h4 class="post-author">Anonymous</h4>
                             <p class="post-time">${post.time_ago || formatTimeAgo(post.created_at)}</p>
