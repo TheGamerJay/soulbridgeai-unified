@@ -7,7 +7,7 @@ import json
 import logging
 from datetime import datetime, timezone
 from flask import Blueprint, render_template, request, jsonify, session, redirect
-from database_utils import get_database
+from database_utils import get_database, get_placeholder
 try:
     from ..companions.companion_data import COMPANIONS as COMPANIONS_NEW
 except ImportError:
