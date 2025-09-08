@@ -2749,7 +2749,7 @@
         };
 
         // Consolidate duplicate functions - keep class methods, add thin wrappers
-        window.updateDisplayName = () => profile?.updateDisplayName?.() ?? showMessage('Update unavailable','error');
+        // updateDisplayName is defined above at line 2299
 
         window.downloadChatHistory = () => profile.downloadChatHistory();
         window.exportUserData = () => profile.exportUserData();
