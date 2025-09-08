@@ -806,6 +806,11 @@ def create_community_post():
             companion_info = session.get('companion_info', {})
             image_url = companion_info.get('image_url', '/static/logos/New IntroLogo.png')
             
+            # DEBUG: Log session contents to understand what's happening
+            logger.info(f"🔍 SESSION DEBUG: companion_info = {companion_info}")
+            logger.info(f"🔍 SESSION DEBUG: selected_companion_id = {session.get('selected_companion_id')}")
+            logger.info(f"🔍 SESSION DEBUG: full session keys = {list(session.keys())}")
+            
             logger.info(f"Creating post: user_id={user_id}, companion_id={companion_id}, category={category}, image_url={image_url}")
             
             # Use proper transaction pattern
