@@ -139,10 +139,19 @@ def create_app():
     except Exception as e:
         logger.error(f"❌ Database initialization failed: {e}")
     
-    # Register all module blueprints
-    register_blueprints(app)
+    # Create database manager for blueprint initialization
+    database_manager = None
+    try:
+        from database_utils import get_database
+        database_manager = get_database()
+        logger.info("✅ Database manager created for blueprints")
+    except Exception as e:
+        logger.error(f"❌ Failed to create database manager: {e}")
     
-    # Initialize all systems
+    # Register all module blueprints
+    register_blueprints(app, database_manager)
+    
+    # Initialize all systems  
     initialize_systems(app)
     
     # Initialize security (rate limiting, CSRF, etc.)
@@ -961,7 +970,7 @@ def create_app():
     
     return app
 
-def register_blueprints(app):
+def register_blueprints(app, database_manager=None):
     """Register all extracted module blueprints"""
     import traceback  # Ensure traceback is available within function scope
     try:
