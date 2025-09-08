@@ -792,8 +792,8 @@ def create_community_post():
             user_email = session.get('email', 'anonymous@soulbridgeai.com')
             
             # Snapshot the current avatar image into the post (denormalized for performance)
-            current_avatar = session.get('current_avatar', {})
-            image_url = current_avatar.get('avatar_url', '/static/logos/New IntroLogo.png')
+            companion_info = session.get('companion_info', {})
+            image_url = companion_info.get('image_url', '/static/logos/New IntroLogo.png')
             
             logger.info(f"Creating post: user_id={user_id}, companion_id={companion_id}, category={category}, image_url={image_url}")
             
