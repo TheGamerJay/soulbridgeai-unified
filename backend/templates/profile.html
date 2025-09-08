@@ -1143,7 +1143,7 @@
                     <div class="info-value">
                         <input type="text" id="displayNameInput" 
                                style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; padding: 8px 12px; color: white; width: 200px;"
-                               value="{{ user.displayName or user_email.split('@')[0] if user_email else 'SoulBridge User' }}">
+                               placeholder="SoulBridge User">
                         <button onclick="updateDisplayName()" class="profile-btn" style="margin-left: 10px; padding: 6px 12px; font-size: 0.9rem;">Save</button>
                     </div>
                 </div>
@@ -1719,12 +1719,16 @@
                 
                 const displayNameInput = document.getElementById('displayNameInput');
                 if (displayNameInput) {
-                    // Use the saved displayName from user data, keep existing value if displayName is null
+                    // Set display name from user data or fall back to email prefix
                     if (this.userData.displayName) {
                         displayNameInput.value = this.userData.displayName;
                         console.log('✅ Set display name from userData:', this.userData.displayName);
+                    } else if (this.userData.email) {
+                        displayNameInput.value = this.userData.email.split('@')[0];
+                        console.log('✅ Set display name from email prefix:', this.userData.email.split('@')[0]);
                     } else {
-                        console.log('⚠️ No displayName in userData, keeping current value:', displayNameInput.value);
+                        displayNameInput.value = '';
+                        console.log('⚠️ No displayName or email, leaving input empty');
                     }
                 }
                 
@@ -2313,10 +2317,17 @@
                 return;
             }
             
+            // Prevent saving the placeholder string
+            if (newName.toLowerCase() === 'soulbridge user') {
+                showMessage('Pick something other than the default name 🙂', 'error');
+                return;
+            }
+            
             try {
-                const response = await fetch('/api/users', {
+                const response = await fetch('/api/user/profile', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
                     body: JSON.stringify({ displayName: newName })
                 });
                 
