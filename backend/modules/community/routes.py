@@ -941,30 +941,39 @@ def react_to_post(post_id):
         if not emoji:
             return jsonify({"success": False, "error": "Emoji is required"}), 400
         
-        # Mock reaction logic - in real app would save to database
+        # Database reaction logic - check if user already reacted
         user_id = session.get('user_id')
         
-        # Check if user already reacted to this post (session-based tracking)
-        user_reactions_key = f'user_reactions_{user_id}'
-        user_reactions = session.get(user_reactions_key, {})
+        # Connect to database
+        db = get_database()
+        if not db:
+            return jsonify({"success": False, "error": "Database not available"}), 503
+        
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        placeholder = get_placeholder()
         
         # Check existing reaction for this post (reactions are permanent)
-        existing_reaction = user_reactions.get(str(post_id))
+        cursor.execute(f"SELECT emoji FROM community_reactions WHERE post_id = {placeholder} AND viewer_uid = {placeholder}", 
+                      (post_id, user_id))
+        existing_reaction_row = cursor.fetchone()
         
-        if existing_reaction:
+        if existing_reaction_row:
+            existing_reaction = existing_reaction_row[0]
+            conn.close()
             # User already has a permanent reaction on this post
             return jsonify({
                 'success': False, 
                 'error': f'You have already reacted with {existing_reaction}. Reactions are permanent!'
             }), 400
         else:
-            # Add new permanent reaction
-            user_reactions[str(post_id)] = emoji
+            # Add new permanent reaction to database
+            cursor.execute(f"INSERT INTO community_reactions (post_id, viewer_uid, viewer_uid_hash, emoji) VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder})", 
+                          (post_id, user_id, str(user_id), emoji))
+            conn.commit()
             action = 'added'
         
-        # Save to session
-        session[user_reactions_key] = user_reactions
-        session.modified = True
+        conn.close()
         
         # Get all reactions for this post from all users
         reaction_counts = get_post_reaction_counts(post_id)
@@ -1017,8 +1026,25 @@ def get_user_reactions():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
         user_id = session.get('user_id')
-        user_reactions_key = f'user_reactions_{user_id}'
-        user_reactions = session.get(user_reactions_key, {})
+        
+        # Get user reactions from database
+        db = get_database()
+        if not db:
+            return jsonify({"success": False, "error": "Database not available"}), 503
+        
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        placeholder = get_placeholder()
+        
+        # Get all reactions by this user
+        cursor.execute(f"SELECT post_id, emoji FROM community_reactions WHERE viewer_uid = {placeholder}", (user_id,))
+        reactions_rows = cursor.fetchall()
+        conn.close()
+        
+        # Convert to dict format {post_id: emoji}
+        user_reactions = {}
+        for post_id, emoji in reactions_rows:
+            user_reactions[str(post_id)] = emoji
         
         return jsonify({
             "success": True,
