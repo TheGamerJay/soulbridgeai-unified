@@ -151,6 +151,28 @@ def me():
                 logger.warning(f"Failed to fetch display name from database: {e}")
                 display_name = "User"
 
+        # Get profile image from session, but fallback to ProfileService if needed
+        profile_image = session.get("profile_image", "/static/logos/New IntroLogo.png")
+        if profile_image == "/static/logos/New IntroLogo.png":
+            # Session doesn't have custom profile image, check ProfileService
+            try:
+                from modules.user_profile.profile_service import ProfileService
+                from database_utils import get_database
+                
+                database = get_database()
+                if database:
+                    profile_service = ProfileService(database)
+                    profile_result = profile_service.get_user_profile(uid)
+                    if profile_result['success']:
+                        db_profile_image = profile_result['user'].get('profileImage')
+                        if db_profile_image and db_profile_image != "/static/logos/New IntroLogo.png":
+                            profile_image = db_profile_image
+                            # Update session with database value
+                            session['profile_image'] = profile_image
+                            session.modified = True
+            except Exception as e:
+                logger.warning(f"Failed to fetch profile image from ProfileService: {e}")
+
         user_data = {
             "id": uid,
             "uid": uid,  # Add uid alias for frontend compatibility
@@ -159,7 +181,7 @@ def me():
             "displayName": display_name,
             "plan": plan,
             "artistic_time": artistic_time,
-            "profileImage": session.get("profile_image", "/static/logos/New IntroLogo.png"),
+            "profileImage": profile_image,
             "companion": current_companion
         }
         
