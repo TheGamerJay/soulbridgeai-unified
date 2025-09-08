@@ -24,8 +24,7 @@ def db_fetch_user_row(user_id):
         conn = db.get_connection()
         try:
             q = """
-                SELECT id, email, plan, stripe_customer_id, trial_active, trial_expires_at,
-                       display_name, profile_image, created_at, user_plan, plan_type, trial_used_permanently
+                SELECT id, email, display_name, created_at, user_plan, trial_active, trial_expires_at, trial_used_permanently
                 FROM users WHERE id = %s
             """
             q = adapt_placeholders(db, q)
@@ -40,16 +39,17 @@ def db_fetch_user_row(user_id):
             return {
                 "id": row[0],
                 "email": row[1],
-                "plan": row[2] or "bronze",  # New plan column
-                "stripe_customer_id": row[3],
-                "trial_active": bool(row[4]) if row[4] is not None else False,
-                "trial_expires_at": from_db_ts(db, row[5]),
-                "display_name": row[6],
-                "profile_image": row[7],
-                "created_at": row[8],
-                "user_plan": row[9] or "bronze",  # Legacy column
-                "plan_type": row[10] or "bronze",  # Legacy column
-                "trial_used_permanently": bool(row[11]) if row[11] is not None else False,  # Trial permanence flag
+                "display_name": row[2],
+                "created_at": row[3],
+                "user_plan": row[4] or "bronze",
+                "plan": row[4] or "bronze",  # Use user_plan as plan
+                "trial_active": bool(row[5]) if row[5] is not None else False,
+                "trial_expires_at": from_db_ts(db, row[6]),
+                "trial_used_permanently": bool(row[7]) if row[7] is not None else False,
+                # Set defaults for missing columns
+                "stripe_customer_id": None,
+                "profile_image": None,
+                "plan_type": row[4] or "bronze",
             }
         finally:
             conn.close()
@@ -74,15 +74,15 @@ def db_set_user_plan(user_id, plan: str):
             
         conn = db.get_connection()
         try:
-            # Update new plan column and legacy columns for backward compatibility
+            # Update user plan (only update existing columns)
             q = """
                 UPDATE users 
-                SET plan = %s, user_plan = %s, plan_type = %s 
+                SET user_plan = %s 
                 WHERE id = %s
             """
             q = adapt_placeholders(db, q)
             cur = conn.cursor()
-            cur.execute(q, (plan, plan, plan, user_id))
+            cur.execute(q, (plan, user_id))
             conn.commit()
             
             logger.info(f"Updated user {user_id} plan to {plan}")
@@ -98,33 +98,10 @@ def db_set_user_plan(user_id, plan: str):
 def db_attach_stripe_customer_id(user_id, customer_id: str):
     """
     Associate Stripe customer ID with user account.
+    Note: stripe_customer_id column doesn't exist in current schema, function disabled.
     """
-    if not user_id or not customer_id:
-        return False
-        
-    try:
-        db = get_database()
-        if not db:
-            logger.warning("Database not available for Stripe customer ID update")
-            return False
-            
-        conn = db.get_connection()
-        try:
-            q = "UPDATE users SET stripe_customer_id = %s WHERE id = %s"
-            q = adapt_placeholders(db, q)
-            cur = conn.cursor()
-            cur.execute(q, (customer_id, user_id))
-            conn.commit()
-            
-            logger.info(f"Associated Stripe customer {customer_id} with user {user_id}")
-            return True
-            
-        finally:
-            conn.close()
-            
-    except Exception as e:
-        logger.error(f"Failed to attach Stripe customer ID for user {user_id}: {e}")
-        return False
+    logger.warning("Stripe customer ID storage not available - column missing from schema")
+    return False  # Disabled until column is added to schema
 
 def db_find_user_by_stripe_customer(customer_id: str):
     """
