@@ -24,6 +24,10 @@ def init_profile_routes(app, database):
     """Initialize profile routes with dependencies"""
     global profile_service, theme_manager, image_manager
     
+    logger.info("🚀 ENTERING init_profile_routes function...")
+    logger.info(f"🚀 Received app: {app}")
+    logger.info(f"🚀 Received database: {database}")
+    
     try:
         logger.info("🚀 Starting profile routes initialization...")
         profile_service = ProfileService(database)

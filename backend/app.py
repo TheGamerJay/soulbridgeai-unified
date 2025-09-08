@@ -1314,8 +1314,10 @@ def initialize_systems(app):
         init_legal_services(database_manager)
         
         # Initialize profile system
+        logger.info("🔧 About to initialize profile system...")
         from modules.user_profile.routes import init_profile_routes
         init_profile_routes(app, database_manager)
+        logger.info("🔧 Profile system initialization completed")
         
         # Initialize meditation system
         from modules.meditations.routes import init_meditation_services
@@ -1404,14 +1406,6 @@ def setup_middleware(app):
         logger.error(f"❌ Middleware setup failed: {e}")
 
 
-def initialize_systems(app):
-    """Initialize all application systems"""
-    try:
-        # Initialize monitoring systems
-        logger.info("✅ Application systems initialized")
-        
-    except Exception as e:
-        logger.error(f"❌ System initialization failed: {e}")
 
 def setup_v1_compatibility_routes(app):
     """Setup v1 API compatibility routes"""
