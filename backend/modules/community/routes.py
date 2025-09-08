@@ -225,6 +225,17 @@ def auto_set_avatar(companion_id):
         conn.close()
         
         if rows_affected > 0:
+            # Update session to match what was saved to database
+            session['companion_info'] = {
+                'name': companion['name'],
+                'id': companion_id,
+                'image_url': companion['image_url']
+            }
+            session['selected_companion_id'] = companion_id
+            session.modified = True
+            
+            logger.info(f"✅ SESSION UPDATED: {companion['name']} for user {user_id}")
+            
             # Redirect to community page to see the result
             return redirect(f"/community?success=Avatar set to {companion['name']}")
         else:
@@ -1504,12 +1515,13 @@ def community_set_avatar():
             
             logger.info(f"✅ AVATAR SAVED: {companion['name']} for user {user_id}")
             
-            # Update session
+            # Update session with both companion_info AND selected_companion_id
             session['companion_info'] = {
                 'name': companion['name'],
                 'id': companion_id,
                 'image_url': companion['image_url']
             }
+            session['selected_companion_id'] = companion_id
             session.modified = True
             
             return jsonify({
