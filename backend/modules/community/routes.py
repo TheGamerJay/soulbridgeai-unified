@@ -799,12 +799,13 @@ def create_community_post():
             
             # Get current user info and avatar
             user_id = session.get('user_id')
-            companion_id = session.get('selected_companion_id')
             user_email = session.get('email', 'anonymous@soulbridgeai.com')
             
             # Snapshot the current avatar image into the post (denormalized for performance)
             companion_info = session.get('companion_info', {})
-            image_url = companion_info.get('image_url', '/static/logos/New IntroLogo.png')
+            # Use companion_id from companion_info, fallback to selected_companion_id
+            companion_id = companion_info.get('companion_id') or session.get('selected_companion_id')
+            image_url = companion_info.get('image_url') or companion_info.get('avatar_url', '/static/logos/New IntroLogo.png')
             
             # DEBUG: Log session contents to understand what's happening
             logger.info(f"🔍 SESSION DEBUG: companion_info = {companion_info}")
