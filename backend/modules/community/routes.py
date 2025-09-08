@@ -716,7 +716,7 @@ def community_posts():
             author_uid = post[8]
             
             # Use image_url, fallback to default
-            avatar_url = image_url or "/static/images/companions/default.png"
+            avatar_url = image_url or "/static/logos/New IntroLogo.png"
             
             # Parse hashtags JSON
             try:
@@ -793,7 +793,7 @@ def create_community_post():
             
             # Snapshot the current avatar image into the post (denormalized for performance)
             current_avatar = session.get('current_avatar', {})
-            image_url = current_avatar.get('avatar_url', '/static/images/companions/default.png')
+            image_url = current_avatar.get('avatar_url', '/static/logos/New IntroLogo.png')
             
             logger.info(f"Creating post: user_id={user_id}, companion_id={companion_id}, category={category}, image_url={image_url}")
             
