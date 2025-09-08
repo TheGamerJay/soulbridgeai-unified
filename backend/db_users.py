@@ -23,14 +23,27 @@ def db_fetch_user_row(user_id):
             
         conn = db.get_connection()
         try:
-            q = """
-                SELECT id, email, display_name, created_at, user_plan, trial_active, trial_expires_at, trial_used_permanently
-                FROM users WHERE id = %s
-            """
-            q = adapt_placeholders(db, q)
-            cur = conn.cursor()
-            cur.execute(q, (user_id,))
-            row = cur.fetchone()
+            # First, try to get user data including profile image columns
+            try:
+                q = """
+                    SELECT id, email, display_name, created_at, user_plan, trial_active, trial_expires_at, trial_used_permanently, profile_image, profile_image_data
+                    FROM users WHERE id = %s
+                """
+                q = adapt_placeholders(db, q)
+                cur = conn.cursor()
+                cur.execute(q, (user_id,))
+                row = cur.fetchone()
+            except Exception as profile_error:
+                # If profile columns don't exist, fall back to basic query
+                logger.warning(f"Profile columns missing, using basic query for user {user_id}: {profile_error}")
+                q = """
+                    SELECT id, email, display_name, created_at, user_plan, trial_active, trial_expires_at, trial_used_permanently
+                    FROM users WHERE id = %s
+                """
+                q = adapt_placeholders(db, q)
+                cur = conn.cursor()
+                cur.execute(q, (user_id,))
+                row = cur.fetchone()
             
             if not row:
                 return None
@@ -46,9 +59,11 @@ def db_fetch_user_row(user_id):
                 "trial_active": bool(row[5]) if row[5] is not None else False,
                 "trial_expires_at": from_db_ts(db, row[6]),
                 "trial_used_permanently": bool(row[7]) if row[7] is not None else False,
+                # Profile image data from database
+                "profile_image": row[8] if len(row) > 8 else None,
+                "profile_image_data": row[9] if len(row) > 9 else None,
                 # Set defaults for missing columns
                 "stripe_customer_id": None,
-                "profile_image": None,
                 "plan_type": row[4] or "bronze",
             }
         finally:

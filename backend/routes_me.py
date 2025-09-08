@@ -131,30 +131,43 @@ def me():
         if not current_companion:
             current_companion = "Blayzo"
         
-        # Get display name - always check database for latest value
+        # Get display name and profile image - always check database for latest values
         # This prevents race conditions where session has stale data
         display_name = "User"  # Default fallback
+        db_profile_image = None
         try:
             user_row = db_fetch_user_row(uid)
-            if user_row and user_row.get('display_name'):
-                db_name = user_row['display_name'].strip() if user_row['display_name'] else ""
-                if db_name:  # Non-empty display name from database
-                    display_name = db_name
-                    # Sync session with confirmed database value
-                    session['display_name'] = display_name
-                    session['user_name'] = display_name
-                    session.modified = True
-                else:
-                    # Database has empty/null display name, clear session
-                    session['display_name'] = ""
-                    session['user_name'] = ""
-                    session.modified = True
-                    display_name = "User"
+            if user_row:
+                # Handle display name
+                if user_row.get('display_name'):
+                    db_name = user_row['display_name'].strip() if user_row['display_name'] else ""
+                    if db_name:  # Non-empty display name from database
+                        display_name = db_name
+                        # Sync session with confirmed database value
+                        session['display_name'] = display_name
+                        session['user_name'] = display_name
+                        session.modified = True
+                    else:
+                        # Database has empty/null display name, clear session
+                        session['display_name'] = ""
+                        session['user_name'] = ""
+                        session.modified = True
+                        display_name = "User"
+                        
+                # Handle profile image from database
+                if user_row.get('profile_image_data') or user_row.get('profile_image'):
+                    if user_row.get('profile_image_data'):
+                        # User has profile image data, use API endpoint
+                        db_profile_image = f"/api/profile-image/{uid}"
+                    elif (user_row.get('profile_image') and 
+                          not user_row['profile_image'].endswith(('Sapphire.png', 'New IntroLogo.png'))):
+                        # User has custom profile image path
+                        db_profile_image = user_row['profile_image']
             else:
-                # No user found or no display name field, use fallback
+                # No user found, use fallback
                 display_name = "User"
         except Exception as e:
-            logger.warning(f"Failed to get display name from database for user {uid}: {e}")
+            logger.warning(f"Failed to get user data from database for user {uid}: {e}")
             # Fallback to session value if database fails
             session_name = session.get("display_name")
             if session_name and session_name.strip():
@@ -162,27 +175,14 @@ def me():
             else:
                 display_name = "User"
 
-        # Get profile image from session, but fallback to ProfileService if needed
-        profile_image = session.get("profile_image", "/static/logos/New IntroLogo.png")
-        if profile_image == "/static/logos/New IntroLogo.png":
-            # Session doesn't have custom profile image, check ProfileService
-            try:
-                from modules.user_profile.profile_service import ProfileService
-                from database_utils import get_database
-                
-                database = get_database()
-                if database:
-                    profile_service = ProfileService(database)
-                    profile_result = profile_service.get_user_profile(uid)
-                    if profile_result['success']:
-                        db_profile_image = profile_result['user'].get('profileImage')
-                        if db_profile_image and db_profile_image != "/static/logos/New IntroLogo.png":
-                            profile_image = db_profile_image
-                            # Update session with database value
-                            session['profile_image'] = profile_image
-                            session.modified = True
-            except Exception as e:
-                logger.warning(f"Failed to fetch profile image from ProfileService: {e}")
+        # Use database profile image if we got one, otherwise session/default
+        if db_profile_image:
+            profile_image = db_profile_image
+            # Sync session with database value
+            session['profile_image'] = profile_image
+            session.modified = True
+        else:
+            profile_image = session.get("profile_image", "/static/logos/New IntroLogo.png")
 
         user_data = {
             "id": uid,
