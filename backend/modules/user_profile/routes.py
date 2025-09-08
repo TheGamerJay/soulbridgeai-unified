@@ -78,7 +78,17 @@ def profile_page():
         
         logger.info(f"✅ PROFILE: user_plan={user_plan}, trial_active={trial_active}, effective_plan={effective_plan}")
         
-        return render_template("profile.html")
+        # Get user profile data for template
+        user_id = session.get('user_id')
+        user_email = session.get('user_email', '')
+        user_data = None
+        
+        if profile_service:
+            profile_result = profile_service.get_user_profile(user_id)
+            if profile_result['success']:
+                user_data = profile_result['user']
+        
+        return render_template("profile.html", user=user_data, user_email=user_email)
         
     except Exception as e:
         logger.error(f"❌ PROFILE ERROR: {e}")
