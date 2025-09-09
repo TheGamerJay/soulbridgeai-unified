@@ -868,9 +868,9 @@ def v1_entitlements():
 @requires_login
 def check_companion_decoder_limit():
     """
-    🚨 COMPANION-TIER USAGE FIX: Check decoder limits for current companion
+    🚨 SOUL COMPANION UNIFIED: Check decoder credit availability
     
-    Returns companion-specific limits and usage, not shared user limits.
+    Returns credit balance and decoder cost information.
     """
     try:
         user_id = get_user_id()
@@ -889,22 +889,22 @@ def check_companion_decoder_limit():
                 'error': 'Invalid companion'
             }), 400
         
-        companion_tier = companion['tier']
-        limits = get_companion_tier_limits(companion_tier)
-        decoder_limit = limits.get('decoder', 0)
-        current_usage = get_companion_feature_usage(user_id, companion_id, 'decoder')
+        # Get current credit balance
+        from ...modules.credits.operations import get_artistic_time
+        current_credits = get_artistic_time(user_id)
+        decoder_cost = 3  # From constants.py
         
-        can_use = check_companion_feature_limit(user_id, companion_id, 'decoder')
+        can_use = current_credits >= decoder_cost
         
         return jsonify({
             'success': True,
             'companion_id': companion_id,
-            'companion_tier': companion_tier,
+            'companion_name': companion['name'],
             'feature': 'decoder',
-            'limit': decoder_limit,
-            'usage': current_usage,
+            'current_credits': current_credits,
+            'cost': decoder_cost,
             'can_use': can_use,
-            'remaining': max(0, decoder_limit - current_usage)
+            'credits_needed': max(0, decoder_cost - current_credits)
         })
         
     except Exception as e:
@@ -918,7 +918,7 @@ def check_companion_decoder_limit():
 @requires_login
 def use_companion_decoder():
     """
-    🚨 COMPANION-TIER USAGE FIX: Use decoder with companion-specific tracking
+    🚨 SOUL COMPANION UNIFIED: Use decoder with Artistic Time credits
     """
     try:
         user_id = get_user_id()
@@ -930,44 +930,39 @@ def use_companion_decoder():
                 'error': 'No companion selected'
             }), 400
         
-        # Check limit before using
-        if not check_companion_feature_limit(user_id, companion_id, 'decoder'):
-            companion = get_companion_by_id(companion_id)
-            companion_tier = companion['tier'] if companion else 'bronze'
-            limits = get_companion_tier_limits(companion_tier)
-            limit = limits.get('decoder', 0)
-            
-            return jsonify({
-                'success': False,
-                'error': f"Daily limit reached for this {companion_tier} companion ({limit} uses per day)",
-                'limit_reached': True,
-                'companion_tier': companion_tier
-            }), 429
+        # Check and deduct credits for decoder (3 credits)
+        from ...modules.credits.operations import get_artistic_time, deduct_artistic_time
         
-        # Increment companion-specific usage
-        success = increment_companion_feature_usage(user_id, companion_id, 'decoder')
-        if not success:
+        current_credits = get_artistic_time(user_id)
+        decoder_cost = 3  # From constants.py
+        
+        if current_credits < decoder_cost:
             return jsonify({
-                'success': False,
-                'error': 'Failed to track usage'
+                "success": False,
+                "error": f"Insufficient Artistic Time credits for decoder",
+                "credits_needed": decoder_cost,
+                "current_credits": current_credits,
+                "upgrade_required": True
+            }), 402  # Payment Required
+        
+        # Deduct credits for decoder
+        if not deduct_artistic_time(user_id, decoder_cost):
+            return jsonify({
+                "success": False,
+                "error": "Failed to deduct credits for decoder"
             }), 500
         
-        # Get updated usage stats
-        current_usage = get_companion_feature_usage(user_id, companion_id, 'decoder')
         companion = get_companion_by_id(companion_id)
-        companion_tier = companion['tier'] if companion else 'bronze'
-        limits = get_companion_tier_limits(companion_tier)
-        decoder_limit = limits.get('decoder', 0)
+        remaining_credits = get_artistic_time(user_id)
         
         return jsonify({
             'success': True,
             'companion_id': companion_id,
-            'companion_tier': companion_tier,
+            'companion_name': companion['name'] if companion else 'Unknown',
             'feature': 'decoder',
-            'usage': current_usage,
-            'limit': decoder_limit,
-            'remaining': max(0, decoder_limit - current_usage),
-            'message': f'Decoder used successfully with {companion["name"] if companion else "companion"}'
+            'credits_charged': decoder_cost,
+            'credits_remaining': remaining_credits,
+            'message': f'Decoder ready! {decoder_cost} Artistic Time credits used.'
         })
         
     except Exception as e:
