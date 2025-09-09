@@ -1806,7 +1806,7 @@
                 }
 
                 // Update companion info - prioritize last chat companion from backend
-                const lastChatCompanion = '{{ last_chat_companion }}' || this.userData.companion || 'Blayzo';
+                const lastChatCompanion = '{{ last_chat_companion }}' || this.userData.companion || 'Soul';
                 console.log('🎯 Using last chat companion for profile:', lastChatCompanion);
                 this.updateCompanionInfo(lastChatCompanion);
 
@@ -2117,7 +2117,7 @@
                     }
                 };
 
-                const info = companionData[companion] || companionData['Blayzo'];
+                const info = companionData[companion] || companionData['Soul'];
                 
                 const companionAvatarElement = document.getElementById('selectedCompanionAvatar');
                 if (companionAvatarElement) {
