@@ -678,6 +678,17 @@ class User:
             cursor.execute(query, (email, password_hash, display_name, oauth_provider, oauth_id, profile_picture_url, 1 if oauth_provider else 0))
             conn.commit()
             user_id = cursor.lastrowid
+            
+            # 🎁 Give new users 100 welcome Artistic Time credits
+            try:
+                from modules.credits.operations import add_artistic_time
+                welcome_credits = 100
+                add_artistic_time(user_id, welcome_credits, "Welcome bonus for new Soul Companion user")
+                logger.info(f"🎁 Granted {welcome_credits} welcome credits to new user {user_id}")
+            except Exception as credit_error:
+                logger.error(f"⚠️ Failed to grant welcome credits to user {user_id}: {credit_error}")
+                # Don't fail user creation if credits fail - they can be added manually
+            
             conn.close()
             return {"success": True, "user_id": user_id}
         except Exception as e:
