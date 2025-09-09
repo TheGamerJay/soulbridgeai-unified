@@ -11,9 +11,26 @@ from functools import wraps
 
 logger = logging.getLogger(__name__)
 
+# Global limiter instance (will be initialized by init_security)
+limiter = None
+
+def rate_limit_moderate(f):
+    """Decorator for moderate rate limiting (30 per minute)"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if limiter:
+            # Apply rate limit of 30 per minute for moderate endpoints
+            with limiter.limit("30/minute"):
+                return f(*args, **kwargs)
+        else:
+            # If limiter not initialized, proceed without rate limiting
+            return f(*args, **kwargs)
+    return decorated_function
+
 
 def init_security(app):
     """Initialize all security measures for the Flask app"""
+    global limiter
 
     # Rate limiting
     limiter = Limiter(
