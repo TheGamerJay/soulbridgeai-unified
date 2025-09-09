@@ -344,11 +344,11 @@
                     • 0 artistic time monthly • Premium features: LOCKED<br><br>
                     
                     <strong>🥈 Silver Tier ($12.99/month, $117/year):</strong><br>
-                    • Decoder: 15 daily • Fortune: 8 daily • Horoscope: 10 daily • Creative Writer: 20 daily<br>
+                    • Decoder: 15 daily • Fortune: 12 daily • Horoscope: 10 daily • Creative Writer: 15 daily<br>
                     • 200 artistic time monthly • Premium features: UNLOCKED • Mini Studio: LOCKED<br><br>
                     
                     <strong>🥇 Gold Tier ($19.99/month, $180/year):</strong><br>
-                    • ALL features UNLIMITED daily usage<br>
+                    • Decoder: 100 daily • Fortune: 150 daily • Horoscope: 50 daily • Creative Writer: 75 daily<br>
                     • 500 artistic time monthly • Premium features: UNLOCKED • Mini Studio: UNLOCKED
                 </div>
             </div>
@@ -374,13 +374,8 @@
     <script>
         // Safe navigation back to intro
         function goBackSafely() {
-            // Try to go to intro screen first
-            try {
-                window.location.href = '/?show_intro=true';
-            } catch (e) {
-                // Fallback to home
-                window.location.href = '/';
-            }
+            // Go directly to intro page as requested
+            window.location.href = '/intro';
         }
     </script>
 </body>
