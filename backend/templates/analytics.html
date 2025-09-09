@@ -534,54 +534,102 @@
             }
 
             async loadAnalyticsData() {
-                // Simulate analytics data - in production this would call a real API
-                const baseStats = {
-                    conversations: Math.floor(Math.random() * 50) + 20,
-                    timeSpent: Math.floor(Math.random() * 20) + 5,
-                    streak: Math.floor(Math.random() * 30) + 1,
-                    favoriteCompanion: ['Blayzo', 'Violet', 'Crimson', 'Sky'][Math.floor(Math.random() * 4)]
-                };
+                try {
+                    // Load real analytics data from APIs
+                    console.log('🔄 Loading real analytics data...');
+                    
+                    // Fetch dashboard data (main stats)
+                    const dashboardResponse = await fetch('/api/analytics/dashboard', {
+                        credentials: 'same-origin',
+                        cache: 'no-store'
+                    });
+                    
+                    // Fetch usage data (feature usage)
+                    const usageResponse = await fetch('/api/analytics/usage', {
+                        credentials: 'same-origin',
+                        cache: 'no-store'
+                    });
+                    
+                    // Fetch engagement data (companion usage, activity patterns)
+                    const engagementResponse = await fetch('/api/analytics/engagement', {
+                        credentials: 'same-origin',
+                        cache: 'no-store'
+                    });
 
-                const plan = this.userData?.user?.plan || 'bronze';
-                const limits = this.userData?.access?.limits || { decoder: 5, fortune: 5, horoscope: 5, creative_writer: 5 };
+                    const [dashboardData, usageData, engagementData] = await Promise.all([
+                        dashboardResponse.ok ? dashboardResponse.json() : null,
+                        usageResponse.ok ? usageResponse.json() : null,
+                        engagementResponse.ok ? engagementResponse.json() : null
+                    ]);
 
-                this.analyticsData = {
-                    stats: baseStats,
-                    dailyActivity: this.generateDailyActivity(),
-                    featureUsage: {
-                        decoder: { used: Math.floor(Math.random() * limits.decoder), limit: limits.decoder },
-                        fortune: { used: Math.floor(Math.random() * limits.fortune), limit: limits.fortune },
-                        horoscope: { used: Math.floor(Math.random() * limits.horoscope), limit: limits.horoscope },
-                        creative_writer: { used: Math.floor(Math.random() * limits.creative_writer), limit: limits.creative_writer }
-                    },
-                    companionUsage: this.generateCompanionUsage(),
-                    monthlyTrends: this.generateMonthlyTrends()
-                };
+                    console.log('📊 Dashboard data:', dashboardData);
+                    console.log('📈 Usage data:', usageData);
+                    console.log('👥 Engagement data:', engagementData);
+
+                    // Combine real data from APIs
+                    this.analyticsData = {
+                        stats: dashboardData || {
+                            conversations: 0,
+                            timeSpent: 0,
+                            streak: 0,
+                            favoriteCompanion: 'None'
+                        },
+                        dailyActivity: engagementData?.dailyActivity || this.generateEmptyDailyActivity(),
+                        featureUsage: usageData?.features || {
+                            decoder: { used: 0, limit: 5 },
+                            fortune: { used: 0, limit: 5 },
+                            horoscope: { used: 0, limit: 5 },
+                            creative_writer: { used: 0, limit: 5 }
+                        },
+                        companionUsage: engagementData?.companionUsage || { labels: [], data: [] },
+                        monthlyTrends: engagementData?.monthlyTrends || this.generateEmptyMonthlyTrends()
+                    };
+                    
+                    console.log('✅ Analytics data loaded successfully');
+                } catch (error) {
+                    console.error('❌ Failed to load real analytics data:', error);
+                    // Fallback to empty/zero data instead of fake data
+                    this.analyticsData = this.getEmptyAnalyticsData();
+                }
             }
 
-            generateDailyActivity() {
+            generateEmptyDailyActivity() {
                 const days = [];
                 const labels = [];
                 for (let i = this.currentPeriod - 1; i >= 0; i--) {
                     const date = new Date();
                     date.setDate(date.getDate() - i);
                     labels.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
-                    days.push(Math.floor(Math.random() * 10) + 1);
+                    days.push(0); // Real data should come from API
                 }
                 return { labels, data: days };
             }
 
-            generateCompanionUsage() {
-                const companions = ['Blayzo', 'Violet', 'Crimson', 'Sky', 'Blayzica'];
-                const data = companions.map(() => Math.floor(Math.random() * 20) + 5);
-                return { labels: companions, data };
+            generateEmptyMonthlyTrends() {
+                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+                const conversations = months.map(() => 0); // Real data should come from API
+                const timeSpent = months.map(() => 0); // Real data should come from API
+                return { labels: months, conversations, timeSpent };
             }
 
-            generateMonthlyTrends() {
-                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
-                const conversations = months.map(() => Math.floor(Math.random() * 100) + 50);
-                const timeSpent = months.map(() => Math.floor(Math.random() * 50) + 20);
-                return { labels: months, conversations, timeSpent };
+            getEmptyAnalyticsData() {
+                return {
+                    stats: {
+                        conversations: 0,
+                        timeSpent: 0,
+                        streak: 0,
+                        favoriteCompanion: 'None'
+                    },
+                    dailyActivity: this.generateEmptyDailyActivity(),
+                    featureUsage: {
+                        decoder: { used: 0, limit: 5 },
+                        fortune: { used: 0, limit: 5 },
+                        horoscope: { used: 0, limit: 5 },
+                        creative_writer: { used: 0, limit: 5 }
+                    },
+                    companionUsage: { labels: [], data: [] },
+                    monthlyTrends: this.generateEmptyMonthlyTrends()
+                };
             }
 
             updatePlanInfo() {
