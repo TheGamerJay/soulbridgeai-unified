@@ -468,6 +468,22 @@ def create_app():
             except Exception as db_error:
                 logger.warning(f"⚠️ Could not save companion to database: {db_error}")
             
+            # Update new companion persistence system
+            try:
+                from display_name_helpers import set_companion_data
+                from modules.companions.companion_data import get_companion_by_id
+                companion = get_companion_by_id(companion_id)
+                if companion and session.get('user_id'):
+                    companion_data = {
+                        'companion_id': companion_id,
+                        'name': companion.get('display_name', companion_id),
+                        'tier': companion.get('tier', 'bronze')
+                    }
+                    set_companion_data(session.get('user_id'), companion_data)
+                    logger.info(f"✅ Updated new companion persistence system: {companion_id}")
+            except Exception as e:
+                logger.warning(f"⚠️ Could not update new companion system: {e}")
+            
             # Find companion data - All 31 companions
             companions = [
                 # Bronze companions (10)
