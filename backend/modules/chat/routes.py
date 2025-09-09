@@ -134,9 +134,30 @@ def chat_companion(companion_id):
 @chat_bp.route('/api/chat/send', methods=['POST'])
 @requires_login
 def send_chat_message():
-    """Send a message to AI companion - TODO: Add credits in Phase 3"""
+    """Send a message to AI companion - Uses 1 Artistic Time credit per message"""
     try:
         user_id = get_user_id()
+        
+        # Check and deduct credits for chat message (1 credit)
+        from ...modules.credits.operations import get_artistic_time, deduct_artistic_time
+        
+        current_credits = get_artistic_time(user_id)
+        if current_credits < 1:
+            return jsonify({
+                "success": False,
+                "error": "Insufficient Artistic Time credits for chat message",
+                "credits_needed": 1,
+                "current_credits": current_credits,
+                "upgrade_required": True
+            }), 402  # Payment Required
+        
+        # Deduct 1 credit for the message
+        if not deduct_artistic_time(user_id, 1):
+            return jsonify({
+                "success": False,
+                "error": "Failed to deduct credits for chat message"
+            }), 500
+        
         user_plan = session.get('user_plan', 'bronze')
         trial_active = session.get('trial_active', False)
         
@@ -204,6 +225,9 @@ def send_chat_message():
         # Get updated rate limit info
         rate_limit_info = message_handler.get_rate_limit_info(user_id, user_plan)
         
+        # Get updated credit balance after deduction
+        remaining_credits = get_artistic_time(user_id)
+        
         return jsonify({
             "success": True,
             "message": validation['cleaned_message'],
@@ -212,7 +236,9 @@ def send_chat_message():
             "model_used": response_data.get('model_used'),
             "tokens_used": response_data.get('tokens_used'),
             "rate_limit_info": rate_limit_info,
-            "session_id": session_id
+            "session_id": session_id,
+            "credits_charged": 1,
+            "credits_remaining": remaining_credits
         })
         
     except Exception as e:
