@@ -66,209 +66,181 @@ def horoscope_page():
 @creative_bp.route("/api/v2/decoder", methods=["POST"])
 @requires_login
 def api_decoder():
-    """Dream decoder API endpoint"""
-    try:
-        data = request.get_json()
-        if not data:
-            return jsonify({"success": False, "error": "No data provided"}), 400
-        
-        dream_text = data.get('dream', '').strip()
-        mode = data.get('mode', 'dream').strip()
-        if not dream_text:
-            return jsonify({"success": False, "error": "Text is required"}), 400
-        
-        # Check usage limits
-        user_id = get_user_id()
-        user_plan = session.get('user_plan', 'bronze')
-        trial_active = session.get('trial_active', False)
-        
-        usage_tracker = CreativeUsageTracker()
-        if not usage_tracker.can_use_feature(user_id, 'decoder', user_plan, trial_active):
-            limit = get_feature_limit('decoder', user_plan, trial_active)
-            return jsonify({
-                "success": False,
-                "error": f"Daily limit reached ({limit} uses per day)",
-                "limit_reached": True
-            }), 429
-        
-        # Generate interpretation based on mode
-        creative_service = CreativeService()
-        result = creative_service.decode_dream(dream_text, user_id, mode)
-        
-        if result['success']:
-            # Track usage
-            logger.info(f"🔓 Recording decoder usage for user {user_id}")
-            usage_success = usage_tracker.record_usage(user_id, 'decoder')
-            logger.info(f"🔓 Usage recording result: {usage_success}")
+    """Dream decoder API endpoint - Now uses Artistic Time credits"""
+    from ...modules.credits.decorators import require_credits
+    
+    # Apply credit requirement first
+    @require_credits('decoder')
+    def _decoder_logic():
+        try:
+            data = request.get_json()
+            if not data:
+                return jsonify({"success": False, "error": "No data provided"}), 400
             
-            # Auto-save to library
-            auto_saved = False
-            try:
-                from ..library.content_service import ContentService
-                content_service = ContentService()
-                content_id = content_service.save_decoder_session(
-                    user_id=user_id,
-                    input_text=data.get('original_text', dream_text),
-                    decoded_text=result['interpretation']
-                )
-                auto_saved = bool(content_id)
-                logger.info(f"🔓 Auto-saved decoder session to library for user {user_id}")
-            except Exception as e:
-                logger.error(f"Failed to auto-save decoder session: {e}")
+            dream_text = data.get('dream', '').strip()
+            mode = data.get('mode', 'dream').strip()
+            if not dream_text:
+                return jsonify({"success": False, "error": "Text is required"}), 400
+            
+            user_id = get_user_id()
+            
+            # Generate interpretation based on mode
+            creative_service = CreativeService()
+            result = creative_service.decode_dream(dream_text, user_id, mode)
+            
+            if result['success']:
+                # Auto-save to library
                 auto_saved = False
-            
-            return jsonify({
-                "success": True,
-                "interpretation": result['interpretation'],
-                "symbols": result.get('symbols_found', []),
-                "mood": result.get('mood', 'neutral'),
-                "auto_saved": auto_saved,
-                "saved_message": "✅ Automatically saved to your library" if auto_saved else ""
-            })
-        else:
-            return jsonify(result), 500
-            
-    except Exception as e:
-        logger.error(f"Error in decoder API: {e}")
-        return jsonify({"success": False, "error": "Dream decoding failed"}), 500
+                try:
+                    from ..library.content_service import ContentService
+                    content_service = ContentService()
+                    content_id = content_service.save_decoder_session(
+                        user_id=user_id,
+                        input_text=data.get('original_text', dream_text),
+                        decoded_text=result['interpretation']
+                    )
+                    auto_saved = bool(content_id)
+                    logger.info(f"✅ Auto-saved decoder session to library for user {user_id}")
+                except Exception as e:
+                    logger.error(f"Failed to auto-save decoder session: {e}")
+                    auto_saved = False
+                
+                return jsonify({
+                    "success": True,
+                    "interpretation": result['interpretation'],
+                    "symbols": result.get('symbols_found', []),
+                    "mood": result.get('mood', 'neutral'),
+                    "auto_saved": auto_saved,
+                    "saved_message": "✅ Automatically saved to your library" if auto_saved else ""
+                })
+            else:
+                return jsonify(result), 500
+                
+        except Exception as e:
+            logger.error(f"Error in decoder API: {e}")
+            return jsonify({"success": False, "error": "Dream decoding failed"}), 500
+    
+    return _decoder_logic()
 
 @creative_bp.route("/api/v2/horoscope", methods=["POST"])
 @requires_login
 def api_horoscope():
-    """Horoscope API endpoint"""
-    try:
-        data = request.get_json()
-        if not data:
-            return jsonify({"success": False, "error": "No data provided"}), 400
-        
-        zodiac_sign = data.get('sign', '').strip().lower()
-        if not zodiac_sign or not validate_zodiac_sign(zodiac_sign):
-            return jsonify({"success": False, "error": "Valid zodiac sign required"}), 400
-        
-        # Check usage limits
-        user_id = get_user_id()
-        user_plan = session.get('user_plan', 'bronze')
-        trial_active = session.get('trial_active', False)
-        
-        usage_tracker = CreativeUsageTracker()
-        if not usage_tracker.can_use_feature(user_id, 'horoscope', user_plan, trial_active):
-            limit = get_feature_limit('horoscope', user_plan, trial_active)
-            return jsonify({
-                "success": False,
-                "error": f"Daily limit reached ({limit} uses per day)",
-                "limit_reached": True
-            }), 429
-        
-        # Generate horoscope
-        creative_service = CreativeService()
-        result = creative_service.generate_horoscope(zodiac_sign, user_id)
-        
-        if result['success']:
-            # Track usage
-            usage_tracker.record_usage(user_id, 'horoscope')
+    """Horoscope API endpoint - Now uses Artistic Time credits"""
+    from ...modules.credits.decorators import require_credits
+    
+    # Apply credit requirement first
+    @require_credits('horoscope')
+    def _horoscope_logic():
+        try:
+            data = request.get_json()
+            if not data:
+                return jsonify({"success": False, "error": "No data provided"}), 400
             
-            # Auto-save to library
-            auto_saved = False
-            try:
-                from ..library.content_service import ContentService
-                content_service = ContentService()
-                content_id = content_service.save_horoscope_reading(
-                    user_id=user_id,
-                    sign=result['sign'],
-                    horoscope_text=result['horoscope']
-                )
-                auto_saved = bool(content_id)
-                logger.info(f"⭐ Auto-saved horoscope reading to library for user {user_id}")
-            except Exception as e:
-                logger.error(f"Failed to auto-save horoscope reading: {e}")
+            zodiac_sign = data.get('sign', '').strip().lower()
+            if not zodiac_sign or not validate_zodiac_sign(zodiac_sign):
+                return jsonify({"success": False, "error": "Valid zodiac sign required"}), 400
+            
+            user_id = get_user_id()
+            
+            # Generate horoscope
+            creative_service = CreativeService()
+            result = creative_service.generate_horoscope(zodiac_sign, user_id)
+            
+            if result['success']:
+                # Auto-save to library
                 auto_saved = False
-            
-            return jsonify({
-                "success": True,
-                "horoscope": result['horoscope'],
-                "sign": result['sign'],
-                "date": result['date'],
-                "lucky_numbers": result['lucky_numbers'],
-                "lucky_color": result['lucky_color'],
-                "auto_saved": auto_saved,
-                "saved_message": "✅ Automatically saved to your library" if auto_saved else ""
-            })
-        else:
-            return jsonify(result), 500
-            
-    except Exception as e:
-        logger.error(f"Error in horoscope API: {e}")
-        return jsonify({"success": False, "error": "Horoscope generation failed"}), 500
+                try:
+                    from ..library.content_service import ContentService
+                    content_service = ContentService()
+                    content_id = content_service.save_horoscope_reading(
+                        user_id=user_id,
+                        sign=result['sign'],
+                        horoscope_text=result['horoscope']
+                    )
+                    auto_saved = bool(content_id)
+                    logger.info(f"✅ Auto-saved horoscope to library for user {user_id}")
+                except Exception as e:
+                    logger.error(f"Failed to auto-save horoscope: {e}")
+                    auto_saved = False
+                
+                return jsonify({
+                    "success": True,
+                    "sign": result['sign'],
+                    "horoscope": result['horoscope'],
+                    "mood": result.get('mood', 'positive'),
+                    "auto_saved": auto_saved,
+                    "saved_message": "✅ Automatically saved to your library" if auto_saved else ""
+                })
+            else:
+                return jsonify(result), 500
+                
+        except Exception as e:
+            logger.error(f"Error in horoscope API: {e}")
+            return jsonify({"success": False, "error": "Horoscope generation failed"}), 500
+    
+    return _horoscope_logic()
 
 @creative_bp.route("/api/creative-writing", methods=["POST"])
 @requires_login
 def api_creative_writing():
-    """Creative writing API endpoint"""
-    try:
-        data = request.get_json()
-        if not data:
-            return jsonify({"success": False, "error": "No data provided"}), 400
-        
-        prompt = data.get('prompt', '').strip()
-        style = data.get('style', 'story').strip()
-        
-        if not prompt:
-            return jsonify({"success": False, "error": "Writing prompt is required"}), 400
-        
-        # Check usage limits
-        user_id = get_user_id()
-        user_plan = session.get('user_plan', 'bronze')
-        trial_active = session.get('trial_active', False)
-        
-        usage_tracker = CreativeUsageTracker()
-        if not usage_tracker.can_use_feature(user_id, 'creative_writing', user_plan, trial_active):
-            limit = get_feature_limit('creative_writing', user_plan, trial_active)
-            return jsonify({
-                "success": False,
-                "error": f"Daily limit reached ({limit} uses per day)",
-                "limit_reached": True
-            }), 429
-        
-        # Generate creative content
-        creative_service = CreativeService()
-        result = creative_service.generate_creative_writing(prompt, style, user_id)
-        
-        if result['success']:
-            # Track usage
-            usage_tracker.record_usage(user_id, 'creative_writing')
+    """Creative writing API endpoint - Now uses Artistic Time credits"""
+    from ...modules.credits.decorators import require_credits
+    
+    # Apply credit requirement first
+    @require_credits('creative_writer')
+    def _creative_writing_logic():
+        try:
+            data = request.get_json()
+            if not data:
+                return jsonify({"success": False, "error": "No data provided"}), 400
             
-            # Auto-save to library
-            auto_saved = False
-            try:
-                from ..library.content_service import ContentService
-                content_service = ContentService()
-                content_id = content_service.save_creative_writing(
-                    user_id=user_id,
-                    prompt=result['prompt'],
-                    generated_text=result['content'],
-                    style=result['style']
-                )
-                auto_saved = bool(content_id)
-                logger.info(f"✍️ Auto-saved creative writing to library for user {user_id}")
-            except Exception as e:
-                logger.error(f"Failed to auto-save creative writing: {e}")
+            prompt = data.get('prompt', '').strip()
+            style = data.get('style', 'story').strip()
+            
+            if not prompt:
+                return jsonify({"success": False, "error": "Writing prompt is required"}), 400
+            
+            user_id = get_user_id()
+            
+            # Generate creative content
+            creative_service = CreativeService()
+            result = creative_service.generate_creative_writing(prompt, style, user_id)
+            
+            if result['success']:
+                # Auto-save to library
                 auto_saved = False
-            
-            return jsonify({
-                "success": True,
-                "content": result['content'],
-                "style": result['style'],
-                "prompt": result['prompt'],
-                "word_count": result['word_count'],
-                "auto_saved": auto_saved,
-                "saved_message": "✅ Automatically saved to your library" if auto_saved else ""
-            })
-        else:
-            return jsonify(result), 500
-            
-    except Exception as e:
-        logger.error(f"Error in creative writing API: {e}")
-        return jsonify({"success": False, "error": "Creative writing failed"}), 500
+                try:
+                    from ..library.content_service import ContentService
+                    content_service = ContentService()
+                    content_id = content_service.save_creative_writing(
+                        user_id=user_id,
+                        prompt=result['prompt'],
+                        generated_text=result['content'],
+                        style=result['style']
+                    )
+                    auto_saved = bool(content_id)
+                    logger.info(f"✅ Auto-saved creative writing to library for user {user_id}")
+                except Exception as e:
+                    logger.error(f"Failed to auto-save creative writing: {e}")
+                    auto_saved = False
+                
+                return jsonify({
+                    "success": True,
+                    "content": result['content'],
+                    "prompt": result['prompt'],
+                    "style": result['style'],
+                    "word_count": result.get('word_count', 0),
+                    "auto_saved": auto_saved,
+                    "saved_message": "✅ Automatically saved to your library" if auto_saved else ""
+                })
+            else:
+                return jsonify(result), 500
+                
+        except Exception as e:
+            logger.error(f"Error in creative writing API: {e}")
+            return jsonify({"success": False, "error": "Creative writing failed"}), 500
+    
+    return _creative_writing_logic()
 
 # Usage checking endpoints
 @creative_bp.route("/api/decoder/debug-table")

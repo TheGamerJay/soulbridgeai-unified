@@ -52,33 +52,32 @@ def get_spreads():
 
 @fortune_bp.route('/api/fortune/reading', methods=['POST'])
 def generate_reading():
-    """Generate deterministic tarot reading"""
+    """Generate deterministic tarot reading - Now uses Artistic Time credits"""
+    from ...modules.credits.decorators import require_credits
+    
+    # Apply credit requirement (but allow anonymous users to continue without credits for basic readings)
+    user_id = session.get('user_id')
+    
+    if user_id:
+        # For logged in users, require credits
+        @require_credits('fortune_teller')
+        def _fortune_logic():
+            return _generate_reading_logic()
+        return _fortune_logic()
+    else:
+        # For anonymous users, allow basic readings without credits
+        return _generate_reading_logic()
+
+def _generate_reading_logic():
+    """Core fortune reading logic"""
     try:
         data = request.get_json()
         if not data:
             return jsonify({"success": False, "error": "No data provided"}), 400
 
         user_id = session.get('user_id')
-        
-        # Check usage limits only if user is logged in
-        if user_id:
-            from ..user_profile.profile_service import ProfileService
-            profile_service = ProfileService()
-            user_profile_result = profile_service.get_user_profile(user_id)
-            user_profile = user_profile_result.get('user') if user_profile_result.get('success') else None
-            user_plan = user_profile.get('plan', 'bronze') if user_profile else 'bronze'
-            trial_active = user_profile.get('trial_active', False) if user_profile else False
-            
-            if not usage_tracker.can_use_feature(user_id, 'fortune', user_plan, trial_active):
-                limit = get_feature_limit('fortune', user_plan, trial_active)
-                return jsonify({
-                    "success": False, 
-                    "error": f"Daily fortune limit reached ({limit} uses). Upgrade for more readings."
-                }), 429
-        else:
-            # Default for logged out users
-            user_plan = 'bronze'
-            trial_active = False
+        user_plan = 'bronze'  # Default for anonymous users
+        trial_active = False
 
         # Get parameters
         question = data.get('question', '').strip()

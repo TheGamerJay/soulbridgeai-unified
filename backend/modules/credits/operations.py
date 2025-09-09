@@ -72,45 +72,39 @@ def ensure_user_data_initialized(user_id: int, db) -> bool:
         return False
 
 def get_artistic_time(user_id: int) -> int:
-    """Get user's current artistic time balance"""
+    """Get user's current artistic time balance from new credit system"""
     try:
         # Import here to avoid circular imports
-        from ..shared.database import get_database
+        try:
+            from database_utils import get_database
+        except ImportError:
+            from ..shared.database import get_database
         
         db = get_database()
         if not db:
-            # Fallback: Try legacy database connection
-            try:
-                from database_utils import get_database as get_db_fallback
-                db = get_db_fallback()
-                if not db:
-                    logger.error(f"No database connection for credits user {user_id}")
-                    return 0
-            except Exception as e:
-                logger.error(f"Database fallback failed for user {user_id}: {e}")
-                return 0
-        
-        # Ensure user data is properly initialized
-        if not ensure_user_data_initialized(user_id, db):
-            logger.error(f"Failed to initialize credit data for user {user_id}")
+            logger.error(f"No database connection for credits user {user_id}")
             return 0
         
         conn = db.get_connection()
         cursor = conn.cursor()
         
-        # Get user credit data
-        if db.use_postgres:
-            cursor.execute("""
-                SELECT user_plan, artistic_time, trial_active, 
-                       last_credit_reset, trial_credits
-                FROM users WHERE id = %s
-            """, (user_id,))
-        else:
-            cursor.execute("""
-                SELECT user_plan, artistic_time, trial_active, 
-                       last_credit_reset, trial_credits  
-                FROM users WHERE id = ?
-            """, (user_id,))
+        # First check new user_credits table
+        cursor.execute("""
+            SELECT credits_remaining FROM user_credits WHERE user_id = ?
+        """, (user_id,))
+        
+        result = cursor.fetchone()
+        if result:
+            credits = result[0] or 0
+            logger.debug(f"Credits from new system for user {user_id}: {credits}")
+            conn.close()
+            return max(0, credits)
+        
+        # Fallback to old system for migration period
+        cursor.execute("""
+            SELECT user_plan, artistic_time, trial_active, trial_credits
+            FROM users WHERE id = ?
+        """, (user_id,))
         
         result = cursor.fetchone()
         if not result:
@@ -118,60 +112,30 @@ def get_artistic_time(user_id: int) -> int:
             conn.close()
             return 0
             
-        user_plan, current_credits, trial_active, last_reset, trial_credits = result
-        logger.debug(f"Credits for user {user_id}: plan={user_plan}, credits={current_credits}, trial={trial_active}, trial_credits={trial_credits}")
+        user_plan, current_credits, trial_active, trial_credits = result
         
-        # Check if monthly reset is needed for subscribers
-        today = date.today()
-        needs_reset = (
-            last_reset is None or 
-            last_reset.year != today.year or 
-            last_reset.month != today.month
-        )
-        
-        if needs_reset and user_plan in ['silver', 'gold']:
-            # Reset monthly credits
-            monthly_allowance = TIER_ARTISTIC_TIME.get(user_plan, 0)
-            if db.use_postgres:
-                cursor.execute("""
-                    UPDATE users 
-                    SET artistic_time = %s, last_credit_reset = %s 
-                    WHERE id = %s
-                """, (monthly_allowance, today, user_id))
-            else:
-                cursor.execute("""
-                    UPDATE users 
-                    SET artistic_time = ?, last_credit_reset = ? 
-                    WHERE id = ?
-                """, (monthly_allowance, today, user_id))
-            conn.commit()
-            current_credits = monthly_allowance
-            logger.info(f"Reset monthly credits for {user_plan} user {user_id}: {monthly_allowance}")
-        
-        # Calculate total available credits
+        # Calculate total from old system
         total_credits = current_credits or 0
-        
-        # Add trial credits for Bronze trial users
         if trial_active and user_plan == 'bronze':
             trial_balance = trial_credits or TRIAL_ARTISTIC_TIME
             total_credits += trial_balance
-            logger.debug(f"Added trial credits to user {user_id}: {trial_balance}")
             
-        logger.debug(f"Total credits for user {user_id}: {total_credits}")
+        logger.debug(f"Credits from old system for user {user_id}: {total_credits}")
         conn.close()
         return max(0, total_credits)
         
     except Exception as e:
         logger.error(f"Error getting credits for user {user_id}: {e}")
-        import traceback
-        traceback.print_exc()
         return 0
 
 def deduct_artistic_time(user_id: int, amount: int) -> bool:
-    """Deduct artistic time from user's balance"""
+    """Deduct artistic time from user's balance using new credit system"""
     try:
         # Import here to avoid circular imports
-        from ..shared.database import get_database
+        try:
+            from database_utils import get_database
+        except ImportError:
+            from ..shared.database import get_database
         
         db = get_database()
         if not db:
@@ -181,17 +145,41 @@ def deduct_artistic_time(user_id: int, amount: int) -> bool:
         conn = db.get_connection()
         cursor = conn.cursor()
         
-        # Get current balance
-        if db.use_postgres:
+        # Check current balance from new system first
+        cursor.execute("""
+            SELECT credits_remaining FROM user_credits WHERE user_id = ?
+        """, (user_id,))
+        
+        result = cursor.fetchone()
+        if result:
+            current_credits = result[0] or 0
+            if current_credits < amount:
+                logger.warning(f"Insufficient credits for user {user_id}: need {amount}, have {current_credits}")
+                conn.close()
+                return False
+            
+            # Deduct from new system
+            new_balance = current_credits - amount
             cursor.execute("""
-                SELECT user_plan, artistic_time, trial_active, trial_credits
-                FROM users WHERE id = %s
-            """, (user_id,))
-        else:
+                UPDATE user_credits SET credits_remaining = ? WHERE user_id = ?
+            """, (new_balance, user_id))
+            
+            # Add to ledger
             cursor.execute("""
-                SELECT user_plan, artistic_time, trial_active, trial_credits
-                FROM users WHERE id = ?
-            """, (user_id,))
+                INSERT INTO credit_ledger (user_id, delta, reason, metadata)
+                VALUES (?, ?, ?, ?)
+            """, (user_id, -amount, 'feature_usage', '{}'))
+            
+            conn.commit()
+            conn.close()
+            logger.info(f"Deducted {amount} credits from user {user_id} (new system): {current_credits} -> {new_balance}")
+            return True
+        
+        # Fallback to old system during migration
+        cursor.execute("""
+            SELECT user_plan, artistic_time, trial_active, trial_credits
+            FROM users WHERE id = ?
+        """, (user_id,))
         
         result = cursor.fetchone()
         if not result:
@@ -201,7 +189,7 @@ def deduct_artistic_time(user_id: int, amount: int) -> bool:
             
         user_plan, current_credits, trial_active, trial_credits = result
         
-        # Calculate total available credits
+        # Use old system logic as fallback
         monthly_balance = current_credits or 0
         trial_balance = 0
         
@@ -215,53 +203,43 @@ def deduct_artistic_time(user_id: int, amount: int) -> bool:
             conn.close()
             return False
         
-        # Deduct from trial credits first, then monthly credits
+        # Deduct using old system
         new_trial_credits = trial_credits or 0
         new_monthly_credits = monthly_balance
         
         if trial_balance > 0:
-            # Deduct from trial first
             trial_deduction = min(amount, trial_balance)
             new_trial_credits = trial_balance - trial_deduction
             remaining_amount = amount - trial_deduction
             
-            # Deduct remaining from monthly if needed
             if remaining_amount > 0:
                 new_monthly_credits = monthly_balance - remaining_amount
         else:
-            # Deduct from monthly credits only
             new_monthly_credits = monthly_balance - amount
         
-        # Update database
-        if db.use_postgres:
-            cursor.execute("""
-                UPDATE users 
-                SET artistic_time = %s, trial_credits = %s
-                WHERE id = %s
-            """, (new_monthly_credits, new_trial_credits, user_id))
-        else:
-            cursor.execute("""
-                UPDATE users 
-                SET artistic_time = ?, trial_credits = ?
-                WHERE id = ?
-            """, (new_monthly_credits, new_trial_credits, user_id))
+        cursor.execute("""
+            UPDATE users 
+            SET artistic_time = ?, trial_credits = ?
+            WHERE id = ?
+        """, (new_monthly_credits, new_trial_credits, user_id))
         
         conn.commit()
         conn.close()
-        logger.info(f"Deducted {amount} credits from user {user_id}: monthly={new_monthly_credits}, trial={new_trial_credits}")
+        logger.info(f"Deducted {amount} credits from user {user_id} (old system): monthly={new_monthly_credits}, trial={new_trial_credits}")
         return True
         
     except Exception as e:
         logger.error(f"Error deducting credits for user {user_id}: {e}")
-        import traceback
-        traceback.print_exc()
         return False
 
 def refund_artistic_time(user_id: int, amount: int, reason: str = "refund") -> bool:
-    """Refund artistic time to user's balance"""
+    """Refund artistic time to user's balance using new credit system"""
     try:
         # Import here to avoid circular imports
-        from ..shared.database import get_database
+        try:
+            from database_utils import get_database
+        except ImportError:
+            from ..shared.database import get_database
         
         db = get_database()
         if not db:
@@ -271,17 +249,37 @@ def refund_artistic_time(user_id: int, amount: int, reason: str = "refund") -> b
         conn = db.get_connection()
         cursor = conn.cursor()
         
-        # Get current balance to determine where to refund
-        if db.use_postgres:
+        # Check if user exists in new system
+        cursor.execute("""
+            SELECT credits_remaining FROM user_credits WHERE user_id = ?
+        """, (user_id,))
+        
+        result = cursor.fetchone()
+        if result:
+            # Use new system
+            current_credits = result[0] or 0
+            new_balance = current_credits + amount
+            
             cursor.execute("""
-                SELECT user_plan, artistic_time, trial_active, trial_credits
-                FROM users WHERE id = %s
-            """, (user_id,))
-        else:
+                UPDATE user_credits SET credits_remaining = ? WHERE user_id = ?
+            """, (new_balance, user_id))
+            
+            # Add to ledger
             cursor.execute("""
-                SELECT user_plan, artistic_time, trial_active, trial_credits
-                FROM users WHERE id = ?
-            """, (user_id,))
+                INSERT INTO credit_ledger (user_id, delta, reason, metadata)
+                VALUES (?, ?, ?, ?)
+            """, (user_id, amount, reason, '{}'))
+            
+            conn.commit()
+            conn.close()
+            logger.info(f"Refunded {amount} credits to user {user_id} (new system): {current_credits} -> {new_balance} (reason: {reason})")
+            return True
+        
+        # Fallback to old system
+        cursor.execute("""
+            SELECT user_plan, artistic_time, trial_active, trial_credits
+            FROM users WHERE id = ?
+        """, (user_id,))
         
         result = cursor.fetchone()
         if not result:
@@ -291,41 +289,25 @@ def refund_artistic_time(user_id: int, amount: int, reason: str = "refund") -> b
             
         user_plan, current_credits, trial_active, trial_credits = result
         
-        # Refund to appropriate balance
+        # Use old system logic
         if trial_active and user_plan == 'bronze':
-            # Refund to trial credits for Bronze trial users
             new_trial_credits = (trial_credits or 0) + amount
-            if db.use_postgres:
-                cursor.execute("""
-                    UPDATE users 
-                    SET trial_credits = %s
-                    WHERE id = %s
-                """, (new_trial_credits, user_id))
-            else:
-                cursor.execute("""
-                    UPDATE users 
-                    SET trial_credits = ?
-                    WHERE id = ?
-                """, (new_trial_credits, user_id))
+            cursor.execute("""
+                UPDATE users 
+                SET trial_credits = ?
+                WHERE id = ?
+            """, (new_trial_credits, user_id))
         else:
-            # Refund to monthly credits for subscribers
             new_monthly_credits = (current_credits or 0) + amount
-            if db.use_postgres:
-                cursor.execute("""
-                    UPDATE users 
-                    SET artistic_time = %s
-                    WHERE id = %s
-                """, (new_monthly_credits, user_id))
-            else:
-                cursor.execute("""
-                    UPDATE users 
-                    SET artistic_time = ?
-                    WHERE id = ?
-                """, (new_monthly_credits, user_id))
+            cursor.execute("""
+                UPDATE users 
+                SET artistic_time = ?
+                WHERE id = ?
+            """, (new_monthly_credits, user_id))
         
         conn.commit()
         conn.close()
-        logger.info(f"Refunded {amount} credits to user {user_id} (reason: {reason})")
+        logger.info(f"Refunded {amount} credits to user {user_id} (old system, reason: {reason})")
         return True
         
     except Exception as e:
