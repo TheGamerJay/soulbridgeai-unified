@@ -85,7 +85,7 @@ def enhance_security_headers(app):
             # Enhanced Content Security Policy - Fixed blob URL support for media
             csp = (
                 "default-src 'self' blob:; "
-                "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://pagead2.googlesyndication.com https://www.googletagservices.com https://ep2.adtrafficquality.google https://www.gstatic.com https://js.stripe.com; "
+                "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com https://pagead2.googlesyndication.com https://www.googletagservices.com https://ep2.adtrafficquality.google https://www.gstatic.com https://js.stripe.com https://cdn.tailwindcss.com; "
                 "worker-src 'self' blob:; "
                 "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; "
                 "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; "

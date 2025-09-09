@@ -6,6 +6,7 @@ import logging
 from flask import Blueprint, render_template, request, session, jsonify, redirect
 from ..auth.session_manager import requires_login, get_user_id
 from .companion_data import get_all_companions, get_companion_by_id, get_companions_by_tier
+from .skin_system import get_consolidated_companions, get_companion_by_id as get_skin_companion_by_id, get_referral_companions
 from .access_control import (
     get_user_companion_access, 
     require_companion_access,
@@ -27,7 +28,9 @@ def companion_selection():
         from flask import session
         
         access_info = get_user_companion_access()
-        companions = get_all_companions()
+        # Get consolidated companions with skin support
+        companions = get_consolidated_companions()
+        referral_companions = get_referral_companions()
         
         # Get user tier info for template
         user_plan = session.get('user_plan', 'bronze')
@@ -46,6 +49,7 @@ def companion_selection():
         
         return render_template("companion_selection.html", 
                              companions=companions,
+                             referral_companions=referral_companions,
                              access_info=access_info,
                              tier=user_plan,
                              tier_display=tier_display,
@@ -107,8 +111,8 @@ def chat_tier(tier):
 def companion_specific_chat(tier, companion_id):
     """Chat with specific companion"""
     try:
-        # Verify companion exists and user has access
-        companion = get_companion_by_id(companion_id)
+        # Verify companion exists and user has access (check both systems)
+        companion = get_companion_by_id(companion_id) or get_skin_companion_by_id(companion_id)
         if not companion:
             logger.warning(f"Companion not found: {companion_id}")
             return redirect("/companion-selection")
@@ -137,15 +141,21 @@ def api_companions():
     """API endpoint for companion data"""
     try:
         access_info = get_user_companion_access()
-        companions = get_all_companions()
+        # Get consolidated companions for API
+        consolidated_companions = get_consolidated_companions()
+        referral_companions = get_referral_companions()
         
         # Add access information to each companion
-        for companion in companions:
+        for companion in consolidated_companions:
+            companion['can_access'] = require_companion_access(companion['id'])
+        
+        for companion in referral_companions:
             companion['can_access'] = require_companion_access(companion['id'])
         
         return jsonify({
             'success': True,
-            'companions': companions,
+            'companions': consolidated_companions,
+            'referral_companions': referral_companions,
             'access_info': access_info
         })
         
@@ -225,6 +235,63 @@ def process_voice_chat():
     except Exception as e:
         logger.error(f"Error in voice chat processing: {e}")
         return jsonify({'success': False, 'error': 'Voice processing failed'}), 500
+
+@companions_bp.route("/api/companion/skins/<base_name>")
+@requires_login
+def get_companion_skins_api(base_name):
+    """API endpoint to get skins for a specific companion"""
+    try:
+        from .skin_system import get_companion_skins
+        skins = get_companion_skins(base_name)
+        
+        if not skins:
+            return jsonify({'success': False, 'error': 'No skins found for this companion'}), 404
+        
+        return jsonify({
+            'success': True,
+            'skins': skins,
+            'base_name': base_name
+        })
+        
+    except Exception as e:
+        logger.error(f"Error getting companion skins for {base_name}: {e}")
+        return jsonify({'success': False, 'error': 'Failed to load skins'}), 500
+
+@companions_bp.route("/api/companion/select-skin", methods=["POST"])
+@requires_login
+def select_companion_skin():
+    """API endpoint to select a specific skin for a companion"""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'success': False, 'error': 'No data provided'}), 400
+        
+        companion_id = data.get('companion_id')
+        if not companion_id:
+            return jsonify({'success': False, 'error': 'Companion ID required'}), 400
+        
+        # Verify companion exists (check both systems)
+        companion = get_companion_by_id(companion_id) or get_skin_companion_by_id(companion_id)
+        if not companion:
+            return jsonify({'success': False, 'error': 'Companion not found'}), 404
+        
+        # Verify user has access
+        if not require_companion_access(companion_id):
+            return jsonify({'success': False, 'error': 'Access denied to this companion'}), 403
+        
+        # Set as selected companion
+        session['selected_companion'] = companion_id
+        session.modified = True
+        
+        return jsonify({
+            'success': True,
+            'companion': companion,
+            'message': f'Selected {companion.get("name", "companion")} successfully'
+        })
+        
+    except Exception as e:
+        logger.error(f"Error selecting companion skin: {e}")
+        return jsonify({'success': False, 'error': 'Failed to select skin'}), 500
 
 @companions_bp.route("/companions/showcase")
 def community_companions():

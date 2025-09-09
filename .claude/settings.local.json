@@ -12,7 +12,12 @@
       "Bash(node:*)",
       "Bash(curl:*)",
       "Bash(find:*)",
-      "Bash(magick:*)"
+      "Bash(magick:*)",
+      "Bash(git rm:*)",
+      "Bash(git checkout:*)",
+      "Bash(for:*)",
+      "Bash(do sed -i 's/@rate_limit_moderate()/@rate_limit_moderate/g' \"$file\")",
+      "Bash(done)"
     ],
     "deny": [],
     "ask": [],

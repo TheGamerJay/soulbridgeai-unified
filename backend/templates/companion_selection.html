@@ -403,12 +403,17 @@
                 </div>
                 <div class="companion-grid">
                     {% for companion in soul_companions %}
-                        <a href="/chat/{{ companion.id }}" class="netflix-card">
+                        <div class="netflix-card companion-card" data-companion="{{ companion.name|lower }}" onclick="showCompanionOptions('{{ companion.name|lower }}', '{{ companion.name }}', {{ companion.has_skins|tojson }})">
                             <div class="netflix-poster">
                                 <img src="{{ companion.image_url }}" alt="{{ companion.name }}" />
                                 <div class="netflix-overlay">
+                                    {% if companion.has_skins %}
+                                    <div class="unlock-status">🎨 CHOOSE SKIN</div>
+                                    <div class="unlock-requirement">Select your preferred style</div>
+                                    {% else %}
                                     <div class="unlock-status">🚀 START CHAT</div>
                                     <div class="unlock-requirement">Begin your conversation</div>
+                                    {% endif %}
                                 </div>
                             </div>
                             <div class="netflix-info">
@@ -416,9 +421,12 @@
                                 <p class="companion-cost">Uses Artistic Time credits per conversation</p>
                                 <div class="netflix-badges">
                                     <span class="badge soul-companion">✨ Soul Companions</span>
+                                    {% if companion.has_skins %}
+                                    <span class="badge skin-available">🎨 Skins</span>
+                                    {% endif %}
                                 </div>
                             </div>
-                        </a>
+                        </div>
                     {% endfor %}
                 </div>
             </div>
@@ -480,12 +488,202 @@
         {% endif %}
     </div>
     
+    <!-- Skin Selection Modal -->
+    <div id="skinModal" class="skin-modal" style="display: none;">
+        <div class="skin-modal-content">
+            <div class="skin-modal-header">
+                <h3 id="companionTitle">Choose Your Style</h3>
+                <button class="skin-close" onclick="closeSkinModal()">&times;</button>
+            </div>
+            <div class="skin-modal-body">
+                <div id="skinOptions" class="skin-grid">
+                    <!-- Skin options will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .badge.skin-available {
+            background: linear-gradient(135deg, #ff6b6b, #ff8e53);
+            color: white;
+            font-size: 0.7rem;
+            padding: 2px 8px;
+        }
+
+        .skin-modal {
+            position: fixed;
+            z-index: 9999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+        }
+
+        .skin-modal-content {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            margin: 5% auto;
+            padding: 0;
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            border-radius: 20px;
+            width: 90%;
+            max-width: 800px;
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        .skin-modal-header {
+            padding: 20px 30px;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .skin-modal-header h3 {
+            color: #00ffff;
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        .skin-close {
+            background: none;
+            border: none;
+            color: #00ffff;
+            font-size: 2rem;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .skin-modal-body {
+            padding: 30px;
+        }
+
+        .skin-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .skin-option {
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(0, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: white;
+        }
+
+        .skin-option:hover {
+            border-color: rgba(0, 255, 255, 0.5);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 255, 255, 0.2);
+        }
+
+        .skin-option img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 10px;
+        }
+
+        .skin-option h4 {
+            margin: 10px 0 5px 0;
+            color: #00ffff;
+        }
+
+        .skin-option .skin-tier {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        @keyframes modalSlideIn {
+            from { opacity: 0; transform: translateY(-50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 768px) {
+            .skin-modal-content {
+                width: 95%;
+                margin: 10% auto;
+            }
+            
+            .skin-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 15px;
+            }
+        }
+    </style>
+
     <script>
+        // Skin data from backend (you'll need to pass this from the route)
+        const companionSkins = {{ companion_skins|tojson|safe }};
+
+        function showCompanionOptions(companionKey, companionName, hasSkins) {
+            if (!hasSkins) {
+                // No skins, go directly to chat
+                window.location.href = `/chat/bronze/${companionKey}`;
+                return;
+            }
+
+            // Show skin selection modal
+            document.getElementById('companionTitle').textContent = `Choose Your ${companionName} Style`;
+            const skinOptions = document.getElementById('skinOptions');
+            skinOptions.innerHTML = '';
+
+            const skins = companionSkins[companionKey];
+            if (skins && skins.skins) {
+                skins.skins.forEach(skin => {
+                    const skinDiv = document.createElement('div');
+                    skinDiv.className = 'skin-option';
+                    skinDiv.onclick = () => selectSkin(skin.id);
+                    
+                    skinDiv.innerHTML = `
+                        <img src="${skin.image}" alt="${skin.name}" />
+                        <h4>${skin.name}</h4>
+                        <div class="skin-tier">${skin.tier} style</div>
+                    `;
+                    
+                    skinOptions.appendChild(skinDiv);
+                });
+            }
+
+            document.getElementById('skinModal').style.display = 'block';
+        }
+
+        function closeSkinModal() {
+            document.getElementById('skinModal').style.display = 'none';
+        }
+
+        function selectSkin(skinId) {
+            closeSkinModal();
+            window.location.href = `/chat/${skinId}`;
+        }
+
         function confirmReferral(companionName, referralCount) {
             const message = `${companionName} requires ${referralCount} referrals to unlock. Would you like to visit the referral page?`;
             
             if (confirm(message)) {
                 window.location.href = '/referrals';
+            }
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('skinModal');
+            if (event.target === modal) {
+                closeSkinModal();
             }
         }
     </script>
