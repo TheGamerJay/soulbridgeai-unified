@@ -536,12 +536,11 @@ def create_app():
             logger.info(f"✅ Loading chat for companion: {companion_id}")
             
             from flask import render_template
-            return render_template('chat.html', 
-                                 companion=companion,
-                                 companion_display_name=companion.get('name', 'AI Assistant'),
+            return render_template('chat_bronze.html', 
+                                 companion_info=companion,
+                                 ai_character_name=companion.get('name', 'AI Assistant'),
                                  companion_avatar=companion.get('image_url', '/static/logos/New IntroLogo.png'),
-                                 companion_tier=companion.get('tier', 'bronze'),
-                                 companion_greeting=companion.get('greeting', f"Hello! I'm {companion.get('name', 'AI Assistant')}, ready to chat and help you with whatever you need."))
+                                 trial_active=session.get('trial_active', False))
                                  
         except Exception as e:
             logger.error(f"❌ Error in companion chat: {e}")
