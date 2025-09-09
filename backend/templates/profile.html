@@ -2352,12 +2352,6 @@
 
         // viewChatHistory function removed - newer implementation below redirects to /library instead of /chat-history
 
-        window.showCompanionStats = () => {
-            showMessage('Companion statistics available in the main dashboard', 'info');
-            setTimeout(() => {
-                window.location.href = '/';
-            }, 1500);
-        };
 
         window.activateTrial = async () => {
             try {
@@ -2855,7 +2849,6 @@
             window.location.href = '/help';
         };
 
-        window.showCompanionStats = () => profile?.showCompanionStats?.() ?? showMessage('Stats unavailable','error');
 
         // Add missing showTrialCountdown wrapper function
         function showTrialCountdown(containerEl, expiresAt) {
@@ -4019,10 +4012,10 @@
             }
         }
 
-        // Show Companion Stats placeholder
+        // Show Companion Stats - redirect to analytics page
         function showCompanionStats() {
-            console.log('📊 Companion stats feature - coming soon!');
-            alert('📊 View your spiritual journey statistics and conversation insights.');
+            console.log('📊 Redirecting to analytics page...');
+            window.location.href = '/analytics';
         }
 
         // Add Sapphire helper when page loads

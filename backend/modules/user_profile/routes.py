@@ -92,24 +92,22 @@ def profile_page():
             if profile_result['success']:
                 user_data = profile_result['user']
         
-        # Get last used chat companion (not community avatar)
-        last_chat_companion = session.get('selected_companion')
+        # Get last used chat companion from our new companion persistence system
+        last_chat_companion = None
         
-        # If not in session, try to get from database
-        if not last_chat_companion and user_id:
+        if user_id:
             try:
-                from database_utils import get_database
-                database = get_database()
-                if database:
-                    result = database.execute(
-                        "SELECT selected_companion FROM users WHERE id = ?", 
-                        (user_id,)
-                    ).fetchone()
-                    if result and result[0]:
-                        last_chat_companion = result[0]
-                        logger.info(f"Retrieved last chat companion from database: {last_chat_companion}")
+                from display_name_helpers import get_companion_data
+                companion_data = get_companion_data(user_id)
+                if companion_data and companion_data.get('name'):
+                    last_chat_companion = companion_data.get('name')
+                    logger.info(f"Retrieved last chat companion from new system: {last_chat_companion}")
             except Exception as e:
                 logger.warning(f"Could not retrieve last chat companion: {e}")
+        
+        # Fallback to session if new system fails
+        if not last_chat_companion:
+            last_chat_companion = session.get('selected_companion', 'Soul')
         
         logger.info(f"📋 Profile page - last chat companion: {last_chat_companion}")
         
