@@ -339,7 +339,7 @@
 
     <div class="analytics-container">
         <div class="header">
-            <h1>📊 Usage Analytics</h1>
+            <h1><img src="/static/icons/chart-icon.svg" alt="Analytics" style="width: 24px; height: 24px; vertical-align: middle; margin-right: 8px;"> Usage Analytics</h1>
             <p>Track your SoulBridge AI activity and optimize your wellness journey</p>
         </div>
 
@@ -365,28 +365,28 @@
             <!-- Key Stats -->
             <div class="stats-grid">
                 <div class="stat-card">
-                    <div class="stat-icon">💬</div>
+                    <div class="stat-icon"><img src="/static/icons/chat-icon.svg" alt="Chat" style="width: 32px; height: 32px;"></div>
                     <div class="stat-value" id="totalConversations">0</div>
                     <div class="stat-label">Total Conversations</div>
                     <div class="stat-change positive" id="conversationsChange">+0% from last period</div>
                 </div>
 
                 <div class="stat-card">
-                    <div class="stat-icon">⏱️</div>
+                    <div class="stat-icon"><img src="/static/icons/clock-icon.svg" alt="Time" style="width: 32px; height: 32px;"></div>
                     <div class="stat-value" id="totalTime">0h</div>
                     <div class="stat-label">Time Spent</div>
                     <div class="stat-change positive" id="timeChange">+0% from last period</div>
                 </div>
 
                 <div class="stat-card">
-                    <div class="stat-icon">🔥</div>
+                    <div class="stat-icon"><img src="/static/icons/fire-icon.svg" alt="Streak" style="width: 32px; height: 32px;"></div>
                     <div class="stat-value" id="streakDays">0</div>
                     <div class="stat-label">Day Streak</div>
                     <div class="stat-change positive" id="streakChange">+0 days</div>
                 </div>
 
                 <div class="stat-card">
-                    <div class="stat-icon">⭐</div>
+                    <div class="stat-icon"><img src="/static/icons/star-icon.svg" alt="Score" style="width: 32px; height: 32px;"></div>
                     <div class="stat-value" id="favoriteCompanion">Loading...</div>
                     <div class="stat-label">Favorite Companion</div>
                     <div class="stat-change positive" id="companionUsage">0% of conversations</div>
@@ -420,7 +420,7 @@
             <div class="feature-usage-grid">
                 <div class="feature-card">
                     <div class="feature-header">
-                        <div class="feature-icon">🧠</div>
+                        <div class="feature-icon"><img src="/static/icons/brain-icon.svg" alt="Decoder" style="width: 24px; height: 24px;"></div>
                         <div class="feature-name">Decoder Mode</div>
                     </div>
                     <div class="usage-bar">
@@ -434,7 +434,7 @@
 
                 <div class="feature-card">
                     <div class="feature-header">
-                        <div class="feature-icon">🔮</div>
+                        <div class="feature-icon"><img src="/static/icons/crystal-ball-icon.svg" alt="Fortune" style="width: 24px; height: 24px;"></div>
                         <div class="feature-name">Fortune Teller</div>
                     </div>
                     <div class="usage-bar">
@@ -462,7 +462,7 @@
 
                 <div class="feature-card">
                     <div class="feature-header">
-                        <div class="feature-icon">✍️</div>
+                        <div class="feature-icon"><img src="/static/icons/write-icon.svg" alt="Writer" style="width: 24px; height: 24px;"></div>
                         <div class="feature-name">Creative Writer</div>
                     </div>
                     <div class="usage-bar">
@@ -477,7 +477,7 @@
 
             <!-- AI Insights -->
             <div class="insights-section">
-                <h3 class="insights-title">🤖 AI Insights</h3>
+                <h3 class="insights-title"><img src="/static/icons/robot-icon.svg" alt="AI" style="width: 20px; height: 20px; vertical-align: middle; margin-right: 8px;"> AI Insights</h3>
                 <div id="insightsContainer">
                     <div class="insight-item">
                         <strong>Usage Pattern:</strong> <span id="usagePattern">Analyzing your patterns...</span>
@@ -536,7 +536,7 @@
             async loadAnalyticsData() {
                 try {
                     // Load real analytics data from APIs
-                    console.log('🔄 Loading real analytics data...');
+                    console.log('[ANALYTICS] Loading real analytics data...');
                     
                     // Fetch dashboard data (main stats)
                     const dashboardResponse = await fetch('/api/analytics/dashboard', {
@@ -562,9 +562,9 @@
                         engagementResponse.ok ? engagementResponse.json() : null
                     ]);
 
-                    console.log('📊 Dashboard data:', dashboardData);
-                    console.log('📈 Usage data:', usageData);
-                    console.log('👥 Engagement data:', engagementData);
+                    console.log('[DASHBOARD] Dashboard data:', dashboardData);
+                    console.log('[USAGE] Usage data:', usageData);
+                    console.log('[ENGAGEMENT] Engagement data:', engagementData);
 
                     // Combine real data from APIs
                     this.analyticsData = {
@@ -585,9 +585,9 @@
                         monthlyTrends: engagementData?.monthlyTrends || this.generateEmptyMonthlyTrends()
                     };
                     
-                    console.log('✅ Analytics data loaded successfully');
+                    console.log('[SUCCESS] Analytics data loaded successfully');
                 } catch (error) {
-                    console.error('❌ Failed to load real analytics data:', error);
+                    console.error('[ERROR] Failed to load real analytics data:', error);
                     // Fallback to empty/zero data instead of fake data
                     this.analyticsData = this.getEmptyAnalyticsData();
                 }
@@ -639,24 +639,24 @@
 
                 const planInfo = {
                     bronze: {
-                        name: '🥉 Bronze Plan',
+                        name: '<img src="/static/icons/bronze-medal.svg" alt="Bronze" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 5px;"> Bronze Plan',
                         description: 'Basic features with daily limits',
                         class: 'plan-bronze'
                     },
                     silver: {
-                        name: '🥈 Silver Plan',
+                        name: '<img src="/static/icons/silver-medal.svg" alt="Silver" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 5px;"> Silver Plan',
                         description: 'Enhanced features with higher limits and no ads',
                         class: 'plan-silver'
                     },
                     gold: {
-                        name: '🥇 Gold Plan',
+                        name: '<img src="/static/icons/gold-medal.svg" alt="Gold" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 5px;"> Gold Plan',
                         description: 'Unlimited features and premium access',
                         class: 'plan-gold'
                     }
                 };
 
                 const info = planInfo[plan] || planInfo.bronze;
-                planBadge.textContent = info.name;
+                planBadge.innerHTML = info.name;
                 planBadge.className = `plan-badge ${info.class}`;
                 planDescription.textContent = info.description;
             }
@@ -941,7 +941,7 @@
             showError() {
                 document.getElementById('loadingIndicator').innerHTML = `
                     <div style="color: #ef4444;">
-                        <div style="font-size: 2rem; margin-bottom: 1rem;">⚠️</div>
+                        <div style="margin-bottom: 1rem;"><img src="/static/icons/warning-icon.svg" alt="Warning" style="width: 48px; height: 48px;"></div>
                         <div>Failed to load analytics data</div>
                         <button onclick="window.location.reload()" style="margin-top: 1rem; padding: 0.5rem 1rem; background: #ef4444; color: white; border: none; border-radius: 8px; cursor: pointer;">
                             Retry

@@ -54,12 +54,8 @@ def get_dashboard_data():
         user_plan = session.get('user_plan', 'bronze')
         trial_active = session.get('trial_active', False)
         
-        # Check access
-        if not _check_analytics_access(user_plan, trial_active):
-            return jsonify({
-                "success": False,
-                "error": "Analytics requires Silver or Gold tier"
-            }), 403
+        # All users can access their analytics data
+        # Bronze users get basic analytics, Silver/Gold get enhanced features
         
         period_days = request.args.get('period', 7, type=int)
         include_details = request.args.get('details', 'false').lower() == 'true'
@@ -90,12 +86,8 @@ def get_usage_analytics():
         user_plan = session.get('user_plan', 'bronze')
         trial_active = session.get('trial_active', False)
         
-        # Check access
-        if not _check_analytics_access(user_plan, trial_active):
-            return jsonify({
-                "success": False,
-                "error": "Analytics requires Silver or Gold tier"
-            }), 403
+        # All users can access their analytics data
+        # Bronze users get basic analytics, Silver/Gold get enhanced features
         
         period_days = request.args.get('period', 7, type=int)
         include_details = request.args.get('include_details', 'false').lower() == 'true'
@@ -132,12 +124,8 @@ def get_engagement_insights():
         user_plan = session.get('user_plan', 'bronze')
         trial_active = session.get('trial_active', False)
         
-        # Check access
-        if not _check_analytics_access(user_plan, trial_active):
-            return jsonify({
-                "success": False,
-                "error": "Analytics requires Silver or Gold tier"
-            }), 403
+        # All users can access their analytics data
+        # Bronze users get basic analytics, Silver/Gold get enhanced features
         
         period_days = request.args.get('period', 30, type=int)
         

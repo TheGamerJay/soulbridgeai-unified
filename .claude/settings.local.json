@@ -11,7 +11,8 @@
       "Bash(sqlite3:*)",
       "Bash(node:*)",
       "Bash(curl:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(magick:*)"
     ],
     "deny": [],
     "ask": [],
