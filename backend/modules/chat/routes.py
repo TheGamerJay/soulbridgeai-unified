@@ -95,6 +95,19 @@ def chat_companion(companion_id):
         # Set selected companion in session
         session['selected_companion'] = companion_id
         
+        # Update new companion persistence system
+        try:
+            from display_name_helpers import set_companion_data
+            companion_data = {
+                'companion_id': companion_id,
+                'name': companion.get('display_name', companion.get('name', companion_id)),
+                'tier': companion.get('tier', 'bronze')
+            }
+            set_companion_data(user_id, companion_data)
+            logger.info(f"✅ Updated companion persistence for user {user_id}: {companion_id}")
+        except Exception as e:
+            logger.warning(f"⚠️ Could not update companion persistence: {e}")
+        
         # Start conversation session
         session_id = conversation_manager.start_conversation_session(user_id, companion_id)
         
