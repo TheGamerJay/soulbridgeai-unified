@@ -283,6 +283,29 @@ def select_companion_skin():
         session['selected_companion'] = companion_id
         session.modified = True
         
+        # Save skin preference to database
+        user_id = get_user_id()
+        if user_id:
+            from ..shared.database import get_database_manager
+            db = get_database_manager()
+            try:
+                conn = db.get_connection()
+                cursor = conn.cursor()
+                
+                # Save user's skin preference
+                cursor.execute("""
+                    INSERT OR REPLACE INTO user_data (user_id, key, value) 
+                    VALUES (?, ?, ?)
+                """, (user_id, f'skin_preference_{companion.get("base_name", companion.get("name", "").lower())}', companion_id))
+                
+                conn.commit()
+                cursor.close()
+                db.return_connection(conn)
+                
+            except Exception as db_error:
+                logger.error(f"Database error saving skin preference: {db_error}")
+                # Continue anyway, skin will be saved in localStorage
+        
         return jsonify({
             'success': True,
             'companion': companion,

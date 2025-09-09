@@ -359,6 +359,123 @@
                 gap: 15px;
             }
         }
+        
+        /* Dropdown Skin Selector Styles */
+        .companion-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .skin-selector {
+            position: relative;
+        }
+        
+        .skin-dropdown-btn {
+            background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+            border: none;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+        }
+        
+        .skin-dropdown-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.5);
+        }
+        
+        .skin-dropdown {
+            position: absolute;
+            top: 35px;
+            right: 0;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            border: 2px solid rgba(139, 92, 246, 0.5);
+            border-radius: 12px;
+            min-width: 250px;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+        }
+        
+        .skin-dropdown.show {
+            display: block;
+            animation: dropdownSlide 0.3s ease;
+        }
+        
+        @keyframes dropdownSlide {
+            0% { 
+                opacity: 0;
+                transform: translateY(-10px) scale(0.95);
+            }
+            100% { 
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        
+        .skin-dropdown-header {
+            padding: 12px 15px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #8b5cf6;
+            border-bottom: 1px solid rgba(139, 92, 246, 0.3);
+            text-align: center;
+        }
+        
+        .skin-option {
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .skin-option:hover {
+            background: rgba(139, 92, 246, 0.2);
+        }
+        
+        .skin-option:last-child {
+            border-bottom: none;
+        }
+        
+        .skin-thumb {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            object-fit: contain;
+            margin-right: 12px;
+            border: 2px solid rgba(139, 92, 246, 0.3);
+        }
+        
+        .skin-info {
+            flex: 1;
+        }
+        
+        .skin-name {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+        
+        .skin-tier {
+            font-size: 0.75rem;
+            opacity: 0.7;
+            color: #8b5cf6;
+        }
     </style>
 </head>
 <body>
@@ -392,8 +509,10 @@
         </div>
         
         {% if companions %}
-            {% set soul_companions = companions | rejectattr('tier', 'equalto', 'referral') | list %}
-            {% set referral_companions = companions | selectattr('tier', 'equalto', 'referral') | list %}
+            {% set soul_companions = companions %}
+            {% if referral_companions is not defined %}
+                {% set referral_companions = [] %}
+            {% endif %}
             
             {% if soul_companions %}
             <div class="companion-section">
@@ -403,21 +522,35 @@
                 </div>
                 <div class="companion-grid">
                     {% for companion in soul_companions %}
-                        <div class="netflix-card companion-card" data-companion="{{ companion.name|lower }}" onclick="showCompanionOptions('{{ companion.name|lower }}', '{{ companion.name }}', {{ companion.has_skins|tojson }})">
+                        <div class="netflix-card companion-card" data-companion="{{ companion.name|lower }}">
                             <div class="netflix-poster">
-                                <img src="{{ companion.image_url }}" alt="{{ companion.name }}" />
-                                <div class="netflix-overlay">
-                                    {% if companion.has_skins %}
-                                    <div class="unlock-status">🎨 CHOOSE SKIN</div>
-                                    <div class="unlock-requirement">Select your preferred style</div>
-                                    {% else %}
+                                <img src="{{ companion.image }}" alt="{{ companion.name }}" id="companion-img-{{ companion.name|lower }}" />
+                                <div class="netflix-overlay" onclick="selectCompanion('{{ companion.id }}', '{{ companion.name }}')">
                                     <div class="unlock-status">🚀 START CHAT</div>
                                     <div class="unlock-requirement">Begin your conversation</div>
-                                    {% endif %}
                                 </div>
                             </div>
                             <div class="netflix-info">
-                                <h3>{{ companion.name }}</h3>
+                                <div class="companion-header">
+                                    <h3>{{ companion.name }}</h3>
+                                    {% if companion.has_skins %}
+                                    <div class="skin-selector">
+                                        <button class="skin-dropdown-btn" onclick="toggleSkinDropdown('{{ companion.name|lower }}')" title="Choose Skin">:</button>
+                                        <div class="skin-dropdown" id="dropdown-{{ companion.name|lower }}">
+                                            <div class="skin-dropdown-header">Choose {{ companion.name }} Skin</div>
+                                            {% for skin in companion.skins %}
+                                            <div class="skin-option" onclick="changeSkin('{{ companion.name|lower }}', '{{ skin.id }}', '{{ skin.image }}', '{{ skin.name }}')">
+                                                <img src="{{ skin.image }}" alt="{{ skin.name }}" class="skin-thumb">
+                                                <div class="skin-info">
+                                                    <div class="skin-name">{{ skin.name }}</div>
+                                                    <div class="skin-tier">{{ skin.tier|title }} Tier</div>
+                                                </div>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                </div>
                                 <p class="companion-cost">Uses Artistic Time credits per conversation</p>
                                 <div class="netflix-badges">
                                     <span class="badge soul-companion">✨ Soul Companions</span>
@@ -627,48 +760,84 @@
     </style>
 
     <script>
-        // Skin data from backend (you'll need to pass this from the route)
-        const companionSkins = {{ companion_skins|tojson|safe }};
+        // Store user's skin preferences
+        let userSkinPreferences = JSON.parse(localStorage.getItem('soulbridge_skin_preferences') || '{}');
+        
+        // Load saved skin on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            Object.keys(userSkinPreferences).forEach(companionKey => {
+                const pref = userSkinPreferences[companionKey];
+                const imgElement = document.getElementById(`companion-img-${companionKey}`);
+                if (imgElement && pref.image) {
+                    imgElement.src = pref.image;
+                }
+            });
+        });
 
-        function showCompanionOptions(companionKey, companionName, hasSkins) {
-            if (!hasSkins) {
-                // No skins, go directly to chat
-                window.location.href = `/chat/bronze/${companionKey}`;
-                return;
+        function toggleSkinDropdown(companionKey) {
+            const dropdown = document.getElementById(`dropdown-${companionKey}`);
+            const isVisible = dropdown.classList.contains('show');
+            
+            // Close all other dropdowns
+            document.querySelectorAll('.skin-dropdown').forEach(d => {
+                d.classList.remove('show');
+            });
+            
+            // Toggle current dropdown
+            if (!isVisible) {
+                dropdown.classList.add('show');
             }
-
-            // Show skin selection modal
-            document.getElementById('companionTitle').textContent = `Choose Your ${companionName} Style`;
-            const skinOptions = document.getElementById('skinOptions');
-            skinOptions.innerHTML = '';
-
-            const skins = companionSkins[companionKey];
-            if (skins && skins.skins) {
-                skins.skins.forEach(skin => {
-                    const skinDiv = document.createElement('div');
-                    skinDiv.className = 'skin-option';
-                    skinDiv.onclick = () => selectSkin(skin.id);
-                    
-                    skinDiv.innerHTML = `
-                        <img src="${skin.image}" alt="${skin.name}" />
-                        <h4>${skin.name}</h4>
-                        <div class="skin-tier">${skin.tier} style</div>
-                    `;
-                    
-                    skinOptions.appendChild(skinDiv);
-                });
-            }
-
-            document.getElementById('skinModal').style.display = 'block';
         }
 
-        function closeSkinModal() {
-            document.getElementById('skinModal').style.display = 'none';
+        function changeSkin(companionKey, skinId, skinImage, skinName) {
+            // Update the companion image
+            const imgElement = document.getElementById(`companion-img-${companionKey}`);
+            if (imgElement) {
+                imgElement.src = skinImage;
+            }
+            
+            // Save preference to localStorage
+            userSkinPreferences[companionKey] = {
+                id: skinId,
+                image: skinImage,
+                name: skinName
+            };
+            localStorage.setItem('soulbridge_skin_preferences', JSON.stringify(userSkinPreferences));
+            
+            // Close dropdown
+            document.getElementById(`dropdown-${companionKey}`).classList.remove('show');
+            
+            // Save to backend via API
+            fetch('/api/companion/select-skin', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    companion_id: skinId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log(`Skin changed to ${skinName}`);
+                } else {
+                    console.error('Failed to save skin preference:', data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
         }
 
-        function selectSkin(skinId) {
-            closeSkinModal();
-            window.location.href = `/chat/${skinId}`;
+        function selectCompanion(companionId, companionName) {
+            // Get the selected skin if any
+            const companionKey = companionName.toLowerCase();
+            const selectedSkin = userSkinPreferences[companionKey];
+            const finalId = selectedSkin ? selectedSkin.id : companionId;
+            
+            // Navigate to chat with selected companion/skin
+            window.location.href = `/chat/bronze/${finalId}`;
         }
 
         function confirmReferral(companionName, referralCount) {
@@ -679,13 +848,21 @@
             }
         }
 
-        // Close modal when clicking outside
-        window.onclick = function(event) {
-            const modal = document.getElementById('skinModal');
-            if (event.target === modal) {
-                closeSkinModal();
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!event.target.closest('.skin-selector')) {
+                document.querySelectorAll('.skin-dropdown').forEach(dropdown => {
+                    dropdown.classList.remove('show');
+                });
             }
-        }
+        });
+        
+        // Prevent dropdown from closing when clicking inside it
+        document.addEventListener('click', function(event) {
+            if (event.target.closest('.skin-dropdown')) {
+                event.stopPropagation();
+            }
+        });
     </script>
 </body>
 </html>
