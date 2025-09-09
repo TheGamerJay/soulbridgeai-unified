@@ -40,7 +40,7 @@ except Exception as e:
 
 @writing_suite_bp.route('/generate', methods=['POST'])
 @require_auth
-@rate_limit_moderate()
+@rate_limit_moderate
 def generate_writing():
     """Generate writing based on prompt"""
     
@@ -361,7 +361,7 @@ def get_writing_types():
 
 @writing_suite_bp.route('/user-writings', methods=['GET'])
 @require_auth
-@rate_limit_moderate()
+@rate_limit_moderate
 def get_user_writings():
     """Get user's generated writings"""
     
@@ -404,7 +404,7 @@ def get_user_writings():
 
 @writing_suite_bp.route('/stats', methods=['GET'])
 @require_auth
-@rate_limit_moderate()
+@rate_limit_moderate
 def get_stats():
     """Get writing suite statistics and user limits"""
     
@@ -456,7 +456,7 @@ def get_stats():
 
 @writing_suite_bp.route('/analyze', methods=['POST'])
 @require_auth
-@rate_limit_moderate()
+@rate_limit_moderate
 def analyze_writing():
     """Analyze existing writing content"""
     

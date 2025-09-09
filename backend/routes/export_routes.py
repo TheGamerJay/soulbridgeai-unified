@@ -102,7 +102,7 @@ def get_supported_formats():
 
 @export_bp.route('/poem', methods=['POST'])
 @require_auth
-@rate_limit_moderate()
+@rate_limit_moderate
 def export_poem():
     """Export a poem in specified format"""
     
@@ -186,7 +186,7 @@ def export_poem():
 
 @export_bp.route('/story', methods=['POST'])
 @require_auth
-@rate_limit_moderate()
+@rate_limit_moderate
 def export_story():
     """Export a story in specified format"""
     
@@ -270,7 +270,7 @@ def export_story():
 
 @export_bp.route('/writing', methods=['POST'])
 @require_auth
-@rate_limit_moderate()
+@rate_limit_moderate
 def export_writing():
     """Export writing in specified format"""
     
@@ -354,7 +354,7 @@ def export_writing():
 
 @export_bp.route('/collection', methods=['POST'])
 @require_auth
-@rate_limit_moderate()
+@rate_limit_moderate
 def export_collection():
     """Export multiple items as a collection"""
     
@@ -452,7 +452,7 @@ def export_collection():
 
 @export_bp.route('/stats', methods=['GET'])
 @require_auth
-@rate_limit_moderate()
+@rate_limit_moderate
 def get_export_stats():
     """Get export statistics and user limits"""
     

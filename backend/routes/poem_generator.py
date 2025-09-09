@@ -38,7 +38,7 @@ except Exception as e:
 
 @poem_generator_bp.route('/generate', methods=['POST'])
 @require_auth
-@rate_limit_moderate()
+@rate_limit_moderate
 def generate_poem():
     """Generate a poem of the specified type"""
     
@@ -156,7 +156,7 @@ def generate_poem():
 
 @poem_generator_bp.route('/validate', methods=['POST'])
 @require_auth
-@rate_limit_moderate()
+@rate_limit_moderate
 def validate_poem():
     """Validate a poem against its structure requirements"""
     
@@ -251,7 +251,7 @@ def get_poem_types():
 
 @poem_generator_bp.route('/user-poems', methods=['GET'])
 @require_auth
-@rate_limit_moderate()
+@rate_limit_moderate
 def get_user_poems():
     """Get user's generated poems"""
     
@@ -294,7 +294,7 @@ def get_user_poems():
 
 @poem_generator_bp.route('/stats', methods=['GET'])
 @require_auth
-@rate_limit_moderate()
+@rate_limit_moderate
 def get_stats():
     """Get poem generator statistics"""
     
@@ -342,7 +342,7 @@ def get_stats():
 
 @poem_generator_bp.route('/analyze', methods=['POST'])
 @require_auth
-@rate_limit_moderate()
+@rate_limit_moderate
 def analyze_poem():
     """Analyze a poem's structure, syllables, and rhyme scheme"""
     

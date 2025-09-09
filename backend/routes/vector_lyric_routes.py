@@ -54,7 +54,7 @@ def health_check():
 
 @vector_lyric_bp.route('/search', methods=['POST'])
 @require_auth
-@rate_limit_moderate()
+@rate_limit_moderate
 def search_similar_lyrics():
     """Search for similar lyrics using vector similarity"""
     
@@ -135,7 +135,7 @@ def search_similar_lyrics():
 
 @vector_lyric_bp.route('/store', methods=['POST'])
 @require_auth
-@rate_limit_moderate()
+@rate_limit_moderate
 def store_lyric_embedding():
     """Store a lyric with its embedding (Gold tier only)"""
     
@@ -206,7 +206,7 @@ def store_lyric_embedding():
 
 @vector_lyric_bp.route('/consent/<artist_id>', methods=['GET'])
 @require_auth
-@rate_limit_moderate()
+@rate_limit_moderate
 def get_artist_consent(artist_id):
     """Get artist consent information"""
     
@@ -240,7 +240,7 @@ def get_artist_consent(artist_id):
 
 @vector_lyric_bp.route('/consent', methods=['POST'])
 @require_auth
-@rate_limit_moderate()
+@rate_limit_moderate
 def update_artist_consent():
     """Update artist consent (Admin only)"""
     
@@ -310,7 +310,7 @@ def update_artist_consent():
 
 @vector_lyric_bp.route('/statistics', methods=['GET'])
 @require_auth
-@rate_limit_moderate()
+@rate_limit_moderate
 def get_lyric_statistics():
     """Get statistics about stored lyrics and embeddings"""
     
