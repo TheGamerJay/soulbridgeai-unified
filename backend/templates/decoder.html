@@ -630,18 +630,9 @@ async function refreshDecoderLimits() {
         const msg = document.getElementById("plan-description");
         const maxMsg = document.getElementById("max-plan-message");
 
-        if (user_plan === "gold") {
-            maxMsg.style.display = "none";
-            msg.textContent = `🧠 Daily Decodes: ${usage} / ${displayLimit} used`;
-        } else if (user_plan === "silver") {
-            maxMsg.style.display = "none";
-            msg.textContent = `🧠 Daily Decodes: ${usage} / ${displayLimit} used`;
-        } else if (trial_active) {
-            maxMsg.style.display = "none";
-            msg.textContent = `🧠 Daily Decodes: ${usage} / ${displayLimit} used (Trial Active - Premium companions unlocked!)`;
-        } else {
-            maxMsg.style.display = "none";
-            msg.textContent = `🧠 Daily Decodes: ${usage} / ${displayLimit} used`;
+        // Show credit costs instead of daily limits for Soul Companion unified experience
+        maxMsg.style.display = "none";
+        msg.textContent = `🧠 Soul Companion Decoder - 3 Artistic Time credits per analysis`;
         }
 
         // Update global variables
@@ -676,7 +667,7 @@ function checkUsageLimit() {
     
     if (userUsage >= dailyLimit) {
         document.getElementById('decode-button').disabled = true;
-        document.getElementById('decode-button').textContent = '🔒 Daily Limit Reached';
+        document.getElementById('decode-button').textContent = '⚡ Insufficient Credits';
         document.getElementById('upgrade-prompt').style.display = 'block';
         return false;
     }
@@ -759,7 +750,7 @@ async function decodeText() {
             // Check if this is a usage limit error
             if (result.limit_reached) {
                 document.getElementById('decode-button').disabled = true;
-                document.getElementById('decode-button').textContent = '🔒 Daily Limit Reached';
+                document.getElementById('decode-button').textContent = '⚡ Insufficient Credits';
                 document.getElementById('upgrade-prompt').style.display = 'block';
                 throw new Error(result.response);
             } else {

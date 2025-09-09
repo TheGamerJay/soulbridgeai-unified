@@ -434,7 +434,7 @@
     
     <div class="container">
         <div class="usage-info" id="usageInfo">
-            <p>Daily Usage: <span class="usage-count" id="usageCount">Loading...</span></p>
+            <p>⚡ Soul Companion Poem Generator: <span class="usage-count">8 Artistic Time credits per poem</span></p>
         </div>
 
         <div class="header">
@@ -681,7 +681,7 @@
             
             // Check usage limits
             if (userStats && userStats.remaining_usage === 0) {
-                showError('generatorResult', `Daily limit reached (${userStats.daily_limit} poems per day for ${userStats.user_plan} tier)`);
+                showError('generatorResult', `Insufficient Artistic Time credits. Poem generation costs 8 credits.`);
                 return;
             }
             

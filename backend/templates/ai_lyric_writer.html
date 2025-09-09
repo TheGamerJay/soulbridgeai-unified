@@ -304,7 +304,7 @@
     
     <div class="container">
         <div class="usage-info" id="usageInfo">
-            <p>Daily Usage: <span class="usage-count" id="usageCount">Loading...</span></p>
+            <p>⚡ Soul Companion Lyric Writer: <span class="usage-count">8 Artistic Time credits per lyrics</span></p>
         </div>
 
         <div class="header">
@@ -508,7 +508,7 @@
             
             // Check usage limits
             if (userStats && userStats.remaining_usage === 0) {
-                showError(`Daily limit reached (${userStats.daily_limit} generations per day for ${userStats.user_plan} tier)`);
+                showError(`Insufficient Artistic Time credits. Lyric generation costs 8 credits.`);
                 return;
             }
             

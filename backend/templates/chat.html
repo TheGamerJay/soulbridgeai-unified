@@ -2360,15 +2360,8 @@ Where emotion meets expression.
                         decoderLimit.textContent = `${decoderUsed}/${decoderMax}`;
                         decoderBtn.classList.remove('unlimited', 'limit-exceeded', 'limit-warning');
                         
-                        if (decoderUsed >= decoderMax) {
-                            decoderBtn.classList.add('limit-exceeded');
-                            decoderBtn.setAttribute('data-tooltip', `Daily limit reached (${decoderUsed}/${decoderMax})`);
-                        } else if (decoderUsed >= decoderMax * 0.8) {
-                            decoderBtn.classList.add('limit-warning');
-                            decoderBtn.setAttribute('data-tooltip', `${decoderMax - decoderUsed} uses remaining today`);
-                        } else {
-                            decoderBtn.setAttribute('data-tooltip', `${decoderMax - decoderUsed} uses remaining today`);
-                        }
+                        // Show credit costs instead of daily limits
+                        decoderBtn.setAttribute('data-tooltip', `💭 Decoder Analysis - Costs 3 Artistic Time credits`);
                     }
                 }
                 
@@ -2387,15 +2380,8 @@ Where emotion meets expression.
                         fortuneLimit.textContent = `${fortuneUsed}/${fortuneMax}`;
                         fortuneBtn.classList.remove('unlimited', 'limit-exceeded', 'limit-warning');
                         
-                        if (fortuneUsed >= fortuneMax) {
-                            fortuneBtn.classList.add('limit-exceeded');
-                            fortuneBtn.setAttribute('data-tooltip', `Daily limit reached (${fortuneUsed}/${fortuneMax})`);
-                        } else if (fortuneUsed >= fortuneMax * 0.8) {
-                            fortuneBtn.classList.add('limit-warning');
-                            fortuneBtn.setAttribute('data-tooltip', `${fortuneMax - fortuneUsed} uses remaining today`);
-                        } else {
-                            fortuneBtn.setAttribute('data-tooltip', `${fortuneMax - fortuneUsed} uses remaining today`);
-                        }
+                        // Show credit costs instead of daily limits
+                        fortuneBtn.setAttribute('data-tooltip', `🎴 Fortune Reading - Costs 5 Artistic Time credits`);
                     }
                 }
                 
@@ -2414,15 +2400,8 @@ Where emotion meets expression.
                         horoscopeLimit.textContent = `${horoscopeUsed}/${horoscopeMax}`;
                         horoscopeBtn.classList.remove('unlimited', 'limit-exceeded', 'limit-warning');
                         
-                        if (horoscopeUsed >= horoscopeMax) {
-                            horoscopeBtn.classList.add('limit-exceeded');
-                            horoscopeBtn.setAttribute('data-tooltip', `Daily limit reached (${horoscopeUsed}/${horoscopeMax})`);
-                        } else if (horoscopeUsed >= horoscopeMax * 0.8) {
-                            horoscopeBtn.classList.add('limit-warning');
-                            horoscopeBtn.setAttribute('data-tooltip', `${horoscopeMax - horoscopeUsed} uses remaining today`);
-                        } else {
-                            horoscopeBtn.setAttribute('data-tooltip', `${horoscopeMax - horoscopeUsed} uses remaining today`);
-                        }
+                        // Show credit costs instead of daily limits
+                        horoscopeBtn.setAttribute('data-tooltip', `🌟 Horoscope Reading - Costs 3 Artistic Time credits`);
                     }
                 }
                 
@@ -2442,15 +2421,8 @@ Where emotion meets expression.
                         creativeLimit.textContent = `${creativeUsed}/${creativeMax}`;
                         creativeBtn.classList.remove('unlimited', 'limit-exceeded', 'limit-warning');
                         
-                        if (creativeUsed >= creativeMax) {
-                            creativeBtn.classList.add('limit-exceeded');
-                            creativeBtn.setAttribute('data-tooltip', `Daily limit reached (${creativeUsed}/${creativeMax})`);
-                        } else if (creativeUsed >= creativeMax * 0.8) {
-                            creativeBtn.classList.add('limit-warning');
-                            creativeBtn.setAttribute('data-tooltip', `${creativeMax - creativeUsed} uses remaining today`);
-                        } else {
-                            creativeBtn.setAttribute('data-tooltip', `${creativeMax - creativeUsed} uses remaining today`);
-                        }
+                        // Show credit costs instead of daily limits
+                        creativeBtn.setAttribute('data-tooltip', `🎨 Creative Writing - Costs 8 Artistic Time credits`);
                     }
                 }
                 
