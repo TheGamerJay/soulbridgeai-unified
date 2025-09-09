@@ -188,6 +188,17 @@ def ai_disclosure_page():
         logger.error(f"AI disclosure page error: {e}")
         return redirect("/terms")
 
+@legal_bp.route("/help")
+def help_page():
+    """Help and support page"""
+    try:
+        return render_template('help.html'), 200
+        
+    except Exception as e:
+        logger.error(f"Error rendering help page: {e}")
+        return render_template('error.html', 
+                             error_message="Failed to load help page"), 500
+
 # =============================================================================
 # TERMS API ENDPOINTS
 # =============================================================================
