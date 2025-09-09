@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ tier_display }} Tier - Choose Your Companion</title>
+    <title>Soul Companion - Choose Your AI Companion</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
@@ -59,37 +59,26 @@
             z-index: 2;
         }
         
-        /* Tier Section Headers */
-        .tier-section {
+        /* Companion Section Headers */
+        .companion-section {
             margin: 40px 0;
         }
         
-        .tier-section-header {
+        .companion-section-header {
             text-align: center;
             margin-bottom: 25px;
         }
         
-        .tier-section-title {
+        .companion-section-title {
             font-size: 2rem;
             font-weight: 700;
             margin-bottom: 10px;
-            text-shadow: 0 0 20px currentColor;
+            color: #8b5cf6;
+            text-shadow: 0 0 20px #8b5cf6, 0 0 40px #8b5cf6;
             animation: pulse-glow 2s ease-in-out infinite alternate;
         }
         
-        .tier-section-title.bronze { 
-            color: #CD7F32;
-            text-shadow: 0 0 20px #CD7F32, 0 0 40px #CD7F32;
-        }
-        .tier-section-title.silver { 
-            color: #C0C0C0;
-            text-shadow: 0 0 20px #C0C0C0, 0 0 40px #C0C0C0;
-        }
-        .tier-section-title.gold { 
-            color: #FFD700;
-            text-shadow: 0 0 20px #FFD700, 0 0 40px #FFD700;
-        }
-        .tier-section-title.referral { 
+        .companion-section-title.referral { 
             color: #ff6b6b;
             text-shadow: 0 0 20px #ff6b6b, 0 0 40px #ff6b6b;
         }
@@ -193,14 +182,7 @@
             font-size: 1.2rem;
             font-weight: 700;
             margin-bottom: 10px;
-        }
-        
-        .unlock-status.unlocked {
             color: #00ff88;
-        }
-        
-        .unlock-status.locked {
-            color: #ff4444;
         }
         
         .unlock-requirement {
@@ -222,7 +204,7 @@
             margin-bottom: 8px;
         }
         
-        .unlock-tier {
+        .companion-cost {
             color: #ccc;
             font-size: 0.9rem;
             margin-bottom: 15px;
@@ -242,34 +224,20 @@
             text-transform: uppercase;
         }
         
-        .badge.bronze { background: linear-gradient(135deg, #CD7F32, #8B4513); }
-        .badge.silver { background: linear-gradient(135deg, #C0C0C0, #808080); }
-        .badge.gold { background: linear-gradient(135deg, #FFD700, #FFA500); color: #333; }
-        .badge.referral { background: linear-gradient(135deg, #ff6b6b, #ee5a24); }
-        
-        /* Locked Cards */
-        .netflix-card.locked {
-            opacity: 0.6;
-            cursor: pointer;
-            background: linear-gradient(135deg, #333 0%, #1a1a1a 100%);
+        .badge.soul-companion { 
+            background: linear-gradient(135deg, #8b5cf6, #6366f1); 
         }
         
-        .netflix-card.locked:hover {
-            transform: none;
-            box-shadow: none;
-            border-color: transparent;
+        .badge.referral { 
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24); 
         }
         
-        .netflix-card.locked img {
-            filter: grayscale(100%) brightness(50%);
-        }
-        
-        .tier-header {
+        .companion-header {
             text-align: center;
             margin: 40px 0 20px;
         }
         
-        .tier-title {
+        .companion-title {
             font-size: 4rem;
             font-weight: 900;
             margin-bottom: 20px;
@@ -288,31 +256,41 @@
             100% { background-position: 0% 50%; }
         }
         
-        .tier-limits {
+        .credit-info {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
             border-radius: 16px;
             padding: 25px;
             margin: 30px 0;
-            display: flex;
-            justify-content: space-around;
-            flex-wrap: wrap;
+            text-align: center;
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
         
-        .limit-item {
-            text-align: center;
-            margin: 10px;
+        .credit-info h3 {
+            color: #8b5cf6;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
         }
         
-        .limit-value {
-            font-size: 2rem;
+        .credit-costs {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .cost-item {
+            text-align: center;
+        }
+        
+        .cost-value {
+            font-size: 1.5rem;
             font-weight: 800;
             color: #00ff88;
             margin-bottom: 5px;
         }
         
-        .limit-label {
+        .cost-label {
             font-size: 0.9rem;
             color: rgba(255, 255, 255, 0.8);
         }
@@ -359,11 +337,11 @@
                 gap: 15px;
             }
             
-            .tier-title {
+            .companion-title {
                 font-size: 2rem;
             }
             
-            .tier-section-title {
+            .companion-section-title {
                 font-size: 1.5rem;
             }
             
@@ -374,6 +352,12 @@
             .netflix-poster {
                 height: 160px;
             }
+            
+            .credit-costs {
+                flex-direction: column;
+                align-items: center;
+                gap: 15px;
+            }
         }
     </style>
 </head>
@@ -381,241 +365,69 @@
     <div class="container">
         <a href="/intro" class="back-link">← Back to Intro</a>
         
-        <div class="tier-header">
-            <h1 class="tier-title">Choose Your AI Companion</h1>
-            <p style="font-size: 1.2rem; opacity: 0.8; text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);">Select the companion you most resonate with</p>
+        <div class="companion-header">
+            <h1 class="companion-title">Soul Companion</h1>
+            <p style="font-size: 1.2rem; opacity: 0.8; text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);">Choose your AI companion and start your journey</p>
         </div>
         
-        <div class="tier-limits">
-            <div class="limit-item">
-                <div class="limit-value">{{ '∞' if limits.decoder > 999 else limits.decoder }}</div>
-                <div class="limit-label">Decoder Daily</div>
-            </div>
-            <div class="limit-item">
-                <div class="limit-value">{{ '∞' if limits.fortune > 999 else limits.fortune }}</div>
-                <div class="limit-label">Fortune Daily</div>
-            </div>
-            <div class="limit-item">
-                <div class="limit-value">{{ '∞' if limits.horoscope > 999 else limits.horoscope }}</div>
-                <div class="limit-label">Horoscope Daily</div>
-            </div>
-            <div class="limit-item">
-                <div class="limit-value">{{ '∞' if limits.creative_writer > 999 else limits.creative_writer }}</div>
-                <div class="limit-label">Creative Writer Daily</div>
-            </div>
-        </div>
-        
-        <!-- Trial Offer Section (for Bronze users only) -->
-        {% if user_plan == 'bronze' and not trial_active %}
-        <div class="trial-offer-section" style="background: rgba(34, 211, 238, 0.1); border: 2px solid rgba(34, 211, 238, 0.3); border-radius: 16px; padding: 25px; margin: 30px 0; text-align: center;">
-            <h3 style="color: #22d3ee; margin-bottom: 15px; font-size: 1.5rem;">🎉 Want to Try Silver & Gold Companions?</h3>
-            <p style="color: rgba(255, 255, 255, 0.9); margin-bottom: 20px; font-size: 1.1rem;">
-                Start your <strong>5-Hour Trial</strong> to unlock all companions + 60 artistic credits!
+        <div class="credit-info">
+            <h3>💎 Artistic Time Credits</h3>
+            <p style="margin-bottom: 20px; color: rgba(255, 255, 255, 0.9);">
+                Each interaction uses Artistic Time credits from your account balance
             </p>
-            <button id="companion-trial-btn" class="trial-btn" style="background: linear-gradient(135deg, #22d3ee, #0891b2); color: #000; padding: 12px 24px; border: none; border-radius: 8px; font-weight: 600; font-size: 1.1rem; cursor: pointer; transition: all 0.3s ease;" onclick="startCompanionTrial()">
-                ⏰ Start 5-Hour Trial
-            </button>
-            <div style="margin-top: 15px; font-size: 0.9rem; color: rgba(255, 255, 255, 0.7);">
-                ✅ One-time trial • ✅ No payment required • ✅ Instant access
+            <div class="credit-costs">
+                <div class="cost-item">
+                    <div class="cost-value">1</div>
+                    <div class="cost-label">Credit per Chat Message</div>
+                </div>
+                <div class="cost-item">
+                    <div class="cost-value">3-5</div>
+                    <div class="cost-label">Credits for AI Images</div>
+                </div>
+                <div class="cost-item">
+                    <div class="cost-value">2-4</div>
+                    <div class="cost-label">Credits for Voice Features</div>
+                </div>
             </div>
         </div>
-        {% elif trial_active %}
-        <div class="trial-active-section" style="background: rgba(34, 197, 94, 0.1); border: 2px solid rgba(34, 197, 94, 0.3); border-radius: 16px; padding: 25px; margin: 30px 0; text-align: center;">
-            <h3 style="color: #22c55e; margin-bottom: 15px; font-size: 1.5rem;">🎉 Trial Active!</h3>
-            <div id="companion-trial-timer" style="background: rgba(34, 197, 94, 0.2); color: #22c55e; padding: 12px 20px; border-radius: 8px; font-weight: 600; font-size: 1.1rem; margin-bottom: 15px;">
-                ⏰ Time Remaining: <span id="trial-time-display">Loading...</span>
-            </div>
-            <p style="color: rgba(255, 255, 255, 0.9); font-size: 1rem;">
-                All Silver & Gold companions are now unlocked! Enjoy your trial!
-            </p>
-        </div>
-        {% endif %}
         
         {% if companions %}
-            {% set bronze_companions = companions | selectattr('tier', 'equalto', 'bronze') | list %}
-            {% set silver_companions = companions | selectattr('tier', 'equalto', 'silver') | list %}
-            {% set gold_companions = companions | selectattr('tier', 'equalto', 'gold') | list %}
+            {% set soul_companions = companions | rejectattr('tier', 'equalto', 'referral') | list %}
             {% set referral_companions = companions | selectattr('tier', 'equalto', 'referral') | list %}
             
-            {% if bronze_companions %}
-            <div class="tier-section">
-                <div class="tier-section-header">
-                    <h2 class="tier-section-title bronze">🥉 Bronze Companions</h2>
-                    <p>Basic tier companions available to everyone</p>
+            {% if soul_companions %}
+            <div class="companion-section">
+                <div class="companion-section-header">
+                    <h2 class="companion-section-title">✨ Soul Companions</h2>
+                    <p>Connect with your perfect AI companion</p>
                 </div>
                 <div class="companion-grid">
-                    {% for companion in bronze_companions %}
-                        {% set can_access = access_info.unlock_state.get(companion.id, {}).get('can_access', False) %}
-                        {% if can_access %}
-                            <a href="/chat/{{ companion.id }}" class="netflix-card">
-                                <div class="netflix-poster">
-                                    <img src="{{ companion.image_url }}" alt="{{ companion.name }}" />
-                                    <div class="netflix-overlay">
-                                        <div class="unlock-status unlocked">🚀 CHAT NOW</div>
-                                        <div class="unlock-requirement">Start your conversation</div>
-                                    </div>
-                                </div>
-                                <div class="netflix-info">
-                                    <h3>{{ companion.name }}</h3>
-                                    <p class="unlock-tier">Available for {{ companion.tier|title }} tier</p>
-                                    <div class="netflix-badges">
-                                        <span class="badge {{ companion.tier }}">🥉 Bronze</span>
-                                    </div>
-                                </div>
-                            </a>
-                        {% else %}
-                            <div class="netflix-card locked" onclick="confirmUpgrade('{{ companion.name }}', 'bronze')">
-                                <div class="netflix-poster">
-                                    <img src="{{ companion.image_url }}" alt="{{ companion.name }}" />
-                                    <div class="netflix-overlay">
-                                        <div class="unlock-status locked">🔒 LOCKED</div>
-                                        <div class="unlock-requirement">Upgrade to access</div>
-                                    </div>
-                                </div>
-                                <div class="netflix-info">
-                                    <h3>{{ companion.name }}</h3>
-                                    {% if companion.get('min_referrals', 0) > 0 %}
-                                        <p class="unlock-tier">Requires {{ companion.min_referrals }} referrals</p>
-                                    {% else %}
-                                        <p class="unlock-tier">Requires {{ companion.tier|title }} tier</p>
-                                    {% endif %}
-                                    <div class="netflix-badges">
-                                        <span class="badge {{ companion.tier }}">🥉 Bronze</span>
-                                    </div>
+                    {% for companion in soul_companions %}
+                        <a href="/chat/{{ companion.id }}" class="netflix-card">
+                            <div class="netflix-poster">
+                                <img src="{{ companion.image_url }}" alt="{{ companion.name }}" />
+                                <div class="netflix-overlay">
+                                    <div class="unlock-status">🚀 START CHAT</div>
+                                    <div class="unlock-requirement">Begin your conversation</div>
                                 </div>
                             </div>
-                        {% endif %}
-                    {% endfor %}
-                </div>
-            </div>
-            {% endif %}
-            
-            {% if silver_companions %}
-            <div class="tier-section">
-                <div class="tier-section-header">
-                    <h2 class="tier-section-title silver">🥈 Silver Companions</h2>
-                    <p>Enhanced companions for Silver subscribers</p>
-                </div>
-                <div class="companion-grid">
-                    {% for companion in silver_companions %}
-                        {% set can_access = access_info.unlock_state.get(companion.id, {}).get('can_access', False) %}
-                        {% if can_access %}
-                            <a href="/chat/{{ companion.id }}" class="netflix-card">
-                                <div class="netflix-poster">
-                                    <img src="{{ companion.image_url }}" alt="{{ companion.name }}" />
-                                    <div class="netflix-overlay">
-                                        <div class="unlock-status unlocked">🚀 CHAT NOW</div>
-                                        <div class="unlock-requirement">Start your conversation</div>
-                                    </div>
-                                </div>
-                                <div class="netflix-info">
-                                    <h3>{{ companion.name }}</h3>
-                                    <p class="unlock-tier">Available for {{ companion.tier|title }} tier</p>
-                                    <div class="netflix-badges">
-                                        <span class="badge {{ companion.tier }}">🥈 Silver</span>
-                                    </div>
-                                </div>
-                            </a>
-                        {% else %}
-                            {% if companion.get('min_referrals', 0) > 0 %}
-                                <div class="netflix-card locked" onclick="confirmReferral('{{ companion.name }}', {{ companion.min_referrals }})">
-                            {% else %}
-                                <div class="netflix-card locked" onclick="confirmUpgrade('{{ companion.name }}', 'silver')">
-                            {% endif %}
-                                <div class="netflix-poster">
-                                    <img src="{{ companion.image_url }}" alt="{{ companion.name }}" />
-                                    <div class="netflix-overlay">
-                                        <div class="unlock-status locked">🔒 LOCKED</div>
-                                        {% if companion.get('min_referrals', 0) > 0 %}
-                                            <div class="unlock-requirement">{{ companion.min_referrals }} referrals needed</div>
-                                        {% else %}
-                                            <div class="unlock-requirement">Upgrade to access</div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                                <div class="netflix-info">
-                                    <h3>{{ companion.name }}</h3>
-                                    {% if companion.get('min_referrals', 0) > 0 %}
-                                        <p class="unlock-tier">Requires {{ companion.min_referrals }} referrals</p>
-                                    {% else %}
-                                        <p class="unlock-tier">Requires {{ companion.tier|title }} tier</p>
-                                    {% endif %}
-                                    <div class="netflix-badges">
-                                        <span class="badge {{ companion.tier }}">🥈 Silver</span>
-                                    </div>
+                            <div class="netflix-info">
+                                <h3>{{ companion.name }}</h3>
+                                <p class="companion-cost">Uses Artistic Time credits per conversation</p>
+                                <div class="netflix-badges">
+                                    <span class="badge soul-companion">✨ Soul Companion</span>
                                 </div>
                             </div>
-                        {% endif %}
-                    {% endfor %}
-                </div>
-            </div>
-            {% endif %}
-            
-            {% if gold_companions %}
-            <div class="tier-section">
-                <div class="tier-section-header">
-                    <h2 class="tier-section-title gold">🥇 Gold Companions</h2>
-                    <p>Premium companions for Gold subscribers</p>
-                </div>
-                <div class="companion-grid">
-                    {% for companion in gold_companions %}
-                        {% set can_access = access_info.unlock_state.get(companion.id, {}).get('can_access', False) %}
-                        {% if can_access %}
-                            <a href="/chat/{{ companion.id }}" class="netflix-card">
-                                <div class="netflix-poster">
-                                    <img src="{{ companion.image_url }}" alt="{{ companion.name }}" />
-                                    <div class="netflix-overlay">
-                                        <div class="unlock-status unlocked">🚀 CHAT NOW</div>
-                                        <div class="unlock-requirement">Start your conversation</div>
-                                    </div>
-                                </div>
-                                <div class="netflix-info">
-                                    <h3>{{ companion.name }}</h3>
-                                    <p class="unlock-tier">Available for {{ companion.tier|title }} tier</p>
-                                    <div class="netflix-badges">
-                                        <span class="badge {{ companion.tier }}">🥇 Gold</span>
-                                    </div>
-                                </div>
-                            </a>
-                        {% else %}
-                            {% if companion.get('min_referrals', 0) > 0 %}
-                                <div class="netflix-card locked" onclick="confirmReferral('{{ companion.name }}', {{ companion.min_referrals }})">
-                            {% else %}
-                                <div class="netflix-card locked" onclick="confirmUpgrade('{{ companion.name }}', 'gold')">
-                            {% endif %}
-                                <div class="netflix-poster">
-                                    <img src="{{ companion.image_url }}" alt="{{ companion.name }}" />
-                                    <div class="netflix-overlay">
-                                        <div class="unlock-status locked">🔒 LOCKED</div>
-                                        {% if companion.get('min_referrals', 0) > 0 %}
-                                            <div class="unlock-requirement">{{ companion.min_referrals }} referrals needed</div>
-                                        {% else %}
-                                            <div class="unlock-requirement">Upgrade to access</div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                                <div class="netflix-info">
-                                    <h3>{{ companion.name }}</h3>
-                                    {% if companion.get('min_referrals', 0) > 0 %}
-                                        <p class="unlock-tier">Requires {{ companion.min_referrals }} referrals</p>
-                                    {% else %}
-                                        <p class="unlock-tier">Requires {{ companion.tier|title }} tier</p>
-                                    {% endif %}
-                                    <div class="netflix-badges">
-                                        <span class="badge {{ companion.tier }}">🥇 Gold</span>
-                                    </div>
-                                </div>
-                            </div>
-                        {% endif %}
+                        </a>
                     {% endfor %}
                 </div>
             </div>
             {% endif %}
             
             {% if referral_companions %}
-            <div class="tier-section">
-                <div class="tier-section-header">
-                    <h2 class="tier-section-title referral">🎁 Referral Companions</h2>
+            <div class="companion-section">
+                <div class="companion-section-header">
+                    <h2 class="companion-section-title referral">🎁 Referral Companions</h2>
                     <p>Special companions earned through referrals</p>
                 </div>
                 <div class="companion-grid">
@@ -626,32 +438,32 @@
                                 <div class="netflix-poster">
                                     <img src="{{ companion.image_url }}" alt="{{ companion.name }}" />
                                     <div class="netflix-overlay">
-                                        <div class="unlock-status unlocked">🚀 CHAT NOW</div>
-                                        <div class="unlock-requirement">Start your conversation</div>
+                                        <div class="unlock-status">🚀 START CHAT</div>
+                                        <div class="unlock-requirement">Begin your conversation</div>
                                     </div>
                                 </div>
                                 <div class="netflix-info">
                                     <h3>{{ companion.name }}</h3>
-                                    <p class="unlock-tier">Available for {{ companion.tier|title }} tier</p>
+                                    <p class="companion-cost">Uses Artistic Time credits per conversation</p>
                                     <div class="netflix-badges">
-                                        <span class="badge {{ companion.tier }}">🎁 Referral</span>
+                                        <span class="badge referral">🎁 Referral</span>
                                     </div>
                                 </div>
                             </a>
                         {% else %}
-                            <div class="netflix-card locked" onclick="confirmReferral('{{ companion.name }}', {{ companion.min_referrals }})">
+                            <div class="netflix-card" onclick="confirmReferral('{{ companion.name }}', {{ companion.min_referrals }})" style="opacity: 0.6; cursor: pointer;">
                                 <div class="netflix-poster">
-                                    <img src="{{ companion.image_url }}" alt="{{ companion.name }}" />
+                                    <img src="{{ companion.image_url }}" alt="{{ companion.name }}" style="filter: grayscale(100%) brightness(50%);" />
                                     <div class="netflix-overlay">
-                                        <div class="unlock-status locked">🔒 LOCKED</div>
+                                        <div class="unlock-status" style="color: #ff4444;">🔒 LOCKED</div>
                                         <div class="unlock-requirement">{{ companion.min_referrals }} referrals needed</div>
                                     </div>
                                 </div>
                                 <div class="netflix-info">
                                     <h3>{{ companion.name }}</h3>
-                                    <p class="unlock-tier">Requires {{ companion.min_referrals }} referrals</p>
+                                    <p class="companion-cost">Requires {{ companion.min_referrals }} referrals</p>
                                     <div class="netflix-badges">
-                                        <span class="badge {{ companion.tier }}">🎁 Referral</span>
+                                        <span class="badge referral">🎁 Referral</span>
                                     </div>
                                 </div>
                             </div>
@@ -662,23 +474,13 @@
             {% endif %}
         {% else %}
             <div class="no-companions">
-                <h3>No companions available for {{ tier_display }} tier</h3>
-                <p>Upgrade your plan to access more companions!</p>
-                <a href="/subscription" style="color: #667eea;">View Upgrade Options</a>
+                <h3>No companions available</h3>
+                <p>Please check back later as we add more companions!</p>
             </div>
         {% endif %}
     </div>
     
     <script>
-        function confirmUpgrade(companionName, tier) {
-            const tierName = tier.charAt(0).toUpperCase() + tier.slice(1);
-            const message = `${companionName} requires ${tierName} tier access. Would you like to upgrade now?`;
-            
-            if (confirm(message)) {
-                window.location.href = `/subscription?tier=${tier}`;
-            }
-        }
-        
         function confirmReferral(companionName, referralCount) {
             const message = `${companionName} requires ${referralCount} referrals to unlock. Would you like to visit the referral page?`;
             
@@ -686,97 +488,6 @@
                 window.location.href = '/referrals';
             }
         }
-        
-        // Trial system functions
-        async function startCompanionTrial() {
-            const button = document.getElementById('companion-trial-btn');
-            
-            if (!confirm('Start your 5-hour trial? This will unlock Silver and Gold companions for 5 hours and give you 60 artistic credits.')) {
-                return;
-            }
-            
-            // Disable button and show loading
-            button.disabled = true;
-            button.textContent = '⏳ Starting Trial...';
-            
-            try {
-                const response = await fetch('/api/trial/activate', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    alert('🎉 Trial activated! You now have access to Silver and Gold companions for 5 hours, plus 60 artistic credits!');
-                    // Reload page to show updated state
-                    window.location.reload();
-                } else {
-                    alert('Failed to start trial: ' + (result.error || 'Unknown error'));
-                    button.disabled = false;
-                    button.textContent = '⏰ Start 5-Hour Trial';
-                }
-            } catch (error) {
-                console.error('Trial activation error:', error);
-                alert('Failed to start trial: ' + error.message);
-                button.disabled = false;
-                button.textContent = '⏰ Start 5-Hour Trial';
-            }
-        }
-        
-        // Initialize trial timer if active
-        function initializeTrialTimer() {
-            const timerDisplay = document.getElementById('trial-time-display');
-            if (!timerDisplay) return;
-            
-            // Check trial status from session or make API call
-            fetch('/api/me/trial-status')
-                .then(response => response.json())
-                .then(data => {
-                    if (data.trial_active && data.trial_expires_at) {
-                        startTrialCountdown(data.trial_expires_at);
-                    } else {
-                        timerDisplay.textContent = 'Expired';
-                    }
-                })
-                .catch(error => {
-                    console.error('Error fetching trial status:', error);
-                    timerDisplay.textContent = 'Error';
-                });
-        }
-        
-        function startTrialCountdown(expiresAt) {
-            const timerDisplay = document.getElementById('trial-time-display');
-            if (!timerDisplay) return;
-            
-            const updateTimer = () => {
-                const now = new Date().getTime();
-                const expiry = new Date(expiresAt).getTime();
-                const timeLeft = expiry - now;
-                
-                if (timeLeft <= 0) {
-                    timerDisplay.textContent = 'Expired';
-                    clearInterval(interval);
-                    // Reload page to show expired state
-                    setTimeout(() => window.location.reload(), 1000);
-                    return;
-                }
-                
-                const hours = Math.floor(timeLeft / (1000 * 60 * 60));
-                const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
-                const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
-                
-                timerDisplay.textContent = `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            };
-            
-            updateTimer();
-            const interval = setInterval(updateTimer, 1000);
-        }
-        
-        // Initialize timer on page load
-        document.addEventListener('DOMContentLoaded', initializeTrialTimer);
     </script>
 </body>
 </html>
