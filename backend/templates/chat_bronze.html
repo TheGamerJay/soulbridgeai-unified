@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SoulBridge AI - Bronze Tier v2.1</title>
+    <title>SoulBridge AI - Soul Companion</title>
     <!-- Cache busting for color updates -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
@@ -27,13 +27,13 @@
 </head>
 <body style="background: #000000;">
     <div id="app">
-        <div class="loading">Loading SoulBridge AI - Bronze Tier...</div>
+        <div class="loading">Loading SoulBridge AI - Soul Companion...</div>
     </div>
     
     <!-- Pass data from Flask to React -->
     <script>
         window.APP_DATA = {
-            userPlan: "bronze", // Force bronze tier
+            userPlan: "soul_companion", // Unified Soul Companion tier
             trialActive: {{ 'true' if trial_active else 'false' }},
             companionInfo: {
                 name: "{{ ai_character_name or companion_info.name if companion_info else 'GamerJay' }}",
@@ -47,17 +47,39 @@
         const { useState, useEffect } = React;
         const Send = window.lucide?.Send || (() => React.createElement('span', {}, '→'));
 
-        function BronzeChatPage({ userPlan = "bronze", trialActive = false }) {
-          // Load user theme or use Bronze tier defaults
+        function SoulCompanionChatPage({ userPlan = "soul_companion", trialActive = false }) {
+          // Credit balance state
+          const [credits, setCredits] = React.useState(null);
+          const [creditsLoading, setCreditsLoading] = React.useState(true);
+
+          // Load user theme or use Soul Companion defaults
           const [theme, setTheme] = React.useState({
             background: '#1a1a1a',
             text: '#22d3ee',
             accent: '#22d3ee'
           });
 
+          // Fetch credit balance
+          const fetchCredits = React.useCallback(async () => {
+            try {
+              const response = await fetch('/api/credits/balance', {
+                method: 'GET',
+                credentials: 'include'
+              });
+              const data = await response.json();
+              if (data.success) {
+                setCredits(data.balance);
+              }
+            } catch (error) {
+              console.error('Failed to fetch credits:', error);
+            } finally {
+              setCreditsLoading(false);
+            }
+          }, []);
+
           React.useEffect(() => {
             // Load user theme from API
-            fetch('/api/user/get-theme?tier=bronze')
+            fetch('/api/user/get-theme?tier=soul_companion')
               .then(response => response.json())
               .then(data => {
                 if (data.success && data.theme) {
@@ -67,8 +89,11 @@
                   document.body.style.color = data.theme.text;
                 }
               })
-              .catch(error => console.log('Using default Bronze theme'));
-          }, []);
+              .catch(error => console.log('Using default Soul Companion theme'));
+
+            // Fetch initial credit balance
+            fetchCredits();
+          }, [fetchCredits]);
 
           const colors = {
             primary: theme.accent,
@@ -76,7 +101,7 @@
             gradient: 'from-cyan-400 to-cyan-500'
           };
           
-          console.log('🥉 BRONZE TIER: Theme colors =', colors);
+          console.log('💫 SOUL COMPANION: Theme colors =', colors);
           
           // Get companion info from backend data
           const companion = window.APP_DATA?.companionInfo || {
@@ -131,47 +156,103 @@
             }
           };
 
-          // Bronze tier features
+          // Soul Companion features
           const features = [
             {
               icon: "🧠", 
               label: "Decoder", 
               route: "decoder",
-              tag: "3/day",
+              tag: "2 credits",
               available: true,
-              tier: "bronze"
+              tier: "soul_companion"
             },
             {
               icon: "🔮", 
               label: "Fortune", 
               route: "fortune",
-              tag: "3/day",
+              tag: "3 credits",
               available: true,
-              tier: "bronze"
+              tier: "soul_companion"
             },
             {
               icon: "⭐", 
               label: "Horoscope", 
               route: "horoscope",
-              tag: "3/day",
+              tag: "2 credits",
               available: true,
-              tier: "bronze"
+              tier: "soul_companion"
             },
             {
               icon: "✍️", 
               label: "Creative Writer", 
-              route: "creative-writing/bronze",
-              tag: "2/day",
+              route: "creative-writing",
+              tag: "5 credits",
               available: true,
-              tier: "bronze"
+              tier: "soul_companion"
             },
             {
               icon: "🤖", 
               label: "AI Companions", 
-              route: "chat/bronze/gamerjay_bronze",
-              tag: "Bronze Access",
+              route: "companion-selection",
+              tag: "Always Available",
               available: true,
-              tier: "bronze"
+              tier: "soul_companion"
+            },
+            {
+              icon: "🎤", 
+              label: "Voice Journal", 
+              route: "voice-journaling",
+              tag: "8 credits",
+              available: true,
+              tier: "soul_companion"
+            },
+            {
+              icon: "🎨", 
+              label: "AI Images", 
+              route: "ai-image-generation",
+              tag: "12 credits",
+              available: true,
+              tier: "soul_companion"
+            },
+            {
+              icon: "🎭", 
+              label: "Mini Studio", 
+              route: "mini-studio",
+              tag: "10 credits",
+              available: true,
+              tier: "soul_companion"
+            },
+            {
+              icon: "🧘", 
+              label: "Meditations", 
+              route: "emotional-meditations",
+              tag: "6 credits",
+              available: true,
+              tier: "soul_companion"
+            },
+            {
+              icon: "💝", 
+              label: "Relationships", 
+              route: "relationship-profiles",
+              tag: "7 credits",
+              available: true,
+              tier: "soul_companion"
+            },
+            {
+              icon: "🌀", 
+              label: "Soul Riddle", 
+              route: "soul-riddle",
+              tag: "4 credits",
+              available: true,
+              tier: "soul_companion"
+            },
+            {
+              icon: "🎨", 
+              label: "Theme Palette", 
+              route: "theme-palette",
+              tag: "3 credits",
+              available: true,
+              tier: "soul_companion"
             }
           ];
 
@@ -239,11 +320,12 @@
             className: "flex flex-col h-screen text-white",
             style: { backgroundColor: '#000000' }
           },
-            // Bronze tier ads notice
+            // Soul Companion welcome banner
             React.createElement('div', { 
-              className: "bg-yellow-100 text-yellow-800 text-center py-1 text-xs font-medium border-b" 
+              className: "text-center py-1 text-xs font-medium border-b text-white",
+              style: { backgroundColor: colors.primary + "20", borderColor: colors.primary }
             }, 
-              "📢 Bronze tier includes ads • Upgrade to Silver/Gold for ad-free experience"
+              "💫 Soul Companion - All features unlocked with Artistic Time credits"
             ),
 
             // Top bar with bronze-specific styling
@@ -251,14 +333,35 @@
               className: "sticky top-0 z-20 w-full shadow-sm",
               style: { backgroundColor: '#000000' }
             },
-              React.createElement('div', { className: "text-center py-2 text-sm font-medium text-white" },
-                React.createElement('span', { style: { color: colors.primary } }, 'Bronze Tier'),
+              React.createElement('div', { className: "flex items-center justify-center py-2 text-sm font-medium text-white gap-4" },
+                React.createElement('span', { style: { color: colors.primary } }, 'Soul Companion 💫'),
                 trialActive && React.createElement('span', { 
-                  className: "ml-2 px-2 py-1 rounded-full bg-green-500/20 text-green-300 text-xs" 
-                }, "Trial Active")
+                  className: "px-2 py-1 rounded-full bg-green-500/20 text-green-300 text-xs" 
+                }, "Trial Active"),
+                
+                // Credit counter display
+                React.createElement('div', { 
+                  className: "flex items-center gap-2 px-3 py-1 rounded-full border text-xs font-medium",
+                  style: {
+                    backgroundColor: colors.primary + '15',
+                    borderColor: colors.primary + '40',
+                    color: colors.primary
+                  }
+                },
+                  React.createElement('span', { className: "text-base" }, "⚡"),
+                  React.createElement('span', {}, 
+                    creditsLoading ? "Loading..." : 
+                    credits !== null ? `${credits} Artistic Time` : "Credits unavailable"
+                  ),
+                  credits !== null && React.createElement('button', {
+                    onClick: fetchCredits,
+                    className: "ml-1 opacity-60 hover:opacity-100 transition-opacity",
+                    title: "Refresh balance"
+                  }, "🔄")
+                )
               ),
               
-              // Feature chips with bronze colors
+              // Feature chips with Soul Companion colors
               React.createElement('div', { className: "max-w-6xl mx-auto px-3 py-2 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3" },
                 features.map((f, i) => 
                   React.createElement('button', {
@@ -414,14 +517,14 @@
                 console.log('🥉 BRONZE CHAT: Mounting with fixed bronze colors');
                 
                 const root = ReactDOM.createRoot(container);
-                root.render(React.createElement(BronzeChatPage, {
-                    userPlan: "bronze",
+                root.render(React.createElement(SoulCompanionChatPage, {
+                    userPlan: "soul_companion",
                     trialActive: window.APP_DATA.trialActive
                 }));
-                console.log('Bronze chat mounted successfully');
+                console.log('Soul Companion chat mounted successfully');
             }
         } catch (error) {
-            console.error('Failed to mount Bronze chat:', error);
+            console.error('Failed to mount Soul Companion chat:', error);
             document.getElementById('app').innerHTML = '<div style="padding: 20px; text-align: center; color: #00FFFF;"><h2>Loading Error</h2><p>Please refresh the page</p></div>';
         }
     </script>

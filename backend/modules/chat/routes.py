@@ -134,7 +134,7 @@ def chat_companion(companion_id):
 @chat_bp.route('/api/chat/send', methods=['POST'])
 @requires_login
 def send_chat_message():
-    """Send a message to AI companion"""
+    """Send a message to AI companion - TODO: Add credits in Phase 3"""
     try:
         user_id = get_user_id()
         user_plan = session.get('user_plan', 'bronze')

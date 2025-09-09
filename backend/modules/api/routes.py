@@ -1019,52 +1019,54 @@ def check_soul_riddle_limit():
 @api_bp.route('/soul-riddle/use', methods=['POST'])
 @requires_login
 def use_soul_riddle():
-    """Track Soul Riddle usage"""
+    """Track Soul Riddle usage - Now uses Artistic Time credits"""
+    from ...modules.credits.decorators import require_credits
+    
+    # Apply credit requirement
+    @require_credits('soul_riddle')
+    def _soul_riddle_logic():
+        try:
+            user_id = get_user_id()
+            
+            # Soul Riddle game started successfully - credits already deducted by decorator
+            return jsonify({
+                'success': True,
+                'feature': 'soul_riddle',
+                'message': 'Soul Riddle game started! 4 credits deducted.',
+                'cost': 4
+            })
+            
+        except Exception as e:
+            logger.error(f"Soul Riddle completion error: {e}")
+            return jsonify({
+                'success': False,
+                'error': 'Failed to start Soul Riddle game'
+            }), 500
+    
+    return _soul_riddle_logic()
+
+@api_bp.route('/credits/balance', methods=['GET'])
+@requires_login
+def get_credit_balance():
+    """Get user's current Artistic Time credit balance"""
     try:
-        from unified_tier_system import get_feature_limit, get_feature_usage_today, track_feature_usage
+        from ...modules.credits.operations import get_artistic_time
         
         user_id = get_user_id()
-        user_plan = session.get('user_plan', 'bronze')
-        trial_active = session.get('trial_active', False)
-        
-        # Check if user has remaining uses
-        daily_limit = get_feature_limit(user_plan, 'soul_riddle', trial_active)
-        usage_today = get_feature_usage_today(user_id, 'soul_riddle')
-        
-        if usage_today >= daily_limit:
-            return jsonify({
-                'success': False,
-                'error': 'Daily limit reached for Soul Riddle',
-                'usage_today': usage_today,
-                'daily_limit': daily_limit
-            }), 429
-        
-        # Track usage
-        success = track_feature_usage(user_id, 'soul_riddle')
-        if not success:
-            return jsonify({
-                'success': False,
-                'error': 'Failed to track usage'
-            }), 500
-        
-        # Get updated stats
-        new_usage = get_feature_usage_today(user_id, 'soul_riddle')
-        remaining = max(0, daily_limit - new_usage)
+        balance = get_artistic_time(user_id)
         
         return jsonify({
             'success': True,
-            'feature': 'soul_riddle',
-            'usage_today': new_usage,
-            'daily_limit': daily_limit,
-            'remaining': remaining,
-            'message': 'Soul Riddle game started successfully'
+            'balance': balance,
+            'user_id': user_id
         })
         
     except Exception as e:
-        logger.error(f"Soul Riddle usage error: {e}")
+        logger.error(f"Error getting credit balance for user {user_id}: {e}")
         return jsonify({
             'success': False,
-            'error': 'Failed to track Soul Riddle usage'
+            'error': 'Failed to get credit balance',
+            'balance': 0
         }), 500
 
 @api_bp.route('/soul-riddle/stats', methods=['GET'])
