@@ -18,6 +18,7 @@ class PrivacyManager:
         self.retention_periods = {
             'user_data': 2555,  # 7 years in days (legal requirement)
             'chat_history': 365,  # 1 year
+            'credit_transactions': 2555,  # 7 years (financial records)
             'usage_logs': 90,   # 3 months
             'error_logs': 30,   # 1 month
             'session_data': 30, # 1 month

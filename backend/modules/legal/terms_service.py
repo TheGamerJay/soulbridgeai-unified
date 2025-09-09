@@ -15,13 +15,14 @@ class TermsService:
     
     def __init__(self, database=None):
         self.database = database
-        self.current_version = 'v1.0'
+        self.current_version = 'v2.0'
         self.supported_languages = ['en', 'es', 'fr', 'de', 'it', 'pt', 'ja', 'zh']
         self.required_acceptances = [
             'ai_understanding',
             'terms_privacy', 
             'age_confirmation',
-            'responsible_use'
+            'responsible_use',
+            'credit_system_understanding'
         ]
         
     def has_accepted_terms(self, user_id: int, version: str = None) -> bool:
@@ -327,46 +328,58 @@ class TermsService:
             base_terms = {
                 'version': content_version,
                 'language': language,
-                'effective_date': '2024-01-01',
-                'last_updated': '2024-01-01',
+                'effective_date': '2025-01-09',
+                'last_updated': '2025-01-09',
                 'sections': {
                     'acceptance': {
                         'title': 'Acceptance of Terms',
-                        'content': 'By using SoulBridge AI, you agree to be bound by these Terms of Service.'
+                        'content': 'By using SoulBridge AI Soul Companion service, you agree to be bound by these Terms of Service.'
                     },
                     'description': {
                         'title': 'Description of Service',
-                        'content': 'SoulBridge AI is an AI-powered wellness and personal growth platform.'
+                        'content': 'SoulBridge AI offers a unified Soul Companion experience - an AI-powered wellness and personal growth platform that provides access to all premium features through our Artistic Time credit system.'
+                    },
+                    'soul_companion_system': {
+                        'title': 'Soul Companion System',
+                        'content': 'Our Soul Companion system provides a unified experience where all features (AI Images, Voice Journaling, Mini Studio, Creative Writing, etc.) are accessible using Artistic Time credits. There are no tier restrictions - every user gets the same premium experience.'
+                    },
+                    'credit_system': {
+                        'title': 'Artistic Time Credit System',
+                        'content': 'Features cost Artistic Time credits (2-12 credits per use). Credits can be purchased when needed. Unused credits do not expire but refunds are not provided for unused credits. Credit costs may change with notice.'
+                    },
+                    'payments': {
+                        'title': 'Payments and Billing',
+                        'content': 'Credit purchases are processed securely through Stripe. All sales are final. We reserve the right to modify pricing with 30 days notice to existing users.'
                     },
                     'user_responsibilities': {
                         'title': 'User Responsibilities',
-                        'content': 'Users must use the service responsibly and in accordance with applicable laws.'
+                        'content': 'Users must use the service responsibly, not attempt to exploit the credit system, and comply with all applicable laws. Abuse of the service may result in account termination.'
                     },
                     'privacy': {
                         'title': 'Privacy',
-                        'content': 'Your privacy is important to us. Please review our Privacy Policy.'
+                        'content': 'Your privacy is important to us. We collect usage data to improve the service but do not sell personal information. Please review our Privacy Policy for complete details.'
                     },
                     'ai_disclosure': {
                         'title': 'AI Service Disclosure',
-                        'content': 'This service uses artificial intelligence. AI responses may not always be accurate.'
+                        'content': 'This service uses artificial intelligence to generate responses and content. AI responses may not always be accurate, appropriate, or suitable for your situation. Use AI guidance as a tool, not as professional advice.'
                     },
                     'age_requirements': {
                         'title': 'Age Requirements',
-                        'content': 'You must be at least 13 years old to use this service.'
+                        'content': 'You must be at least 13 years old to use this service. Users under 18 should have parental consent.'
                     },
                     'termination': {
-                        'title': 'Termination',
-                        'content': 'We reserve the right to terminate accounts that violate these terms.'
+                        'title': 'Account Termination',
+                        'content': 'We reserve the right to terminate accounts that violate these terms, abuse the credit system, or engage in harmful behavior. Terminated users forfeit unused credits.'
                     },
                     'changes': {
                         'title': 'Changes to Terms',
-                        'content': 'We may update these terms from time to time.'
+                        'content': 'We may update these terms to reflect changes in our Soul Companion system or legal requirements. Continued use constitutes acceptance of updated terms.'
                     }
                 },
                 'required_acceptances': [
                     {
                         'id': 'ai_understanding',
-                        'label': 'I understand this service uses AI technology',
+                        'label': 'I understand this service uses AI technology and responses may not always be accurate',
                         'required': True
                     },
                     {
@@ -381,7 +394,12 @@ class TermsService:
                     },
                     {
                         'id': 'responsible_use',
-                        'label': 'I agree to use this service responsibly',
+                        'label': 'I agree to use this service responsibly and not abuse the system',
+                        'required': True
+                    },
+                    {
+                        'id': 'credit_system_understanding',
+                        'label': 'I understand features require Artistic Time credits and credit purchases are final',
                         'required': True
                     }
                 ]
