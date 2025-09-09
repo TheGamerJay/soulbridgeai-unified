@@ -132,7 +132,7 @@ def get_companion_data(user_id: int) -> dict:
         db = get_database()
         if not db:
             logger.error("Database not available")
-            return {"companion_id": "soul", "name": "Soul", "tier": "bronze"}
+            return {"companion_id": "blayzo_bronze", "name": "Blayzo", "tier": "bronze"}
             
         conn = db.get_connection()
         try:
@@ -154,8 +154,8 @@ def get_companion_data(user_id: int) -> dict:
                     pass
             
             # Default companion
-            default = {"companion_id": "soul", "name": "Soul", "tier": "bronze"}
-            logger.info(f"🤖 READER: User {user_id} using default companion 'Soul'")
+            default = {"companion_id": "blayzo_bronze", "name": "Blayzo", "tier": "bronze"}
+            logger.info(f"🤖 READER: User {user_id} using default companion 'Blayzo'")
             return default
                 
         finally:
