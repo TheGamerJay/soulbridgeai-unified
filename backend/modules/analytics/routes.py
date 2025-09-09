@@ -29,17 +29,13 @@ def _check_analytics_access(user_plan: str, trial_active: bool = False) -> bool:
 @analytics_bp.route('/analytics')
 @requires_login
 def analytics_page():
-    """Render the analytics dashboard page (Silver/Gold tier only)"""
+    """Render the analytics dashboard page (All tiers - with different feature levels)"""
     try:
         user_plan = session.get('user_plan', 'bronze')
         trial_active = session.get('trial_active', False)
         
-        # Check access - Silver/Gold only
-        if not _check_analytics_access(user_plan, trial_active):
-            return render_template('tier_lock_demo.html', 
-                                 feature="Analytics Dashboard",
-                                 required_tier="Silver",
-                                 current_tier=user_plan), 403
+        # All users can access analytics, but with different feature levels
+        # Bronze: Basic stats, Silver/Gold: Advanced analytics
         
         return render_template('analytics.html',
                              user_plan=user_plan,
