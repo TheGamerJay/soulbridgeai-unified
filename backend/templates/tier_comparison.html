@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tier Features & Limits - SoulBridge AI</title>
+    <title>Soul Companion - Upgrade Your Experience</title>
     <style>
         * {
             margin: 0;
@@ -31,139 +31,237 @@
         
         .header {
             text-align: center;
-            margin-bottom: 40px;
+            margin-bottom: 50px;
         }
         
         .header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
+            font-size: 3rem;
+            margin-bottom: 15px;
             text-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+            background: linear-gradient(45deg, #00ffff, #ff00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
         
         .header p {
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             color: #94a3b8;
+            margin-bottom: 30px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.6;
+        }
+
+        .soul-companion-intro {
+            background: rgba(0, 255, 255, 0.1);
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .soul-companion-intro h2 {
+            color: #00ffff;
+            font-size: 2rem;
             margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .soul-companion-intro .highlight {
+            background: linear-gradient(45deg, #ff00ff, #00ffff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: bold;
+        }
+
+        .plans-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
         }
         
-        .status-indicator {
-            display: inline-block;
-            padding: 8px 16px;
-            background: rgba(0, 255, 255, 0.1);
-            border: 1px solid rgba(0, 255, 255, 0.3);
+        .plan-card {
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid rgba(0, 255, 255, 0.2);
             border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .plan-card:hover {
+            border-color: rgba(0, 255, 255, 0.5);
+            transform: translateY(-5px);
+        }
+        
+        .plan-card.featured {
+            border-color: rgba(255, 0, 255, 0.5);
+            background: rgba(255, 0, 255, 0.05);
+        }
+
+        .plan-card.featured::before {
+            content: "MOST POPULAR";
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(45deg, #ff00ff, #00ffff);
+            color: black;
+            padding: 5px 20px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        
+        .plan-title {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            color: #00ffff;
+        }
+        
+        .plan-price {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #ffffff;
+        }
+        
+        .plan-period {
+            color: #94a3b8;
+            margin-bottom: 20px;
             font-size: 0.9rem;
+        }
+
+        .plan-savings {
+            background: rgba(0, 255, 0, 0.1);
+            color: #00ff00;
+            padding: 5px 15px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            margin-bottom: 20px;
+            display: inline-block;
+        }
+        
+        .plan-features {
+            list-style: none;
             margin-bottom: 30px;
         }
         
-        .tier-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 40px;
-            background: rgba(0, 0, 0, 0.4);
-            border-radius: 12px;
-            overflow: hidden;
-            border: 1px solid rgba(0, 255, 255, 0.2);
-        }
-        
-        .tier-table th {
-            background: rgba(0, 255, 255, 0.1);
-            color: #00ffff;
-            padding: 15px 10px;
-            text-align: center;
-            font-weight: 600;
-            border-bottom: 2px solid rgba(0, 255, 255, 0.3);
-        }
-        
-        .tier-table td {
-            padding: 12px 10px;
-            text-align: center;
+        .plan-features li {
+            padding: 10px 0;
             border-bottom: 1px solid rgba(0, 255, 255, 0.1);
-        }
-        
-        .tier-name {
-            font-weight: 600;
-            color: #00ffff;
-            background: rgba(0, 255, 255, 0.05);
-        }
-        
-        .tier-bronze { color: #94a3b8; }
-        .tier-silver { color: #10b981; }
-        .tier-gold { color: #f59e0b; }
-        
-        .feature-available {
-            color: #10b981;
-            font-weight: 600;
-        }
-        
-        .feature-locked {
-            color: #ef4444;
-            font-weight: 600;
-        }
-        
-        .feature-unlimited {
-            color: #f59e0b;
-            font-weight: 600;
-        }
-        
-        .limits {
-            font-family: 'Courier New', monospace;
-            font-weight: 600;
-            color: #00ffff;
-        }
-        
-        .trial-section {
-            background: rgba(255, 215, 0, 0.1);
-            border: 2px solid rgba(255, 215, 0, 0.3);
-            border-radius: 15px;
-            padding: 25px;
-            margin: 30px 0;
-        }
-        
-        .trial-section h3 {
-            color: #ffd700;
-            margin-bottom: 15px;
-            font-size: 1.3rem;
+            color: #e2e8f0;
             display: flex;
             align-items: center;
             gap: 10px;
         }
+
+        .plan-features li:last-child {
+            border-bottom: none;
+        }
         
-        .trial-note {
-            background: rgba(0, 255, 255, 0.1);
-            border-left: 4px solid #00ffff;
-            padding: 15px 20px;
+        .feature-icon {
+            font-size: 1.1rem;
+        }
+
+        .feature-icon.check {
+            color: #00ff00;
+        }
+
+        .feature-icon.premium {
+            color: #ff00ff;
+        }
+
+        .feature-credits {
+            background: rgba(255, 215, 0, 0.1);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
             margin: 20px 0;
-            border-radius: 0 8px 8px 0;
+        }
+
+        .feature-credits .credits-amount {
+            color: #ffd700;
+            font-size: 1.5rem;
+            font-weight: bold;
         }
         
-        .trial-note h4 {
-            color: #00ffff;
-            margin-bottom: 10px;
+        .cta-button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(45deg, #00ffff, #ff00ff);
+            border: none;
+            border-radius: 10px;
+            color: black;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
         }
         
-        .feature-grid {
+        .cta-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 25px rgba(0, 255, 255, 0.3);
+        }
+
+        .current-plan {
+            background: rgba(0, 255, 0, 0.1);
+            color: #00ff00;
+        }
+
+        .credit-explanation {
+            background: rgba(255, 215, 0, 0.05);
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 40px 0;
+        }
+
+        .credit-explanation h3 {
+            color: #ffd700;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .credit-costs {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
             margin-top: 20px;
         }
-        
-        .feature-card {
-            background: rgba(0, 0, 0, 0.5);
-            border: 1px solid rgba(0, 255, 255, 0.2);
-            border-radius: 10px;
-            padding: 20px;
+
+        .cost-item {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-        
-        .feature-card h4 {
-            color: #00ffff;
-            margin-bottom: 10px;
+
+        .cost-item .feature {
+            color: #e2e8f0;
+        }
+
+        .cost-item .cost {
+            color: #ffd700;
+            font-weight: bold;
         }
         
         .back-btn {
             display: inline-block;
-            padding: 10px 20px;
+            padding: 12px 24px;
             background: rgba(0, 255, 255, 0.1);
             border: 1px solid rgba(0, 255, 255, 0.3);
             border-radius: 8px;
@@ -183,13 +281,16 @@
                 padding: 20px;
             }
             
-            .tier-table {
-                font-size: 0.85rem;
+            .header h1 {
+                font-size: 2rem;
             }
             
-            .tier-table th,
-            .tier-table td {
-                padding: 8px 5px;
+            .plans-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .credit-costs {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -197,143 +298,150 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🎯 Tier Features & Limits</h1>
-            <p>Understand how features and limits work across different tiers</p>
-            <div class="status-indicator" id="currentStatus">
-                🔓 Normal (No Trial Active)
+            <h1>🌟 Soul Companion Experience 🌟</h1>
+            <p>One unified tier. All features unlocked. Pay only for what you use with our revolutionary <strong>Artistic Time</strong> credit system.</p>
+        </div>
+
+        <div class="soul-companion-intro">
+            <h2>🎭 <span class="highlight">Soul Companion</span> System ⚡</h2>
+            <p>We've simplified everything! No more confusing Bronze, Silver, Gold tiers. Everyone gets the same amazing <strong>Soul Companion</strong> experience - all features unlocked from day one. You only pay for the Artistic Time credits you actually use.</p>
+        </div>
+
+        <div class="credit-explanation">
+            <h3>⚡ How Artistic Time Credits Work</h3>
+            <p>Every feature costs a small amount of <strong>Artistic Time</strong> credits. Use what you need, when you need it:</p>
+            <div class="credit-costs">
+                <div class="cost-item">
+                    <span class="feature">💬 Chat Message</span>
+                    <span class="cost">1 credit</span>
+                </div>
+                <div class="cost-item">
+                    <span class="feature">🔮 Decoder Analysis</span>
+                    <span class="cost">3 credits</span>
+                </div>
+                <div class="cost-item">
+                    <span class="feature">🌟 Horoscope Reading</span>
+                    <span class="cost">3 credits</span>
+                </div>
+                <div class="cost-item">
+                    <span class="feature">🎴 Fortune Reading</span>
+                    <span class="cost">5 credits</span>
+                </div>
+                <div class="cost-item">
+                    <span class="feature">🧩 Soul Riddle</span>
+                    <span class="cost">4 credits</span>
+                </div>
+                <div class="cost-item">
+                    <span class="feature">🎨 Creative Writing</span>
+                    <span class="cost">8 credits</span>
+                </div>
+                <div class="cost-item">
+                    <span class="feature">🖼️ AI Image Generation</span>
+                    <span class="cost">15 credits</span>
+                </div>
+                <div class="cost-item">
+                    <span class="feature">🎵 Mini Studio (Basic)</span>
+                    <span class="cost">20 credits</span>
+                </div>
             </div>
         </div>
-        
-        <table class="tier-table">
-            <thead>
-                <tr>
-                    <th>User Tier</th>
-                    <th>Free Features<br><span class="limits">(5/5/5)</span></th>
-                    <th>Growth Features<br><span class="limits">(15/8/10)</span></th>
-                    <th>Max Features<br><span class="limits">(Unlimited)</span></th>
-                    <th>Companion Access</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td class="tier-name tier-bronze">Bronze</td>
-                    <td class="feature-available">✅</td>
-                    <td class="feature-locked">❌ (locked)</td>
-                    <td class="feature-locked">❌ (locked)</td>
-                    <td>🔒 Only Bronze</td>
-                </tr>
-                <tr>
-                    <td class="tier-name tier-silver">Silver</td>
-                    <td class="feature-available">✅</td>
-                    <td class="feature-available">✅</td>
-                    <td class="feature-locked">❌ (locked)</td>
-                    <td>🔓 Bronze + Silver</td>
-                </tr>
-                <tr>
-                    <td class="tier-name tier-gold">Gold</td>
-                    <td class="feature-available">✅</td>
-                    <td class="feature-available">✅</td>
-                    <td class="feature-unlimited">✅</td>
-                    <td>✅ All</td>
-                </tr>
-            </tbody>
-        </table>
-        
-        <p style="text-align: center; color: #94a3b8; margin-bottom: 20px;">
-            Each tier has its own usage limits, and locked features stay locked unless you're subscribed to that tier.
-        </p>
-        
-        <div class="trial-section">
-            <h3>🕒 During 5-Hour Trial</h3>
-            <p style="margin-bottom: 15px;">No matter what plan you're on (even Free), you temporarily unlock:</p>
-            <ul style="margin: 15px 0 15px 30px; color: #10b981;">
-                <li><strong>All features from Free + Growth + Max ✅</strong></li>
-                <li><strong>All companions ✅</strong></li>
-            </ul>
-            <p style="margin-bottom: 15px;"><strong>But usage limits match the tier you're subscribed to:</strong></p>
-            <ul style="margin: 15px 0 15px 30px; font-family: 'Courier New', monospace;">
-                <li><span class="tier-bronze">Bronze</span> → 5 / 5 / 5</li>
-                <li><span class="tier-silver">Silver</span> → 15 / 8 / 10</li>
-                <li><span class="tier-gold">Gold</span> → ∞</li>
-            </ul>
-            <div class="trial-note">
-                <h4>Important:</h4>
-                <p>The trial does <strong>NOT</strong> upgrade your limits. It only unlocks everything for 5 hours.</p>
+
+        <div class="plans-grid">
+            <!-- Free Experience -->
+            <div class="plan-card">
+                <h3 class="plan-title">🆓 Soul Companion (Free)</h3>
+                <div class="plan-price">$0</div>
+                <div class="plan-period">Forever</div>
+                
+                <div class="feature-credits">
+                    <div class="credits-amount">0 Monthly Credits</div>
+                    <p style="color: #94a3b8; font-size: 0.9rem;">Purchase credits as needed</p>
+                </div>
+                
+                <ul class="plan-features">
+                    <li><span class="feature-icon check">✅</span> All Soul Companion features unlocked</li>
+                    <li><span class="feature-icon check">✅</span> Access to all companions</li>
+                    <li><span class="feature-icon check">✅</span> Chat, Fortune, Horoscope, Decoder</li>
+                    <li><span class="feature-icon check">✅</span> AI Images, Creative Writing, Mini Studio</li>
+                    <li><span class="feature-icon check">✅</span> Voice Journaling & Meditations</li>
+                    <li><span class="feature-icon premium">⚡</span> Pay per use with Artistic Time</li>
+                </ul>
+                
+                <button class="cta-button current-plan">Current Plan</button>
+            </div>
+
+            <!-- Pro Subscription -->
+            <div class="plan-card featured">
+                <h3 class="plan-title">🌟 Soul Companion Pro</h3>
+                <div class="plan-price">$12.99</div>
+                <div class="plan-period">per month</div>
+                <div class="plan-savings">Save $2/month vs buying credits</div>
+                
+                <div class="feature-credits">
+                    <div class="credits-amount">300 Monthly Credits</div>
+                    <p style="color: #94a3b8; font-size: 0.9rem;">Enough for ~150 chats + premium features</p>
+                </div>
+                
+                <ul class="plan-features">
+                    <li><span class="feature-icon check">✅</span> All Soul Companion features unlocked</li>
+                    <li><span class="feature-icon premium">⚡</span> 300 Artistic Time credits monthly</li>
+                    <li><span class="feature-icon premium">🚫</span> Ad-free experience</li>
+                    <li><span class="feature-icon premium">💳</span> Can purchase extra credits anytime</li>
+                    <li><span class="feature-icon premium">📧</span> Priority support</li>
+                </ul>
+                
+                <a href="/subscription" class="cta-button">Upgrade to Pro</a>
+            </div>
+
+            <!-- Pro Annual -->
+            <div class="plan-card">
+                <h3 class="plan-title">💎 Soul Companion Pro (Annual)</h3>
+                <div class="plan-price">$117</div>
+                <div class="plan-period">per year</div>
+                <div class="plan-savings">Save 25% - 2 months FREE!</div>
+                
+                <div class="feature-credits">
+                    <div class="credits-amount">3,600 Credits/Year</div>
+                    <p style="color: #94a3b8; font-size: 0.9rem;">Best value - same as Pro monthly</p>
+                </div>
+                
+                <ul class="plan-features">
+                    <li><span class="feature-icon check">✅</span> All Pro features included</li>
+                    <li><span class="feature-icon premium">⚡</span> 300 credits per month (3,600/year)</li>
+                    <li><span class="feature-icon premium">🚫</span> Ad-free experience</li>
+                    <li><span class="feature-icon premium">💳</span> Can purchase extra credits anytime</li>
+                    <li><span class="feature-icon premium">💰</span> 25% savings vs monthly plan</li>
+                </ul>
+                
+                <a href="/subscription" class="cta-button">Upgrade to Pro Annual</a>
             </div>
         </div>
-        
-        <div class="trial-section" style="border-color: rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.1);">
-            <h3 style="color: #ef4444;">⏳ After 5 Hours</h3>
-            <p style="margin-bottom: 15px; color: #ef4444;"><strong>Everything locks back:</strong></p>
-            <ul style="margin: 15px 0 15px 30px;">
-                <li>If you're a <strong>Free</strong> user, only Free features + companions are available again.</li>
-                <li>If you're <strong>Growth</strong>, Max features lock again.</li>
-                <li><strong>Max</strong> users stay the same (nothing locks).</li>
-            </ul>
-            <p style="color: #94a3b8; font-style: italic;">Limits remain the same per tier.</p>
+
+        <div class="trial-section" style="background: rgba(255, 215, 0, 0.1); border: 2px solid rgba(255, 215, 0, 0.3); border-radius: 15px; padding: 25px; margin: 40px 0; text-align: center;">
+            <h3 style="color: #ffd700; margin-bottom: 15px;">🎯 5-Hour Trial Available!</h3>
+            <p>New users get <strong>60 free Artistic Time credits</strong> to explore all premium features for 5 hours. No subscription required!</p>
         </div>
-        
-        <div class="feature-grid">
-            <div class="feature-card">
-                <h4>🧠 Decoder Features</h4>
-                <p><strong>Free:</strong> 3 uses per day</p>
-                <p><strong>Growth:</strong> 15 uses per day</p>
-                <p><strong>Max:</strong> Unlimited</p>
-                <p style="color: #94a3b8; font-size: 0.9rem; margin-top: 10px;">
-                    Dream analysis, relationship insights, message decoding, etc.
-                </p>
-            </div>
-            
-            <div class="feature-card">
-                <h4>🔮 Fortune Features</h4>
-                <p><strong>Free:</strong> 2 uses per day</p>
-                <p><strong>Growth:</strong> 8 uses per day</p>
-                <p><strong>Max:</strong> Unlimited</p>
-                <p style="color: #94a3b8; font-size: 0.9rem; margin-top: 10px;">
-                    AI-powered fortune telling and guidance.
-                </p>
-            </div>
-            
-            <div class="feature-card">
-                <h4>⭐ Horoscope Features</h4>
-                <p><strong>Free:</strong> 3 uses per day</p>
-                <p><strong>Growth:</strong> 10 uses per day</p>
-                <p><strong>Max:</strong> Unlimited</p>
-                <p style="color: #94a3b8; font-size: 0.9rem; margin-top: 10px;">
-                    Personalized daily, weekly, and monthly horoscopes.
-                </p>
-            </div>
+
+        <div style="text-align: center; margin-top: 30px;">
+            <a href="/companion-selection" class="back-btn">← Back to Soul Companions</a>
+            <span style="margin: 0 20px;">|</span>
+            <a href="/credit_store" class="back-btn">💳 Buy Credits</a>
         </div>
-        
-        <a href="/intro" class="back-btn">← Back to Dashboard</a>
     </div>
-    
+
     <script>
-        // Update status based on trial state
-        async function updateTrialStatus() {
-            try {
-                const response = await fetch('/api/user-info');
-                const data = await response.json();
-                
-                const statusIndicator = document.getElementById('currentStatus');
-                
-                if (data.success && data.trial_active && data.trial_remaining > 0) {
-                    const hours = Math.floor(data.trial_remaining / 3600);
-                    const minutes = Math.floor((data.trial_remaining % 3600) / 60);
-                    statusIndicator.textContent = `🕒 Trial Active (${hours}h ${minutes}m remaining)`;
-                    statusIndicator.style.background = 'rgba(255, 215, 0, 0.2)';
-                    statusIndicator.style.borderColor = 'rgba(255, 215, 0, 0.5)';
-                    statusIndicator.style.color = '#ffd700';
-                } else {
-                    statusIndicator.textContent = '🔓 Normal (No Trial Active)';
-                }
-            } catch (error) {
-                console.error('Error checking trial status:', error);
-            }
-        }
-        
-        // Update status on page load
-        updateTrialStatus();
+        // Add some interactive effects
+        document.querySelectorAll('.plan-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-8px)';
+                this.style.boxShadow = '0 15px 35px rgba(0, 255, 255, 0.2)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+                this.style.boxShadow = 'none';
+            });
+        });
     </script>
 </body>
 </html>

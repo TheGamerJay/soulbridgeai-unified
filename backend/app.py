@@ -300,7 +300,7 @@ def create_app():
     def tiers():
         """Tiers page - from core blueprint"""
         from flask import render_template
-        return render_template('tiers.html')
+        return render_template('tier_comparison.html')
     
     # COMPANION ROUTES (from companions module blueprint)
     @app.route("/companion-selection")
