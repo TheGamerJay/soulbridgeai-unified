@@ -14,18 +14,20 @@ logger = logging.getLogger(__name__)
 # Global limiter instance (will be initialized by init_security)
 limiter = None
 
-def rate_limit_moderate(f):
-    """Decorator for moderate rate limiting (30 per minute)"""
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if limiter:
-            # Apply rate limit of 30 per minute for moderate endpoints
-            with limiter.limit("30/minute"):
+def rate_limit_moderate():
+    """Decorator factory for moderate rate limiting (30 per minute)"""
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            if limiter:
+                # Apply rate limit of 30 per minute for moderate endpoints
+                with limiter.limit("30/minute"):
+                    return f(*args, **kwargs)
+            else:
+                # If limiter not initialized, proceed without rate limiting
                 return f(*args, **kwargs)
-        else:
-            # If limiter not initialized, proceed without rate limiting
-            return f(*args, **kwargs)
-    return decorated_function
+        return decorated_function
+    return decorator
 
 
 def init_security(app):
