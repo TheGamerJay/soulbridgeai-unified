@@ -89,10 +89,10 @@ SINGLE_COMPANIONS = [
 
 # Referral companions (keep separate as requested)
 REFERRAL_COMPANIONS = [
-    {"id": "blayzike", "name": "Blayzike", "image": "/static/referral/blayzike.png", "min_referrals": 2},
-    {"id": "blazelian", "name": "Blazelian", "image": "/static/referral/blazelian.png", "min_referrals": 4},
+    {"id": "blayzike", "name": "Blayzike", "image": "/static/logos/blayzike.png", "min_referrals": 2},
+    {"id": "blazelian", "name": "Blazelian", "image": "/static/logos/blazelian.png", "min_referrals": 4},
     {"id": "nyxara", "name": "Nyxara", "image": "/static/logos/Nyxara.png", "min_referrals": 6},
-    {"id": "claude_referral", "name": "Claude Referral", "image": "/static/referral/claude_referral.png", "min_referrals": 8},
+    {"id": "claude_referral", "name": "Claude Referral", "image": "/static/logos/claude_referral.png", "min_referrals": 8},
     {"id": "blayzo_referral", "name": "Blayzo Referral", "image": "/static/logos/Blayzo_Referral.png", "min_referrals": 10}
 ]
 

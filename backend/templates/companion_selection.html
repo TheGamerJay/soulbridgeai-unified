@@ -407,16 +407,14 @@
         }
         
         .skin-dropdown {
-            position: absolute;
-            top: 35px;
-            right: 0;
+            position: fixed;
             background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
             border: 2px solid rgba(139, 92, 246, 0.5);
             border-radius: 12px;
-            min-width: 250px;
-            max-height: 300px;
+            min-width: 280px;
+            max-height: 400px;
             overflow-y: auto;
-            z-index: 1000;
+            z-index: 9999;
             display: none;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
             backdrop-filter: blur(10px);
@@ -450,10 +448,11 @@
         .skin-option {
             display: flex;
             align-items: center;
-            padding: 10px 15px;
+            padding: 15px 20px;
             cursor: pointer;
             transition: all 0.2s ease;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            min-height: 80px;
         }
         
         .skin-option:hover {
@@ -465,12 +464,13 @@
         }
         
         .skin-thumb {
-            width: 40px;
-            height: 40px;
+            width: 60px;
+            height: 60px;
             border-radius: 8px;
             object-fit: contain;
-            margin-right: 12px;
+            margin-right: 15px;
             border: 2px solid rgba(139, 92, 246, 0.3);
+            flex-shrink: 0;
         }
         
         .skin-info {
@@ -788,6 +788,7 @@
 
         function toggleSkinDropdown(companionKey) {
             const dropdown = document.getElementById(`dropdown-${companionKey}`);
+            const button = event.target;
             const isVisible = dropdown.classList.contains('show');
             
             // Close all other dropdowns
@@ -797,6 +798,10 @@
             
             // Toggle current dropdown
             if (!isVisible) {
+                // Position dropdown near the button
+                const buttonRect = button.getBoundingClientRect();
+                dropdown.style.left = `${buttonRect.left - 200}px`;
+                dropdown.style.top = `${buttonRect.bottom + 10}px`;
                 dropdown.classList.add('show');
             }
         }
