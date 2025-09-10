@@ -49,170 +49,103 @@ def get_user_info():
 @v1_api.route('/entitlements', methods=['GET'])
 def get_entitlements():
     """
-    Single source of truth for all user permissions and capabilities
-    Consolidates: plan status, credits, feature flags, limits
+    Simplified user entitlements - no trials, basic plan info
     """
     if not session.get('user_id'):
         return jsonify({"error": "Authentication required"}), 401
     
     user_id = session.get('user_id')
     user_plan = session.get('user_plan', 'bronze')
-    trial_active = session.get('trial_active', False)
-    trial_expires = session.get('trial_expires_at')
     
-    # Get effective plan (trial gives gold access)
-    effective_plan = get_effective_plan(user_plan, trial_active)
-    
-    # Determine plan status
-    if trial_active:
-        plan_status = "trial"
-        plan_name = "trial"
-    elif user_plan in ['silver', 'gold']:
-        plan_status = "active"  # TODO: Check subscription status from Stripe
-        plan_name = user_plan
-    else:
-        plan_status = "active"  # Bronze is always active
-        plan_name = "bronze"
-    
-    # Get credit balances
-    total_credits = get_user_credits(user_id)
-    monthly_allowance = MONTHLY_ALLOWANCES.get(user_plan, 0)
-    
-    # Smart credit breakdown
-    if trial_active:
-        # During trial, all credits are trial credits
-        credits = {
-            "monthly": {"remaining": 0, "resets_at": "2025-09-16T10:00:00Z"},
-            "topups": {"remaining": 0, "frozen": user_plan == 'bronze'},
-            "trial": {"remaining": total_credits, "expires_at": trial_expires}
+    # Simplified feature limits based on plan
+    feature_limits = {
+        'bronze': {
+            'decoder': 5,
+            'fortune': 5,
+            'horoscope': 5,
+            'creative_writer': 5
+        },
+        'silver': {
+            'decoder': 15,
+            'fortune': 12,
+            'horoscope': 10,
+            'creative_writer': 15
+        },
+        'gold': {
+            'decoder': 100,
+            'fortune': 150,
+            'horoscope': 50,
+            'creative_writer': 75
         }
-    else:
-        # Normal operation - monthly + topups
-        monthly_credits = min(total_credits, monthly_allowance)
-        topup_credits = max(0, total_credits - monthly_allowance)
-        
-        credits = {
-            "monthly": {"remaining": monthly_credits, "resets_at": "2025-09-16T10:00:00Z"},
-            "topups": {"remaining": topup_credits, "frozen": user_plan == 'bronze'},
-            "trial": {"remaining": 0, "expires_at": None}
-        }
-    
-    # Feature flags based on entitlements
-    feature_flags = {
-        "advanced_ai": effective_plan in ['silver', 'gold', 'trial'] and total_credits > 0,
-        "mini_studio": effective_plan == 'gold' or (trial_active and total_credits > 0),
-        "buy_topups_enabled": user_plan in ['silver', 'gold']
     }
     
-    # Ads configuration
-    ads_enabled = user_plan == 'bronze'  # TODO: Check ad-free addon
+    current_limits = feature_limits.get(user_plan, feature_limits['bronze'])
     
     return jsonify({
-        "plan": plan_name,
-        "status": plan_status,
-        "ads_enabled": ads_enabled,
-        "period_end": trial_expires if trial_active else "2025-09-16T10:00:00Z",
-        "cancel_at_period_end": False,  # TODO: Get from subscription
-        "credits": credits,
-        "feature_flags": feature_flags,
-        "credit_costs": {
-            "ai_images": get_feature_cost("ai_images", effective_plan),
-            "voice_journaling": get_feature_cost("voice_journaling", effective_plan),
-            "relationship_profiles": get_feature_cost("relationship_profiles", effective_plan),
-            "meditations": get_feature_cost("meditations", effective_plan),
-            "mini_studio": get_feature_cost("mini_studio", effective_plan)
-        },
-        "credit_bundles": get_credit_bundles(user_plan),
-        "daily_limits": {
+        "plan": user_plan,
+        "status": "active",
+        "tier": user_plan,
+        "trial_active": False,  # No trials anymore
+        "trial_remaining": 0,
+        "ads_enabled": user_plan == 'bronze',
+        "features": {
             "decoder": {
-                "max": get_feature_limit(user_plan, 'decoder', trial_active),
-                "remaining": get_feature_limit(user_plan, 'decoder', trial_active) - session.get('decoder_usage', 0)
+                "limit": current_limits['decoder'],
+                "used": 0,  # TODO: Get actual usage
+                "remaining": current_limits['decoder']
             },
             "fortune": {
-                "max": get_feature_limit(user_plan, 'fortune', trial_active),
-                "remaining": get_feature_limit(user_plan, 'fortune', trial_active) - session.get('fortune_usage', 0)
+                "limit": current_limits['fortune'],
+                "used": 0,  # TODO: Get actual usage
+                "remaining": current_limits['fortune']
             },
             "horoscope": {
-                "max": get_feature_limit(user_plan, 'horoscope', trial_active),
-                "remaining": get_feature_limit(user_plan, 'horoscope', trial_active) - session.get('horoscope_usage', 0)
+                "limit": current_limits['horoscope'],
+                "used": 0,  # TODO: Get actual usage
+                "remaining": current_limits['horoscope']
+            },
+            "creative_writer": {
+                "limit": current_limits['creative_writer'],
+                "used": 0,  # TODO: Get actual usage
+                "remaining": current_limits['creative_writer']
             }
+        },
+        "access_levels": {
+            "bronze_companions": True,
+            "silver_companions": user_plan in ['silver', 'gold'],
+            "gold_companions": user_plan == 'gold',
+            "mini_studio": user_plan == 'gold'
         }
     })
 
 # ===============================
-# TRIAL
-# ===============================
-
-@v1_api.route('/trial/start', methods=['POST'])
-def start_trial():
-    """Start 5-hour trial for eligible users"""
-    if not session.get('user_id'):
-        return jsonify({"error": "Authentication required"}), 401
-    
-    user_id = session.get('user_id')
-    user_plan = session.get('user_plan', 'bronze')
-    
-    # Check eligibility
-    if user_plan in ['silver', 'gold']:
-        return jsonify({"error": "trial_not_eligible"}), 403
-    
-    # Check if already used (TODO: Check database)
-    if session.get('trial_used_permanently'):
-        return jsonify({"error": "trial_already_used"}), 409
-    
-    # Start trial (simplified - should call existing start_trial logic)
-    try:
-        # Calculate expiry (5 hours from now)
-        expires_at = datetime.now(timezone.utc).isoformat()
-        
-        # Set trial state
-        session['trial_active'] = True
-        session['trial_expires_at'] = expires_at
-        session['effective_plan'] = 'gold'
-        
-        return jsonify({
-            "plan": "trial",
-            "period_end": expires_at,
-            "granted_credits": {
-                "type": "trial",
-                "amount": 60,
-                "remaining": 60
-            },
-            "message": "5-hour trial started with 60 credits"
-        }), 201
-        
-    except Exception as e:
-        logger.error(f"Trial start failed: {e}")
-        return jsonify({"error": "trial_start_failed"}), 500
-
-# ===============================
-# CREDITS
+# CREDITS  
 # ===============================
 
 @v1_api.route('/credits', methods=['GET'])
 def get_credits():
-    """Get detailed credit balances"""
+    """Get simplified credit balances"""
     if not session.get('user_id'):
         return jsonify({"error": "Authentication required"}), 401
     
-    user_id = session.get('user_id')
     user_plan = session.get('user_plan', 'bronze')
-    trial_active = session.get('trial_active', False)
     
-    total_credits = get_user_credits(user_id)
+    # Simplified credit system
+    monthly_allowances = {
+        'bronze': 0,
+        'silver': 200,
+        'gold': 500
+    }
     
     return jsonify({
         "monthly": {
-            "remaining": total_credits if user_plan in ['silver', 'gold'] else 0,
-            "resets_at": "2025-09-16T10:00:00Z"  # TODO: Calculate from billing cycle
+            "remaining": monthly_allowances.get(user_plan, 0),
+            "max": monthly_allowances.get(user_plan, 0),
+            "resets_at": "2025-02-01T00:00:00Z"
         },
         "topups": {
-            "remaining": 0,  # TODO: Implement separate topup tracking
+            "remaining": 0,
             "frozen": user_plan == 'bronze'
-        },
-        "trial": {
-            "remaining": total_credits if trial_active else 0,
-            "expires_at": session.get('trial_expires_at')
         }
     })
 
