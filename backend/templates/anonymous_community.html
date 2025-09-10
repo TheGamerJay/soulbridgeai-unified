@@ -1027,7 +1027,15 @@
     <div id="companion-modal" class="modal">
         <div class="modal-content companion-selector-modal">
             <div class="modal-header">
-                <h3 class="modal-title">Choose Your Companion Avatar</h3>
+                <div>
+                    <h3 class="modal-title">Choose Your Companion Avatar</h3>
+                    <div id="credits-display" style="font-size: 0.9rem; color: #22d3ee; margin-top: 5px;">
+                        <span id="artistic-credits">Artistic Time: Loading...</span>
+                        <div style="font-size: 0.8rem; color: #94a3b8; margin-top: 2px;">
+                            First selection free • Switching costs 1 credit
+                        </div>
+                    </div>
+                </div>
                 <span class="close" onclick="closeModal('companion-modal')">&times;</span>
             </div>
             <div id="companion-loading" class="loading" style="text-align: center; padding: 20px;">
@@ -2252,7 +2260,6 @@
         function getCompanionEmoji(companionId) {
             const companions = {
                 // Soul companions
-                'soul': '🌟',
                 'blayzo': '✨',
                 'blayzica': '💫',
                 'claude': '🤖',
@@ -2424,12 +2431,37 @@
         // Companion Selection Functions
         let availableCompanions = [];
         let selectedCompanion = null;
+        
+        async function loadArtisticTimeCredits() {
+            try {
+                const response = await fetch('/v1/credits');
+                const creditsData = await response.json();
+                
+                const artisticCreditsElement = document.getElementById('artistic-credits');
+                if (artisticCreditsElement && creditsData.monthly) {
+                    const remaining = creditsData.monthly.remaining || 0;
+                    const max = creditsData.monthly.max || 0;
+                    artisticCreditsElement.textContent = `Artistic Time: ${remaining}/${max} credits`;
+                } else {
+                    artisticCreditsElement.textContent = 'Artistic Time: 0 credits';
+                }
+            } catch (error) {
+                console.error('Error loading credits:', error);
+                const artisticCreditsElement = document.getElementById('artistic-credits');
+                if (artisticCreditsElement) {
+                    artisticCreditsElement.textContent = 'Artistic Time: Unable to load';
+                }
+            }
+        }
 
         async function openCompanionSelector() {
             try {
                 document.getElementById('companion-modal').style.display = 'block';
                 document.getElementById('companion-loading').style.display = 'block';
                 document.getElementById('companion-list').style.display = 'none';
+                
+                // Load and display artistic time credits
+                loadArtisticTimeCredits();
                 
                 const response = await fetch(`/api/companions`);
                 const data = await response.json();
@@ -2523,6 +2555,38 @@
 
         async function saveCompanionChoice() {
             if (!selectedCompanion) return;
+            
+            // Check if this is the first companion selection (free) or a switch (costs 1 credit)
+            const isFirstSelection = !currentCompanion || currentCompanion.companion_id === 'none';
+            
+            if (!isFirstSelection) {
+                // Check if user has enough artistic time credits
+                try {
+                    const creditsResponse = await fetch('/v1/credits');
+                    const creditsData = await creditsResponse.json();
+                    
+                    if (!creditsData.monthly || creditsData.monthly.remaining < 1) {
+                        showMessage('You need 1 artistic time credit to switch companions. Posting and reactions remain free!', 'error');
+                        return;
+                    }
+                    
+                    // Show confirmation modal for credit cost
+                    const confirmSwitch = confirm(
+                        `Switching companions costs 1 artistic time credit.\n\n` +
+                        `Current credits: ${creditsData.monthly.remaining}\n` +
+                        `After switch: ${creditsData.monthly.remaining - 1}\n\n` +
+                        `Continue with companion switch?`
+                    );
+                    
+                    if (!confirmSwitch) {
+                        return;
+                    }
+                } catch (error) {
+                    console.error('Error checking credits:', error);
+                    showMessage('Unable to check credits. Please try again.', 'error');
+                    return;
+                }
+            }
             
             // First check for cooldown and show confirmation
             try {
@@ -2738,6 +2802,37 @@
                 const originalText = saveBtn.textContent;
                 saveBtn.disabled = true;
                 saveBtn.textContent = 'Saving...';
+                
+                // Check if this costs credits (switching, not first selection)
+                const isFirstSelection = !currentCompanion || currentCompanion.companion_id === 'none';
+                const costsCredit = !isFirstSelection;
+                
+                // Deduct credit if this is a switch
+                if (costsCredit) {
+                    try {
+                        const creditResponse = await fetch('/v1/credits/spend', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                feature: 'companion_switch',
+                                amount: 1
+                            })
+                        });
+                        
+                        if (!creditResponse.ok) {
+                            const creditError = await creditResponse.json();
+                            throw new Error(creditError.error || 'Failed to deduct credit');
+                        }
+                        
+                        console.log('Credit deducted for companion switch');
+                    } catch (creditError) {
+                        console.error('Credit deduction error:', creditError);
+                        showMessage('Failed to process credit payment. Please try again.', 'error');
+                        return;
+                    }
+                }
                 
                 const response = await fetch(`${API_BASE}/avatar`, {
                     method: 'POST',
