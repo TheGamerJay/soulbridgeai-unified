@@ -1076,9 +1076,9 @@ def register_blueprints(app, database_manager=None):
         # logger.info("✅ Chat system registered")
         
         # Companion system
-        # from modules.companions import companions_bp
-        # app.register_blueprint(companions_bp)  # Temporarily disabled - using app.py routes
-        # logger.info("✅ Companions system registered")
+        from modules.companions import companions_bp
+        app.register_blueprint(companions_bp)  # Re-enabled to use modular skin system
+        logger.info("✅ Companions system registered")
         
         # Voice system
         from modules.voice import voice_bp
