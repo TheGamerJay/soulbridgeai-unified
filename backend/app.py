@@ -582,8 +582,8 @@ def create_app():
                 "error": str(e)
             }), 500
     
-    @app.route("/auth/check-reset-table")
-    def check_reset_table():
+    @app.route("/auth/debug-reset-table")
+    def debug_reset_table():
         """Check password reset table structure"""
         try:
             db = Database()
@@ -641,8 +641,64 @@ def create_app():
                 "error": str(e)
             }), 500
         finally:
-            cursor.close()
-            conn.close()
+            if 'cursor' in locals():
+                cursor.close()
+            if 'conn' in locals():
+                conn.close()
+    
+    @app.route("/auth/fix-reset-table")
+    def fix_reset_table():
+        """Fix the password reset table by checking existing structure and adapting"""
+        try:
+            db = Database()
+            conn = db.get_connection()
+            cursor = conn.cursor()
+            
+            # First, check if password_reset_tokens table exists at all
+            if db.use_postgres:
+                cursor.execute("SELECT to_regclass('password_reset_tokens')")
+                table_exists = cursor.fetchone()[0] is not None
+            else:
+                cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='password_reset_tokens'")
+                table_exists = cursor.fetchone() is not None
+            
+            if not table_exists:
+                return jsonify({"status": "error", "message": "password_reset_tokens table does not exist"})
+            
+            # Get all existing tables for debugging
+            if db.use_postgres:
+                cursor.execute("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'")
+                tables = [row[0] for row in cursor.fetchall()]
+                
+                # Get columns for password_reset_tokens if it exists
+                cursor.execute("""
+                    SELECT column_name 
+                    FROM information_schema.columns 
+                    WHERE table_name = 'password_reset_tokens'
+                """)
+                columns = [row[0] for row in cursor.fetchall()]
+            else:
+                cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
+                tables = [row[0] for row in cursor.fetchall()]
+                
+                cursor.execute("PRAGMA table_info(password_reset_tokens)")
+                columns = [row[1] for row in cursor.fetchall()]  # column names
+            
+            return jsonify({
+                "status": "success",
+                "database_type": "PostgreSQL" if db.use_postgres else "SQLite",
+                "all_tables": tables,
+                "password_reset_tokens_exists": table_exists,
+                "password_reset_tokens_columns": columns
+            })
+            
+        except Exception as e:
+            return jsonify({"status": "error", "error": str(e), "error_type": str(type(e))})
+        finally:
+            if 'cursor' in locals():
+                cursor.close()
+            if 'conn' in locals():
+                conn.close()
     
     @app.route("/auth/reset-password", methods=["GET", "POST"])
     def auth_reset_password():
