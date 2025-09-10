@@ -391,31 +391,108 @@ def create_app():
     
     @app.route("/auth/register", methods=["GET", "POST"])
     def auth_register():
-        """Registration - from auth blueprint"""
+        """Registration with database integration"""
         if request.method == "GET":
             from flask import render_template
             return render_template('register.html')
         
-        # Handle POST - simple registration
+        # Handle POST - both form data and JSON
         try:
-            email = request.form.get('email', '').strip()
-            password = request.form.get('password', '')
+            # Try JSON first, then form data
+            if request.is_json:
+                data = request.get_json()
+                display_name = data.get('display_name', '').strip()
+                email = data.get('email', '').strip()
+                password = data.get('password', '')
+                is_json_request = True
+            else:
+                display_name = request.form.get('display_name', '').strip()
+                email = request.form.get('email', '').strip()
+                password = request.form.get('password', '')
+                is_json_request = False
             
-            if not email or not password:
-                return redirect('/auth/register?error=Please fill all fields')
+            if not display_name or not email or not password:
+                error_msg = 'Please fill all fields'
+                if is_json_request:
+                    return jsonify({"success": False, "error": error_msg}), 400
+                return redirect(f'/auth/register?error={error_msg}')
             
-            # Simple registration - set session (expand this later)
-            session['logged_in'] = True
-            session['email'] = email
-            session['user_id'] = 2  # Placeholder
-            session['user_plan'] = 'bronze'
-            session.permanent = True
-            
-            return redirect('/intro')
+            # Database registration
+            cursor = None
+            conn = None
+            try:
+                import bcrypt
+                
+                # Hash password
+                password_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+                
+                # Database connection
+                import sqlite3
+                conn = sqlite3.connect('soulbridge.db', timeout=30.0)
+                cursor = conn.cursor()
+                
+                # Check if user exists
+                cursor.execute("SELECT id FROM users WHERE email = ?", (email,))
+                if cursor.fetchone():
+                    error_msg = 'Email already registered'
+                    if is_json_request:
+                        return jsonify({"success": False, "error": error_msg}), 400
+                    return redirect(f'/auth/register?error={error_msg}')
+                
+                # Create user
+                cursor.execute("""
+                    INSERT INTO users (email, password_hash, display_name, user_plan, created_at)
+                    VALUES (?, ?, ?, 'bronze', datetime('now'))
+                """, (email, password_hash, display_name))
+                
+                user_id = cursor.lastrowid
+                conn.commit()
+                
+                # Set session
+                session['logged_in'] = True
+                session['email'] = email
+                session['user_id'] = user_id
+                session['display_name'] = display_name
+                session['user_plan'] = 'bronze'
+                session.permanent = True
+                
+                logger.info(f"✅ User registered successfully: {email} (ID: {user_id})")
+                
+                if is_json_request:
+                    return jsonify({
+                        "success": True,
+                        "message": "Account created successfully! Welcome to SoulBridge AI.",
+                        "redirect": "/intro"
+                    })
+                else:
+                    return redirect('/intro')
+                    
+            except ImportError:
+                error_msg = 'Registration system unavailable'
+                logger.error("❌ bcrypt not installed - cannot hash passwords")
+                if is_json_request:
+                    return jsonify({"success": False, "error": error_msg}), 500
+                return redirect(f'/auth/register?error={error_msg}')
+                
+            except Exception as db_error:
+                error_msg = 'Registration failed'
+                logger.error(f"❌ Registration database error: {db_error}")
+                if is_json_request:
+                    return jsonify({"success": False, "error": error_msg}), 500
+                return redirect(f'/auth/register?error={error_msg}')
+                
+            finally:
+                if cursor:
+                    cursor.close()
+                if conn:
+                    conn.close()
             
         except Exception as e:
-            logger.error(f"Registration error: {e}")
-            return redirect('/auth/register?error=Registration failed')
+            error_msg = 'Registration failed'
+            logger.error(f"❌ Registration error: {e}")
+            if request.is_json:
+                return jsonify({"success": False, "error": error_msg}), 500
+            return redirect(f'/auth/register?error={error_msg}')
     
     @app.route("/auth/forgot-password")
     def auth_forgot_password():
