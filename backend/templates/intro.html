@@ -1834,31 +1834,34 @@
 
         async function refreshUserStatus() {
             try {
-                const res = await fetch('/api/user-info', { credentials: 'include' });
-                const data = await res.json();
-
-                if (!data.success) {
-                    console.error('Failed to get user info:', data.error);
+                // Fetch both user info and entitlements
+                const [userRes, entitlementsRes] = await Promise.all([
+                    fetch('/v1/me', { credentials: 'include' }),
+                    fetch('/v1/entitlements', { credentials: 'include' })
+                ]);
+                
+                if (userRes.status === 401 || entitlementsRes.status === 401) {
+                    // User not authenticated, redirect to login
+                    window.location.href = '/auth/login';
                     return;
                 }
-
-                const { trial_active, trial_remaining, effective_plan, trial_used_permanently } = data;
-
-                // Update trial badge and simple timer
-                const trialBadge = document.getElementById('trial-badge');
-                const timerElement = document.getElementById('simple-timer');
                 
-                if (trial_active && trial_remaining > 0) {
-                    // Show trial badge and update timer
-                    if (trialBadge) trialBadge.style.display = 'inline-flex';
-                    updateSimpleTimer(trial_remaining);
-                } else {
-                    // AGGRESSIVE TIMER CLEANUP - Remove all timer elements permanently
-                    if (trialBadge) {
-                        trialBadge.remove(); // Completely remove from DOM
-                    }
-                    if (timerElement) {
-                        timerElement.remove(); // Completely remove from DOM
+                if (!userRes.ok || !entitlementsRes.ok) {
+                    console.error('Failed to get user info:', userRes.statusText, entitlementsRes.statusText);
+                    return;
+                }
+                
+                const userData = await userRes.json();
+                const entitlements = await entitlementsRes.json();
+                
+                // Combine the data for user status
+                const data = {
+                    ...userData,
+                    ...entitlements,
+                    success: true
+                };
+
+                console.log('User status loaded:', data);
                     }
                     
                     // Remove enhanced timer container completely
