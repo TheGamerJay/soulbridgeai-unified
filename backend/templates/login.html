@@ -984,7 +984,16 @@
             const error = urlParams.get('error');
             
             if (error) {
-                // Create and show error message
+                // Filter out old "coming soon" messages - we have full password reset now!
+                if (error.toLowerCase().includes('coming soon') || error.toLowerCase().includes('password reset feature')) {
+                    // Just clear the URL parameter, don't show this outdated message
+                    const url = new URL(window.location);
+                    url.searchParams.delete('error');
+                    window.history.replaceState({}, '', url);
+                    return;
+                }
+                
+                // Show other valid error messages
                 const errorDiv = document.createElement('div');
                 errorDiv.className = 'error-message';
                 errorDiv.style.marginBottom = '1rem';
