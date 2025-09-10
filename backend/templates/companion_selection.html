@@ -536,7 +536,7 @@
                                     <h3>{{ companion.name }}</h3>
                                     {% if companion.has_skins %}
                                     <div class="skin-selector">
-                                        <button class="skin-dropdown-btn" onclick="toggleSkinDropdown('{{ companion.name|lower }}')" title="Choose Skin">:</button>
+                                        <button class="skin-dropdown-btn" onclick="toggleSkinDropdown('{{ companion.name|lower }}')" title="Choose Skin">...</button>
                                         <div class="skin-dropdown" id="dropdown-{{ companion.name|lower }}">
                                             <div class="skin-dropdown-header">Choose {{ companion.name }} Skin</div>
                                             {% for skin in companion.skins %}

@@ -360,9 +360,11 @@ def create_app():
         return render_template('tier_comparison.html')
     
     # COMPANION ROUTES (from companions module blueprint)
+    # OLD ROUTE - COMMENTED OUT TO USE MODULAR SKIN SYSTEM
+    """
     @app.route("/companion-selection")
     def companion_selection():
-        """Working companion selection page - rebuilt from blueprint guide"""
+        # Working companion selection page - rebuilt from blueprint guide
         try:
             from flask import render_template
             
@@ -464,6 +466,7 @@ def create_app():
         except Exception as e:
             logger.error(f"❌ Error in companion selection: {e}")
             return render_template("error.html", error="Unable to load companion selection")
+    """
     
     
     @app.route("/chat")
