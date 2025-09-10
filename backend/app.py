@@ -502,7 +502,7 @@ def create_app():
     
     @app.route("/auth/forgot-password-test")
     def forgot_password_test():
-        """Simple test to check if database and imports work"""
+        """Enhanced test to debug password reset issues"""
         try:
             import hashlib
             import secrets
@@ -517,6 +517,15 @@ def create_app():
             cursor.execute("SELECT COUNT(*) FROM users")
             user_count = cursor.fetchone()[0]
             
+            # Check if password_reset_tokens table exists
+            try:
+                cursor.execute("SELECT COUNT(*) FROM password_reset_tokens")
+                tokens_count = cursor.fetchone()[0]
+                tokens_table_exists = True
+            except Exception as e:
+                tokens_count = f"Error: {e}"
+                tokens_table_exists = False
+            
             # Test token generation
             token_raw = secrets.token_urlsafe(32)
             token_hash = hashlib.sha256(token_raw.encode('utf-8')).hexdigest()
@@ -529,8 +538,10 @@ def create_app():
             
             return jsonify({
                 "status": "success",
-                "message": "All systems working",
+                "message": "Password reset system check",
                 "user_count": user_count,
+                "tokens_table_exists": tokens_table_exists,
+                "tokens_count": tokens_count,
                 "token_length": len(token_raw),
                 "hash_length": len(token_hash),
                 "expires_format": expires_at
@@ -539,6 +550,22 @@ def create_app():
         except Exception as e:
             return jsonify({
                 "status": "error", 
+                "error": str(e)
+            }), 500
+    
+    @app.route("/auth/create-reset-table")
+    def create_reset_table():
+        """Create password reset tokens table"""
+        try:
+            from create_password_reset_table import create_password_reset_tokens_table
+            success = create_password_reset_tokens_table()
+            return jsonify({
+                "status": "success" if success else "error",
+                "message": "Password reset table created successfully" if success else "Failed to create table"
+            })
+        except Exception as e:
+            return jsonify({
+                "status": "error",
                 "error": str(e)
             }), 500
     

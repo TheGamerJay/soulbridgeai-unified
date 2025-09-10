@@ -27,6 +27,13 @@ def auth_forgot_password_improved():
     if request.method == "GET":
         return render_template('forgot_password.html')
     
+    # Ensure password reset tokens table exists
+    try:
+        from create_password_reset_table import create_password_reset_tokens_table
+        create_password_reset_tokens_table()
+    except Exception as e:
+        logger.warning(f"Could not ensure password reset table exists: {e}")
+    
     # Handle POST - Always return generic message to prevent email enumeration
     generic_message = 'If an account with that email exists, a reset link has been sent.'
     
