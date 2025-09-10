@@ -1107,7 +1107,7 @@
                                          this.dataset.retry = true;
                                          this.src = this.src.split('?')[0] + '?retry=' + Date.now();
                                      } else {
-                                         this.src='/static/logos/The IntroLogo.png';
+                                         this.src='{{ url_for('static', filename='logos/The IntroLogo.png') }}';
                                          this.style.display='block';
                                          document.getElementById('userProfileVideo').style.display='none';
                                          console.log('⚠️ Profile image failed again, using default');
@@ -1116,7 +1116,7 @@
                                    style="max-width: 200px; max-height: 200px; width: auto; height: auto; object-fit: contain; display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);" 
                                    autoplay muted loop playsinline
                                    onloadeddata="this.style.display='block'; document.getElementById('userProfileImage').style.display='none';"
-                                   onerror="console.log('⚠️ Profile video failed, falling back to image'); this.style.display='none'; document.getElementById('userProfileImage').src='/static/logos/The IntroLogo.png'; document.getElementById('userProfileImage').style.display='block';">
+                                   onerror="console.log('⚠️ Profile video failed, falling back to image'); this.style.display='none'; document.getElementById('userProfileImage').src='{{ url_for('static', filename='logos/The IntroLogo.png') }}'; document.getElementById('userProfileImage').style.display='block';">
                             </video>
                         </div>
                     </div>
@@ -2916,7 +2916,7 @@
                     box-shadow: 0 4px 20px rgba(34, 211, 238, 0.4);
                     transition: all 0.3s ease; animation: sapphireGlow 3s ease-in-out infinite alternate;
                 " onclick="openSapphireHelp()" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
-                    <img src="/static/logos/Sapphire.png" alt="Sapphire" 
+                    <img src="{{ url_for('static', filename='logos/Sapphire.png') }}" alt="Sapphire" 
                          style="width: 40px; height: 40px; border-radius: 50%;">
                 </div>
             `;
@@ -2997,7 +2997,7 @@
                     animation: slideUp 0.3s ease;
                 ">
                     <div style="text-align: center; margin-bottom: 25px;">
-                        <img src="/static/logos/Sapphire.png" alt="Sapphire" 
+                        <img src="{{ url_for('static', filename='logos/Sapphire.png') }}" alt="Sapphire" 
                              style="width: 80px; height: 80px; border-radius: 50%; margin-bottom: 15px; border: 3px solid #22d3ee;">
                         <h3 style="color: #22d3ee; margin: 0 0 10px 0;">💎 Sapphire - Your Navigation Assistant</h3>
                         <p style="color: #94a3b8; margin: 0 0 15px 0; font-size: 0.9rem;">I'll guide you step-by-step! ${contextualHelp}</p>
@@ -3038,7 +3038,7 @@
                         border-left: 4px solid #22d3ee;
                     ">
                         <div style="display: flex; align-items: center; margin-bottom: 10px;">
-                            <img src="/static/logos/Sapphire.png" alt="Sapphire" 
+                            <img src="{{ url_for('static', filename='logos/Sapphire.png') }}" alt="Sapphire" 
                                  style="width: 24px; height: 24px; border-radius: 50%; margin-right: 10px;">
                             <strong style="color: #22d3ee;">Sapphire:</strong>
                         </div>
