@@ -494,10 +494,80 @@ def create_app():
                 return jsonify({"success": False, "error": error_msg}), 500
             return redirect(f'/auth/register?error={error_msg}')
     
-    @app.route("/auth/forgot-password")
+    @app.route("/auth/forgot-password", methods=["GET", "POST"])
     def auth_forgot_password():
-        """Forgot password placeholder - from auth blueprint"""
-        return redirect('/auth/login?error=Password reset feature coming soon')
+        """Password reset system"""
+        if request.method == "GET":
+            from flask import render_template
+            return render_template('forgot_password.html')
+        
+        # Handle POST - password reset
+        try:
+            email = request.form.get('email', '').strip()
+            
+            if not email:
+                flash('Please enter your email address', 'error')
+                return redirect('/auth/forgot-password')
+            
+            # Database operations
+            cursor = None
+            conn = None
+            try:
+                import bcrypt
+                import secrets
+                import sqlite3
+                
+                # Database connection
+                conn = sqlite3.connect('soulbridge.db', timeout=30.0)
+                cursor = conn.cursor()
+                
+                # Check if user exists
+                cursor.execute("SELECT id, display_name FROM users WHERE email = ?", (email,))
+                user = cursor.fetchone()
+                
+                if not user:
+                    flash('If an account with that email exists, a password reset has been sent.', 'success')
+                    return redirect('/auth/forgot-password')
+                
+                user_id, display_name = user
+                
+                # Generate temporary password (8 characters, readable)
+                temp_password = secrets.token_urlsafe(6)  # URL-safe characters
+                
+                # Hash the temporary password
+                password_hash = bcrypt.hashpw(temp_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+                
+                # Update user's password
+                cursor.execute("UPDATE users SET password_hash = ? WHERE id = ?", (password_hash, user_id))
+                conn.commit()
+                
+                logger.info(f"✅ Password reset for user: {email} (ID: {user_id})")
+                
+                # In a real system, you'd email this. For now, we'll show it directly
+                flash(f'Password reset successful! Your temporary password is: {temp_password}', 'success')
+                flash('Please log in with this temporary password and change it immediately.', 'success')
+                return redirect('/auth/login')
+                
+            except ImportError:
+                flash('Password reset system unavailable', 'error')
+                logger.error("❌ bcrypt not installed - cannot hash passwords")
+                return redirect('/auth/forgot-password')
+                
+            except Exception as db_error:
+                flash('Password reset failed. Please try again.', 'error')
+                logger.error(f"❌ Password reset database error: {db_error}")
+                return redirect('/auth/forgot-password')
+                
+            finally:
+                if cursor:
+                    cursor.close()
+                if conn:
+                    conn.close()
+            
+        except Exception as e:
+            flash('Password reset failed. Please try again.', 'error')
+            logger.error(f"❌ Password reset error: {e}")
+            return redirect('/auth/forgot-password')
     
     # CORE ROUTES (from core module blueprint)
     @app.route("/")
