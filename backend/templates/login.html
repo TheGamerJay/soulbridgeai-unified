@@ -978,10 +978,36 @@
             }
         }
 
+        // Handle URL parameters for error messages
+        function handleUrlParameters() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const error = urlParams.get('error');
+            
+            if (error) {
+                // Create and show error message
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'error-message';
+                errorDiv.style.marginBottom = '1rem';
+                errorDiv.textContent = error;
+                
+                // Insert after auth header
+                const authHeader = document.querySelector('.auth-header');
+                if (authHeader) {
+                    authHeader.parentNode.insertBefore(errorDiv, authHeader.nextSibling);
+                }
+                
+                // Clear URL parameter without reloading page
+                const url = new URL(window.location);
+                url.searchParams.delete('error');
+                window.history.replaceState({}, '', url);
+            }
+        }
+
         // Load theme on page load
         window.addEventListener('load', function() {
             loadSavedTheme();
             loadSavedLanguage();
+            handleUrlParameters();
         });
         
         // Password toggle function - DISABLED - Universal Button Fix handles this
