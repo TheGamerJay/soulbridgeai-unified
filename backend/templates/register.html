@@ -6,12 +6,12 @@
     <title>Sign Up - SoulBridge AI</title>
     
     <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192x192.png">
-    <link rel="icon" type="image/png" sizes="512x512" href="/favicon-512x512.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="192x192" href="{{ url_for('static', filename='favicon-192x192.png') }}">
+    <link rel="icon" type="image/png" sizes="512x512" href="{{ url_for('static', filename='favicon-512x512.png') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='favicon-180x180.png') }}">
     <meta name="theme-color" content="#22d3ee">
     
     <!-- Modular CSS Files -->
@@ -570,7 +570,8 @@
             }
         }
     </style>
-    <script src="{{ url_for('static', filename='js/universal-button-fix.js') }}?v=20250725" defer></script>
+    <!-- Disabled due to conflict with register-fixed.js password toggle functionality -->
+    <!-- <script src="{{ url_for('static', filename='js/universal-button-fix.js') }}?v=20250725" defer></script> -->
 </head>
 <body>
     <!-- Language Selector moved below Create Account button -->
@@ -578,6 +579,28 @@
         <!-- Back Button -->
         <div style="position: fixed; top: 20px; right: 20px; z-index: 100;">
             <a href="/auth/login" class="back-btn" data-translate="back">← Back</a>
+        </div>
+
+        <!-- Theme Toggle -->
+        <div style="position: fixed; top: 20px; left: 20px; z-index: 100;">
+            <button type="button" id="themeToggle" style="
+                background: rgba(34, 211, 238, 0.8);
+                color: #000;
+                padding: 8px 12px;
+                border-radius: 20px;
+                cursor: pointer;
+                font-weight: bold;
+                transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                position: relative;
+                border: none;
+                pointer-events: auto;
+            " aria-label="Toggle theme">
+                <span id="themeIcon">🌙</span>
+                <span id="themeText">Night Mode is ON</span>
+            </button>
         </div>
 
     <div class="auth-container content-overlay">
@@ -1269,6 +1292,34 @@
         }
 
 
+        // Theme toggle functionality
+        function toggleTheme() {
+            document.body.classList.toggle('day-mode');
+            const isDayMode = document.body.classList.contains('day-mode');
+            
+            const themeText = document.getElementById('themeText');
+            const themeIcon = document.getElementById('themeIcon');
+            const themeToggle = document.getElementById('themeToggle');
+            
+            if (isDayMode) {
+                if (themeText) themeText.textContent = 'Day Mode is ON';
+                if (themeIcon) themeIcon.textContent = '☀️';
+                if (themeToggle) {
+                    themeToggle.style.background = 'rgba(255, 193, 7, 0.8)';
+                    themeToggle.style.color = '#000';
+                }
+                localStorage.setItem('theme', 'day');
+            } else {
+                if (themeText) themeText.textContent = 'Night Mode is ON';
+                if (themeIcon) themeIcon.textContent = '🌙';
+                if (themeToggle) {
+                    themeToggle.style.background = 'rgba(34, 211, 238, 0.8)';
+                    themeToggle.style.color = '#000';
+                }
+                localStorage.setItem('theme', 'night');
+            }
+        }
+
         // Load saved theme function
         function loadSavedTheme() {
             const savedTheme = localStorage.getItem('theme') || 'night';
@@ -1279,9 +1330,20 @@
                 const themeToggle = document.getElementById('themeToggle');
                 if (themeText) themeText.textContent = 'Day Mode is ON';
                 if (themeIcon) themeIcon.textContent = '☀️';
-                if (themeToggle) themeToggle.style.background = 'rgba(255, 193, 7, 0.8)';
+                if (themeToggle) {
+                    themeToggle.style.background = 'rgba(255, 193, 7, 0.8)';
+                    themeToggle.style.color = '#000';
+                }
             }
         }
+
+        // Add theme toggle event listener
+        document.addEventListener('DOMContentLoaded', function() {
+            const themeToggle = document.getElementById('themeToggle');
+            if (themeToggle) {
+                themeToggle.addEventListener('click', toggleTheme);
+            }
+        });
 
         function loadSavedLanguage() {
             const savedLang = localStorage.getItem('selectedLanguage') || 'en';
