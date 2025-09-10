@@ -611,6 +611,48 @@ def create_app():
                 flash('If an account with that email exists, a reset link has been sent.', 'success')
                 return redirect('/auth/forgot-password')
     
+    @app.route("/auth/forgot-password-test")
+    def forgot_password_test():
+        """Simple test to check if database and imports work"""
+        try:
+            import hashlib
+            import secrets
+            import sqlite3
+            from datetime import datetime, timedelta, timezone
+            
+            # Test database connection
+            conn = sqlite3.connect('soulbridge.db', timeout=30.0)
+            cursor = conn.cursor()
+            
+            # Test user lookup
+            cursor.execute("SELECT COUNT(*) FROM users")
+            user_count = cursor.fetchone()[0]
+            
+            # Test token generation
+            token_raw = secrets.token_urlsafe(32)
+            token_hash = hashlib.sha256(token_raw.encode('utf-8')).hexdigest()
+            
+            # Test datetime
+            expires_at = (datetime.now(timezone.utc) + timedelta(hours=1)).isoformat() + 'Z'
+            
+            cursor.close()
+            conn.close()
+            
+            return jsonify({
+                "status": "success",
+                "message": "All systems working",
+                "user_count": user_count,
+                "token_length": len(token_raw),
+                "hash_length": len(token_hash),
+                "expires_format": expires_at
+            })
+            
+        except Exception as e:
+            return jsonify({
+                "status": "error", 
+                "error": str(e)
+            }), 500
+    
     @app.route("/auth/reset-password", methods=["GET", "POST"])
     def auth_reset_password():
         """Complete password reset with token"""
