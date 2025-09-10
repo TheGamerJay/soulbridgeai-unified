@@ -33,14 +33,14 @@ def can_access_companion(user_plan: str, companion_tier: str, trial_active: bool
     return False
 
 def user_can_access_companion(user_plan: str, trial_active: bool, referrals: int, comp: dict) -> bool:
-    """Check if user can access a specific companion (including referral requirements)"""
-    # Special case: Referral companions are unlocked by referrals, not subscription tier
-    # Any user with enough referrals can access them regardless of tier
+    """Check if user can access a specific companion (Soul Companions system)"""
+    # Special case: Referral companions are still locked by referral requirements
     if comp.get("min_referrals", 0) > 0:
         return referrals >= comp["min_referrals"]
     
-    # Regular tier-based access for non-referral companions
-    return can_access_companion(user_plan, comp["tier"], trial_active)
+    # Soul Companions system: All non-referral companions are accessible to everyone
+    # No more tier restrictions for regular companions
+    return True
 
 def companion_unlock_state_new(user_plan: str, trial_active: bool, referrals: int) -> dict:
     """Get unlock state for all companions"""
