@@ -9,12 +9,12 @@
     <title>Welcome to SoulBridge AI</title>
     
     <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192x192.png">
-    <link rel="icon" type="image/png" sizes="512x512" href="/favicon-512x512.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="192x192" href="{{ url_for('static', filename='favicon-192x192.png') }}">
+    <link rel="icon" type="image/png" sizes="512x512" href="{{ url_for('static', filename='favicon-512x512.png') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='favicon-180x180.png') }}">
     <meta name="theme-color" content="#00ffff">
     
     <!-- Open Graph / Social Media Meta Tags -->
@@ -1345,7 +1345,7 @@
                 ">
                     <div style="text-align: center; margin-bottom: 28px;">
                         <div style="position: relative; display: inline-block; margin-bottom: 18px;">
-                            <img src="/static/logos/Sapphire.png" alt="Sapphire" 
+                            <img src="{{ url_for('static', filename='logos/Sapphire.png') }}" alt="Sapphire" 
                                  style="width: 68px; height: 68px; 
                                         border: 3px solid #22d3ee; 
                                         box-shadow: 0 8px 25px rgba(34, 211, 238, 0.3);
@@ -1456,7 +1456,7 @@
                         border-left: 4px solid #22d3ee;
                     ">
                         <div style="display: flex; align-items: center; margin-bottom: 10px;">
-                            <img src="/static/logos/Sapphire.png" alt="Sapphire" 
+                            <img src="{{ url_for('static', filename='logos/Sapphire.png') }}" alt="Sapphire" 
                                  style="width: 24px; height: 24px; margin-right: 10px; object-fit: contain;">
                             <strong style="color: #22d3ee;">Sapphire:</strong>
                         </div>
@@ -1901,6 +1901,6 @@
             }
         }
     </script>
-    <script src="/static/js/mini-assistant-modal.js"></script>
+    <script src="{{ url_for('static', filename='js/mini-assistant-modal.js') }}"></script>
 </body>
 </html>

@@ -769,24 +769,15 @@ def create_app():
     # COMMUNITY ROUTES - Handled by community blueprint
     # Removed duplicate route - let blueprint handle /community
     
-    # DASHBOARD ROUTE - Main app landing page
+    # DASHBOARD ROUTE - Redirects to intro (main landing page)
     @app.route("/dashboard")
     def dashboard():
-        """Main dashboard page after login"""
+        """Dashboard redirect to intro page"""
         if not session.get('logged_in'):
-            return redirect('/auth/login?return_to=dashboard')
+            return redirect('/auth/login?return_to=intro')
         
-        from flask import render_template
-        user_data = {
-            'user_id': session.get('user_id'),
-            'email': session.get('email'),
-            'display_name': session.get('display_name'),
-            'user_plan': session.get('user_plan', 'bronze'),
-            'trial_active': session.get('trial_active', False),
-            'artistic_credits': session.get('artistic_credits', 0),
-            'selected_companion': session.get('selected_companion')
-        }
-        return render_template('dashboard.html', user=user_data)
+        # Redirect to intro page which is the main landing after login
+        return redirect('/intro')
     
     @app.route("/companions")
     def companions_page():
