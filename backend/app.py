@@ -582,6 +582,68 @@ def create_app():
                 "error": str(e)
             }), 500
     
+    @app.route("/auth/check-reset-table")
+    def check_reset_table():
+        """Check password reset table structure"""
+        try:
+            db = Database()
+            conn = db.get_connection()
+            cursor = conn.cursor()
+            
+            if db.use_postgres:
+                # Check PostgreSQL table structure
+                cursor.execute("""
+                    SELECT column_name, data_type, is_nullable, column_default
+                    FROM information_schema.columns 
+                    WHERE table_name = 'password_reset_tokens'
+                    ORDER BY ordinal_position
+                """)
+                columns = cursor.fetchall()
+                
+                cursor.execute("""
+                    SELECT table_name 
+                    FROM information_schema.tables 
+                    WHERE table_name = 'password_reset_tokens'
+                """)
+                table_exists = bool(cursor.fetchone())
+                
+                return jsonify({
+                    "status": "success",
+                    "database": "PostgreSQL", 
+                    "table_exists": table_exists,
+                    "columns": [{"name": col[0], "type": col[1], "nullable": col[2], "default": col[3]} for col in columns]
+                })
+            else:
+                # Check SQLite table structure
+                cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='password_reset_tokens'")
+                table_exists = bool(cursor.fetchone())
+                
+                if table_exists:
+                    cursor.execute("PRAGMA table_info(password_reset_tokens)")
+                    columns = cursor.fetchall()
+                    return jsonify({
+                        "status": "success",
+                        "database": "SQLite",
+                        "table_exists": table_exists,
+                        "columns": [{"name": col[1], "type": col[2], "nullable": not col[3], "default": col[4]} for col in columns]
+                    })
+                else:
+                    return jsonify({
+                        "status": "success", 
+                        "database": "SQLite",
+                        "table_exists": False,
+                        "columns": []
+                    })
+                    
+        except Exception as e:
+            return jsonify({
+                "status": "error",
+                "error": str(e)
+            }), 500
+        finally:
+            cursor.close()
+            conn.close()
+    
     @app.route("/auth/reset-password", methods=["GET", "POST"])
     def auth_reset_password():
         """Enhanced password reset with token validation"""
