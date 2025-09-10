@@ -236,6 +236,17 @@
         .companion-header {
             text-align: center;
             margin: 40px 0 20px;
+            display: block; /* Ensure main header stacks vertically */
+        }
+        
+        .companion-header h1 {
+            margin-bottom: 15px;
+            display: block;
+        }
+        
+        .companion-header p {
+            display: block;
+            margin-top: 10px;
         }
         
         .companion-title {
@@ -362,7 +373,7 @@
         }
         
         /* Dropdown Skin Selector Styles */
-        .companion-header {
+        .netflix-info .companion-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
