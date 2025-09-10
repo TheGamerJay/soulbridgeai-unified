@@ -1,23 +1,32 @@
 """
 Production Email Sender for Password Reset
-Uses Resend API for reliable email delivery
+Uses SMTP for universal email delivery (Gmail/Outlook/any host)
 """
 import os
 import logging
-import requests
+import smtplib
+import ssl
+from email.message import EmailMessage
+import html as _html
 
 logger = logging.getLogger(__name__)
 
-# Email configuration
-RESEND_API_KEY = os.getenv("RESEND_API_KEY", "")
-RESEND_FROM = os.getenv("RESEND_FROM", "support@soulbridgeai.com")
+# SMTP Email configuration
+SMTP_HOST = os.getenv("SMTP_HOST", "")
+SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
+SMTP_USER = os.getenv("SMTP_USER", "")
+SMTP_PASS = os.getenv("SMTP_PASS", "")
+SMTP_FROM = os.getenv("SMTP_FROM", SMTP_USER or "support@soulbridgeai.com")
+SMTP_USE_TLS = os.getenv("SMTP_USE_TLS", "true").lower() in ("1", "true", "yes")
+SMTP_USE_SSL = os.getenv("SMTP_USE_SSL", "false").lower() in ("1", "true", "yes")
 SITE_URL = os.getenv("SITE_URL", "https://www.soulbridgeai.com")
 
 def send_password_reset_email(to_email: str, reset_url: str, expires_minutes: int = 60) -> bool:
-    """Send password reset email using Resend API"""
+    """Send password reset email using SMTP (Gmail/Outlook/any host)"""
     try:
-        if not RESEND_API_KEY:
-            logger.warning("No RESEND_API_KEY configured - cannot send emails")
+        # Dev fallback if SMTP not configured
+        if not SMTP_HOST or not SMTP_FROM:
+            logger.warning("SMTP not configured (missing SMTP_HOST or SMTP_FROM) - showing link on page")
             return False
             
         # Create professional email HTML
@@ -103,51 +112,85 @@ def send_password_reset_email(to_email: str, reset_url: str, expires_minutes: in
         Your personal AI companion platform
         """
         
-        # Send via Resend API
-        response = requests.post(
-            "https://api.resend.com/emails",
-            headers={
-                "Authorization": f"Bearer {RESEND_API_KEY}",
-                "Content-Type": "application/json"
-            },
-            json={
-                "from": RESEND_FROM,
-                "to": [to_email],
-                "subject": "Reset Your SoulBridge AI Password",
-                "html": html_content,
-                "text": text_content
-            },
-            timeout=10
-        )
+        # Send via SMTP
+        msg = EmailMessage()
+        msg["From"] = SMTP_FROM
+        msg["To"] = to_email
+        msg["Subject"] = "Reset Your SoulBridge AI Password"
         
-        if response.status_code in [200, 202]:
-            logger.info(f"✅ Password reset email sent successfully to: {to_email}")
-            return True
+        # Set content (text first, then HTML alternative)
+        msg.set_content(text_content)
+        msg.add_alternative(html_content, subtype="html")
+        
+        # Send email using appropriate SMTP method
+        if SMTP_USE_SSL:
+            context = ssl.create_default_context()
+            with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT, context=context, timeout=15) as server:
+                if SMTP_USER and SMTP_PASS:
+                    server.login(SMTP_USER, SMTP_PASS)
+                server.send_message(msg)
         else:
-            logger.error(f"❌ Failed to send email. Status: {response.status_code}, Response: {response.text}")
-            return False
+            with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=15) as server:
+                if SMTP_USE_TLS:
+                    server.starttls(context=ssl.create_default_context())
+                if SMTP_USER and SMTP_PASS:
+                    server.login(SMTP_USER, SMTP_PASS)
+                server.send_message(msg)
+        
+        logger.info(f"✅ Password reset email sent successfully to: {to_email}")
+        return True
             
     except Exception as e:
         logger.error(f"❌ Email sending error: {e}")
         return False
 
 def test_email_config():
-    """Test if email configuration is working"""
-    if not RESEND_API_KEY:
-        return {"status": "error", "message": "RESEND_API_KEY not configured"}
+    """Test if SMTP email configuration is working"""
+    if not SMTP_HOST:
+        return {"status": "error", "message": "SMTP_HOST not configured"}
+    
+    if not SMTP_FROM:
+        return {"status": "error", "message": "SMTP_FROM not configured"}
     
     try:
-        # Test API key by making a simple request
-        response = requests.get(
-            "https://api.resend.com/domains",
-            headers={"Authorization": f"Bearer {RESEND_API_KEY}"},
-            timeout=5
-        )
-        
-        if response.status_code == 200:
-            return {"status": "success", "message": "Email configuration is working"}
+        # Test SMTP connection
+        if SMTP_USE_SSL:
+            context = ssl.create_default_context()
+            with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT, context=context, timeout=10) as server:
+                if SMTP_USER and SMTP_PASS:
+                    server.login(SMTP_USER, SMTP_PASS)
+                # If we get here, connection is working
+                return {
+                    "status": "success", 
+                    "message": f"SMTP configuration working (SSL: {SMTP_HOST}:{SMTP_PORT})",
+                    "details": {
+                        "host": SMTP_HOST,
+                        "port": SMTP_PORT,
+                        "user": SMTP_USER,
+                        "from": SMTP_FROM,
+                        "ssl": SMTP_USE_SSL,
+                        "tls": SMTP_USE_TLS
+                    }
+                }
         else:
-            return {"status": "error", "message": f"API key invalid or expired (Status: {response.status_code})"}
+            with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=10) as server:
+                if SMTP_USE_TLS:
+                    server.starttls(context=ssl.create_default_context())
+                if SMTP_USER and SMTP_PASS:
+                    server.login(SMTP_USER, SMTP_PASS)
+                # If we get here, connection is working
+                return {
+                    "status": "success", 
+                    "message": f"SMTP configuration working (TLS: {SMTP_HOST}:{SMTP_PORT})",
+                    "details": {
+                        "host": SMTP_HOST,
+                        "port": SMTP_PORT,
+                        "user": SMTP_USER,
+                        "from": SMTP_FROM,
+                        "ssl": SMTP_USE_SSL,
+                        "tls": SMTP_USE_TLS
+                    }
+                }
             
     except Exception as e:
-        return {"status": "error", "message": f"Connection error: {e}"}
+        return {"status": "error", "message": f"SMTP connection failed: {e}"}
