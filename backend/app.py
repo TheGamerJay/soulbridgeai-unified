@@ -586,6 +586,7 @@ def create_app():
     def debug_reset_table():
         """Check password reset table structure"""
         try:
+            from auth import Database
             db = Database()
             conn = db.get_connection()
             cursor = conn.cursor()
@@ -650,6 +651,7 @@ def create_app():
     def fix_reset_table():
         """Fix the password reset table by checking existing structure and adapting"""
         try:
+            from auth import Database
             db = Database()
             conn = db.get_connection()
             cursor = conn.cursor()
