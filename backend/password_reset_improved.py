@@ -95,11 +95,27 @@ def auth_forgot_password_improved():
             # Generate reset URL with raw token
             reset_url = f"{request.url_root}auth/reset-password?token={raw_token}"
             
-            # In production, this would be emailed
-            # For now, show the link directly for testing
-            flash(f'Reset link: {reset_url}', 'success')
-            flash('(In production, this would be emailed to you)', 'info')
-            flash(f'This link expires in {RESET_TOKEN_TTL_MINUTES} minutes.', 'info')
+            # Send actual email
+            try:
+                from email_sender import send_password_reset_email
+                email_sent = send_password_reset_email(user_email, reset_url, RESET_TOKEN_TTL_MINUTES)
+                
+                if email_sent:
+                    logger.info(f"✅ Password reset email sent to: {user_email}")
+                    flash('A password reset link has been sent to your email address.', 'success')
+                    flash('Please check your inbox and spam folder.', 'info')
+                else:
+                    logger.warning(f"⚠️ Failed to send email to: {user_email}, showing link instead")
+                    # Fallback: show link on page if email fails
+                    flash(f'Email delivery failed. Reset link: {reset_url}', 'success')
+                    flash('(Please bookmark this link - it expires in 60 minutes)', 'info')
+                    
+            except Exception as email_error:
+                logger.error(f"❌ Email system error: {email_error}")
+                # Fallback: show link on page if email system fails
+                flash(f'Reset link: {reset_url}', 'success')
+                flash('(Email system unavailable - please bookmark this link)', 'info')
+                flash(f'This link expires in {RESET_TOKEN_TTL_MINUTES} minutes.', 'info')
             
             logger.info(f"Password reset token generated for user: {user_email} (ID: {user_id})")
             

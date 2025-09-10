@@ -569,6 +569,19 @@ def create_app():
                 "error": str(e)
             }), 500
     
+    @app.route("/auth/test-email")
+    def test_email():
+        """Test email configuration"""
+        try:
+            from email_sender import test_email_config
+            result = test_email_config()
+            return jsonify(result)
+        except Exception as e:
+            return jsonify({
+                "status": "error",
+                "error": str(e)
+            }), 500
+    
     @app.route("/auth/reset-password", methods=["GET", "POST"])
     def auth_reset_password():
         """Enhanced password reset with token validation"""
