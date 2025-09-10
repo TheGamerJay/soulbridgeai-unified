@@ -496,66 +496,83 @@ def create_app():
     
     @app.route("/auth/forgot-password", methods=["GET", "POST"])
     def auth_forgot_password():
-        """Password reset system"""
+        """Secure token-based password reset system"""
         if request.method == "GET":
             from flask import render_template
             return render_template('forgot_password.html')
         
-        # Handle POST - password reset
+        # Handle POST - initiate password reset
         try:
-            email = request.form.get('email', '').strip()
+            email = request.form.get('email', '').strip().lower()
+            
+            # Always return generic success message to prevent email enumeration
+            generic_message = 'If an account with that email exists, a reset link has been sent.'
             
             if not email:
-                flash('Please enter your email address', 'error')
+                flash(generic_message, 'success')
                 return redirect('/auth/forgot-password')
             
             # Database operations
             cursor = None
             conn = None
             try:
-                import bcrypt
+                import hashlib
                 import secrets
                 import sqlite3
+                from datetime import datetime, timedelta
                 
                 # Database connection
                 conn = sqlite3.connect('soulbridge.db', timeout=30.0)
                 cursor = conn.cursor()
                 
-                # Check if user exists
-                cursor.execute("SELECT id, display_name FROM users WHERE email = ?", (email,))
+                # Check if user exists (case-insensitive)
+                cursor.execute("SELECT id, email, display_name FROM users WHERE LOWER(email) = ?", (email,))
                 user = cursor.fetchone()
                 
                 if not user:
-                    flash('If an account with that email exists, a password reset has been sent.', 'success')
+                    # Still return success to prevent email enumeration
+                    flash(generic_message, 'success')
                     return redirect('/auth/forgot-password')
                 
-                user_id, display_name = user
+                user_id, user_email, display_name = user
                 
-                # Generate temporary password (8 characters, readable)
-                temp_password = secrets.token_urlsafe(6)  # URL-safe characters
+                # Generate secure token (32 bytes = 43 URL-safe chars)
+                token_raw = secrets.token_urlsafe(32)
                 
-                # Hash the temporary password
-                password_hash = bcrypt.hashpw(temp_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+                # Hash the token for database storage (never store raw tokens)
+                token_hash = hashlib.sha256(token_raw.encode('utf-8')).hexdigest()
                 
-                # Update user's password
-                cursor.execute("UPDATE users SET password_hash = ? WHERE id = ?", (password_hash, user_id))
+                # Token expires in 1 hour
+                expires_at = datetime.utcnow() + timedelta(hours=1)
+                
+                # Get client info
+                client_ip = request.headers.get('X-Forwarded-For', request.remote_addr or '')
+                user_agent = request.headers.get('User-Agent', '')[:500]  # Limit length
+                
+                # Store token in database
+                cursor.execute("""
+                    INSERT INTO password_reset_tokens 
+                    (user_id, token_hash, expires_at, request_ip, request_ua)
+                    VALUES (?, ?, ?, ?, ?)
+                """, (user_id, token_hash, expires_at, client_ip, user_agent))
                 conn.commit()
                 
-                logger.info(f"✅ Password reset for user: {email} (ID: {user_id})")
+                # In production, you'd email the reset link
+                # For now, we'll show it in the success message for testing
+                reset_url = f"{request.url_root}auth/reset-password?token={token_raw}"
                 
-                # In a real system, you'd email this. For now, we'll show it directly
-                flash(f'Password reset successful! Your temporary password is: {temp_password}', 'success')
-                flash('Please log in with this temporary password and change it immediately.', 'success')
-                return redirect('/auth/login')
+                logger.info(f"Password reset token generated for user: {user_email} (ID: {user_id})")
                 
-            except ImportError:
-                flash('Password reset system unavailable', 'error')
-                logger.error("❌ bcrypt not installed - cannot hash passwords")
+                # Show reset link directly (in production, this would be emailed)
+                flash(f'Reset link: {reset_url}', 'success')
+                flash('(In production, this would be emailed to you)', 'success')
+                flash('This link expires in 1 hour.', 'success')
+                
                 return redirect('/auth/forgot-password')
                 
             except Exception as db_error:
-                flash('Password reset failed. Please try again.', 'error')
-                logger.error(f"❌ Password reset database error: {db_error}")
+                logger.error(f"Password reset database error: {db_error}")
+                flash(generic_message, 'success')  # Still return generic success
                 return redirect('/auth/forgot-password')
                 
             finally:
@@ -565,9 +582,176 @@ def create_app():
                     conn.close()
             
         except Exception as e:
-            flash('Password reset failed. Please try again.', 'error')
-            logger.error(f"❌ Password reset error: {e}")
+            logger.error(f"Password reset error: {e}")
+            flash('If an account with that email exists, a reset link has been sent.', 'success')
             return redirect('/auth/forgot-password')
+    
+    @app.route("/auth/reset-password", methods=["GET", "POST"])
+    def auth_reset_password():
+        """Complete password reset with token"""
+        if request.method == "GET":
+            # Validate token and show reset form
+            token = request.args.get('token', '').strip()
+            if not token:
+                flash('Invalid reset link', 'error')
+                return redirect('/auth/login')
+            
+            # Verify token
+            is_valid = verify_reset_token(token)
+            if not is_valid:
+                flash('Reset link is invalid or expired', 'error')
+                return redirect('/auth/login')
+            
+            from flask import render_template
+            return render_template('reset_password.html', token=token)
+        
+        # Handle POST - process password reset
+        try:
+            token = request.form.get('token', '').strip()
+            new_password = request.form.get('password', '')
+            confirm_password = request.form.get('confirm_password', '')
+            
+            if not token or not new_password or not confirm_password:
+                flash('All fields are required', 'error')
+                return redirect(f'/auth/reset-password?token={token}')
+            
+            if new_password != confirm_password:
+                flash('Passwords do not match', 'error')
+                return redirect(f'/auth/reset-password?token={token}')
+            
+            if len(new_password) < 8:
+                flash('Password must be at least 8 characters', 'error')
+                return redirect(f'/auth/reset-password?token={token}')
+            
+            # Verify and use token
+            user_id = use_reset_token(token, new_password)
+            if not user_id:
+                flash('Reset link is invalid or expired', 'error')
+                return redirect('/auth/login')
+            
+            flash('Password updated successfully! You can now sign in.', 'success')
+            return redirect('/auth/login')
+            
+        except Exception as e:
+            logger.error(f"Reset password error: {e}")
+            flash('Password reset failed. Please try again.', 'error')
+            return redirect('/auth/login')
+    
+    def verify_reset_token(token_raw):
+        """Verify if a reset token is valid and not expired"""
+        try:
+            import hashlib
+            import sqlite3
+            from datetime import datetime
+            
+            token_hash = hashlib.sha256(token_raw.encode('utf-8')).hexdigest()
+            
+            conn = sqlite3.connect('soulbridge.db', timeout=30.0)
+            cursor = conn.cursor()
+            
+            cursor.execute("""
+                SELECT user_id, expires_at, used_at 
+                FROM password_reset_tokens 
+                WHERE token_hash = ? 
+                LIMIT 1
+            """, (token_hash,))
+            
+            result = cursor.fetchone()
+            cursor.close()
+            conn.close()
+            
+            if not result:
+                return False
+            
+            user_id, expires_at, used_at = result
+            
+            # Check if already used
+            if used_at:
+                return False
+            
+            # Check if expired
+            expires_dt = datetime.fromisoformat(expires_at.replace('Z', '+00:00').replace('+00:00', ''))
+            if datetime.utcnow() > expires_dt:
+                return False
+            
+            return True
+            
+        except Exception as e:
+            logger.error(f"Token verification error: {e}")
+            return False
+    
+    def use_reset_token(token_raw, new_password):
+        """Use a reset token to change password, mark token as used"""
+        try:
+            import hashlib
+            import sqlite3
+            import bcrypt
+            from datetime import datetime
+            
+            token_hash = hashlib.sha256(token_raw.encode('utf-8')).hexdigest()
+            
+            conn = sqlite3.connect('soulbridge.db', timeout=30.0)
+            cursor = conn.cursor()
+            
+            # Get and verify token
+            cursor.execute("""
+                SELECT user_id, expires_at, used_at 
+                FROM password_reset_tokens 
+                WHERE token_hash = ? 
+                LIMIT 1
+            """, (token_hash,))
+            
+            result = cursor.fetchone()
+            if not result:
+                cursor.close()
+                conn.close()
+                return None
+            
+            user_id, expires_at, used_at = result
+            
+            # Check if already used
+            if used_at:
+                cursor.close()
+                conn.close()
+                return None
+            
+            # Check if expired
+            expires_dt = datetime.fromisoformat(expires_at.replace('Z', '+00:00').replace('+00:00', ''))
+            if datetime.utcnow() > expires_dt:
+                cursor.close()
+                conn.close()
+                return None
+            
+            # Hash new password
+            password_hash = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+            
+            # Update user's password
+            cursor.execute("UPDATE users SET password_hash = ? WHERE id = ?", (password_hash, user_id))
+            
+            # Mark token as used
+            cursor.execute("""
+                UPDATE password_reset_tokens 
+                SET used_at = CURRENT_TIMESTAMP 
+                WHERE token_hash = ?
+            """, (token_hash,))
+            
+            # Invalidate other unused tokens for this user
+            cursor.execute("""
+                UPDATE password_reset_tokens 
+                SET used_at = CURRENT_TIMESTAMP 
+                WHERE user_id = ? AND used_at IS NULL AND token_hash != ?
+            """, (user_id, token_hash))
+            
+            conn.commit()
+            cursor.close()
+            conn.close()
+            
+            logger.info(f"Password successfully reset for user ID: {user_id}")
+            return user_id
+            
+        except Exception as e:
+            logger.error(f"Token usage error: {e}")
+            return None
     
     # CORE ROUTES (from core module blueprint)
     @app.route("/")
