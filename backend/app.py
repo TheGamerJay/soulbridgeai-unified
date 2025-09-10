@@ -4,15 +4,89 @@ Rebuilt from 19,326-line monolith using extracted modules
 Clean Flask application with Blueprint architecture
 """
 
+# ---- BEGIN SELF-HEALING COMPAT SHIM ----
+# Ensures legacy import "modules.tiers.artistic_time:get_effective_access" exists,
+# even after migrating to the single "Soul Companions" tier.
+import os, sys, types, importlib, importlib.util
+from pathlib import Path
+from textwrap import dedent
+
+PROJECT_ROOT = Path(__file__).resolve().parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+def _inject_runtime_shim():
+    """Read-only FS fallback: provide modules.tiers + artistic_time entirely in memory."""
+    # Ensure a modules package object exists (usually it already does)
+    if not importlib.util.find_spec("modules"):
+        sys.modules["modules"] = types.ModuleType("modules")
+    # Create a package-like object for modules.tiers
+    tiers_pkg = types.ModuleType("modules.tiers")
+    tiers_pkg.__path__ = []  # mark as package
+    # Create the submodule with get_effective_access
+    art = types.ModuleType("modules.tiers.artistic_time")
+
+    def _envint(name, default):
+        try:
+            return int(os.getenv(name, default))
+        except Exception:
+            return default
+
+    def get_effective_access(*_args, **_kwargs):
+        # Single-tier: Soul Companions. Tweak limits via env vars if desired.
+        limits = {
+            "decoder":   _envint("SC_LIMIT_DECODER",   15),
+            "fortune":   _envint("SC_LIMIT_FORTUNE",    8),
+            "horoscope": _envint("SC_LIMIT_HOROSCOPE", 10),
+        }
+        return {"plan": "soul_companions", "limits": limits, "features": {"companions": "all"}}
+
+    art.get_effective_access = get_effective_access
+    sys.modules["modules.tiers"] = tiers_pkg
+    sys.modules["modules.tiers.artistic_time"] = art
+
+def ensure_legacy_tiers_shim():
+    """Create files if missing; otherwise fall back to runtime shim."""
+    modules_dir = PROJECT_ROOT / "modules"
+    tiers_dir = modules_dir / "tiers"
+    files = {
+        modules_dir / "__init__.py": "",
+        tiers_dir / "__init__.py": "from .artistic_time import get_effective_access\n__all__=['get_effective_access']\n",
+        tiers_dir / "artistic_time.py": dedent("""\
+            import os
+            def _envint(name: str, default: int) -> int:
+                try: return int(os.getenv(name, default))
+                except Exception: return default
+            def get_effective_access(*_args, **_kwargs):
+                limits = {
+                    "decoder":   _envint("SC_LIMIT_DECODER",   15),
+                    "fortune":   _envint("SC_LIMIT_FORTUNE",    8),
+                    "horoscope": _envint("SC_LIMIT_HOROSCOPE", 10),
+                }
+                return {"plan": "soul_companions", "limits": limits, "features": {"companions": "all"}}
+        """),
+    }
+    try:
+        tiers_dir.mkdir(parents=True, exist_ok=True)
+        for path, content in files.items():
+            if not path.exists():
+                path.write_text(content, encoding="utf-8")
+        importlib.invalidate_caches()
+        importlib.import_module("modules.tiers.artistic_time")
+    except Exception:
+        # e.g., read-only image or permission issue → in-memory shim
+        _inject_runtime_shim()
+
+# Run before anything imports modules.chat → modules.tiers
+ensure_legacy_tiers_shim()
+# ---- END SELF-HEALING COMPAT SHIM ----
+
 # Single source of truth for blueprint registration - guard against redefinition
 if globals().get("_REGISTER_BLUEPRINTS_DEFINED"):
     raise RuntimeError("register_blueprints already defined in backend/app.py")
 
-import os
-import sys
 import logging
 import traceback
-import importlib
 from datetime import datetime, timedelta
 from flask import Flask, session, request, redirect, jsonify, url_for
 from flask_cors import CORS
