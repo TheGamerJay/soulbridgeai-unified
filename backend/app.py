@@ -542,8 +542,9 @@ def create_app():
                 # Hash the token for database storage (never store raw tokens)
                 token_hash = hashlib.sha256(token_raw.encode('utf-8')).hexdigest()
                 
-                # Token expires in 1 hour
-                expires_at = datetime.utcnow() + timedelta(hours=1)
+                # Token expires in 1 hour (SQLite-compatible format)
+                from datetime import timezone
+                expires_at = (datetime.now(timezone.utc) + timedelta(hours=1)).isoformat() + 'Z'
                 
                 # Get client info
                 client_ip = request.headers.get('X-Forwarded-For', request.remote_addr or '')
@@ -571,7 +572,7 @@ def create_app():
                 return redirect('/auth/forgot-password')
                 
             except Exception as db_error:
-                logger.error(f"Password reset database error: {db_error}")
+                logger.error(f"Password reset database error: {db_error}", exc_info=True)
                 flash(generic_message, 'success')  # Still return generic success
                 return redirect('/auth/forgot-password')
                 
@@ -642,7 +643,7 @@ def create_app():
         try:
             import hashlib
             import sqlite3
-            from datetime import datetime
+            from datetime import datetime, timezone
             
             token_hash = hashlib.sha256(token_raw.encode('utf-8')).hexdigest()
             
@@ -669,9 +670,14 @@ def create_app():
             if used_at:
                 return False
             
-            # Check if expired
-            expires_dt = datetime.fromisoformat(expires_at.replace('Z', '+00:00').replace('+00:00', ''))
-            if datetime.utcnow() > expires_dt:
+            # Check if expired (handle SQLite datetime string format)
+            try:
+                expires_dt = datetime.fromisoformat(expires_at.replace('Z', ''))
+            except ValueError:
+                # Fallback for different datetime formats
+                expires_dt = datetime.strptime(expires_at.replace('Z', ''), '%Y-%m-%dT%H:%M:%S.%f')
+            
+            if datetime.now(timezone.utc) > expires_dt:
                 return False
             
             return True
@@ -686,7 +692,7 @@ def create_app():
             import hashlib
             import sqlite3
             import bcrypt
-            from datetime import datetime
+            from datetime import datetime, timezone
             
             token_hash = hashlib.sha256(token_raw.encode('utf-8')).hexdigest()
             
@@ -715,9 +721,14 @@ def create_app():
                 conn.close()
                 return None
             
-            # Check if expired
-            expires_dt = datetime.fromisoformat(expires_at.replace('Z', '+00:00').replace('+00:00', ''))
-            if datetime.utcnow() > expires_dt:
+            # Check if expired (handle SQLite datetime string format)
+            try:
+                expires_dt = datetime.fromisoformat(expires_at.replace('Z', ''))
+            except ValueError:
+                # Fallback for different datetime formats
+                expires_dt = datetime.strptime(expires_at.replace('Z', ''), '%Y-%m-%dT%H:%M:%S.%f')
+            
+            if datetime.now(timezone.utc) > expires_dt:
                 cursor.close()
                 conn.close()
                 return None
