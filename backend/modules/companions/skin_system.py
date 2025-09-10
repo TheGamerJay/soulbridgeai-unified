@@ -87,17 +87,17 @@ SINGLE_COMPANIONS = [
     {"id": "dr_madjay_gold", "name": "Dr. MadJay", "image": "/static/logos/Dr. MadJay.png", "tier": "gold"}
 ]
 
-# Referral companions (keep separate as requested)
+# Referral companions (unlocked by referrals, then integrated by tier)
 REFERRAL_COMPANIONS = [
-    {"id": "blayzike", "name": "Blayzike", "image": "/static/logos/blayzike.png", "min_referrals": 2},
-    {"id": "blazelian", "name": "Blazelian", "image": "/static/logos/blazelian.png", "min_referrals": 4},
-    {"id": "nyxara", "name": "Nyxara", "image": "/static/logos/Nyxara.png", "min_referrals": 6},
-    {"id": "claude_referral", "name": "Claude Referral", "image": "/static/logos/claude_referral.png", "min_referrals": 8},
-    {"id": "blayzo_referral", "name": "Blayzo Referral", "image": "/static/logos/Blayzo_Referral.png", "min_referrals": 10}
+    {"id": "blayzike", "name": "Blayzike", "image": "/static/logos/blayzike.png", "min_referrals": 2, "tier": "bronze"},
+    {"id": "blazelian", "name": "Blazelian", "image": "/static/logos/blazelian.png", "min_referrals": 4, "tier": "silver"},
+    {"id": "nyxara", "name": "Nyxara", "image": "/static/logos/Nyxara.png", "min_referrals": 6, "tier": "silver"},
+    {"id": "claude_referral", "name": "Claude Referral", "image": "/static/logos/claude_referral.png", "min_referrals": 8, "tier": "gold"},
+    {"id": "blayzo_referral", "name": "Blayzo Referral", "image": "/static/logos/Blayzo_Referral.png", "min_referrals": 10, "tier": "gold"}
 ]
 
-def get_consolidated_companions():
-    """Get companions consolidated by name with skin variants"""
+def get_consolidated_companions(user_referrals=0):
+    """Get companions consolidated by name with skin variants, including unlocked referral companions"""
     companions = []
     
     # Add multi-skin companions
@@ -107,7 +107,8 @@ def get_consolidated_companions():
             "name": companion_data["name"],
             "image": companion_data["skins"][0]["image"],  # Default to first skin
             "has_skins": True,
-            "skins": companion_data["skins"]
+            "skins": companion_data["skins"],
+            "tier": companion_data["skins"][0]["tier"]  # Use first skin's tier
         })
     
     # Add single companions
@@ -117,8 +118,22 @@ def get_consolidated_companions():
             "name": companion["name"], 
             "image": companion["image"],
             "has_skins": False,
-            "skins": []
+            "skins": [],
+            "tier": companion["tier"]
         })
+    
+    # Add unlocked referral companions to main grid
+    for companion in REFERRAL_COMPANIONS:
+        if user_referrals >= companion["min_referrals"]:
+            companions.append({
+                "id": companion["id"],
+                "name": companion["name"],
+                "image": companion["image"],
+                "has_skins": False,
+                "skins": [],
+                "tier": companion["tier"],
+                "is_referral": True  # Mark as referral companion
+            })
         
     return companions
 

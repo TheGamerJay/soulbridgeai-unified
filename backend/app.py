@@ -1259,6 +1259,11 @@ def register_blueprints(app, database_manager=None):
         app.register_blueprint(notifications_bp)
         logger.info("✅ Notifications system registered")
         
+        # Referrals system
+        from modules.referrals import referrals_bp
+        app.register_blueprint(referrals_bp)
+        logger.info("✅ Referrals system registered")
+        
         # Consolidated API endpoints
         from modules.api import api_bp
         app.register_blueprint(api_bp, url_prefix='/api')
