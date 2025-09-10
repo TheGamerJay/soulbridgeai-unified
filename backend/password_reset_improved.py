@@ -74,14 +74,15 @@ def auth_forgot_password_improved():
             client_ip = request.headers.get('X-Forwarded-For', request.remote_addr or '')
             user_agent = request.headers.get('User-Agent', '')[:500]  # Limit length
             
-            # Store hashed token in database (never store raw tokens)
+            # Store hashed token in database (match existing table structure)
             if db.use_postgres:
+                # PostgreSQL schema: id, email, token, expires_at, used, created_at
                 expires_str = expires_at.isoformat()
                 cursor.execute("""
                     INSERT INTO password_reset_tokens 
-                    (user_id, token_hash, expires_at, request_ip, request_ua)
-                    VALUES (%s, %s, %s, %s, %s)
-                """, (user_id, token_hash, expires_str, client_ip, user_agent))
+                    (email, token, expires_at, used)
+                    VALUES (%s, %s, %s, %s)
+                """, (user_email, token_hash, expires_str, 0))
             else:
                 expires_str = expires_at.isoformat() + 'Z'
                 cursor.execute("""
@@ -143,23 +144,42 @@ def verify_reset_token_improved(token_raw):
         cursor = conn.cursor()
         
         try:
-            placeholder = "%s" if db.use_postgres else "?"
-            cursor.execute(f"""
-                SELECT user_id, expires_at, used_at 
-                FROM password_reset_tokens 
-                WHERE token_hash = {placeholder} 
-                LIMIT 1
-            """, (token_hash,))
-            
-            result = cursor.fetchone()
-            if not result:
-                return False
-            
-            user_id, expires_at, used_at = result
-            
-            # Check if already used
-            if used_at:
-                return False
+            if db.use_postgres:
+                # PostgreSQL schema: id, email, token, expires_at, used, created_at
+                cursor.execute("""
+                    SELECT email, expires_at, used 
+                    FROM password_reset_tokens 
+                    WHERE token = %s 
+                    LIMIT 1
+                """, (token_hash,))
+                
+                result = cursor.fetchone()
+                if not result:
+                    return False
+                
+                email, expires_at, used = result
+                
+                # Check if already used (used is integer: 0 = false, 1 = true)
+                if used:
+                    return False
+            else:
+                # SQLite schema: user_id, token_hash, expires_at, used_at, etc.
+                cursor.execute("""
+                    SELECT user_id, expires_at, used_at 
+                    FROM password_reset_tokens 
+                    WHERE token_hash = ? 
+                    LIMIT 1
+                """, (token_hash,))
+                
+                result = cursor.fetchone()
+                if not result:
+                    return False
+                
+                user_id, expires_at, used_at = result
+                
+                # Check if already used
+                if used_at:
+                    return False
             
             # Parse expiration time (handle both formats)
             try:
@@ -197,25 +217,50 @@ def use_reset_token_improved(token_raw, new_password):
         cursor = conn.cursor()
         
         try:
-            placeholder = "%s" if db.use_postgres else "?"
-            
-            # Get and verify token
-            cursor.execute(f"""
-                SELECT user_id, expires_at, used_at 
-                FROM password_reset_tokens 
-                WHERE token_hash = {placeholder} 
-                LIMIT 1
-            """, (token_hash,))
-            
-            result = cursor.fetchone()
-            if not result:
-                return None
-            
-            user_id, expires_at, used_at = result
-            
-            # Check if already used
-            if used_at:
-                return None
+            if db.use_postgres:
+                # PostgreSQL schema: id, email, token, expires_at, used, created_at
+                cursor.execute("""
+                    SELECT email, expires_at, used 
+                    FROM password_reset_tokens 
+                    WHERE token = %s 
+                    LIMIT 1
+                """, (token_hash,))
+                
+                result = cursor.fetchone()
+                if not result:
+                    return None
+                
+                user_email, expires_at, used = result
+                
+                # Check if already used (used is integer: 0 = false, 1 = true)
+                if used:
+                    return None
+                    
+                # Get user_id from email for password update
+                cursor.execute("SELECT id FROM users WHERE email = %s", (user_email,))
+                user_result = cursor.fetchone()
+                if not user_result:
+                    return None
+                user_id = user_result[0]
+                
+            else:
+                # SQLite schema: user_id, token_hash, expires_at, used_at, etc.
+                cursor.execute("""
+                    SELECT user_id, expires_at, used_at 
+                    FROM password_reset_tokens 
+                    WHERE token_hash = ? 
+                    LIMIT 1
+                """, (token_hash,))
+                
+                result = cursor.fetchone()
+                if not result:
+                    return None
+                
+                user_id, expires_at, used_at = result
+                
+                # Check if already used
+                if used_at:
+                    return None
             
             # Parse expiration time
             try:
@@ -235,28 +280,27 @@ def use_reset_token_improved(token_raw, new_password):
             password_hash = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
             
             # Update user's password
-            cursor.execute(f"UPDATE users SET password_hash = {placeholder} WHERE id = {placeholder}", 
-                         (password_hash, user_id))
-            
-            # Mark token as used with current timestamp
-            current_time = _now()
             if db.use_postgres:
-                time_str = current_time.isoformat()
-            else:
-                time_str = current_time.isoformat() + 'Z'
+                cursor.execute("UPDATE users SET password_hash = %s WHERE id = %s", (password_hash, user_id))
                 
-            cursor.execute(f"""
-                UPDATE password_reset_tokens 
-                SET used_at = {placeholder}
-                WHERE token_hash = {placeholder}
-            """, (time_str, token_hash))
-            
-            # Security: Mark all other unused tokens for this user as used
-            cursor.execute(f"""
-                UPDATE password_reset_tokens 
-                SET used_at = COALESCE(used_at, {placeholder})
-                WHERE user_id = {placeholder} AND used_at IS NULL
-            """, (time_str, user_id))
+                # Mark token as used (integer field in PostgreSQL: 0 = false, 1 = true)
+                cursor.execute("UPDATE password_reset_tokens SET used = %s WHERE token = %s", (1, token_hash))
+                
+                # Security: Mark all other unused tokens for this email as used
+                cursor.execute("UPDATE password_reset_tokens SET used = %s WHERE email = %s AND used = %s", (1, user_email, 0))
+            else:
+                cursor.execute("UPDATE users SET password_hash = ? WHERE id = ?", (password_hash, user_id))
+                
+                # Mark token as used with timestamp
+                time_str = _now().isoformat() + 'Z'
+                cursor.execute("UPDATE password_reset_tokens SET used_at = ? WHERE token_hash = ?", (time_str, token_hash))
+                
+                # Security: Mark all other unused tokens for this user as used
+                cursor.execute("""
+                    UPDATE password_reset_tokens 
+                    SET used_at = COALESCE(used_at, ?)
+                    WHERE user_id = ? AND used_at IS NULL
+                """, (time_str, user_id))
             
             conn.commit()
             logger.info(f"Password reset completed for user ID: {user_id}")
