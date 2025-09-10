@@ -522,18 +522,19 @@ def create_app():
                 logger.info("🔧 Starting database operations")
                 import hashlib
                 import secrets
-                import sqlite3
                 from datetime import datetime, timedelta
                 
                 logger.info("🔧 Imports successful")
                 
-                # Database connection
-                conn = sqlite3.connect('soulbridge.db', timeout=30.0)
+                # Database connection using proper abstraction
+                db = Database()
+                conn = db.get_connection()
                 cursor = conn.cursor()
                 logger.info("🔧 Database connection established")
                 
                 # Check if user exists (case-insensitive)
-                cursor.execute("SELECT id, email, display_name FROM users WHERE LOWER(email) = ?", (email,))
+                placeholder = "%s" if db.use_postgres else "?"
+                cursor.execute(f"SELECT id, email, display_name FROM users WHERE LOWER(email) = {placeholder}", (email,))
                 user = cursor.fetchone()
                 logger.info(f"🔧 User lookup result: {bool(user)}")
                 
@@ -565,10 +566,11 @@ def create_app():
                 
                 # Store token in database
                 logger.info("🔧 Attempting database insert")
-                cursor.execute("""
+                placeholder = "%s" if db.use_postgres else "?"
+                cursor.execute(f"""
                     INSERT INTO password_reset_tokens 
                     (user_id, token_hash, expires_at, request_ip, request_ua)
-                    VALUES (?, ?, ?, ?, ?)
+                    VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder})
                 """, (user_id, token_hash, expires_at, client_ip, user_agent))
                 conn.commit()
                 logger.info("🔧 Database insert successful")
@@ -617,11 +619,11 @@ def create_app():
         try:
             import hashlib
             import secrets
-            import sqlite3
             from datetime import datetime, timedelta, timezone
             
-            # Test database connection
-            conn = sqlite3.connect('soulbridge.db', timeout=30.0)
+            # Test database connection using proper abstraction
+            db = Database()
+            conn = db.get_connection()
             cursor = conn.cursor()
             
             # Test user lookup
@@ -708,18 +710,19 @@ def create_app():
         """Verify if a reset token is valid and not expired"""
         try:
             import hashlib
-            import sqlite3
             from datetime import datetime, timezone
             
             token_hash = hashlib.sha256(token_raw.encode('utf-8')).hexdigest()
             
-            conn = sqlite3.connect('soulbridge.db', timeout=30.0)
+            db = Database()
+            conn = db.get_connection()
             cursor = conn.cursor()
             
-            cursor.execute("""
+            placeholder = "%s" if db.use_postgres else "?"
+            cursor.execute(f"""
                 SELECT user_id, expires_at, used_at 
                 FROM password_reset_tokens 
-                WHERE token_hash = ? 
+                WHERE token_hash = {placeholder} 
                 LIMIT 1
             """, (token_hash,))
             
@@ -756,20 +759,21 @@ def create_app():
         """Use a reset token to change password, mark token as used"""
         try:
             import hashlib
-            import sqlite3
             import bcrypt
             from datetime import datetime, timezone
             
             token_hash = hashlib.sha256(token_raw.encode('utf-8')).hexdigest()
             
-            conn = sqlite3.connect('soulbridge.db', timeout=30.0)
+            db = Database()
+            conn = db.get_connection()
             cursor = conn.cursor()
             
             # Get and verify token
-            cursor.execute("""
+            placeholder = "%s" if db.use_postgres else "?"
+            cursor.execute(f"""
                 SELECT user_id, expires_at, used_at 
                 FROM password_reset_tokens 
-                WHERE token_hash = ? 
+                WHERE token_hash = {placeholder} 
                 LIMIT 1
             """, (token_hash,))
             
@@ -803,13 +807,13 @@ def create_app():
             password_hash = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
             
             # Update user's password
-            cursor.execute("UPDATE users SET password_hash = ? WHERE id = ?", (password_hash, user_id))
+            cursor.execute(f"UPDATE users SET password_hash = {placeholder} WHERE id = {placeholder}", (password_hash, user_id))
             
             # Mark token as used
-            cursor.execute("""
+            cursor.execute(f"""
                 UPDATE password_reset_tokens 
                 SET used_at = CURRENT_TIMESTAMP 
-                WHERE token_hash = ?
+                WHERE token_hash = {placeholder}
             """, (token_hash,))
             
             # Invalidate other unused tokens for this user
