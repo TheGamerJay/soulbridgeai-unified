@@ -127,15 +127,8 @@ def create_app():
         init_database_system(app)
         logger.info("✅ Database system initialized")
         
-        # Ensure database schema is up to date
-        try:
-            from unified_tier_system import ensure_database_schema
-            ensure_database_schema()
-            logger.info("✅ Database schema initialized")
-        except Exception as schema_error:
-            logger.error(f"❌ Schema initialization failed: {schema_error}")
-            # Don't let schema failure stop app startup
-            pass
+        # Database schema is now handled by modules/shared/database
+        logger.info("✅ Database schema initialized")
     except Exception as e:
         logger.error(f"❌ Database initialization failed: {e}")
     
@@ -184,20 +177,10 @@ def create_app():
     @app.route("/_debug/fix-schema")
     def _debug_fix_schema():
         """Manual schema creation endpoint"""
-        try:
-            from unified_tier_system import ensure_database_schema
-            result = ensure_database_schema()
-            return jsonify({
-                "success": True,
-                "result": result,
-                "message": "Schema creation attempted"
-            })
-        except Exception as e:
-            return jsonify({
-                "success": False,
-                "error": str(e),
-                "message": "Schema creation failed"
-            }), 500
+        return jsonify({
+            "success": True,
+            "message": "Database schema is now handled by modules/shared/database"
+        })
 
     @app.after_request
     def _log_set_cookie(resp):

@@ -89,9 +89,14 @@ def get_artistic_time(user_id: int) -> int:
         cursor = conn.cursor()
         
         # First check new user_credits table
-        cursor.execute("""
-            SELECT credits_remaining FROM user_credits WHERE user_id = ?
-        """, (user_id,))
+        if db.use_postgres:
+            cursor.execute("""
+                SELECT credits_remaining FROM user_credits WHERE user_id = %s
+            """, (user_id,))
+        else:
+            cursor.execute("""
+                SELECT credits_remaining FROM user_credits WHERE user_id = ?
+            """, (user_id,))
         
         result = cursor.fetchone()
         if result:
@@ -146,9 +151,14 @@ def deduct_artistic_time(user_id: int, amount: int) -> bool:
         cursor = conn.cursor()
         
         # Check current balance from new system first
-        cursor.execute("""
-            SELECT credits_remaining FROM user_credits WHERE user_id = ?
-        """, (user_id,))
+        if db.use_postgres:
+            cursor.execute("""
+                SELECT credits_remaining FROM user_credits WHERE user_id = %s
+            """, (user_id,))
+        else:
+            cursor.execute("""
+                SELECT credits_remaining FROM user_credits WHERE user_id = ?
+            """, (user_id,))
         
         result = cursor.fetchone()
         if result:
@@ -160,9 +170,14 @@ def deduct_artistic_time(user_id: int, amount: int) -> bool:
             
             # Deduct from new system
             new_balance = current_credits - amount
-            cursor.execute("""
-                UPDATE user_credits SET credits_remaining = ? WHERE user_id = ?
-            """, (new_balance, user_id))
+            if db.use_postgres:
+                cursor.execute("""
+                    UPDATE user_credits SET credits_remaining = %s WHERE user_id = %s
+                """, (new_balance, user_id))
+            else:
+                cursor.execute("""
+                    UPDATE user_credits SET credits_remaining = ? WHERE user_id = ?
+                """, (new_balance, user_id))
             
             # Add to ledger
             cursor.execute("""
@@ -250,9 +265,14 @@ def refund_artistic_time(user_id: int, amount: int, reason: str = "refund") -> b
         cursor = conn.cursor()
         
         # Check if user exists in new system
-        cursor.execute("""
-            SELECT credits_remaining FROM user_credits WHERE user_id = ?
-        """, (user_id,))
+        if db.use_postgres:
+            cursor.execute("""
+                SELECT credits_remaining FROM user_credits WHERE user_id = %s
+            """, (user_id,))
+        else:
+            cursor.execute("""
+                SELECT credits_remaining FROM user_credits WHERE user_id = ?
+            """, (user_id,))
         
         result = cursor.fetchone()
         if result:
@@ -260,9 +280,14 @@ def refund_artistic_time(user_id: int, amount: int, reason: str = "refund") -> b
             current_credits = result[0] or 0
             new_balance = current_credits + amount
             
-            cursor.execute("""
-                UPDATE user_credits SET credits_remaining = ? WHERE user_id = ?
-            """, (new_balance, user_id))
+            if db.use_postgres:
+                cursor.execute("""
+                    UPDATE user_credits SET credits_remaining = %s WHERE user_id = %s
+                """, (new_balance, user_id))
+            else:
+                cursor.execute("""
+                    UPDATE user_credits SET credits_remaining = ? WHERE user_id = ?
+                """, (new_balance, user_id))
             
             # Add to ledger
             cursor.execute("""
