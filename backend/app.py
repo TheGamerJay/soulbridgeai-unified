@@ -269,36 +269,119 @@ def create_app():
     # AUTH ROUTES (from auth module blueprint)
     @app.route("/auth/login", methods=["GET", "POST"])
     def auth_login():
-        """Login page and authentication - from auth blueprint"""
+        """Enhanced login page with database auth and referral handling"""
         if request.method == "GET":
             from flask import render_template
             error_message = request.args.get('error')
             return_to = request.args.get('return_to')
-            return render_template('login.html', error=error_message, return_to=return_to)
+            
+            # Check for referral code in URL (/?ref=XXXX)
+            ref_code = request.args.get('ref', '').upper().strip()
+            if ref_code:
+                # Store in session for signup process
+                session['pending_referral_code'] = ref_code
+                logger.info(f"Stored referral code in session: {ref_code}")
+            
+            return render_template('login.html', 
+                                 error=error_message, 
+                                 return_to=return_to,
+                                 ref_code=ref_code)
         
-        # Handle POST - simple login processing
+        # Handle POST - database-integrated authentication
         try:
-            email = request.form.get('email', '').strip()
+            from database_utils import get_database
+            import bcrypt
+            
+            email = request.form.get('email', '').strip().lower()
             password = request.form.get('password', '')
             
             if not email or not password:
-                return redirect('/auth/login?error=Please enter email and password')
+                flash('Please enter both email and password', 'error')
+                return redirect('/auth/login')
             
-            # Simple auth - set session (expand this later)
-            session['logged_in'] = True
-            session['email'] = email
-            session['user_id'] = 1  # Placeholder
-            session['user_plan'] = 'bronze'  # Default
-            session.permanent = True
+            # Database authentication
+            db = get_database()
+            if not db:
+                flash('Database connection error', 'error')
+                return redirect('/auth/login')
+                
+            conn = db.get_connection()
+            cursor = conn.cursor()
             
-            return_to = request.args.get('return_to', '')
-            if return_to:
-                return redirect(f'/{return_to}')
-            return redirect('/intro')
+            try:
+                # Find user by email
+                cursor.execute("""
+                    SELECT id, email, password_hash, user_plan, display_name, 
+                           trial_active, artistic_credits, selected_companion
+                    FROM users 
+                    WHERE email = ?
+                """, (email,))
+                
+                user = cursor.fetchone()
+                if not user:
+                    flash('Invalid email or password', 'error')
+                    return redirect('/auth/login')
+                
+                user_id, user_email, password_hash, user_plan, display_name, trial_active, artistic_credits, selected_companion = user
+                
+                # Verify password
+                if not password_hash or not bcrypt.checkpw(password.encode('utf-8'), password_hash.encode('utf-8')):
+                    flash('Invalid email or password', 'error')
+                    return redirect('/auth/login')
+                
+                # Successful login - set session
+                session['logged_in'] = True
+                session['user_id'] = user_id
+                session['email'] = user_email
+                session['user_plan'] = user_plan or 'bronze'
+                session['display_name'] = display_name or user_email.split('@')[0]
+                session['trial_active'] = bool(trial_active)
+                session['artistic_credits'] = artistic_credits or 0
+                session['selected_companion'] = selected_companion
+                session.permanent = True
+                
+                # Update last login
+                cursor.execute("""
+                    UPDATE users 
+                    SET last_login = datetime('now')
+                    WHERE id = ?
+                """, (user_id,))
+                conn.commit()
+                
+                # Generate referral code if user doesn't have one
+                try:
+                    from modules.referrals.routes import ensure_user_has_code
+                    ensure_user_has_code(user_id)
+                except Exception as e:
+                    logger.warning(f"Could not ensure referral code for user {user_id}: {e}")
+                
+                logger.info(f"Successful login for user {user_id} ({user_email})")
+                
+                # Redirect logic
+                return_to = request.args.get('return_to', '')
+                if return_to:
+                    return redirect(f'/{return_to}')
+                
+                # Default redirect based on user status
+                if not display_name or display_name == user_email.split('@')[0]:
+                    return redirect('/profile')  # Need to set up profile
+                elif not selected_companion:
+                    return redirect('/companions')  # Need to select companion
+                else:
+                    return redirect('/dashboard')  # Go to main app
+                    
+            finally:
+                cursor.close()
+                conn.close()
             
+        except ImportError as e:
+            logger.error(f"Missing dependency for authentication: {e}")
+            flash('Authentication system not ready', 'error')
+            return redirect('/auth/login')
         except Exception as e:
             logger.error(f"Login error: {e}")
-            return redirect('/auth/login?error=Login failed')
+            flash('Login failed. Please try again.', 'error')
+            return redirect('/auth/login')
     
     @app.route("/auth/logout")
     def auth_logout():
@@ -608,6 +691,34 @@ def create_app():
     
     # COMMUNITY ROUTES - Handled by community blueprint
     # Removed duplicate route - let blueprint handle /community
+    
+    # DASHBOARD ROUTE - Main app landing page
+    @app.route("/dashboard")
+    def dashboard():
+        """Main dashboard page after login"""
+        if not session.get('logged_in'):
+            return redirect('/auth/login?return_to=dashboard')
+        
+        from flask import render_template
+        user_data = {
+            'user_id': session.get('user_id'),
+            'email': session.get('email'),
+            'display_name': session.get('display_name'),
+            'user_plan': session.get('user_plan', 'bronze'),
+            'trial_active': session.get('trial_active', False),
+            'artistic_credits': session.get('artistic_credits', 0),
+            'selected_companion': session.get('selected_companion')
+        }
+        return render_template('dashboard.html', user=user_data)
+    
+    @app.route("/companions")
+    def companions_page():
+        """Companion selection page"""
+        if not session.get('logged_in'):
+            return redirect('/auth/login?return_to=companions')
+        
+        from flask import render_template
+        return render_template('companions.html')
     
     # PROFILE ROUTES (from user_profile module blueprint)  
     @app.route("/profile")

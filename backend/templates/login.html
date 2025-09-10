@@ -25,12 +25,12 @@
     <meta name="twitter:image" content="https://soulbridgeai.com/static/logos/The IntroLogo.png">
     
     <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192x192.png">
-    <link rel="icon" type="image/png" sizes="512x512" href="/favicon-512x512.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="192x192" href="{{ url_for('static', filename='favicon-192x192.png') }}">
+    <link rel="icon" type="image/png" sizes="512x512" href="{{ url_for('static', filename='favicon-512x512.png') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='favicon-180x180.png') }}">
     <meta name="theme-color" content="#00ffff">
     
     <!-- Modular CSS Files -->
@@ -519,6 +519,15 @@
                 <div class="auth-logo">SoulBridge AI</div>
                 <h1 class="auth-title" data-translate="welcome_back">Welcome Back</h1>
                 <p class="auth-subtitle" data-translate="sign_in_subtitle">Sign in to continue your journey</p>
+                
+                <!-- Referral Code Notification -->
+                {% if ref_code %}
+                <div style="background: rgba(34, 197, 94, 0.1); border: 1px solid #22c55e; color: #22c55e; padding: 0.75rem; border-radius: 8px; margin-top: 1rem; text-align: center;">
+                    🎉 <strong>Referral Code Detected!</strong><br>
+                    <span style="font-family: monospace; background: rgba(34, 197, 94, 0.2); padding: 2px 6px; border-radius: 4px;">{{ ref_code }}</span><br>
+                    <small>Sign in or create an account to apply this referral code</small>
+                </div>
+                {% endif %}
             </div>
             
             <!-- Flash Messages -->
@@ -587,8 +596,13 @@
             <div class="auth-footer">
                 <p style="color: #9ca3af; margin: 0;">
                     <span data-translate="no_account">Don't have an account?</span> 
-                    <a href="/auth/register" class="auth-link" data-translate="sign_up">Sign up</a>
+                    <a href="/auth/register{% if ref_code %}?ref={{ ref_code }}{% endif %}" class="auth-link" data-translate="sign_up">Sign up</a>
                 </p>
+                {% if ref_code %}
+                <p style="color: #9ca3af; margin: 0.5rem 0 0 0; font-size: 0.875rem;">
+                    <a href="/auth/login" class="auth-link" style="font-size: 0.875rem;">Remove referral code</a>
+                </p>
+                {% endif %}
             </div>
             
             <!-- Language Selector (Below Sign-In) -->
