@@ -38,7 +38,7 @@ except Exception as e:
 
 @ai_lyric_writer_bp.route('/generate', methods=['POST'])
 @require_auth
-@rate_limit_moderate
+@rate_limit_moderate()
 def generate_lyrics():
     """Generate AI lyrics with consent and similarity checks"""
     
@@ -140,7 +140,7 @@ def generate_lyrics():
 
 @ai_lyric_writer_bp.route('/check-similarity', methods=['POST'])
 @require_auth
-@rate_limit_moderate
+@rate_limit_moderate()
 def check_similarity():
     """Check similarity against existing lyrics"""
     
@@ -210,7 +210,7 @@ def check_similarity():
 
 @ai_lyric_writer_bp.route('/consent', methods=['POST'])
 @require_auth
-@rate_limit_moderate
+@rate_limit_moderate()
 def manage_consent():
     """Manage artist consent for AI training"""
     
@@ -302,7 +302,7 @@ def manage_consent():
 
 @ai_lyric_writer_bp.route('/consent/<artist_id>', methods=['GET'])
 @require_auth
-@rate_limit_moderate
+@rate_limit_moderate()
 def get_consent(artist_id):
     """Get consent status for an artist"""
     
@@ -335,7 +335,7 @@ def get_consent(artist_id):
 
 @ai_lyric_writer_bp.route('/compliance-check', methods=['POST'])
 @require_auth
-@rate_limit_moderate
+@rate_limit_moderate()
 def check_compliance():
     """Check consent compliance for a specific use case"""
     
@@ -386,7 +386,7 @@ def check_compliance():
 
 @ai_lyric_writer_bp.route('/stats', methods=['GET'])
 @require_auth
-@rate_limit_moderate
+@rate_limit_moderate()
 def get_stats():
     """Get AI lyric writer statistics"""
     

@@ -40,7 +40,7 @@ except Exception as e:
 
 @story_generator_bp.route('/generate-outline', methods=['POST'])
 @require_auth
-@rate_limit_moderate
+@rate_limit_moderate()
 def generate_outline():
     """Generate a comprehensive story outline"""
     
@@ -200,7 +200,7 @@ def generate_outline():
 
 @story_generator_bp.route('/generate-content', methods=['POST'])
 @require_auth
-@rate_limit_moderate
+@rate_limit_moderate()
 def generate_content():
     """Generate story content from outline"""
     
@@ -297,7 +297,7 @@ def generate_content():
 
 @story_generator_bp.route('/analyze', methods=['POST'])
 @require_auth
-@rate_limit_moderate
+@rate_limit_moderate()
 def analyze_story():
     """Analyze story content for structure, pacing, and style"""
     
@@ -365,7 +365,7 @@ def analyze_story():
 
 @story_generator_bp.route('/user-stories', methods=['GET'])
 @require_auth
-@rate_limit_moderate
+@rate_limit_moderate()
 def get_user_stories():
     """Get user's generated stories"""
     
@@ -486,7 +486,7 @@ def get_genres():
 
 @story_generator_bp.route('/stats', methods=['GET'])
 @require_auth
-@rate_limit_moderate
+@rate_limit_moderate()
 def get_stats():
     """Get story generator statistics and user limits"""
     

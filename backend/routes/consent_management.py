@@ -82,7 +82,7 @@ def get_user_consent_status():
 
 @consent_bp.route('/update', methods=['POST'])
 @require_auth
-@rate_limit_moderate
+@rate_limit_moderate()
 def update_user_consent():
     """Update user's AI training consent preferences"""
     
