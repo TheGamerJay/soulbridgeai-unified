@@ -496,122 +496,9 @@ def create_app():
     
     @app.route("/auth/forgot-password", methods=["GET", "POST"])
     def auth_forgot_password():
-        """Secure token-based password reset system"""
-        if request.method == "GET":
-            from flask import render_template
-            return render_template('forgot_password.html')
-        
-        # Handle POST - initiate password reset
-        try:
-            logger.info("🔧 Starting password reset process")
-            email = request.form.get('email', '').strip().lower()
-            logger.info(f"🔧 Email provided: {email}")
-            
-            # Always return generic success message to prevent email enumeration
-            generic_message = 'If an account with that email exists, a reset link has been sent.'
-            
-            if not email:
-                logger.info("🔧 No email provided")
-                flash(generic_message, 'success')
-                return redirect('/auth/forgot-password')
-            
-            # Database operations
-            cursor = None
-            conn = None
-            try:
-                logger.info("🔧 Starting database operations")
-                import hashlib
-                import secrets
-                from datetime import datetime, timedelta
-                
-                logger.info("🔧 Imports successful")
-                
-                # Database connection using proper abstraction
-                db = Database()
-                conn = db.get_connection()
-                cursor = conn.cursor()
-                logger.info("🔧 Database connection established")
-                
-                # Check if user exists (case-insensitive)
-                placeholder = "%s" if db.use_postgres else "?"
-                cursor.execute(f"SELECT id, email, display_name FROM users WHERE LOWER(email) = {placeholder}", (email,))
-                user = cursor.fetchone()
-                logger.info(f"🔧 User lookup result: {bool(user)}")
-                
-                if not user:
-                    # Still return success to prevent email enumeration
-                    flash(generic_message, 'success')
-                    return redirect('/auth/forgot-password')
-                
-                user_id, user_email, display_name = user
-                logger.info(f"🔧 Processing reset for user ID: {user_id}")
-                
-                # Generate secure token (32 bytes = 43 URL-safe chars)
-                token_raw = secrets.token_urlsafe(32)
-                logger.info("🔧 Token generated successfully")
-                
-                # Hash the token for database storage (never store raw tokens)
-                token_hash = hashlib.sha256(token_raw.encode('utf-8')).hexdigest()
-                logger.info("🔧 Token hashed successfully")
-                
-                # Token expires in 1 hour (SQLite-compatible format)
-                from datetime import timezone
-                expires_at = (datetime.now(timezone.utc) + timedelta(hours=1)).isoformat() + 'Z'
-                logger.info(f"🔧 Expiry time set: {expires_at}")
-                
-                # Get client info
-                client_ip = request.headers.get('X-Forwarded-For', request.remote_addr or '')
-                user_agent = request.headers.get('User-Agent', '')[:500]  # Limit length
-                logger.info(f"🔧 Client info: IP={client_ip}, UA length={len(user_agent)}")
-                
-                # Store token in database
-                logger.info("🔧 Attempting database insert")
-                placeholder = "%s" if db.use_postgres else "?"
-                cursor.execute(f"""
-                    INSERT INTO password_reset_tokens 
-                    (user_id, token_hash, expires_at, request_ip, request_ua)
-                    VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder})
-                """, (user_id, token_hash, expires_at, client_ip, user_agent))
-                conn.commit()
-                logger.info("🔧 Database insert successful")
-                
-                # In production, you'd email the reset link
-                # For now, we'll show it in the success message for testing
-                reset_url = f"{request.url_root}auth/reset-password?token={token_raw}"
-                
-                logger.info(f"Password reset token generated for user: {user_email} (ID: {user_id})")
-                
-                # Show reset link directly (in production, this would be emailed)
-                flash(f'Reset link: {reset_url}', 'success')
-                flash('(In production, this would be emailed to you)', 'success')
-                flash('This link expires in 1 hour.', 'success')
-                
-                return redirect('/auth/forgot-password')
-                
-            except Exception as db_error:
-                logger.error(f"Password reset database error: {db_error}", exc_info=True)
-                flash(generic_message, 'success')  # Still return generic success
-                return redirect('/auth/forgot-password')
-                
-            finally:
-                if cursor:
-                    cursor.close()
-                if conn:
-                    conn.close()
-            
-        except Exception as e:
-            logger.error(f"Password reset error: {e}", exc_info=True)
-            
-            # Check if this is a JSON request (AJAX)
-            if request.is_json or 'application/json' in request.headers.get('Content-Type', ''):
-                return jsonify({
-                    "ok": False, 
-                    "error": "Password reset failed",
-                    "message": "If an account with that email exists, a reset link has been sent."
-                }), 200  # Return 200 to prevent generic error
-            else:
-                flash('If an account with that email exists, a reset link has been sent.', 'success')
-                return redirect('/auth/forgot-password')
+        """Enhanced password reset with proper security patterns"""
+        from password_reset_improved import auth_forgot_password_improved
+        return auth_forgot_password_improved()
     
     @app.route("/auth/forgot-password-test")
     def forgot_password_test():
@@ -657,54 +544,9 @@ def create_app():
     
     @app.route("/auth/reset-password", methods=["GET", "POST"])
     def auth_reset_password():
-        """Complete password reset with token"""
-        if request.method == "GET":
-            # Validate token and show reset form
-            token = request.args.get('token', '').strip()
-            if not token:
-                flash('Invalid reset link', 'error')
-                return redirect('/auth/login')
-            
-            # Verify token
-            is_valid = verify_reset_token(token)
-            if not is_valid:
-                flash('Reset link is invalid or expired', 'error')
-                return redirect('/auth/login')
-            
-            from flask import render_template
-            return render_template('reset_password.html', token=token)
-        
-        # Handle POST - process password reset
-        try:
-            token = request.form.get('token', '').strip()
-            new_password = request.form.get('password', '')
-            confirm_password = request.form.get('confirm_password', '')
-            
-            if not token or not new_password or not confirm_password:
-                flash('All fields are required', 'error')
-                return redirect(f'/auth/reset-password?token={token}')
-            
-            if new_password != confirm_password:
-                flash('Passwords do not match', 'error')
-                return redirect(f'/auth/reset-password?token={token}')
-            
-            if len(new_password) < 8:
-                flash('Password must be at least 8 characters', 'error')
-                return redirect(f'/auth/reset-password?token={token}')
-            
-            # Verify and use token
-            user_id = use_reset_token(token, new_password)
-            if not user_id:
-                flash('Reset link is invalid or expired', 'error')
-                return redirect('/auth/login')
-            
-            flash('Password updated successfully! You can now sign in.', 'success')
-            return redirect('/auth/login')
-            
-        except Exception as e:
-            logger.error(f"Reset password error: {e}")
-            flash('Password reset failed. Please try again.', 'error')
-            return redirect('/auth/login')
+        """Enhanced password reset with token validation"""
+        from password_reset_improved import auth_reset_password_improved
+        return auth_reset_password_improved()
     
     def verify_reset_token(token_raw):
         """Verify if a reset token is valid and not expired"""
