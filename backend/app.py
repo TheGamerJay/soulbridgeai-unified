@@ -503,12 +503,15 @@ def create_app():
         
         # Handle POST - initiate password reset
         try:
+            logger.info("🔧 Starting password reset process")
             email = request.form.get('email', '').strip().lower()
+            logger.info(f"🔧 Email provided: {email}")
             
             # Always return generic success message to prevent email enumeration
             generic_message = 'If an account with that email exists, a reset link has been sent.'
             
             if not email:
+                logger.info("🔧 No email provided")
                 flash(generic_message, 'success')
                 return redirect('/auth/forgot-password')
             
@@ -516,18 +519,23 @@ def create_app():
             cursor = None
             conn = None
             try:
+                logger.info("🔧 Starting database operations")
                 import hashlib
                 import secrets
                 import sqlite3
                 from datetime import datetime, timedelta
                 
+                logger.info("🔧 Imports successful")
+                
                 # Database connection
                 conn = sqlite3.connect('soulbridge.db', timeout=30.0)
                 cursor = conn.cursor()
+                logger.info("🔧 Database connection established")
                 
                 # Check if user exists (case-insensitive)
                 cursor.execute("SELECT id, email, display_name FROM users WHERE LOWER(email) = ?", (email,))
                 user = cursor.fetchone()
+                logger.info(f"🔧 User lookup result: {bool(user)}")
                 
                 if not user:
                     # Still return success to prevent email enumeration
@@ -535,28 +543,35 @@ def create_app():
                     return redirect('/auth/forgot-password')
                 
                 user_id, user_email, display_name = user
+                logger.info(f"🔧 Processing reset for user ID: {user_id}")
                 
                 # Generate secure token (32 bytes = 43 URL-safe chars)
                 token_raw = secrets.token_urlsafe(32)
+                logger.info("🔧 Token generated successfully")
                 
                 # Hash the token for database storage (never store raw tokens)
                 token_hash = hashlib.sha256(token_raw.encode('utf-8')).hexdigest()
+                logger.info("🔧 Token hashed successfully")
                 
                 # Token expires in 1 hour (SQLite-compatible format)
                 from datetime import timezone
                 expires_at = (datetime.now(timezone.utc) + timedelta(hours=1)).isoformat() + 'Z'
+                logger.info(f"🔧 Expiry time set: {expires_at}")
                 
                 # Get client info
                 client_ip = request.headers.get('X-Forwarded-For', request.remote_addr or '')
                 user_agent = request.headers.get('User-Agent', '')[:500]  # Limit length
+                logger.info(f"🔧 Client info: IP={client_ip}, UA length={len(user_agent)}")
                 
                 # Store token in database
+                logger.info("🔧 Attempting database insert")
                 cursor.execute("""
                     INSERT INTO password_reset_tokens 
                     (user_id, token_hash, expires_at, request_ip, request_ua)
                     VALUES (?, ?, ?, ?, ?)
                 """, (user_id, token_hash, expires_at, client_ip, user_agent))
                 conn.commit()
+                logger.info("🔧 Database insert successful")
                 
                 # In production, you'd email the reset link
                 # For now, we'll show it in the success message for testing
@@ -583,9 +598,18 @@ def create_app():
                     conn.close()
             
         except Exception as e:
-            logger.error(f"Password reset error: {e}")
-            flash('If an account with that email exists, a reset link has been sent.', 'success')
-            return redirect('/auth/forgot-password')
+            logger.error(f"Password reset error: {e}", exc_info=True)
+            
+            # Check if this is a JSON request (AJAX)
+            if request.is_json or 'application/json' in request.headers.get('Content-Type', ''):
+                return jsonify({
+                    "ok": False, 
+                    "error": "Password reset failed",
+                    "message": "If an account with that email exists, a reset link has been sent."
+                }), 200  # Return 200 to prevent generic error
+            else:
+                flash('If an account with that email exists, a reset link has been sent.', 'success')
+                return redirect('/auth/forgot-password')
     
     @app.route("/auth/reset-password", methods=["GET", "POST"])
     def auth_reset_password():
