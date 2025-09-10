@@ -101,7 +101,7 @@
         .netflix-card {
             background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
             border-radius: 12px;
-            overflow: hidden;
+            overflow: visible;
             cursor: pointer;
             transition: all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
             text-decoration: none;
@@ -547,7 +547,7 @@
                                     <h3>{{ companion.name }}</h3>
                                     {% if companion.has_skins %}
                                     <div class="skin-selector">
-                                        <button class="skin-dropdown-btn" onclick="toggleSkinDropdown('{{ companion.name|lower }}')" title="Choose Skin">...</button>
+                                        <button class="skin-dropdown-btn" onclick="toggleSkinDropdown('{{ companion.name|lower }}', event)" title="Choose Skin">...</button>
                                         <div class="skin-dropdown" id="dropdown-{{ companion.name|lower }}">
                                             <div class="skin-dropdown-header">Choose {{ companion.name }} Skin</div>
                                             {% for skin in companion.skins %}
@@ -786,7 +786,10 @@
             });
         });
 
-        function toggleSkinDropdown(companionKey) {
+        function toggleSkinDropdown(companionKey, event) {
+            event.stopPropagation(); // Prevent card click
+            event.preventDefault();
+            
             const dropdown = document.getElementById(`dropdown-${companionKey}`);
             const button = event.target;
             const isVisible = dropdown.classList.contains('show');
@@ -800,8 +803,8 @@
             if (!isVisible) {
                 // Position dropdown near the button
                 const buttonRect = button.getBoundingClientRect();
-                dropdown.style.left = `${buttonRect.left - 200}px`;
-                dropdown.style.top = `${buttonRect.bottom + 10}px`;
+                dropdown.style.left = `${buttonRect.left - 220}px`;
+                dropdown.style.top = `${buttonRect.bottom + 5}px`;
                 dropdown.classList.add('show');
             }
         }
