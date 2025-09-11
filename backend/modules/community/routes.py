@@ -566,7 +566,7 @@ def anonymous_community():
         except Exception as avatar_error:
             logger.error(f"❌ SERVER-SIDE avatar loading failed: {avatar_error}")
         
-        # Default avatar if all else fails
+        # Default avatar if all else fails - use intro logo as fallback
         if not current_avatar:
             import time
             cache_buster = int(time.time())
@@ -576,7 +576,7 @@ def anonymous_community():
                 'avatar_url': f'/static/logos/New IntroLogo.png?t={cache_buster}',
                 'tier': 'bronze'
             }
-            logger.info(f"🔄 SERVER-SIDE: Using default avatar for user {user_id}")
+            logger.info(f"🔄 SERVER-SIDE: Using default Soul avatar (intro logo) for user {user_id}")
         
         logger.info(f"🎭 DEBUG: Final current_avatar being passed to template: {current_avatar}")
         if current_avatar:
