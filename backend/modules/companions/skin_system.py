@@ -106,9 +106,11 @@ def get_consolidated_companions(user_referrals=0):
             "id": companion_data["base_id"],
             "name": companion_data["name"],
             "image": companion_data["skins"][0]["image"],  # Default to first skin
+            "image_url": companion_data["skins"][0]["image"],  # Frontend expects image_url
             "has_skins": True,
             "skins": companion_data["skins"],
-            "tier": companion_data["skins"][0]["tier"]  # Use first skin's tier
+            "tier": companion_data["skins"][0]["tier"],  # Use first skin's tier
+            "base_name": base_name  # Add base_name for skin selector
         })
     
     # Add single companions
@@ -117,6 +119,7 @@ def get_consolidated_companions(user_referrals=0):
             "id": companion["id"],
             "name": companion["name"], 
             "image": companion["image"],
+            "image_url": companion["image"],  # Frontend expects image_url
             "has_skins": False,
             "skins": [],
             "tier": companion["tier"]
@@ -129,6 +132,7 @@ def get_consolidated_companions(user_referrals=0):
                 "id": companion["id"],
                 "name": companion["name"],
                 "image": companion["image"],
+                "image_url": companion["image"],  # Frontend expects image_url
                 "has_skins": False,
                 "skins": [],
                 "tier": companion["tier"],

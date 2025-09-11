@@ -236,7 +236,7 @@ def process_voice_chat():
         logger.error(f"Error in voice chat processing: {e}")
         return jsonify({'success': False, 'error': 'Voice processing failed'}), 500
 
-@companions_bp.route("/api/companion/skins/<base_name>")
+@companions_bp.route("/api/companions/<base_name>/skins")
 @requires_login
 def get_companion_skins_api(base_name):
     """API endpoint to get skins for a specific companion"""
@@ -249,6 +249,7 @@ def get_companion_skins_api(base_name):
         
         return jsonify({
             'success': True,
+            'name': base_name.title(),
             'skins': skins,
             'base_name': base_name
         })
@@ -257,8 +258,72 @@ def get_companion_skins_api(base_name):
         logger.error(f"Error getting companion skins for {base_name}: {e}")
         return jsonify({'success': False, 'error': 'Failed to load skins'}), 500
 
-@companions_bp.route("/api/companion/select-skin", methods=["POST"])
+@companions_bp.route("/api/companions/set-skin", methods=["POST"])
 @requires_login
+def set_companion_skin():
+    """API endpoint to set a specific skin for a companion"""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'success': False, 'error': 'No data provided'}), 400
+        
+        companion_id = data.get('companion_id')
+        base_name = data.get('base_name')
+        
+        if not companion_id or not base_name:
+            return jsonify({'success': False, 'error': 'companion_id and base_name are required'}), 400
+        
+        # Verify companion exists (check both systems)
+        companion = get_companion_by_id(companion_id) or get_skin_companion_by_id(companion_id)
+        if not companion:
+            return jsonify({'success': False, 'error': 'Companion skin not found'}), 404
+        
+        # Verify user has access
+        if not require_companion_access(companion_id):
+            return jsonify({'success': False, 'error': 'Access denied to this companion'}), 403
+        
+        # Set as selected companion
+        session['selected_companion'] = companion_id
+        session[f'companion_skin_{base_name}'] = companion_id
+        session.modified = True
+        
+        # Save skin preference to database
+        user_id = get_user_id()
+        if user_id:
+            from ..shared.database import get_database_manager
+            db = get_database_manager()
+            try:
+                conn = db.get_connection()
+                cursor = conn.cursor()
+                
+                # Save user's skin preference
+                cursor.execute("""
+                    INSERT OR REPLACE INTO user_data (user_id, key, value) 
+                    VALUES (?, ?, ?)
+                """, (user_id, f'skin_preference_{base_name}', companion_id))
+                
+                conn.commit()
+                cursor.close()
+                db.return_connection(conn)
+                
+            except Exception as db_error:
+                logger.error(f"Database error saving skin preference: {db_error}")
+                # Continue anyway, skin will be saved in session
+        
+        return jsonify({
+            'success': True,
+            'companion': companion,
+            'message': f'Skin set successfully for {base_name}',
+            'companion_id': companion_id,
+            'base_name': base_name
+        })
+        
+    except Exception as e:
+        logger.error(f"Error setting companion skin: {e}")
+        return jsonify({'success': False, 'error': 'Failed to set skin'}), 500
+
+@companions_bp.route("/api/companion/select-skin", methods=["POST"])
+@requires_login 
 def select_companion_skin():
     """API endpoint to select a specific skin for a companion"""
     try:
@@ -315,6 +380,53 @@ def select_companion_skin():
     except Exception as e:
         logger.error(f"Error selecting companion skin: {e}")
         return jsonify({'success': False, 'error': 'Failed to select skin'}), 500
+
+@companions_bp.route("/api/companions/public")
+def api_companions_public():
+    """Public API endpoint for companion data (no login required)"""
+    try:
+        # Get consolidated companions for API (public access)
+        consolidated_companions = get_consolidated_companions()
+        referral_companions = get_referral_companions()
+        
+        # For public access, all companions are accessible for viewing (but not for actual use)
+        for companion in consolidated_companions:
+            companion['can_access'] = True  # Public viewing access
+        
+        for companion in referral_companions:
+            companion['can_access'] = False  # Referral companions require account
+        
+        return jsonify({
+            'success': True,
+            'companions': consolidated_companions,
+            'referral_companions': referral_companions,
+            'access_info': {'user_plan': 'bronze', 'trial_active': False}  # Default for anonymous
+        })
+        
+    except Exception as e:
+        logger.error(f"Error in public companions API: {e}")
+        return jsonify({'success': False, 'error': 'Failed to load companions'}), 500
+
+@companions_bp.route("/api/companions/<base_name>/skins/public")
+def get_companion_skins_public(base_name):
+    """Public API endpoint to get skins for a specific companion (no login required)"""
+    try:
+        from .skin_system import get_companion_skins
+        skins = get_companion_skins(base_name)
+        
+        if not skins:
+            return jsonify({'success': False, 'error': 'No skins found for this companion'}), 404
+        
+        return jsonify({
+            'success': True,
+            'name': base_name.title(),
+            'skins': skins,
+            'base_name': base_name
+        })
+        
+    except Exception as e:
+        logger.error(f"Error getting companion skins for {base_name}: {e}")
+        return jsonify({'success': False, 'error': 'Failed to load skins'}), 500
 
 @companions_bp.route("/companions/showcase")
 def community_companions():
