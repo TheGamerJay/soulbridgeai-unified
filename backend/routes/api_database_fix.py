@@ -60,6 +60,22 @@ def inspect_database():
             "error": f"Database inspection failed: {str(e)}"
         }), 500
 
+@bp.route("/api/database/columns", methods=['GET'])
+def show_columns():
+    """Show all database table columns"""
+    try:
+        from show_columns import show_columns
+        success = show_columns()
+        return jsonify({
+            "success": success,
+            "message": "Database columns displayed - check logs for table structures"
+        })
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": f"Show columns failed: {str(e)}"
+        }), 500
+
 @bp.route("/api/database/fix-schema", methods=['GET', 'POST'])
 def fix_database_schema():
     """Fix missing database tables and columns"""
