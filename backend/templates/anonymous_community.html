@@ -3063,9 +3063,39 @@
                         });
                         
                         if (applySkinResponse.ok) {
+                            // Get skin data before removing modal
+                            const selectedSkinElement = skinModal.querySelector('.skin-option.selected');
+                            let skinImageSrc = null;
+                            let skinDisplayName = null;
+                            
+                            if (selectedSkinElement) {
+                                const skinImage = selectedSkinElement.querySelector('img');
+                                const skinName = selectedSkinElement.querySelector('div[style*="font-weight: bold"]');
+                                
+                                if (skinImage && skinName) {
+                                    skinImageSrc = skinImage.src;
+                                    skinDisplayName = skinName.textContent;
+                                }
+                            }
+                            
                             showMessage('Skin applied successfully!', 'success');
                             skinModal.remove();
-                            // Skin preference saved to session
+                            
+                            // Update composer avatar immediately to show new skin
+                            if (skinImageSrc && skinDisplayName) {
+                                const composerAvatar = document.getElementById('composer-avatar');
+                                const companionNameEl = document.getElementById('companion-name');
+                                
+                                // Update avatar image
+                                if (composerAvatar) {
+                                    composerAvatar.innerHTML = `<img src="${skinImageSrc}" alt="${skinDisplayName}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: contain;">`;
+                                }
+                                
+                                // Update companion name to reflect the skin
+                                if (companionNameEl) {
+                                    companionNameEl.textContent = skinDisplayName;
+                                }
+                            }
                         } else {
                             const error = await applySkinResponse.json();
                             showMessage(error.message || 'Failed to apply skin', 'error');
