@@ -12,6 +12,22 @@ logger = logging.getLogger(__name__)
 # Create blueprint
 bp = Blueprint('api_database_fix', __name__)
 
+@bp.route("/api/database/emergency-fix", methods=['GET', 'POST'])
+def emergency_database_fix():
+    """Emergency fix for persistent database schema errors"""
+    try:
+        from emergency_database_fix import emergency_fix
+        success = emergency_fix()
+        return jsonify({
+            "success": success,
+            "message": "Emergency database fix completed" if success else "Emergency fix failed"
+        })
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": f"Emergency fix failed: {str(e)}"
+        }), 500
+
 @bp.route("/api/database/fix-schema", methods=['GET', 'POST'])
 def fix_database_schema():
     """Fix missing database tables and columns"""
