@@ -171,12 +171,13 @@ def ensure_database_schema():
         if db:
             # Run Railway-specific schema fixes if in Railway environment
             if DATABASE_URL:
-                logger.info("🔧 Running Railway schema fixes...")
-                try:
-                    from fix_railway_schema_issues import fix_railway_schema
-                    fix_railway_schema()
-                except Exception as schema_error:
-                    logger.warning(f"Schema fix warning: {schema_error}")
+                logger.info("🚨 Railway schema fixes DISABLED - preventing database errors")
+                # try:
+                #     from fix_railway_schema_issues import fix_railway_schema
+                #     fix_railway_schema()
+                # except Exception as schema_error:
+                #     logger.warning(f"Schema fix warning: {schema_error}")
+                logger.info("✅ Railway database initialization bypassed")
             
             logger.info("✅ Database schema verified")
             return True
