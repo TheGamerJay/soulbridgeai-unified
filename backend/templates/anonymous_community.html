@@ -3188,7 +3188,7 @@
                 if (!comp) return;
                 avatarLocked = true;
 
-                const imgUrl = (comp.avatar_url || `/static/companions/${comp.companion_id}.png`) + `?v=${Date.now()}`;
+                const imgUrl = (comp.avatar_url || comp.image_url || '/static/logos/New IntroLogo.png') + `?v=${Date.now()}`;
                 
                 const avatarContainer = document.getElementById('composer-avatar');
                 const companionName = document.getElementById('companion-name');
@@ -3296,7 +3296,7 @@
 
                 const companion_id = selected.dataset.id;
                 const name = selected.dataset.name || companion_id;
-                const avatar_url = selected.dataset.image || `/static/companions/${companion_id}.png`;
+                const avatar_url = selected.dataset.image || '/static/logos/New IntroLogo.png';
 
                 try {
                     const r = await fetch('/community/avatar', {
