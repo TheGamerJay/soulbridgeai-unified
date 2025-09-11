@@ -3078,7 +3078,7 @@
                                 }
                             }
                             
-                            showMessage('Skin applied successfully!', 'success');
+                            showMessage('Skin preview applied! Use "Change Avatar" → "Save Selection" to make it permanent.', 'info');
                             skinModal.remove();
                             
                             // Update composer avatar immediately to show new skin
@@ -3218,11 +3218,24 @@
                 get() { return avatarLocked; }
             });
 
+            // Only load companion via AJAX if server didn't provide one
+            function conditionallyLoadCompanion() {
+                const avatarContainer = document.getElementById('composer-avatar');
+                const hasServerAvatar = avatarContainer && avatarContainer.querySelector('img');
+                
+                // If server already provided an avatar, don't make AJAX call (prevents race condition)
+                if (!hasServerAvatar) {
+                    loadCommunityCompanion();
+                } else {
+                    console.log('🎯 Server avatar detected - skipping AJAX call to prevent race condition');
+                }
+            }
+            
             // Load companion on page load
             if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', loadCommunityCompanion);
+                document.addEventListener('DOMContentLoaded', conditionallyLoadCompanion);
             } else {
-                loadCommunityCompanion();
+                conditionallyLoadCompanion();
             }
 
             // Hook into the existing saveCompanionChoice function to ensure UI updates

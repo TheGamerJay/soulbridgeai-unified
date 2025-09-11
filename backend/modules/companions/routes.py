@@ -286,17 +286,14 @@ def set_companion_skin():
         # if not require_companion_access(companion_id):
         #     return jsonify({'success': False, 'error': 'Access denied to this companion'}), 403
         
-        # Set as selected companion (save to session for now)
-        session['selected_companion'] = companion_id
-        session[f'companion_skin_{base_name}'] = companion_id
-        session.modified = True
-        
-        logger.info(f"User set {base_name} skin to {companion_id}")
+        # Preview skin only - don't save to session yet
+        # User must use "Save Selection" to actually apply the change
+        logger.info(f"User previewed {base_name} skin: {companion_id}")
         
         return jsonify({
             'success': True,
             'companion': companion,
-            'message': f'Skin set successfully for {base_name}',
+            'message': f'Skin preview applied for {base_name}. Use "Save Selection" to make it permanent.',
             'companion_id': companion_id,
             'base_name': base_name
         })
