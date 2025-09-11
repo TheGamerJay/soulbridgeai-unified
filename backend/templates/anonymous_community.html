@@ -3004,10 +3004,7 @@
                     }
                     
                     const skinId = selectedSkin.dataset.skinId;
-                    if (skinId === companionId) {
-                        showMessage('This skin is already selected.', 'info');
-                        return;
-                    }
+                    // Allow applying any skin, even if it's the same as current
                     
                     try {
                         applyBtn.disabled = true;
