@@ -291,6 +291,41 @@ def set_companion_skin():
         session[f'companion_skin_{base_name}'] = companion_id
         session.modified = True
         
+        # CRITICAL: Also save to database for persistence across page refreshes
+        user_id = get_user_id()
+        if user_id:
+            try:
+                from ..shared.database import get_database_manager
+                import json
+                db = get_database_manager()
+                conn = db.get_connection()
+                cursor = conn.cursor()
+                
+                # Save to users.companion_data column (matches community page loading)
+                companion_data = {
+                    "id": companion_id,
+                    "name": companion.get('name', base_name.title()),
+                    "image_url": companion.get('image', companion.get('image_url', f'/static/companions/{companion_id}.png')),
+                    "tier": companion.get('tier', 'bronze'),
+                    "base_name": base_name,
+                    "saved_at": __import__('datetime').datetime.now().isoformat()
+                }
+                
+                json_data = json.dumps(companion_data)
+                if hasattr(db, 'use_postgres') and db.use_postgres:
+                    cursor.execute("UPDATE users SET companion_data = %s WHERE id = %s", (json_data, user_id))
+                else:
+                    cursor.execute("UPDATE users SET companion_data = ? WHERE id = ?", (json_data, user_id))
+                
+                conn.commit()
+                cursor.close()
+                db.return_connection(conn)
+                logger.info(f"✅ SKIN DATABASE SAVE: Saved {companion_id} for user {user_id}")
+                
+            except Exception as db_error:
+                logger.error(f"❌ SKIN DATABASE SAVE ERROR: {db_error}")
+                # Continue anyway - at least session is updated
+        
         logger.info(f"User applied {base_name} skin: {companion_id}")
         
         return jsonify({

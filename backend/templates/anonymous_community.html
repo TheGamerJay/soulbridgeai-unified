@@ -2604,8 +2604,7 @@
             cardElement.classList.add('selected');
             selectedCompanion = companion;
             
-            // Enable save button
-            document.getElementById('save-companion').disabled = false;
+            // No save button needed - selections are applied immediately via skin system
         }
 
         async function saveCompanionChoice() {
@@ -2853,10 +2852,8 @@
             if (!selectedCompanion) return;
             
             try {
-                const saveBtn = document.getElementById('save-companion');
-                const originalText = saveBtn.textContent;
-                saveBtn.disabled = true;
-                saveBtn.textContent = 'Saving...';
+                // Note: No save button to disable since we use immediate application via skin system
+                console.log('🔄 Performing avatar change:', changeType, selectedCompanion);
                 
                 // Check if this costs credits (switching, not first selection)
                 const isFirstSelection = !currentCompanion || currentCompanion.companion_id === 'none';
@@ -2950,11 +2947,8 @@
                 console.error('Error saving companion:', error);
                 showMessage('Failed to save companion choice. Please try again.', 'error');
             } finally {
-                const saveBtn = document.getElementById('save-companion');
-                if (saveBtn) {
-                    saveBtn.disabled = false;
-                    saveBtn.textContent = 'Save Selection';
-                }
+                // Note: No save button to re-enable since we use immediate application via skin system
+                console.log('✅ Avatar change process completed');
             }
         }
 
