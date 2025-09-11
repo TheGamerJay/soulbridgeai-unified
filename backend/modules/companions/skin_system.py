@@ -5,99 +5,100 @@ Consolidates companions with same names into skin variants
 
 from .companion_data import COMPANIONS
 
-# Define base companions with their available skins
+# Define base companions with their available skins - Single Soul Companions Tier
 COMPANION_SKINS = {
     "blayzo": {
         "name": "Blayzo",
-        "base_id": "blayzo_bronze", 
+        "base_id": "blayzo", 
         "skins": [
-            {"id": "blayzo_bronze", "name": "Classic Blayzo", "image": "/static/logos/blayzo.png", "tier": "bronze"},
-            {"id": "blayzo2_bronze", "name": "Blayzo.2", "image": "/static/logos/blayzo2.png", "tier": "bronze"},
-            {"id": "blayzo_silver", "name": "Premium Blayzo", "image": "/static/logos/blayzo_premium.png", "tier": "silver"}
+            {"id": "blayzo", "name": "Classic Blayzo", "image": "/static/logos/Blayzo.png", "tier": "soul_companions"},
+            {"id": "blayzo2", "name": "Blayzo.2", "image": "/static/logos/Blayzo2.png", "tier": "soul_companions"},
+            {"id": "blayzo_premium", "name": "Premium Blayzo", "image": "/static/logos/Blayzo_premium.png", "tier": "soul_companions"}
         ]
     },
     "claude": {
         "name": "Claude",
-        "base_id": "claude_bronze",
+        "base_id": "claude",
         "skins": [
-            {"id": "claude_bronze", "name": "Classic Claude", "image": "/static/logos/claude.png", "tier": "bronze"},
-            {"id": "claude_silver", "name": "Claude.3", "image": "/static/logos/claude_growth.png", "tier": "silver"},
-            {"id": "claude_gold", "name": "Claude.2", "image": "/static/logos/claude_max.png", "tier": "gold"}
+            {"id": "claude", "name": "Classic Claude", "image": "/static/logos/Claude_Free.png", "tier": "soul_companions"},
+            {"id": "claude_growth", "name": "Claude Growth", "image": "/static/logos/Claude_Growth.png", "tier": "soul_companions"},
+            {"id": "claude_max", "name": "Claude Max", "image": "/static/logos/Claude_Max.png", "tier": "soul_companions"}
         ]
     },
     "crimson": {
         "name": "Crimson", 
-        "base_id": "crimson_bronze",
+        "base_id": "crimson",
         "skins": [
-            {"id": "crimson_bronze", "name": "Classic Crimson", "image": "/static/logos/crimson.png", "tier": "bronze"},
-            {"id": "crimson_gold", "name": "Crimson.2", "image": "/static/logos/crimson_max.png", "tier": "gold"}
+            {"id": "crimson", "name": "Classic Crimson", "image": "/static/logos/Crimson.png", "tier": "soul_companions"},
+            {"id": "crimson_max", "name": "Crimson Max", "image": "/static/logos/Crimson_Max.png", "tier": "soul_companions"}
         ]
     },
     "violet": {
         "name": "Violet",
-        "base_id": "violet_bronze", 
+        "base_id": "violet", 
         "skins": [
-            {"id": "violet_bronze", "name": "Classic Violet", "image": "/static/logos/violet.png", "tier": "bronze"},
-            {"id": "violet_gold", "name": "Violet.2", "image": "/static/logos/violet_max.png", "tier": "gold"}
+            {"id": "violet", "name": "Classic Violet", "image": "/static/logos/Violet.png", "tier": "soul_companions"},
+            {"id": "violet_max", "name": "Violet Max", "image": "/static/logos/Violet_Max.png", "tier": "soul_companions"}
         ]
     },
     "lumen": {
         "name": "Lumen",
-        "base_id": "lumen_bronze",
+        "base_id": "lumen",
         "skins": [
-            {"id": "lumen_bronze", "name": "Classic Lumen", "image": "/static/logos/lumen.png", "tier": "bronze"},
-            {"id": "lumen_silver", "name": "Lumen.2", "image": "/static/logos/lumen_silver.png", "tier": "silver"}
+            {"id": "lumen", "name": "Classic Lumen", "image": "/static/logos/Lumen_Bronze.png", "tier": "soul_companions"},
+            {"id": "lumen_silver", "name": "Lumen Silver", "image": "/static/logos/Lumen_Silver.png", "tier": "soul_companions"}
         ]
     },
     "gamerjay": {
         "name": "GamerJay",
-        "base_id": "gamerjay_bronze",
+        "base_id": "gamerjay",
         "skins": [
-            {"id": "gamerjay_bronze", "name": "Classic GamerJay", "image": "/static/logos/gamerjay.png", "tier": "bronze"},
-            {"id": "gamerjay_silver", "name": "GamerJay.2", "image": "/static/logos/gamerjay_premium.png", "tier": "silver"}
+            {"id": "gamerjay", "name": "Classic GamerJay", "image": "/static/logos/GamerJay_Free_companion.png", "tier": "soul_companions"},
+            {"id": "gamerjay_premium", "name": "GamerJay Premium", "image": "/static/logos/GamerJay_Premium_companion.png", "tier": "soul_companions"}
         ]
     },
     "blayzica": {
         "name": "Blayzica", 
-        "base_id": "blayzica_bronze",
+        "base_id": "blayzica",
         "skins": [
-            {"id": "blayzica_bronze", "name": "Classic Blayzica", "image": "/static/logos/blayzica.png", "tier": "bronze"},
-            {"id": "blayzica_silver", "name": "Blayzica.2", "image": "/static/logos/blayzica_pro.png", "tier": "silver"}
+            {"id": "blayzica", "name": "Classic Blayzica", "image": "/static/logos/Blayzica.png", "tier": "soul_companions"},
+            {"id": "blayzica_pro", "name": "Blayzica Pro", "image": "/static/logos/Blayzica_Pro.png", "tier": "soul_companions"}
         ]
     },
-    "watchdog": {
-        "name": "WatchDog",
-        "base_id": "watchdog_silver",
+    "watch_dog": {
+        "name": "Watch Dog",
+        "base_id": "watch_dog",
         "skins": [
-            {"id": "watchdog_silver", "name": "WatchDog", "image": "/static/logos/watchdog.png", "tier": "silver"},
-            {"id": "watchdog_gold", "name": "WatchDog.2", "image": "/static/logos/watchdog_max.png", "tier": "gold"}
+            {"id": "watch_dog", "name": "Watch Dog", "image": "/static/logos/Watch Dog.png", "tier": "soul_companions"},
+            {"id": "watch_dog_max", "name": "Watch Dog Max", "image": "/static/logos/Watch Dog_Max.png", "tier": "soul_companions"}
         ]
     }
 }
 
-# Single-skin companions (no variants)
+# Single-skin companions (no variants) - Soul Companions Tier
 SINGLE_COMPANIONS = [
-    {"id": "blayzia_bronze", "name": "Blayzia", "image": "/static/logos/blayzia.png", "tier": "bronze"},
-    {"id": "blayzion_bronze", "name": "Blayzion", "image": "/static/logos/blayzion.png", "tier": "bronze"},
-    {"id": "sky_silver", "name": "Sky", "image": "/static/logos/sky.png", "tier": "silver"},
-    {"id": "rozia_silver", "name": "Rozia", "image": "/static/logos/rozia.png", "tier": "silver"},
-    {"id": "royal_gold", "name": "Royal", "image": "/static/logos/royal.png", "tier": "gold"},
-    {"id": "ven_blayzica_gold", "name": "Ven Blayzica", "image": "/static/logos/ven_blayzica.png", "tier": "gold"},
-    {"id": "ven_sky_gold", "name": "Ven Sky", "image": "/static/logos/ven_sky.png", "tier": "gold"},
-    {"id": "dr_madjay_gold", "name": "Dr. MadJay", "image": "/static/logos/dr_madjay.png", "tier": "gold"}
+    {"id": "blayzia", "name": "Blayzia", "image": "/static/logos/Blayzia.png", "tier": "soul_companions"},
+    {"id": "blayzion", "name": "Blayzion", "image": "/static/logos/Blayzion.png", "tier": "soul_companions"},
+    {"id": "sky", "name": "Sky", "image": "/static/logos/Sky.png", "tier": "soul_companions"},
+    {"id": "rozia", "name": "Rozia", "image": "/static/logos/Rozia_Silver.png", "tier": "soul_companions"},
+    {"id": "royal", "name": "Royal", "image": "/static/logos/Royal_a_Max_companion.png", "tier": "soul_companions"},
+    {"id": "ven_blayzica", "name": "Ven Blayzica", "image": "/static/logos/Ven_Blayzica_a_Max_companion.png", "tier": "soul_companions"},
+    {"id": "ven_sky", "name": "Ven Sky", "image": "/static/logos/Ven_Sky_a_Max_companion.png", "tier": "soul_companions"},
+    {"id": "dr_madjay", "name": "Dr. MadJay", "image": "/static/logos/Dr.MadJay.png", "tier": "soul_companions"},
+    {"id": "maxzian", "name": "Maxzian", "image": "/static/logos/Maxzian.png", "tier": "soul_companions"},
+    {"id": "miz_flee", "name": "Miz Flee", "image": "/static/logos/Miz Flee.png", "tier": "soul_companions"},
+    {"id": "the_duel", "name": "The Duel", "image": "/static/logos/The Duel.png", "tier": "soul_companions"},
+    {"id": "the_flee", "name": "The Flee", "image": "/static/logos/The Flee.png", "tier": "soul_companions"},
+    {"id": "nyxara", "name": "Nyxara", "image": "/static/logos/Nyxara.png", "tier": "soul_companions"},
+    {"id": "blazelian", "name": "Blazelian", "image": "/static/logos/Blazelian.png", "tier": "soul_companions"},
+    {"id": "blayzike", "name": "Blayzike", "image": "/static/logos/Blayzike.png", "tier": "soul_companions"}
 ]
 
-# Referral companions (unlocked by referrals, then integrated by tier)
-REFERRAL_COMPANIONS = [
-    {"id": "blayzike", "name": "Blayzike", "image": "/static/logos/blayzike.png", "min_referrals": 2, "tier": "bronze"},
-    {"id": "blazelian", "name": "Blazelian", "image": "/static/logos/blazelian.png", "min_referrals": 4, "tier": "silver"},
-    {"id": "nyxara", "name": "Nyxara", "image": "/static/logos/nyxara.png", "min_referrals": 6, "tier": "silver"},
-    {"id": "claude_referral", "name": "Claude Referral", "image": "/static/logos/claude_referral.png", "min_referrals": 8, "tier": "gold"},
-    {"id": "blayzo_referral", "name": "Blayzo Referral", "image": "/static/logos/blayzo_referral.png", "min_referrals": 10, "tier": "gold"}
-]
+# Referral companions (now empty since all companions are available to everyone in Soul Companions tier)
+REFERRAL_COMPANIONS = []
 
 def get_consolidated_companions(user_referrals=0):
-    """Get companions consolidated by name with skin variants, including unlocked referral companions"""
+    """Get companions consolidated by name with skin variants - Soul Companions tier"""
     companions = []
     
     # Add multi-skin companions
@@ -109,7 +110,7 @@ def get_consolidated_companions(user_referrals=0):
             "image_url": companion_data["skins"][0]["image"],  # Frontend expects image_url
             "has_skins": True,
             "skins": companion_data["skins"],
-            "tier": companion_data["skins"][0]["tier"],  # Use first skin's tier
+            "tier": "soul_companions",  # Single tier
             "base_name": base_name  # Add base_name for skin selector
         })
     
@@ -122,23 +123,9 @@ def get_consolidated_companions(user_referrals=0):
             "image_url": companion["image"],  # Frontend expects image_url
             "has_skins": False,
             "skins": [],
-            "tier": companion["tier"]
+            "tier": "soul_companions"  # Single tier
         })
     
-    # Add unlocked referral companions to main grid
-    for companion in REFERRAL_COMPANIONS:
-        if user_referrals >= companion["min_referrals"]:
-            companions.append({
-                "id": companion["id"],
-                "name": companion["name"],
-                "image": companion["image"],
-                "image_url": companion["image"],  # Frontend expects image_url
-                "has_skins": False,
-                "skins": [],
-                "tier": companion["tier"],
-                "is_referral": True  # Mark as referral companion
-            })
-        
     return companions
 
 def get_referral_companions():
@@ -150,7 +137,7 @@ def get_companion_skins(base_name):
     return COMPANION_SKINS.get(base_name.lower(), {}).get("skins", [])
 
 def get_companion_by_id(companion_id):
-    """Get companion data by ID, including skin info"""
+    """Get companion data by ID, including skin info - Soul Companions tier"""
     # Check multi-skin companions
     for base_name, companion_data in COMPANION_SKINS.items():
         for skin in companion_data["skins"]:
@@ -161,7 +148,8 @@ def get_companion_by_id(companion_id):
                     "base_name": base_name,
                     "skin_name": skin["name"],
                     "image": skin["image"],
-                    "tier": skin["tier"],
+                    "image_url": skin["image"],
+                    "tier": "soul_companions",  # Single tier
                     "has_skins": True,
                     "available_skins": companion_data["skins"]
                 }
@@ -173,20 +161,10 @@ def get_companion_by_id(companion_id):
                 "id": companion["id"],
                 "name": companion["name"],
                 "image": companion["image"],
-                "tier": companion["tier"],
+                "image_url": companion["image"],
+                "tier": "soul_companions",  # Single tier
                 "has_skins": False,
                 "available_skins": []
-            }
-    
-    # Check referral companions
-    for companion in REFERRAL_COMPANIONS:
-        if companion["id"] == companion_id:
-            return {
-                "id": companion["id"],
-                "name": companion["name"],
-                "image": companion["image"],
-                "min_referrals": companion["min_referrals"],
-                "is_referral": True
             }
     
     return None

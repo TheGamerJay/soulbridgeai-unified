@@ -1,69 +1,47 @@
 """
 SoulBridge AI - Companion Data
-Extracted from app.py monolith for modular architecture
+Single Soul Companions Tier System - All companions available to everyone
 """
 
-# All 29 AI companions with their metadata
+# All Soul Companions with their metadata - Single Tier System
 COMPANIONS = [
-    # BRONZE TIER COMPANIONS (10)
-    {"id":"gamerjay_bronze","name":"GamerJay","tier":"bronze","image_url":"/static/logos/gamerjay.png","min_referrals":0,"greeting":"Hey there! I'm GamerJay. Ready to level up and explore some awesome features together?"},
-    {"id":"blayzo_bronze","name":"Blayzo","tier":"bronze","image_url":"/static/logos/blayzo.png","min_referrals":0,"greeting":"What's up! I'm Blayzo. Let's vibe and see what cool stuff we can discover together!"},
-    {"id":"blayzica_bronze","name":"Blayzica","tier":"bronze","image_url":"/static/logos/blayzica.png","min_referrals":0,"greeting":"Hello! I'm Blayzica. I'm here to help you explore and make the most of your SoulBridge experience!"},
-    {"id":"claude_bronze","name":"Claude","tier":"bronze","image_url":"/static/logos/claude.png","min_referrals":0,"greeting":"Greetings! I'm Claude. I'm excited to help you explore the world of artificial intelligence and beyond!"},
-    {"id":"blayzia_bronze","name":"Blayzia","tier":"bronze","image_url":"/static/logos/blayzia.png","min_referrals":0,"greeting":"Hey! I'm Blayzia. Ready to dive into some amazing features and have fun together?"},
-    {"id":"blayzion_bronze","name":"Blayzion","tier":"bronze","image_url":"/static/logos/blayzion.png","min_referrals":0,"greeting":"Yo! I'm Blayzion. Let's embark on this journey and unlock some cool features together!"},
-    {"id":"lumen_bronze","name":"Lumen","tier":"bronze","image_url":"/static/logos/lumen.png","min_referrals":0,"greeting":"Hello there! I'm Lumen. I'm here to brighten your SoulBridge experience and guide you through our features!"},
-    {"id":"blayzo2_bronze","name":"Blayzo.2","tier":"bronze","image_url":"/static/logos/blayzo2.png","min_referrals":0,"greeting":"Hey! I'm Blayzo.2. Ready to explore the next level of features together?"},
-    {"id":"crimson_bronze","name":"Crimson","tier":"bronze","image_url":"/static/logos/crimson.png","min_referrals":0,"greeting":"Hey! I'm Crimson. I bring passion and determination to help you tackle challenges head-on!"},
-    {"id":"violet_bronze","name":"Violet","tier":"bronze","image_url":"/static/logos/violet.png","min_referrals":0,"greeting":"Hello! I'm Violet. I see the creative beauty in every moment and I'm here to inspire your journey!"},
-
-    # SILVER TIER COMPANIONS (8) 
-    {"id":"sky_silver","name":"Sky","tier":"silver","image_url":"/static/logos/sky.png","min_referrals":0,"greeting":"Hello! I'm Sky. With enhanced features at your fingertips, let's soar to new heights together!"},
-    {"id":"gamerjay_silver","name":"GamerJay.2","tier":"silver","image_url":"/static/logos/gamerjay_premium.png","min_referrals":0,"greeting":"What's up! I'm GamerJay.2. Time to unlock the next level of features and dominate together!"},
-    {"id":"claude_silver","name":"Claude.3","tier":"silver","image_url":"/static/logos/claude_growth.png","min_referrals":0,"greeting":"Welcome! I'm Claude.3. With expanded capabilities, I'm ready to help you achieve more!"},
-    {"id":"blayzo_silver","name":"Blayzo.3","tier":"silver","image_url":"/static/logos/blayzo_premium.png","min_referrals":0,"greeting":"Hey! I'm Blayzo.3. Ready to take your experience to the premium level?"},
-    {"id":"blayzica_silver","name":"Blayzica.2","tier":"silver","image_url":"/static/logos/blayzica_pro.png","min_referrals":0,"greeting":"Hi there! I'm Blayzica.2. Let's explore the enhanced features together!"},
-    {"id":"watchdog_silver","name":"WatchDog","tier":"silver","image_url":"/static/logos/watchdog.png","min_referrals":0,"greeting":"Greetings! I'm WatchDog. I'll keep watch over your premium experience and help you stay on track."},
-    {"id":"rozia_silver","name":"Rozia","tier":"silver","image_url":"/static/logos/rozia.png","min_referrals":0,"greeting":"Hello! I'm Rozia. I bring elegance and sophistication to your SoulBridge journey."},
-    {"id":"lumen_silver","name":"Lumen.2","tier":"silver","image_url":"/static/logos/lumen_silver.png","min_referrals":0,"greeting":"Welcome! I'm Lumen.2. Let me illuminate your path to premium features and capabilities."},
-
-    # GOLD TIER COMPANIONS (8)
-    {"id":"crimson_gold","name":"Crimson.2","tier":"gold","image_url":"/static/logos/crimson_max.png","min_referrals":0,"greeting":"Welcome, I'm Crimson.2. You have access to unlimited features and the full power of SoulBridge AI!"},
-    {"id":"violet_gold","name":"Violet.2","tier":"gold","image_url":"/static/logos/violet_max.png","min_referrals":0,"greeting":"Greetings! I'm Violet.2. Together we'll explore unlimited possibilities and exclusive features!"},
-    {"id":"claude_gold","name":"Claude.2","tier":"gold","image_url":"/static/logos/claude_max.png","min_referrals":0,"greeting":"Hello! I'm Claude.2. With unlimited access to all features, let's achieve extraordinary things together!"},
-    {"id":"royal_gold","name":"Royal","tier":"gold","image_url":"/static/logos/royal.png","min_referrals":0,"greeting":"Greetings! I'm Royal. Experience the pinnacle of AI companionship with unlimited possibilities."},
-    {"id":"ven_blayzica_gold","name":"Ven Blayzica","tier":"gold","image_url":"/static/logos/ven_blayzica.png","min_referrals":0,"greeting":"Hello! I'm Ven Blayzica. Let's venture into the ultimate SoulBridge experience together."},
-    {"id":"ven_sky_gold","name":"Ven Sky","tier":"gold","image_url":"/static/logos/ven_sky.png","min_referrals":0,"greeting":"Welcome! I'm Ven Sky. Together we'll soar beyond limits with unlimited premium access."},
-    {"id":"watchdog_gold","name":"WatchDog.2","tier":"gold","image_url":"/static/logos/watchdog_max.png","min_referrals":0,"greeting":"Greetings! I'm WatchDog.2. I'll safeguard your unlimited access and guide you through premium features."},
-    {"id":"dr_madjay_gold","name":"Dr. MadJay","tier":"gold","image_url": "/static/logos/dr_madjay.png","min_referrals":0,"greeting":"Greetings! I'm Dr. MadJay. Let's explore the cutting-edge possibilities of unlimited AI access."},
-
-    # REFERRAL COMPANIONS (5) - Unlocked by referring friends
-    {"id":"blayzike","name":"Blayzike","tier":"silver","image_url":"/static/logos/blayzike.png","min_referrals":2},
-    {"id":"blazelian","name":"Blazelian","tier":"gold","image_url":"/static/logos/blazelian.png","min_referrals":4},
-    {"id":"nyxara","name":"Nyxara","tier":"silver","image_url":"/static/logos/nyxara.png","min_referrals":6},
-    {"id":"claude_referral","name":"Claude Referral","tier":"gold","image_url":"/static/logos/claude_referral.png","min_referrals":8},
-    {"id":"blayzo_referral","name":"Blayzo Referral","tier":"gold","image_url":"/static/logos/blayzo_referral.png","min_referrals":10},
+    # SOUL COMPANIONS TIER - All companions are available to everyone
+    {"id":"blayzia","name":"Blayzia","tier":"soul_companions","image_url":"/static/logos/Blayzia.png","min_referrals":0,"greeting":"Hey! I'm Blayzia. Ready to dive into some amazing features and have fun together?"},
+    {"id":"blayzica","name":"Blayzica","tier":"soul_companions","image_url":"/static/logos/Blayzica.png","min_referrals":0,"greeting":"Hello! I'm Blayzica. I'm here to help you explore and make the most of your SoulBridge experience!"},
+    {"id":"blayzike","name":"Blayzike","tier":"soul_companions","image_url":"/static/logos/Blayzike.png","min_referrals":0,"greeting":"Hello! I'm Blayzike, ready to explore with you!"},
+    {"id":"blayzion","name":"Blayzion","tier":"soul_companions","image_url":"/static/logos/Blayzion.png","min_referrals":0,"greeting":"Yo! I'm Blayzion. Let's embark on this journey and unlock some cool features together!"},
+    {"id":"blayzo","name":"Blayzo","tier":"soul_companions","image_url":"/static/logos/Blayzo.png","min_referrals":0,"greeting":"What's up! I'm Blayzo. Let's vibe and see what cool stuff we can discover together!"},
+    {"id":"blazelian","name":"Blazelian","tier":"soul_companions","image_url":"/static/logos/Blazelian.png","min_referrals":0,"greeting":"Greetings! I'm Blazelian, here to guide you!"},
+    {"id":"claude","name":"Claude","tier":"soul_companions","image_url":"/static/logos/Claude.png","min_referrals":0,"greeting":"Greetings! I'm Claude. I'm excited to help you explore the world of artificial intelligence and beyond!"},
+    {"id":"crimson","name":"Crimson","tier":"soul_companions","image_url":"/static/logos/Crimson.png","min_referrals":0,"greeting":"Hey! I'm Crimson. I bring passion and determination to help you tackle challenges head-on!"},
+    {"id":"dr_madjay","name":"Dr. MadJay","tier":"soul_companions","image_url":"/static/logos/Dr.MadJay.png","min_referrals":0,"greeting":"Hello! I'm Dr. MadJay, ready to assist with your journey!"},
+    {"id":"gamerjay","name":"GamerJay","tier":"soul_companions","image_url":"/static/logos/GamerJay.png","min_referrals":0,"greeting":"Hey there! I'm GamerJay. Ready to level up and explore some awesome features together?"},
+    {"id":"lumen","name":"Lumen","tier":"soul_companions","image_url":"/static/logos/Lumen.png","min_referrals":0,"greeting":"Hello there! I'm Lumen. I'm here to brighten your SoulBridge experience and guide you through our features!"},
+    {"id":"maxzian","name":"Maxzian","tier":"soul_companions","image_url":"/static/logos/maxzian.png","min_referrals":0,"greeting":"Hello! I'm Maxzian, ready to explore together!"},
+    {"id":"miz_flee","name":"Miz Flee","tier":"soul_companions","image_url":"/static/logos/Miz Flee.png","min_referrals":0,"greeting":"Hi there! I'm Miz Flee, let's discover new possibilities!"},
+    {"id":"nyxara","name":"Nyxara","tier":"soul_companions","image_url":"/static/logos/Nyxara.png","min_referrals":0,"greeting":"Greetings! I'm Nyxara, here to guide your journey!"},
+    {"id":"royal","name":"Royal","tier":"soul_companions","image_url":"/static/logos/Royal.png","min_referrals":0,"greeting":"Welcome! I'm Royal, at your service!"},
+    {"id":"rozia","name":"Rozia","tier":"soul_companions","image_url":"/static/logos/Rozia.png","min_referrals":0,"greeting":"Hello! I'm Rozia. I bring elegance and sophistication to your SoulBridge journey."},
+    {"id":"sky","name":"Sky","tier":"soul_companions","image_url":"/static/logos/Sky.png","min_referrals":0,"greeting":"Hello! I'm Sky. Let's soar to new heights together!"},
+    {"id":"the_duel","name":"The Duel","tier":"soul_companions","image_url":"/static/logos/The Duel.png","min_referrals":0,"greeting":"Greetings! I'm The Duel, ready for any challenge!"},
+    {"id":"the_flee","name":"The Flee","tier":"soul_companions","image_url":"/static/logos/The Flee.png","min_referrals":0,"greeting":"Hello! I'm The Flee, swift and ready to help!"},
+    {"id":"ven_blayzica","name":"Ven Blayzica","tier":"soul_companions","image_url":"/static/logos/Ven Blayzica skin.png","min_referrals":0,"greeting":"Welcome! I'm Ven Blayzica!"},
+    {"id":"ven_sky","name":"Ven Sky","tier":"soul_companions","image_url":"/static/logos/Ven Sky skin.png","min_referrals":0,"greeting":"Hello! I'm Ven Sky!"},
+    {"id":"violet","name":"Violet","tier":"soul_companions","image_url":"/static/logos/Violet.png","min_referrals":0,"greeting":"Hello! I'm Violet. I see the creative beauty in every moment and I'm here to inspire your journey!"},
+    {"id":"watch_dog","name":"Watch Dog","tier":"soul_companions","image_url":"/static/logos/Watch Dog.png","min_referrals":0,"greeting":"Greetings! I'm Watch Dog. I'll keep watch over your experience and help you stay on track."},
 ]
 
-def get_companions_by_tier(tier: str) -> list:
-    """Get all companions for a specific tier"""
-    return [comp for comp in COMPANIONS if comp["tier"] == tier and comp["min_referrals"] == 0]
+def get_all_companions():
+    """Get all companions"""
+    return COMPANIONS
 
-def get_referral_companions() -> list:
-    """Get all companions that require referrals"""
-    return [comp for comp in COMPANIONS if comp["min_referrals"] > 0]
-
-def get_companion_by_id(companion_id: str) -> dict:
-    """Get a specific companion by ID"""
-    for comp in COMPANIONS:
-        if comp["id"] == companion_id:
-            return comp
+def get_companion_by_id(companion_id):
+    """Get specific companion by ID"""
+    for companion in COMPANIONS:
+        if companion['id'] == companion_id:
+            return companion
     return None
 
-def get_all_companions() -> list:
-    """Get all companions"""
-    return COMPANIONS.copy()
-
-def get_companion_tiers() -> list:
-    """Get all available tiers"""
-    return ["bronze", "silver", "gold"]
+def get_companions_by_tier(tier):
+    """Get companions by tier - now all are soul_companions"""
+    return [c for c in COMPANIONS if c['tier'] == tier]
