@@ -21,18 +21,28 @@ echo "🔧 Working directory: $(pwd)"
 echo "🔧 Python version: $(python --version)"
 echo "🔧 Files in current dir: $(ls -la | head -10)"
 
-# Test import before starting gunicorn
+# Test import before starting gunicorn - fallback to minimal health app if main app fails
 echo "🧪 Testing app import..."
 python -c "
 try:
     from app import create_app
     app = create_app()
-    print('✅ App import successful')
+    print('✅ Main app import successful')
 except Exception as e:
-    print(f'❌ App import failed: {e}')
-    import traceback
-    traceback.print_exc()
-    exit(1)
+    print(f'❌ Main app import failed: {e}')
+    print('🔄 Falling back to minimal health app')
+    try:
+        from minimal_health import create_minimal_app
+        app = create_minimal_app()
+        print('✅ Minimal health app fallback successful')
+        # Set environment flag for fallback mode
+        import os
+        os.environ['FALLBACK_MODE'] = 'true'
+    except Exception as e2:
+        print(f'❌ Even minimal app failed: {e2}')
+        import traceback
+        traceback.print_exc()
+        exit(1)
 "
 
 # Railway-optimized gunicorn configuration
@@ -50,21 +60,34 @@ app = create_app()
 app.run(host='0.0.0.0', port=${PORT}, debug=False, threaded=True)
 "
 else
-    # Production gunicorn (Railway/Linux) - optimized for quick startup
-    exec gunicorn 'app:create_app()' \
-      --bind 0.0.0.0:${PORT} \
-      --workers ${WEB_CONCURRENCY:-1} \
-      --worker-class gthread \
-      --threads ${THREADS:-2} \
-      --timeout 300 \
-      --graceful-timeout 30 \
-      --keep-alive 5 \
-      --max-requests 1000 \
-      --max-requests-jitter 50 \
-      --preload \
-      --log-level info \
-      --access-logfile - \
-      --error-logfile - \
-      --capture-output \
-      --enable-stdio-inheritance
+    # Production gunicorn (Railway/Linux) - with fallback support
+    if [[ "${FALLBACK_MODE:-false}" == "true" ]]; then
+        echo "🔄 Starting in fallback mode with minimal health app"
+        exec gunicorn 'minimal_health:create_minimal_app()' \
+          --bind 0.0.0.0:${PORT} \
+          --workers 1 \
+          --worker-class sync \
+          --timeout 30 \
+          --log-level info \
+          --access-logfile - \
+          --error-logfile -
+    else
+        echo "🚀 Starting full SoulBridge AI app"
+        exec gunicorn 'app:create_app()' \
+          --bind 0.0.0.0:${PORT} \
+          --workers ${WEB_CONCURRENCY:-1} \
+          --worker-class gthread \
+          --threads ${THREADS:-2} \
+          --timeout 300 \
+          --graceful-timeout 30 \
+          --keep-alive 5 \
+          --max-requests 1000 \
+          --max-requests-jitter 50 \
+          --preload \
+          --log-level info \
+          --access-logfile - \
+          --error-logfile - \
+          --capture-output \
+          --enable-stdio-inheritance
+    fi
 fi
