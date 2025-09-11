@@ -9,6 +9,8 @@ export PYTHONDONTWRITEBYTECODE=1
 export FLASK_ENV=production
 export IS_PROD=true
 export DOCS_ENABLED=1
+export RAILWAY_DEPLOYMENT=true
+export SKIP_HEAVY_INIT=true
 
 # Set default PORT if not provided (Railway provides this automatically)
 : "${PORT:=5000}"
@@ -48,16 +50,18 @@ app = create_app()
 app.run(host='0.0.0.0', port=${PORT}, debug=False, threaded=True)
 "
 else
-    # Production gunicorn (Railway/Linux)
+    # Production gunicorn (Railway/Linux) - optimized for quick startup
     exec gunicorn 'app:create_app()' \
       --bind 0.0.0.0:${PORT} \
       --workers ${WEB_CONCURRENCY:-1} \
       --worker-class gthread \
-      --threads ${THREADS:-4} \
-      --timeout 120 \
+      --threads ${THREADS:-2} \
+      --timeout 300 \
+      --graceful-timeout 30 \
       --keep-alive 5 \
       --max-requests 1000 \
       --max-requests-jitter 50 \
+      --preload \
       --log-level info \
       --access-logfile - \
       --error-logfile - \

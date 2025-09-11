@@ -1656,37 +1656,41 @@ def register_blueprints(app, database_manager=None):
         # Legacy community_system.py registration disabled to avoid blueprint name conflict
         logger.info("✅ Community system registered via modular blueprints")
         
-        # AI Lyric Writer
-        try:
-            from routes.ai_lyric_writer import ai_lyric_writer_bp
-            app.register_blueprint(ai_lyric_writer_bp)
-            logger.info("✅ AI Lyric Writer system registered")
-        except Exception as e:
-            logger.warning(f"⚠️  AI Lyric Writer system failed to register: {e}")
+        # Heavy ML-based systems - defer if in Railway deployment mode for faster startup
+        if not os.getenv('SKIP_HEAVY_INIT'):
+            # AI Lyric Writer
+            try:
+                from routes.ai_lyric_writer import ai_lyric_writer_bp
+                app.register_blueprint(ai_lyric_writer_bp)
+                logger.info("✅ AI Lyric Writer system registered")
+            except Exception as e:
+                logger.warning(f"⚠️  AI Lyric Writer system failed to register: {e}")
 
-        # Poem Generator
-        try:
-            from routes.poem_generator import poem_generator_bp
-            app.register_blueprint(poem_generator_bp)
-            logger.info("✅ Poem Generator system registered")
-        except Exception as e:
-            logger.warning(f"⚠️  Poem Generator system failed to register: {e}")
+            # Poem Generator
+            try:
+                from routes.poem_generator import poem_generator_bp
+                app.register_blueprint(poem_generator_bp)
+                logger.info("✅ Poem Generator system registered")
+            except Exception as e:
+                logger.warning(f"⚠️  Poem Generator system failed to register: {e}")
 
-        # Story Generator
-        try:
-            from routes.story_generator import story_generator_bp
-            app.register_blueprint(story_generator_bp)
-            logger.info("✅ Story Generator system registered")
-        except Exception as e:
-            logger.warning(f"⚠️  Story Generator system failed to register: {e}")
+            # Story Generator
+            try:
+                from routes.story_generator import story_generator_bp
+                app.register_blueprint(story_generator_bp)
+                logger.info("✅ Story Generator system registered")
+            except Exception as e:
+                logger.warning(f"⚠️  Story Generator system failed to register: {e}")
 
-        # Writing Suite
-        try:
-            from routes.writing_suite import writing_suite_bp
-            app.register_blueprint(writing_suite_bp)
-            logger.info("✅ Writing Suite system registered")
-        except Exception as e:
-            logger.warning(f"⚠️  Writing Suite system failed to register: {e}")
+            # Writing Suite
+            try:
+                from routes.writing_suite import writing_suite_bp
+                app.register_blueprint(writing_suite_bp)
+                logger.info("✅ Writing Suite system registered")
+            except Exception as e:
+                logger.warning(f"⚠️  Writing Suite system failed to register: {e}")
+        else:
+            logger.info("⚡ Skipping heavy ML systems for faster Railway startup")
 
         # Export System
         try:
@@ -1704,21 +1708,24 @@ def register_blueprints(app, database_manager=None):
         except Exception as e:
             logger.warning(f"⚠️  Health monitoring failed to register: {e}")
 
-        # Vector Lyric System
-        try:
-            from routes.vector_lyric_routes import vector_lyric_bp
-            app.register_blueprint(vector_lyric_bp)
-            logger.info("✅ Vector lyric system registered")
-        except Exception as e:
-            logger.warning(f"⚠️  Vector lyric system failed to register: {e}")
+        # Vector Lyric System (heavy ML model loading)
+        if not os.getenv('SKIP_HEAVY_INIT'):
+            try:
+                from routes.vector_lyric_routes import vector_lyric_bp
+                app.register_blueprint(vector_lyric_bp)
+                logger.info("✅ Vector lyric system registered")
+            except Exception as e:
+                logger.warning(f"⚠️  Vector lyric system failed to register: {e}")
 
-        # Consent Management
-        try:
-            from routes.consent_management import consent_bp as consent_mgmt_bp
-            app.register_blueprint(consent_mgmt_bp)
-            logger.info("✅ Consent management system registered")
-        except Exception as e:
-            logger.warning(f"⚠️  Consent management system failed to register: {e}")
+            # Consent Management (also loads ML models)
+            try:
+                from routes.consent_management import consent_bp as consent_mgmt_bp
+                app.register_blueprint(consent_mgmt_bp)
+                logger.info("✅ Consent management system registered")
+            except Exception as e:
+                logger.warning(f"⚠️  Consent management system failed to register: {e}")
+        else:
+            logger.info("⚡ Skipping vector/ML systems for faster Railway startup")
 
         # Training Consent System (Forward-Only)
         try:
