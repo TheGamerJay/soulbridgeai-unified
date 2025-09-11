@@ -219,17 +219,7 @@ def create_app():
     register_blueprints(app, database_manager)
     
     # ===== COMPATIBILITY ROUTES =====
-    # Hotfix: Redirect old /static/companions/ URLs to correct /static/images/companions/
-    from flask import redirect, request, url_for
-    
-    @app.route("/static/companions/<path:filename>")
-    def static_companions_compat(filename):
-        """Redirect old companion image URLs to correct location"""
-        # Preserve query string (?t=cache_buster)
-        qs = ("?" + request.query_string.decode()) if request.query_string else ""
-        return redirect(url_for("static", filename=f"images/companions/{filename}") + qs, code=301)
-    
-    logger.info("✅ Compatibility route added: /static/companions/* → /static/images/companions/*")
+    # Removed redirect - using /static/companions/ directly since images exist there
     
     # Database cleanup route for fixing stored URLs
     @app.route("/_admin/fix-companion-urls")
@@ -246,18 +236,18 @@ def create_app():
             conn = db.get_connection()
             cursor = conn.cursor()
             
-            # Fix companion_data column
+            # Fix companion_data column - revert to /static/companions/ since images exist there
             if hasattr(db, 'use_postgres') and db.use_postgres:
                 cursor.execute("""
                     UPDATE users 
-                    SET companion_data = replace(companion_data::text, '/static/companions/', '/static/images/companions/')::jsonb
-                    WHERE companion_data::text LIKE '%/static/companions/%'
+                    SET companion_data = replace(companion_data::text, '/static/images/companions/', '/static/companions/')::jsonb
+                    WHERE companion_data::text LIKE '%/static/images/companions/%'
                 """)
             else:
                 cursor.execute("""
                     UPDATE users 
-                    SET companion_data = replace(companion_data, '/static/companions/', '/static/images/companions/')
-                    WHERE companion_data LIKE '%/static/companions/%'
+                    SET companion_data = replace(companion_data, '/static/images/companions/', '/static/companions/')
+                    WHERE companion_data LIKE '%/static/images/companions/%'
                 """)
             
             rows_updated = cursor.rowcount

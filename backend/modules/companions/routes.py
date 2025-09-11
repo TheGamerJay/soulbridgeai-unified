@@ -312,7 +312,7 @@ def set_companion_skin():
                     companion_data = {
                         "id": companion_id,
                         "name": companion.get('name', base_name.title()),
-                        "image_url": companion.get('image', companion.get('image_url', f'/static/images/companions/{companion_id}.png')),
+                        "image_url": companion.get('image', companion.get('image_url', f'/static/companions/{companion_id}.png')),
                         "tier": companion.get('tier', 'bronze'),
                         "base_name": base_name,
                         "saved_at": __import__('datetime').datetime.now().isoformat()
