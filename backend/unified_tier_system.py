@@ -218,10 +218,11 @@ MONTHLY_CREDITS = {
     'gold': 500
 }
 
-# Initialize database schema on import
-try:
-    ensure_database_schema()
-except Exception as e:
-    logger.warning(f"Schema initialization warning: {e}")
+# Initialize database schema on import - TEMPORARILY DISABLED to fix Railway schema errors
+# try:
+#     ensure_database_schema()
+# except Exception as e:
+#     logger.warning(f"Schema initialization warning: {e}")
+logger.info("🚨 Database schema auto-initialization DISABLED - use manual endpoints to fix schema")
 
 logger.info("🔄 Unified tier system compatibility layer loaded")
