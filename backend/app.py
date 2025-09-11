@@ -1806,6 +1806,14 @@ def register_blueprints(app, database_manager=None):
         app.register_blueprint(db_fix_bp)
         logger.info("✅ Database fix route registered")
         
+        # API Database fix routes (emergency fix)
+        try:
+            from routes.api_database_fix import bp as api_db_fix_bp
+            app.register_blueprint(api_db_fix_bp)
+            logger.info("✅ API Database fix routes registered")
+        except Exception as e:
+            logger.warning(f"API Database fix registration failed: {e}")
+        
         # Health and monitoring (now handled by Railway-compatible health.py at top)
         # from modules.health import health_bp  # Removed to avoid duplicate registration
         # app.register_blueprint(health_bp)     # Railway health endpoints registered first

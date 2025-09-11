@@ -45,3 +45,29 @@ def get_companion_by_id(companion_id):
 def get_companions_by_tier(tier):
     """Get companions by tier - now all are soul_companions"""
     return [c for c in COMPANIONS if c['tier'] == tier]
+
+# --- Referral companions support (restored) ---
+
+# Progressive unlocks: 2, 5, 8 referrals
+_REFERRAL_COMPANIONS_CATALOG = [
+    {"id": "blayzike",        "name": "Blayzike",         "unlock_at": 2},
+    {"id": "blazelian",       "name": "Blazelian",        "unlock_at": 5},
+    {"id": "claude_referral", "name": "Claude Referral",  "unlock_at": 8},
+]
+
+def get_referral_companions(referral_count=0):
+    """
+    Return a list of referral companions the user has unlocked based on referral_count.
+    Shape matches common list-of-dicts pattern used across companion data.
+    """
+    try:
+        n = int(referral_count)
+    except Exception:
+        n = 0
+    return [c for c in _REFERRAL_COMPANIONS_CATALOG if n >= c["unlock_at"]]
+
+def get_referral_thresholds():
+    """
+    Optional helper if routes/UI need to show the next unlocks.
+    """
+    return [{"id": c["id"], "unlock_at": c["unlock_at"], "name": c["name"]} for c in _REFERRAL_COMPANIONS_CATALOG]
