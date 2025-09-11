@@ -2441,6 +2441,7 @@
         // Companion Selection Functions
         let availableCompanions = [];
         let selectedCompanion = null;
+        let currentCompanion = null; // Track the previously selected companion
         
         async function loadArtisticTimeCredits() {
             try {
@@ -2505,6 +2506,7 @@
                 if (companion.is_current) {
                     companionCard.classList.add('selected');
                     selectedCompanion = companion;
+                    currentCompanion = companion; // Also track as current
                 }
                 
                 // Add locked state for unavailable companions
