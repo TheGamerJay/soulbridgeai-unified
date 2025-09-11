@@ -71,3 +71,107 @@ def get_referral_thresholds():
     Optional helper if routes/UI need to show the next unlocks.
     """
     return [{"id": c["id"], "unlock_at": c["unlock_at"], "name": c["name"]} for c in _REFERRAL_COMPANIONS_CATALOG]
+
+# ================= Tier helpers (Free / Growth / Max / Referral) =================
+
+# Canonical tier names used across the app
+TIER_FREE = "free"
+TIER_GROWTH = "growth"    # aka Premium
+TIER_MAX = "max"
+TIER_REFERRAL = "referral"
+
+# If you already have a master list like COMPANIONS, CATALOG, or COMPANION_CATALOG,
+# this will discover it. Otherwise we fall back to empty (so imports never crash).
+def _discover_companion_catalogs():
+    """
+    Return a flat list of companion dicts with at least {'id', 'tier'} if available.
+    We try a few common variable names and shapes to stay compatible with your file.
+    """
+    possible_names = ["COMPANIONS", "CATALOG", "COMPANION_CATALOG", "_COMPANIONS", "_CATALOG"]
+    items = []
+    for name in possible_names:
+        obj = globals().get(name)
+        if not obj:
+            continue
+        # obj could be list[dict], dict[str,dict], dict[str,list[dict]]
+        if isinstance(obj, list):
+            items.extend(obj)
+        elif isinstance(obj, dict):
+            # Flatten dict-of-dicts or dict-of-lists
+            for v in obj.values():
+                if isinstance(v, dict):
+                    items.append(v)
+                elif isinstance(v, list):
+                    items.extend(v)
+    # Ensure each item has 'id' and 'tier' keys if present in source
+    normalized = []
+    for it in items:
+        if not isinstance(it, dict):
+            continue
+        cid = it.get("id") or it.get("slug") or it.get("key")
+        tier = it.get("tier") or it.get("plan") or it.get("access_tier")
+        if cid:
+            # keep original fields, but guarantee id/tier keys exist (tier may be None)
+            it2 = dict(it)
+            it2.setdefault("id", cid)
+            if tier is not None:
+                it2["tier"] = tier
+            normalized.append(it2)
+    return normalized
+
+def get_companion_tiers(*, as_ids: bool = False):
+    """
+    Group companions by tier and return a mapping:
+      {
+        "free": [...],
+        "growth": [...],
+        "max": [...],
+        "referral": [...]
+      }
+    By default returns list-of-dicts; set as_ids=True to return just IDs.
+
+    If your catalog doesn't carry 'tier' fields, returns empty groups (import-safe).
+    """
+    items = _discover_companion_catalogs()
+
+    groups = {
+        TIER_FREE: [],
+        TIER_GROWTH: [],
+        TIER_MAX: [],
+        TIER_REFERRAL: [],
+    }
+
+    # Heuristics:
+    # - If an item has explicit 'tier', use it (must match one of our constants).
+    # - If not, but it's in the referral catalog we defined above, treat as referral.
+    # - Otherwise we leave it ungrouped (ignored) to avoid mislabeling.
+    referral_ids = set(
+        [c["id"] for c in globals().get("_REFERRAL_COMPANIONS_CATALOG", []) if "id" in c]
+    )
+
+    for it in items:
+        tier = (it.get("tier") or "").lower()
+        cid = it.get("id")
+        if tier in groups:
+            groups[tier].append(cid if as_ids else it)
+        elif cid in referral_ids:
+            groups[TIER_REFERRAL].append(cid if as_ids else it)
+
+    return groups
+
+def get_tier_for_companion(companion_id: str):
+    """
+    Return tier string for a given companion id, or None if unknown.
+    """
+    if not companion_id:
+        return None
+    groups = get_companion_tiers(as_ids=True)
+    for tier, ids in groups.items():
+        if companion_id in ids:
+            return tier
+    return None
+
+# Make these available to explicit imports
+__all__ = [*(globals().get("__all__", []) or []),
+           "get_companion_tiers", "get_tier_for_companion",
+           "TIER_FREE", "TIER_GROWTH", "TIER_MAX", "TIER_REFERRAL"]
