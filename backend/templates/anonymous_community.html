@@ -972,9 +972,10 @@
             <div class="composer-avatar">
                 <div class="avatar-container" id="composer-avatar">
                     {% if current_avatar and current_avatar.avatar_url %}
-                        <img src="{{ current_avatar.avatar_url }}" alt="{{ current_avatar.name }}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: contain;">
+                        <!-- DEBUG: current_avatar={{ current_avatar }} -->
+                        <img src="{{ current_avatar.avatar_url }}" alt="{{ current_avatar.name }}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: contain;" onerror="console.error('❌ Avatar image failed to load:', this.src); this.style.display='none'; this.parentElement.innerHTML='🧿';">
                     {% else %}
-                        <!-- Loading state will be managed by JavaScript -->
+                        <!-- DEBUG: No current_avatar or avatar_url. current_avatar={{ current_avatar if current_avatar else 'None' }} -->
                         👤
                     {% endif %}
                 </div>
@@ -3214,13 +3215,16 @@
             async function loadCommunityCompanion() {
                 const avatarContainer = document.getElementById('composer-avatar');
                 
-                // Show loading state immediately if no avatar is already loaded from server
+                // Only show loading state if we have the default emoji (not if there's any other content)
                 if (avatarContainer && !avatarContainer.querySelector('img') && avatarContainer.textContent.trim() === '👤') {
+                    console.log('🔄 Showing loading state for companion avatar');
                     avatarContainer.innerHTML = `
                         <div class="avatar-loading">
                             <div class="loading-dots">⟳</div>
                         </div>
                     `;
+                } else {
+                    console.log('⚠️ Skipping loading state - avatar container has content:', avatarContainer ? avatarContainer.innerHTML : 'null');
                 }
                 
                 try {
