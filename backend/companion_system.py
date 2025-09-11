@@ -14,16 +14,13 @@ from collections import defaultdict
 logger = logging.getLogger(__name__)
 
 class CompanionTier(Enum):
-    BRONZE = "bronze"     # Bronze tier
-    SILVER = "silver"     # Silver tier  
-    GOLD = "gold"         # Gold tier
-    REFERRAL = "referral"
+    SOUL_COMPANIONS = "soul_companions"  # Single unified tier
+    REFERRAL = "referral"                 # Special referral companions
 
 class UnlockType(Enum):
-    SUBSCRIPTION = "subscription"
-    REFERRAL_POINTS = "referral_points"
-    ACHIEVEMENT = "achievement"
-    SPECIAL_EVENT = "special_event"
+    FREE_ACCESS = "free_access"           # All Soul Companions are free
+    REFERRAL_POINTS = "referral_points"   # Referral-only companions
+    SPECIAL_EVENT = "special_event"       # Future special events
 
 class PersonalityTag(Enum):
     EMPATHETIC = "Empathetic"

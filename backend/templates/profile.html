@@ -1845,12 +1845,10 @@
                 const tierBadge = document.getElementById('tierBadge');
                 if (tierBadge) {
                     const plan = this.userData.plan || 'bronze';
-                    const tierEmojis = { bronze: '🥉', silver: '🥈', gold: '🥇' };
-                    const tierNames = { bronze: 'Bronze', silver: 'Silver', gold: 'Gold' };
-                    
+                    // Soul Companions - single tier system
                     tierBadge.innerHTML = `
-                        <div class="tier-badge tier-${plan}">
-                            ${tierEmojis[plan]} ${tierNames[plan]}
+                        <div class="tier-badge tier-soul">
+                            ✨ Soul Companions
                         </div>
                     `;
                     
@@ -3803,11 +3801,11 @@
             // Get companion data if not provided - search through all the companion data we have
             else if (!companionData && companionName) {
                 // Search through the companion dropdown data that's already defined
-                const searchInTiers = ['bronze', 'silver', 'gold', 'referral'];
+                const searchInTiers = ['soul_companions'];
                 const allCompanionData = {
-                    // Bronze tier companions - 8 companions
-                    'bronze': [
-                        {id: 'gamerjay_bronze', name: 'GamerJay Bronze', avatar: 'GJ', bio: 'Your original companion for basic features', greeting: '🎮 Ready to level up your day!', image: '/static/logos/GamerJay_Free_companion.png'},
+                    // Soul Companions - All companions available to everyone
+                    'soul_companions': [
+                        {id: 'gamerjay', name: 'GamerJay', avatar: 'GJ', bio: 'Your gaming companion', greeting: '🎮 Ready to level up your day!', image: '/static/logos/GamerJay_Free_companion.png'},
                         {id: 'blayzo_bronze', name: 'Blayzo Bronze', avatar: 'B', bio: 'Wise and calm mentor for thoughtful guidance', greeting: '🧘 Wisdom flows to those who seek peace', image: '/static/logos/Blayzo.png'},
                         {id: 'blayzica_bronze', name: 'Blayzica', avatar: 'Bc', bio: 'Empathetic and supportive companion', greeting: '💕 You are stronger than you know', image: '/static/logos/Blayzica.png'},
                         {id: 'claude_bronze', name: 'Claude', avatar: 'CL', bio: 'Advanced AI assistant for complex conversations', greeting: '🧠 Every question opens a new door', image: '/static/logos/Claude_Free.png'},

@@ -15,22 +15,13 @@ def get_effective_plan(user_plan: str, trial_active: bool) -> str:
     return user_plan
 
 def can_access_companion(user_plan: str, companion_tier: str, trial_active: bool) -> bool:
-    """Check if user can access a companion based on tier"""
-    effective_plan = get_effective_plan(user_plan, trial_active)
-    
-    # Bronze can access bronze companions
-    if companion_tier == 'bronze':
+    """Check if user can access a companion - Soul Companions are all accessible"""
+    # Soul Companions system: All companions are accessible to everyone
+    if companion_tier == 'soul_companions':
         return True
     
-    # Silver can access bronze and silver companions  
-    if companion_tier == 'silver':
-        return effective_plan in ['silver', 'gold']
-    
-    # Gold can access all companions
-    if companion_tier == 'gold':
-        return effective_plan == 'gold'
-    
-    return False
+    # Legacy tier support for any remaining references
+    return True
 
 def user_can_access_companion(user_plan: str, trial_active: bool, referrals: int, comp: dict) -> bool:
     """Check if user can access a specific companion (Soul Companions system)"""
