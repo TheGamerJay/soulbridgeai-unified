@@ -2608,7 +2608,7 @@
             try {
                 console.log('🎯 Direct companion click - applying:', companion);
                 
-                // Apply the companion using the proven working community avatar endpoint
+                // Apply the companion using current community avatar endpoint (just needs companion_id)
                 const response = await fetch('/community/avatar', {
                     method: 'POST',
                     headers: {
@@ -2616,10 +2616,7 @@
                     },
                     credentials: 'same-origin',
                     body: JSON.stringify({
-                        companion_id: companion.id,
-                        name: companion.name,
-                        avatar_url: companion.image_url,
-                        tier: companion.tier || 'bronze'
+                        companion_id: companion.id
                     })
                 });
                 
@@ -3090,15 +3087,15 @@
                         applyBtn.disabled = true;
                         applyBtn.textContent = 'Applying...';
                         
-                        // Apply the skin change
-                        const applySkinResponse = await fetch('/api/companions/set-skin', {
+                        // Apply the skin change using current community avatar endpoint
+                        const applySkinResponse = await fetch('/community/avatar', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json'
                             },
+                            credentials: 'same-origin',
                             body: JSON.stringify({
-                                companion_id: skinId,
-                                base_name: baseName
+                                companion_id: skinId
                             })
                         });
                         
