@@ -84,7 +84,7 @@ def fix_database_schema():
         # 3. Create indexes for performance
         logger.info("🔧 Creating indexes for performance...")
         try:
-            cursor.execute("CREATE INDEX IF NOT EXISTS idx_feature_usage_user_feature_date ON feature_usage(user_id, feature, DATE(created_at))")
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_feature_usage_user_feature_date ON feature_usage(user_id, feature_name, usage_date)")
             results.append("✅ Created feature_usage index")
         except Exception as e:
             results.append(f"⚠️ Index creation warning: {e}")
