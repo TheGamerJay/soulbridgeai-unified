@@ -2594,17 +2594,61 @@
             });
         }
 
-        function selectCompanion(companion, cardElement) {
+        async function selectCompanion(companion, cardElement) {
             // Remove previous selection
             document.querySelectorAll('.companion-card.selected').forEach(card => {
                 card.classList.remove('selected');
             });
             
-            // Select new companion
+            // Select new companion visually
             cardElement.classList.add('selected');
             selectedCompanion = companion;
             
-            // No save button needed - selections are applied immediately via skin system
+            // IMMEDIATELY apply the companion selection
+            try {
+                console.log('🎯 Direct companion click - applying:', companion);
+                
+                // Apply the companion immediately using the same endpoint as skin system
+                const response = await fetch('/api/companions/set-skin', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        companion_id: companion.id,
+                        base_name: companion.base_name || companion.name.toLowerCase()
+                    })
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    console.log('✅ Companion applied successfully:', result);
+                    
+                    // Update avatar immediately
+                    const avatarContainer = document.getElementById('composer-avatar');
+                    const companionNameEl = document.getElementById('companion-name');
+                    
+                    if (avatarContainer && companion.image_url) {
+                        avatarContainer.innerHTML = `<img src="${companion.image_url}?v=${Date.now()}" alt="${companion.name}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: contain;" onerror="this.style.display='none'; this.parentElement.innerHTML='${getCompanionEmoji(companion.id)}';">`;
+                    }
+                    
+                    if (companionNameEl) {
+                        companionNameEl.textContent = companion.name;
+                    }
+                    
+                    showMessage(`Selected ${companion.name}! Your avatar has been updated.`, 'success');
+                    
+                } else {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to apply companion');
+                }
+                
+            } catch (error) {
+                console.error('Error applying companion:', error);
+                showMessage(`Failed to select ${companion.name}. Please try again.`, 'error');
+                // Remove visual selection on error
+                cardElement.classList.remove('selected');
+            }
         }
 
         async function saveCompanionChoice() {
