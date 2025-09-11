@@ -37,31 +37,111 @@ def fix_railway_schema():
         conn = db.get_connection()
         cursor = conn.cursor()
         
-        # Fix 1: Add missing columns to feature_usage table
+        # Fix 1: Ensure feature_usage table has proper schema
         logger.info("🔧 Fixing feature_usage table schema...")
         try:
-            # Check if created_at column exists
+            # First check if feature_usage table exists at all
             cursor.execute("""
-                SELECT column_name FROM information_schema.columns 
-                WHERE table_name = 'feature_usage' AND column_name = 'created_at'
+                SELECT table_name FROM information_schema.tables 
+                WHERE table_name = 'feature_usage'
             """)
             
             if not cursor.fetchone():
-                logger.info("Adding created_at column to feature_usage...")
+                # Table doesn't exist, create it with proper schema
+                logger.info("Creating feature_usage table...")
                 cursor.execute("""
-                    ALTER TABLE feature_usage 
-                    ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    CREATE TABLE feature_usage (
+                        id SERIAL PRIMARY KEY,
+                        user_id INTEGER NOT NULL,
+                        feature_name VARCHAR(50) NOT NULL,
+                        usage_date DATE NOT NULL DEFAULT CURRENT_DATE,
+                        usage_count INTEGER NOT NULL DEFAULT 1,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )
                 """)
+                logger.info("✅ feature_usage table created")
+            else:
+                # Table exists, check and add missing columns
+                logger.info("Checking existing feature_usage table structure...")
                 
-            # Now create the index
+                # Check for feature_name column (preferred column name)
+                cursor.execute("""
+                    SELECT column_name FROM information_schema.columns 
+                    WHERE table_name = 'feature_usage' AND column_name = 'feature_name'
+                """)
+                has_feature_name = cursor.fetchone()
+                
+                # Check for feature column (legacy column name)
+                cursor.execute("""
+                    SELECT column_name FROM information_schema.columns 
+                    WHERE table_name = 'feature_usage' AND column_name = 'feature'
+                """)
+                has_feature = cursor.fetchone()
+                
+                # Add feature_name column if neither exists
+                if not has_feature_name and not has_feature:
+                    logger.info("Adding feature_name column...")
+                    cursor.execute("""
+                        ALTER TABLE feature_usage 
+                        ADD COLUMN feature_name VARCHAR(50) NOT NULL DEFAULT 'unknown'
+                    """)
+                
+                # If we have 'feature' but not 'feature_name', rename it
+                elif has_feature and not has_feature_name:
+                    logger.info("Renaming feature column to feature_name...")
+                    cursor.execute("""
+                        ALTER TABLE feature_usage 
+                        RENAME COLUMN feature TO feature_name
+                    """)
+                
+                # Check for usage_date column
+                cursor.execute("""
+                    SELECT column_name FROM information_schema.columns 
+                    WHERE table_name = 'feature_usage' AND column_name = 'usage_date'
+                """)
+                if not cursor.fetchone():
+                    logger.info("Adding usage_date column...")
+                    cursor.execute("""
+                        ALTER TABLE feature_usage 
+                        ADD COLUMN usage_date DATE NOT NULL DEFAULT CURRENT_DATE
+                    """)
+                
+                # Check for usage_count column
+                cursor.execute("""
+                    SELECT column_name FROM information_schema.columns 
+                    WHERE table_name = 'feature_usage' AND column_name = 'usage_count'
+                """)
+                if not cursor.fetchone():
+                    logger.info("Adding usage_count column...")
+                    cursor.execute("""
+                        ALTER TABLE feature_usage 
+                        ADD COLUMN usage_count INTEGER NOT NULL DEFAULT 1
+                    """)
+                
+                # Check for created_at column
+                cursor.execute("""
+                    SELECT column_name FROM information_schema.columns 
+                    WHERE table_name = 'feature_usage' AND column_name = 'created_at'
+                """)
+                if not cursor.fetchone():
+                    logger.info("Adding created_at column...")
+                    cursor.execute("""
+                        ALTER TABLE feature_usage 
+                        ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    """)
+            
+            # Now create the index with correct column names
+            logger.info("Creating feature_usage index...")
             cursor.execute("""
                 CREATE INDEX IF NOT EXISTS idx_feature_usage_user_feature_date 
-                ON feature_usage(user_id, feature, DATE(created_at))
+                ON feature_usage(user_id, feature_name, usage_date)
             """)
-            logger.info("✅ feature_usage table fixed")
+            logger.info("✅ feature_usage table schema fixed")
             
         except Exception as e:
             logger.warning(f"feature_usage table fix failed: {e}")
+            import traceback
+            logger.warning(traceback.format_exc())
         
         # Fix 2: Fix tier_limits table with proper primary key
         logger.info("🔧 Fixing tier_limits table schema...")
