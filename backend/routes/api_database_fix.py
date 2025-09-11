@@ -28,6 +28,22 @@ def emergency_database_fix():
             "error": f"Emergency fix failed: {str(e)}"
         }), 500
 
+@bp.route("/api/database/nuclear-fix", methods=['GET', 'POST'])
+def nuclear_database_fix():
+    """Nuclear database fix - completely rebuild schema"""
+    try:
+        from nuclear_database_fix import nuclear_fix
+        success = nuclear_fix()
+        return jsonify({
+            "success": success,
+            "message": "Nuclear database fix completed - schema completely rebuilt!" if success else "Nuclear fix failed"
+        })
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": f"Nuclear fix failed: {str(e)}"
+        }), 500
+
 @bp.route("/api/database/fix-schema", methods=['GET', 'POST'])
 def fix_database_schema():
     """Fix missing database tables and columns"""
