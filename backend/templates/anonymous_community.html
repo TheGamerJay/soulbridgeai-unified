@@ -2473,7 +2473,7 @@
                 // Load and display artistic time credits
                 loadArtisticTimeCredits();
                 
-                const response = await fetch(`/api/companions/public`);
+                const response = await fetch(`/api/companions`);
                 const data = await response.json();
                 
                 if (data.success && data.companions) {
@@ -2931,7 +2931,7 @@
         async function showSkinSelector(companionId, baseName) {
             try {
                 // Fetch available skins for this companion
-                const response = await fetch(`/api/companions/${baseName}/skins/public`);
+                const response = await fetch(`/api/companions/${baseName}/skins`);
                 if (!response.ok) {
                     throw new Error('Failed to fetch companion skins');
                 }
@@ -2968,11 +2968,8 @@
                             `).join('')}
                         </div>
                         <div style="text-align: center; margin-top: 20px;">
-                            <div style="color: #00ffff; font-size: 14px; margin-bottom: 10px;">
-                                📸 Preview Only - <a href="/login" style="color: #00ffff; text-decoration: underline;">Login</a> to apply skins
-                            </div>
-                            <button id="close-skin-preview" class="btn" style="background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.3); color: #e2e8f0; padding: 12px 24px; border-radius: 25px; cursor: pointer;">
-                                Close Preview
+                            <button id="apply-skin" class="btn btn-primary" style="background: linear-gradient(135deg, #00ffff, #0080ff); border: none; color: #000; padding: 12px 24px; border-radius: 25px; cursor: pointer; font-weight: bold;">
+                                Apply Skin
                             </button>
                         </div>
                     </div>
@@ -2995,10 +2992,53 @@
                     });
                 });
                 
-                // Close preview button handler
-                const closeBtn = skinModal.querySelector('#close-skin-preview');
-                closeBtn.addEventListener('click', () => {
-                    skinModal.remove();
+                // Apply skin button handler
+                const applyBtn = skinModal.querySelector('#apply-skin');
+                applyBtn.addEventListener('click', async () => {
+                    const selectedSkin = skinModal.querySelector('.skin-option.selected');
+                    if (!selectedSkin) {
+                        showMessage('Please select a skin first.', 'error');
+                        return;
+                    }
+                    
+                    const skinId = selectedSkin.dataset.skinId;
+                    if (skinId === companionId) {
+                        showMessage('This skin is already selected.', 'info');
+                        return;
+                    }
+                    
+                    try {
+                        applyBtn.disabled = true;
+                        applyBtn.textContent = 'Applying...';
+                        
+                        // Apply the skin change
+                        const applySkinResponse = await fetch('/api/companions/set-skin', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                companion_id: skinId,
+                                base_name: baseName
+                            })
+                        });
+                        
+                        if (applySkinResponse.ok) {
+                            showMessage('Skin applied successfully!', 'success');
+                            skinModal.remove();
+                            // Reload companion grid to show updated selection
+                            loadCompanionSelector();
+                        } else {
+                            const error = await applySkinResponse.json();
+                            showMessage(error.message || 'Failed to apply skin', 'error');
+                        }
+                    } catch (error) {
+                        console.error('Error applying skin:', error);
+                        showMessage('Failed to apply skin. Please try again.', 'error');
+                    } finally {
+                        applyBtn.disabled = false;
+                        applyBtn.textContent = 'Apply Skin';
+                    }
                 });
                 
             } catch (error) {
