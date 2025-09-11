@@ -44,6 +44,22 @@ def nuclear_database_fix():
             "error": f"Nuclear fix failed: {str(e)}"
         }), 500
 
+@bp.route("/api/database/inspect", methods=['GET'])
+def inspect_database():
+    """Inspect actual database schema and column names"""
+    try:
+        from database_inspector import inspect_database
+        success = inspect_database()
+        return jsonify({
+            "success": success,
+            "message": "Database inspection completed - check logs for details"
+        })
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": f"Database inspection failed: {str(e)}"
+        }), 500
+
 @bp.route("/api/database/fix-schema", methods=['GET', 'POST'])
 def fix_database_schema():
     """Fix missing database tables and columns"""
