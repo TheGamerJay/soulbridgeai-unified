@@ -736,6 +736,31 @@ def static_companions_compat(filename):
 - New URLs: Generated correctly as `/static/images/companions/lumen_bronze.png` ✅
 - All companion images now load without 404 errors
 
+**UPDATE**: Additional fix required for missing image directory:
+
+### 21c. **Missing Companion Images Directory** ✅ FIXED
+**Issue**: All companion images were returning 404 - images didn't exist at `/static/images/companions/`
+**Root Cause**: Images existed in `/static/companions/` but code expected them in `/static/images/companions/`
+
+**Solution**: Created proper directory structure and copied all images
+```bash
+# Created missing directory
+mkdir -p backend/static/images/companions/
+
+# Copied all companion images
+cp backend/static/companions/*.png backend/static/images/companions/
+
+# Created missing bronze variant files
+cp lumen.png lumen_bronze.png
+cp rozia.png rozia_bronze.png  
+# ... (6 bronze variants total)
+```
+
+**Files Added**: 40+ companion PNG images to correct location
+**Git Commit**: `14985c2` - Added all companion images to `/static/images/companions/`
+
+**Final Result**: All companion 404 errors resolved - images now load correctly
+
 ---
 
 ## 🎉 **FINAL STATUS: ALL 21+ ISSUES COMPLETED** ✅
