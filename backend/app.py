@@ -236,18 +236,18 @@ def create_app():
             conn = db.get_connection()
             cursor = conn.cursor()
             
-            # Fix companion_data column - revert to /static/companions/ since images exist there
+            # Fix companion_data column - use standardized /static/logos/ path
             if hasattr(db, 'use_postgres') and db.use_postgres:
                 cursor.execute("""
                     UPDATE users 
-                    SET companion_data = replace(companion_data::text, '/static/images/companions/', '/static/companions/')::jsonb
-                    WHERE companion_data::text LIKE '%/static/images/companions/%'
+                    SET companion_data = replace(replace(companion_data::text, '/static/companions/', '/static/logos/'), '/static/images/companions/', '/static/logos/')::jsonb
+                    WHERE companion_data::text LIKE '%/static/companions/%' OR companion_data::text LIKE '%/static/images/companions/%'
                 """)
             else:
                 cursor.execute("""
                     UPDATE users 
-                    SET companion_data = replace(companion_data, '/static/images/companions/', '/static/companions/')
-                    WHERE companion_data LIKE '%/static/images/companions/%'
+                    SET companion_data = replace(replace(companion_data, '/static/companions/', '/static/logos/'), '/static/images/companions/', '/static/logos/')
+                    WHERE companion_data LIKE '%/static/companions/%' OR companion_data LIKE '%/static/images/companions/%'
                 """)
             
             rows_updated = cursor.rowcount
