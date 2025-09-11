@@ -448,6 +448,16 @@ def anonymous_community():
             'nyxara': {'name': 'Nyxara', 'image_url': '/static/companions/nyxara.png', 'tier': 'silver'},
             'claude_referral': {'name': 'Claude Referral', 'image_url': '/static/companions/claude_referral.png', 'tier': 'gold'},
             'blayzo_referral': {'name': 'Blayzo Referral', 'image_url': '/static/companions/blayzo_referral.png', 'tier': 'gold'},
+            # BAD DATA FIXES - Map incorrect IDs to correct base companions
+            'lumen_bronze': {'name': 'Lumen', 'image_url': '/static/companions/lumen.png', 'tier': 'bronze'},
+            'rozia_bronze': {'name': 'Rozia', 'image_url': '/static/companions/rozia.png', 'tier': 'bronze'},
+            'claude_bronze': {'name': 'Claude', 'image_url': '/static/companions/claude.png', 'tier': 'bronze'},
+            'gamerjay_bronze': {'name': 'GamerJay', 'image_url': '/static/companions/gamerjay.png', 'tier': 'bronze'},
+            'blayzion_bronze': {'name': 'Blayzion', 'image_url': '/static/companions/blayzion.png', 'tier': 'bronze'},
+            'crimson_bronze': {'name': 'Crimson', 'image_url': '/static/companions/crimson.png', 'tier': 'bronze'},
+            'violet_bronze': {'name': 'Violet', 'image_url': '/static/companions/violet.png', 'tier': 'bronze'},
+            'sky_bronze': {'name': 'Sky', 'image_url': '/static/companions/sky.png', 'tier': 'bronze'},
+            'royal_bronze': {'name': 'Royal', 'image_url': '/static/companions/royal.png', 'tier': 'bronze'},
         }
         
         # Load avatar from database (primary) or session (fallback)
@@ -493,6 +503,30 @@ def anonymous_community():
                                 correct_url = companion_map[companion_id]['image_url']
                                 logger.info(f"🔧 FIXING BAD IMAGE URL: '{avatar_url}' → '{correct_url}'")
                                 avatar_url = correct_url
+                                
+                                # CRITICAL: Also fix the companion_id if it's a bad bronze variant  
+                                if companion_id.endswith('_bronze'):
+                                    # Get the base companion name (e.g., lumen_bronze → lumen)
+                                    base_companion_id = companion_id.replace('_bronze', '')
+                                    if base_companion_id in companion_map:
+                                        logger.info(f"🔧 FIXING BAD COMPANION ID: '{companion_id}' → '{base_companion_id}'")
+                                        companion_id = base_companion_id
+                                        # Update the companion_data to use correct ID
+                                        companion_data['id'] = base_companion_id
+                                        companion_data['image_url'] = companion_map[base_companion_id]['image_url']
+                                        
+                                        # Save corrected data back to database
+                                        try:
+                                            import json
+                                            corrected_json = json.dumps(companion_data)
+                                            if hasattr(db, 'use_postgres') and db.use_postgres:
+                                                cursor.execute("UPDATE users SET companion_data = %s WHERE id = %s", (corrected_json, user_id))
+                                            else:
+                                                cursor.execute("UPDATE users SET companion_data = ? WHERE id = ?", (corrected_json, user_id))
+                                            conn.commit()
+                                            logger.info(f"✅ SAVED CORRECTED DATA: {base_companion_id} for user {user_id}")
+                                        except Exception as save_error:
+                                            logger.error(f"❌ ERROR SAVING CORRECTED DATA: {save_error}")
                         
                         if avatar_url and '?' not in avatar_url:
                             avatar_url += f"?t={cache_buster}"
