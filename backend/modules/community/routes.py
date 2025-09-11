@@ -443,8 +443,20 @@ def anonymous_community():
                         cache_buster = int(time.time())
                         # Try both 'avatar_url' and 'image_url' field names (DB inconsistency)
                         avatar_url = companion_data.get('avatar_url') or companion_data.get('image_url')
+                        logger.info(f"🔍 DEBUG IMAGE URL: Retrieved from DB: '{avatar_url}'")
+                        
+                        # FIX OLD BAD DATA: If avatar_url contains companion ID, fix it
+                        companion_id = companion_data.get('id', '')
+                        if avatar_url and companion_id and f'{companion_id}.png' in avatar_url:
+                            # Look up correct image_url from companion mapping
+                            if companion_id in companion_map:
+                                correct_url = companion_map[companion_id]['image_url']
+                                logger.info(f"🔧 FIXING BAD IMAGE URL: '{avatar_url}' → '{correct_url}'")
+                                avatar_url = correct_url
+                        
                         if avatar_url and '?' not in avatar_url:
                             avatar_url += f"?t={cache_buster}"
+                        logger.info(f"🔍 DEBUG IMAGE URL: Final with cache buster: '{avatar_url}'")
                         
                         current_avatar = {
                             'name': companion_data.get('name', 'Soul'),
