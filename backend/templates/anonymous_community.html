@@ -646,6 +646,16 @@
         .companion-card:hover .companion-avatar {
             transform: scale(1.1);
         }
+        
+        .companion-card:hover .skin-selector-btn {
+            opacity: 1 !important;
+            pointer-events: auto !important;
+        }
+        
+        .skin-selector-btn:hover {
+            background: rgba(0, 255, 255, 0.4) !important;
+            transform: scale(1.1);
+        }
 
         .companion-avatar img {
             width: 100%;
@@ -2506,15 +2516,19 @@
                 
                 let lockIcon = '';
                 let upgradeText = '';
+                let skinButton = '';
                 
                 if (!companion.can_access) {
                     lockIcon = '<div style="position: absolute; top: 5px; right: 5px; color: #ff6b6b; font-size: 16px;">🔒</div>';
                     upgradeText = `<div style="color: #ff6b6b; font-size: 10px; margin-top: 4px;">${companion.lock_reason || 'Access restricted'}</div>`;
+                } else if (companion.has_skins && companion.skins && companion.skins.length > 1) {
+                    skinButton = '<div class="skin-selector-btn" style="position: absolute; top: 5px; left: 5px; background: rgba(0, 255, 255, 0.2); border: 1px solid rgba(0, 255, 255, 0.5); border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; color: #00ffff; font-size: 12px; cursor: pointer; transition: all 0.3s; opacity: 0; pointer-events: none;" onclick="event.stopPropagation(); showSkinSelector(\'' + companion.id + '\', \'' + (companion.base_name || companion.name.toLowerCase()) + '\')">⋯</div>';
                 }
                 
                 const fallbackEmoji = getCompanionEmoji(companion.id);
                 companionCard.innerHTML = `
                     ${lockIcon}
+                    ${skinButton}
                     <div class="companion-avatar">
                         ${companion.image_url 
                             ? `<img src="${companion.image_url}" alt="${companion.name}" style="width: 100%; height: 100%; object-fit: contain;" onerror="this.style.display='none'; this.parentElement.innerHTML='${fallbackEmoji}';">` 
@@ -2911,6 +2925,126 @@
                     modal.style.display = 'none';
                 }
             });
+        }
+
+        // Skin selector for companions with multiple skins
+        async function showSkinSelector(companionId, baseName) {
+            try {
+                // Fetch available skins for this companion
+                const response = await fetch(`/api/companions/${baseName}/skins`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch companion skins');
+                }
+                
+                const data = await response.json();
+                const skins = data.skins || [];
+                
+                if (skins.length <= 1) {
+                    showMessage('This companion has no additional skins available.', 'info');
+                    return;
+                }
+                
+                // Create skin selector modal
+                const skinModal = document.createElement('div');
+                skinModal.className = 'modal';
+                skinModal.style.display = 'block';
+                skinModal.innerHTML = `
+                    <div class="modal-content companion-selector-modal" style="max-width: 600px;">
+                        <div class="modal-header">
+                            <h3 class="modal-title">Choose ${data.name || baseName} Skin</h3>
+                            <span class="close" onclick="this.closest('.modal').remove()">&times;</span>
+                        </div>
+                        <div class="skin-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin: 20px 0;">
+                            ${skins.map(skin => `
+                                <div class="skin-option ${skin.id === companionId ? 'selected' : ''}" 
+                                     data-skin-id="${skin.id}" 
+                                     style="background: rgba(0, 255, 255, 0.05); border: 2px solid ${skin.id === companionId ? '#00ffff' : 'rgba(0, 255, 255, 0.3)'}; border-radius: 12px; padding: 15px; text-align: center; cursor: pointer; transition: all 0.3s;">
+                                    <div class="skin-avatar" style="width: 80px; height: 80px; margin: 0 auto 10px; background: rgba(255, 255, 255, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 40px;">
+                                        <img src="${skin.image}" alt="${skin.name}" style="width: 100%; height: 100%; object-fit: contain; border-radius: 50%;" onerror="this.style.display='none'; this.parentElement.innerHTML='${getCompanionEmoji(skin.id)}';">
+                                    </div>
+                                    <div style="color: #e2e8f0; font-weight: bold; margin-bottom: 4px;">${skin.name}</div>
+                                    <div style="color: #00ffff; font-size: 12px; text-transform: uppercase;">${skin.tier}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div style="text-align: center; margin-top: 20px;">
+                            <button id="apply-skin" class="btn btn-primary" style="background: linear-gradient(135deg, #00ffff, #0080ff); border: none; color: #000; padding: 12px 24px; border-radius: 25px; cursor: pointer; font-weight: bold;">
+                                Apply Skin
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(skinModal);
+                
+                // Add click handlers for skin options
+                skinModal.querySelectorAll('.skin-option').forEach(option => {
+                    option.addEventListener('click', () => {
+                        // Remove selected from all options
+                        skinModal.querySelectorAll('.skin-option').forEach(opt => {
+                            opt.classList.remove('selected');
+                            opt.style.borderColor = 'rgba(0, 255, 255, 0.3)';
+                        });
+                        
+                        // Add selected to clicked option
+                        option.classList.add('selected');
+                        option.style.borderColor = '#00ffff';
+                    });
+                });
+                
+                // Apply skin button handler
+                const applyBtn = skinModal.querySelector('#apply-skin');
+                applyBtn.addEventListener('click', async () => {
+                    const selectedSkin = skinModal.querySelector('.skin-option.selected');
+                    if (!selectedSkin) {
+                        showMessage('Please select a skin first.', 'error');
+                        return;
+                    }
+                    
+                    const skinId = selectedSkin.dataset.skinId;
+                    if (skinId === companionId) {
+                        showMessage('This skin is already selected.', 'info');
+                        return;
+                    }
+                    
+                    try {
+                        applyBtn.disabled = true;
+                        applyBtn.textContent = 'Applying...';
+                        
+                        // Apply the skin change
+                        const applySkinResponse = await fetch('/api/companions/set-skin', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                companion_id: skinId,
+                                base_name: baseName
+                            })
+                        });
+                        
+                        if (applySkinResponse.ok) {
+                            showMessage('Skin applied successfully!', 'success');
+                            skinModal.remove();
+                            // Reload companion grid to show updated selection
+                            loadCompanionSelector();
+                        } else {
+                            const error = await applySkinResponse.json();
+                            showMessage(error.message || 'Failed to apply skin', 'error');
+                        }
+                    } catch (error) {
+                        console.error('Error applying skin:', error);
+                        showMessage('Failed to apply skin. Please try again.', 'error');
+                    } finally {
+                        applyBtn.disabled = false;
+                        applyBtn.textContent = 'Apply Skin';
+                    }
+                });
+                
+            } catch (error) {
+                console.error('Error loading companion skins:', error);
+                showMessage('Failed to load companion skins. Please try again.', 'error');
+            }
         }
 
         // Upgrade prompt for locked companions

@@ -10,6 +10,8 @@ from studio.cache import get_cache_stats, clear_cache
 from billing.openai_budget import get_budget_status, get_budget_window_info
 from billing.auto_quota import get_quota_for_plan, get_quota_recommendations
 from billing.costing import get_spend_stats
+from modules.companions.skin_system import get_companion_skins, get_companion_by_id
+from modules.companions.companion_data import get_companion_by_id as get_companion_data_by_id
 
 logger = logging.getLogger(__name__)
 
@@ -577,3 +579,117 @@ if __name__ == "__main__":
                 print(f"Error: {result.get('error', 'No error info')}")
     
     print("\nAPI testing completed!")
+
+# Companion Skin System API Endpoints
+@bp.route('/api/companions/<base_name>/skins', methods=['GET'])
+def get_companion_skin_variants(base_name):
+    """Get available skin variants for a companion"""
+    try:
+        skins = get_companion_skins(base_name)
+        
+        if not skins:
+            return jsonify({
+                "success": False,
+                "error": "no_skins_found",
+                "message": f"No skins found for companion: {base_name}"
+            }), 404
+        
+        return jsonify({
+            "success": True,
+            "name": base_name.title(),
+            "skins": skins
+        })
+        
+    except Exception as e:
+        logger.error(f"Error fetching companion skins for {base_name}: {e}")
+        return jsonify({
+            "success": False,
+            "error": "internal_error",
+            "message": "Failed to fetch companion skins"
+        }), 500
+
+@bp.route('/api/companions/set-skin', methods=['POST'])
+def set_companion_skin():
+    """Set the active skin for a companion"""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({
+                "success": False,
+                "error": "no_data",
+                "message": "Request body is required"
+            }), 400
+        
+        companion_id = data.get('companion_id')
+        base_name = data.get('base_name')
+        
+        if not companion_id or not base_name:
+            return jsonify({
+                "success": False,
+                "error": "missing_parameters",
+                "message": "companion_id and base_name are required"
+            }), 400
+        
+        # Verify the companion skin exists
+        companion = get_companion_by_id(companion_id)
+        if not companion:
+            return jsonify({
+                "success": False,
+                "error": "invalid_companion",
+                "message": f"Companion skin not found: {companion_id}"
+            }), 404
+        
+        # In a real implementation, you'd save this to the user's profile
+        # For now, we'll just update the session
+        user_id = session.get('user_id', 'anonymous')
+        
+        # Store the selected skin in session (in production, save to database)
+        session[f'companion_skin_{base_name}'] = companion_id
+        
+        logger.info(f"User {user_id} set {base_name} skin to {companion_id}")
+        
+        return jsonify({
+            "success": True,
+            "message": f"Skin set successfully for {base_name}",
+            "companion_id": companion_id,
+            "base_name": base_name
+        })
+        
+    except Exception as e:
+        logger.error(f"Error setting companion skin: {e}")
+        return jsonify({
+            "success": False,
+            "error": "internal_error",
+            "message": "Failed to set companion skin"
+        }), 500
+
+@bp.route('/api/companions/<companion_id>/info', methods=['GET'])
+def get_companion_info(companion_id):
+    """Get detailed information about a specific companion"""
+    try:
+        # First try skin system
+        companion = get_companion_by_id(companion_id)
+        
+        # If not found in skin system, try companion data
+        if not companion:
+            companion = get_companion_data_by_id(companion_id)
+        
+        if not companion:
+            return jsonify({
+                "success": False,
+                "error": "not_found",
+                "message": f"Companion not found: {companion_id}"
+            }), 404
+        
+        return jsonify({
+            "success": True,
+            "companion": companion
+        })
+        
+    except Exception as e:
+        logger.error(f"Error fetching companion info for {companion_id}: {e}")
+        return jsonify({
+            "success": False,
+            "error": "internal_error",
+            "message": "Failed to fetch companion information"
+        }), 500
