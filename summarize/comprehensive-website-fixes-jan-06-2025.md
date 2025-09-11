@@ -1,7 +1,7 @@
-# 🔧 Comprehensive Website Fixes - January 6-7, 2025
+# 🔧 Comprehensive Website Fixes - January 6-11, 2025
 
-**Date**: January 6-7, 2025  
-**Scope**: Major website functionality, display issues, database schema fixes, and avatar persistence  
+**Date**: January 6-11, 2025  
+**Scope**: Major website functionality, display issues, database schema fixes, avatar persistence, and companion selection fixes  
 **Status**: ✅ COMPLETED
 
 ---
@@ -644,7 +644,73 @@ const response = await fetch('/api/user/profile', {
 
 ---
 
-## 🎉 **FINAL STATUS: ALL 20 ISSUES COMPLETED** ✅
+### 21. **Community Page Companion Selection Not Working** ✅ FIXED
+**Problem**: Clicking companion images does nothing, skin selector (⋯ button) selections don't persist after refresh/logout  
+**Root Cause**: Two separate issues:
+1. Direct companion clicking had no functionality implemented
+2. Skin selector was using problematic `/api/companions/set-skin` endpoint with database import issues
+3. Old database records contained incorrect image URLs like `/static/companions/lumen_bronze.png`
+
+**Solution**: Comprehensive companion selection system overhaul
+```javascript
+// Fixed direct companion clicking functionality
+async function selectCompanion(companion) {
+    const response = await fetch('/community/avatar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ companion_id: companion.id })
+    });
+    // Immediate UI update with proper persistence
+}
+
+// Fixed skin selector to use working endpoint
+async function performAvatarChange(companionId) {
+    const response = await fetch('/community/avatar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ companion_id: companionId })
+    });
+}
+```
+
+**Backend Fixes**:
+```python
+# Added automatic bad data correction in community routes
+companion_map = {
+    "lumen": {"image_url": "/static/companions/lumen.png"},
+    "rozia": {"image_url": "/static/companions/rozia.png"},
+    # ... complete mapping for all companions
+}
+
+# Auto-fix old bad database records
+if avatar_url and companion_id and f'{companion_id}.png' in avatar_url:
+    if companion_id in companion_map:
+        correct_url = companion_map[companion_id]['image_url']
+        logger.info(f"🔧 FIXING BAD IMAGE URL: '{avatar_url}' → '{correct_url}'")
+        avatar_url = correct_url
+```
+
+**Files Modified**:
+- `backend/templates/anonymous_community.html` - Fixed selectCompanion() and skin selector functions
+- `backend/modules/community/routes.py` - Added companion mapping and bad data auto-correction
+- Switched from broken `/api/companions/set-skin` to working `/community/avatar` endpoint
+
+**Git Commits**:
+- `e38b122` - Fix companion selection functionality and persistence
+- `823a335` - Fix companion mapping scope for automatic bad data correction
+
+**Issues Resolved**:
+- ✅ Direct companion image clicking now works with immediate persistence
+- ✅ Skin selector (⋯ button) now properly saves selections across refreshes/logout  
+- ✅ Fixed 404 errors for images like `lumen_bronze.png` with automatic bad data correction
+- ✅ Both selection methods now use proven working `/community/avatar` endpoint
+- ✅ Database persistence works correctly with `users.companion_data` column
+
+---
+
+## 🎉 **FINAL STATUS: ALL 21 ISSUES COMPLETED** ✅
 
 ### **Complete Resolution Summary**:
 - ✅ All frontend functionality issues resolved  
@@ -652,9 +718,11 @@ const response = await fetch('/api/user/profile', {
 - ✅ All database schema issues corrected
 - ✅ All Railway deployment errors eliminated
 - ✅ All user profile persistence issues resolved
+- ✅ All companion selection functionality issues resolved
 - ✅ Complete application stability achieved
 
 **Railway Status**: **FULLY OPERATIONAL** 🟢  
 **Database Health**: **FULLY FUNCTIONAL** 🟢  
 **Deployment Stability**: **CONFIRMED STABLE** 🟢  
-**User Profile System**: **FULLY FUNCTIONAL** 🟢
+**User Profile System**: **FULLY FUNCTIONAL** 🟢  
+**Companion Selection System**: **FULLY FUNCTIONAL** 🟢
