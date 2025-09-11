@@ -218,6 +218,62 @@ def create_app():
     # Register all module blueprints
     register_blueprints(app, database_manager)
     
+    # ===== COMPATIBILITY ROUTES =====
+    # Hotfix: Redirect old /static/companions/ URLs to correct /static/images/companions/
+    from flask import redirect, request, url_for
+    
+    @app.route("/static/companions/<path:filename>")
+    def static_companions_compat(filename):
+        """Redirect old companion image URLs to correct location"""
+        # Preserve query string (?t=cache_buster)
+        qs = ("?" + request.query_string.decode()) if request.query_string else ""
+        return redirect(url_for("static", filename=f"images/companions/{filename}") + qs, code=301)
+    
+    logger.info("✅ Compatibility route added: /static/companions/* → /static/images/companions/*")
+    
+    # Database cleanup route for fixing stored URLs
+    @app.route("/_admin/fix-companion-urls")
+    def fix_companion_urls():
+        """One-time fix for companion URLs in database"""
+        from database_utils import get_database
+        import json
+        
+        try:
+            db = get_database()
+            if not db:
+                return {"success": False, "error": "Database not available"}
+                
+            conn = db.get_connection()
+            cursor = conn.cursor()
+            
+            # Fix companion_data column
+            if hasattr(db, 'use_postgres') and db.use_postgres:
+                cursor.execute("""
+                    UPDATE users 
+                    SET companion_data = replace(companion_data::text, '/static/companions/', '/static/images/companions/')::jsonb
+                    WHERE companion_data::text LIKE '%/static/companions/%'
+                """)
+            else:
+                cursor.execute("""
+                    UPDATE users 
+                    SET companion_data = replace(companion_data, '/static/companions/', '/static/images/companions/')
+                    WHERE companion_data LIKE '%/static/companions/%'
+                """)
+            
+            rows_updated = cursor.rowcount
+            conn.commit()
+            cursor.close()
+            db.return_connection(conn)
+            
+            return {
+                "success": True, 
+                "message": f"Updated {rows_updated} user records with correct companion URLs"
+            }
+            
+        except Exception as e:
+            logger.error(f"Error fixing companion URLs: {e}")
+            return {"success": False, "error": str(e)}
+    
     # Initialize all systems  
     initialize_systems(app)
     
