@@ -700,6 +700,8 @@ if avatar_url and companion_id and f'{companion_id}.png' in avatar_url:
 **Git Commits**:
 - `e38b122` - Fix companion selection functionality and persistence
 - `823a335` - Fix companion mapping scope for automatic bad data correction
+- `b22bc37` - Fix companion image URL paths: /static/companions/ → /static/images/companions/
+- `50ed8bc` - Fix all companion system URLs to use correct image paths
 
 **Issues Resolved**:
 - ✅ Direct companion image clicking now works with immediate persistence
@@ -708,9 +710,35 @@ if avatar_url and companion_id and f'{companion_id}.png' in avatar_url:
 - ✅ Both selection methods now use proven working `/community/avatar` endpoint
 - ✅ Database persistence works correctly with `users.companion_data` column
 
+**UPDATE**: Root cause identified and fixed:
+
+### 21b. **Companion Image 404 Errors - Path Mismatch Fix** ✅ FIXED
+**Root Cause**: Wrong image folder path - code used `/static/companions/` but images stored in `/static/images/companions/`
+**Solution**: Comprehensive path correction across entire companion system
+
+```python
+# Added compatibility redirect in app.py
+@app.route("/static/companions/<path:filename>") 
+def static_companions_compat(filename):
+    qs = ("?" + request.query_string.decode()) if request.query_string else ""
+    return redirect(url_for("static", filename=f"images/companions/{filename}") + qs, code=301)
+```
+
+**Files Fixed**:
+- `backend/app.py` - Added 301 redirect compatibility route + database cleanup endpoint
+- `backend/modules/companions/skin_system.py` - Fixed all skin definitions 
+- `backend/modules/companions/companion_data.py` - Fixed all 29+ companion image URLs
+- `backend/modules/companions/routes.py` - Fixed companion selection fallbacks
+- `backend/modules/community/routes.py` - Fixed companion mapping paths
+
+**Result**: 
+- Old URLs: `/static/companions/lumen_bronze.png` → 301 redirect → `/static/images/companions/lumen_bronze.png` ✅
+- New URLs: Generated correctly as `/static/images/companions/lumen_bronze.png` ✅
+- All companion images now load without 404 errors
+
 ---
 
-## 🎉 **FINAL STATUS: ALL 21 ISSUES COMPLETED** ✅
+## 🎉 **FINAL STATUS: ALL 21+ ISSUES COMPLETED** ✅
 
 ### **Complete Resolution Summary**:
 - ✅ All frontend functionality issues resolved  
