@@ -224,5 +224,6 @@ MONTHLY_CREDITS = {
 # except Exception as e:
 #     logger.warning(f"Schema initialization warning: {e}")
 logger.info("🚨 Database schema auto-initialization DISABLED - use manual endpoints to fix schema")
+logger.info("🔧 Railway deployment fix - schema initialization bypass active")
 
 logger.info("🔄 Unified tier system compatibility layer loaded")
