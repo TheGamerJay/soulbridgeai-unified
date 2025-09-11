@@ -3026,8 +3026,7 @@
                         if (applySkinResponse.ok) {
                             showMessage('Skin applied successfully!', 'success');
                             skinModal.remove();
-                            // Reload companion grid to show updated selection
-                            loadCompanionSelector();
+                            // Skin preference saved to session
                         } else {
                             const error = await applySkinResponse.json();
                             showMessage(error.message || 'Failed to apply skin', 'error');
