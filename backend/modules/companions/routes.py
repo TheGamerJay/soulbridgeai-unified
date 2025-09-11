@@ -296,8 +296,10 @@ def set_companion_skin():
         if user_id:
             try:
                 # Use same database import as community routes for consistency
+                import os
                 import sys
-                sys.path.append('/'.join(__file__.split('/')[:-3]))  # Add backend to path
+                backend_path = os.path.join(os.path.dirname(__file__), '..', '..', '..')
+                sys.path.insert(0, backend_path)
                 from database_utils import get_database
                 import json
                 

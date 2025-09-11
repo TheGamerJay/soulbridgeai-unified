@@ -2608,15 +2608,18 @@
             try {
                 console.log('🎯 Direct companion click - applying:', companion);
                 
-                // Apply the companion immediately using the same endpoint as skin system
-                const response = await fetch('/api/companions/set-skin', {
+                // Apply the companion using the proven working community avatar endpoint
+                const response = await fetch('/community/avatar', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
+                    credentials: 'same-origin',
                     body: JSON.stringify({
                         companion_id: companion.id,
-                        base_name: companion.base_name || companion.name.toLowerCase()
+                        name: companion.name,
+                        avatar_url: companion.image_url,
+                        tier: companion.tier || 'bronze'
                     })
                 });
                 
