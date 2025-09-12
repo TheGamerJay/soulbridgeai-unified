@@ -70,7 +70,7 @@ COMPANION_SKINS = {
         "base_id": "watch_dog",
         "skins": [
             {"id": "watch_dog", "name": "Watch Dog", "image": "/static/logos/Watch Dog.png", "tier": "soul_companions"},
-            {"id": "watch_dog_max", "name": "Watch Dog Max", "image": "/static/logos/Watch Dog.png", "tier": "soul_companions"}
+            {"id": "watch_dog_max", "name": "Watch Dog Max", "image": "/static/logos/Watch Dog skin.png", "tier": "soul_companions"}
         ]
     }
 }
