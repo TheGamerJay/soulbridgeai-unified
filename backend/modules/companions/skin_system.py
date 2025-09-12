@@ -12,8 +12,8 @@ COMPANION_SKINS = {
         "base_id": "blayzo", 
         "skins": [
             {"id": "blayzo", "name": "Classic Blayzo", "image": "/static/logos/Blayzo.png", "tier": "soul_companions"},
-            {"id": "blayzo2", "name": "Blayzo.2", "image": "/static/logos/Blayzo2.png", "tier": "soul_companions"},
-            {"id": "blayzo_premium", "name": "Premium Blayzo", "image": "/static/logos/Blayzo_premium.png", "tier": "soul_companions"}
+            {"id": "blayzo2", "name": "Blayzo.2", "image": "/static/logos/Blayzo.png", "tier": "soul_companions"},
+            {"id": "blayzo_premium", "name": "Premium Blayzo", "image": "/static/logos/Blayzo.png", "tier": "soul_companions"}
         ]
     },
     "claude": {
@@ -30,7 +30,7 @@ COMPANION_SKINS = {
         "base_id": "crimson",
         "skins": [
             {"id": "crimson", "name": "Classic Crimson", "image": "/static/logos/Crimson.png", "tier": "soul_companions"},
-            {"id": "crimson_max", "name": "Crimson Max", "image": "/static/logos/Crimson_Max.png", "tier": "soul_companions"}
+            {"id": "crimson_max", "name": "Crimson Max", "image": "/static/logos/Crimson.png", "tier": "soul_companions"}
         ]
     },
     "violet": {
@@ -38,7 +38,7 @@ COMPANION_SKINS = {
         "base_id": "violet", 
         "skins": [
             {"id": "violet", "name": "Classic Violet", "image": "/static/logos/Violet.png", "tier": "soul_companions"},
-            {"id": "violet_max", "name": "Violet Max", "image": "/static/logos/Violet_Max.png", "tier": "soul_companions"}
+            {"id": "violet_max", "name": "Violet Max", "image": "/static/logos/Violet.png", "tier": "soul_companions"}
         ]
     },
     "lumen": {
@@ -62,7 +62,7 @@ COMPANION_SKINS = {
         "base_id": "blayzica",
         "skins": [
             {"id": "blayzica", "name": "Classic Blayzica", "image": "/static/logos/Blayzica.png", "tier": "soul_companions"},
-            {"id": "blayzica_pro", "name": "Blayzica Pro", "image": "/static/logos/Blayzica_Pro.png", "tier": "soul_companions"}
+            {"id": "blayzica_pro", "name": "Blayzica Pro", "image": "/static/logos/Blayzica.png", "tier": "soul_companions"}
         ]
     },
     "watch_dog": {
@@ -70,7 +70,7 @@ COMPANION_SKINS = {
         "base_id": "watch_dog",
         "skins": [
             {"id": "watch_dog", "name": "Watch Dog", "image": "/static/logos/Watch Dog.png", "tier": "soul_companions"},
-            {"id": "watch_dog_max", "name": "Watch Dog Max", "image": "/static/logos/Watch Dog_Max.png", "tier": "soul_companions"}
+            {"id": "watch_dog_max", "name": "Watch Dog Max", "image": "/static/logos/Watch Dog.png", "tier": "soul_companions"}
         ]
     }
 }
