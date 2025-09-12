@@ -7,6 +7,15 @@ from .companion_data import COMPANIONS
 
 # Define base companions with their available skins - Single Soul Companions Tier
 COMPANION_SKINS = {
+    "blayzo": {
+        "name": "Blayzo",
+        "base_id": "blayzo", 
+        "skins": [
+            {"id": "blayzo", "name": "Blayzo", "image": "/static/logos/Blayzo.png", "tier": "soul_companions"},
+            {"id": "blayzo_skin", "name": "Blayzo Skin", "image": "/static/logos/Blayzo skin.png", "tier": "soul_companions"},
+            {"id": "blayzo_skin_2", "name": "Blayzo Skin 2", "image": "/static/logos/Blayzo skin 2.png", "tier": "soul_companions"}
+        ]
+    },
     "claude": {
         "name": "Claude",
         "base_id": "claude",
