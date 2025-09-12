@@ -404,7 +404,7 @@
             min-width: 280px;
             max-height: 400px;
             overflow-y: auto;
-            z-index: 9999;
+            z-index: 99999;
             display: none;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
             backdrop-filter: blur(10px);
@@ -846,8 +846,8 @@
             const selectedSkin = userSkinPreferences[companionKey];
             const finalId = selectedSkin ? selectedSkin.id : companionId;
             
-            // Navigate to chat with selected companion/skin using correct route
-            window.location.href = `/companion-specific-chat/${finalId}`;
+            // Navigate to chat with selected companion/skin using correct tier-based route
+            window.location.href = `/chat/soul_companions/${finalId}`;
         }
 
         function confirmReferral(companionName, referralCount) {
