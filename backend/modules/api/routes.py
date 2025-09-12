@@ -1000,10 +1000,18 @@ def use_soul_riddle():
 @requires_login
 def get_credit_balance():
     """Get user's current Artistic Time credit balance"""
+    user_id = None
     try:
         from ...modules.credits.operations import get_artistic_time
         
         user_id = get_user_id()
+        if not user_id:
+            return jsonify({
+                'success': False,
+                'error': 'User not authenticated',
+                'balance': 0
+            }), 401
+            
         balance = get_artistic_time(user_id)
         
         return jsonify({
@@ -1013,7 +1021,9 @@ def get_credit_balance():
         })
         
     except Exception as e:
-        logger.error(f"Error getting credit balance for user {user_id}: {e}")
+        logger.error(f"Error getting credit balance for user {user_id or 'unknown'}: {e}")
+        import traceback
+        logger.error(f"Full traceback: {traceback.format_exc()}")
         return jsonify({
             'success': False,
             'error': 'Failed to get credit balance',
