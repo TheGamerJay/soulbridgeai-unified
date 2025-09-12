@@ -11,66 +11,56 @@ COMPANION_SKINS = {
         "name": "Blayzo",
         "base_id": "blayzo", 
         "skins": [
-            {"id": "blayzo", "name": "Classic Blayzo", "image": "/static/logos/Blayzo.png", "tier": "soul_companions"},
-            {"id": "blayzo2", "name": "Blayzo.2", "image": "/static/logos/Blayzo.png", "tier": "soul_companions"},
-            {"id": "blayzo_premium", "name": "Premium Blayzo", "image": "/static/logos/Blayzo.png", "tier": "soul_companions"}
+            {"id": "blayzo", "name": "Blayzo", "image": "/static/logos/Blayzo.png", "tier": "soul_companions"}
         ]
     },
     "claude": {
         "name": "Claude",
         "base_id": "claude",
         "skins": [
-            {"id": "claude", "name": "Classic Claude", "image": "/static/logos/Claude.png", "tier": "soul_companions"},
-            {"id": "claude_growth", "name": "Claude Growth", "image": "/static/logos/Claude.png", "tier": "soul_companions"},
-            {"id": "claude_max", "name": "Claude Max", "image": "/static/logos/Claude.png", "tier": "soul_companions"}
+            {"id": "claude", "name": "Claude", "image": "/static/logos/Claude.png", "tier": "soul_companions"}
         ]
     },
     "crimson": {
         "name": "Crimson", 
         "base_id": "crimson",
         "skins": [
-            {"id": "crimson", "name": "Classic Crimson", "image": "/static/logos/Crimson.png", "tier": "soul_companions"},
-            {"id": "crimson_max", "name": "Crimson Max", "image": "/static/logos/Crimson.png", "tier": "soul_companions"}
+            {"id": "crimson", "name": "Crimson", "image": "/static/logos/Crimson.png", "tier": "soul_companions"}
         ]
     },
     "violet": {
         "name": "Violet",
         "base_id": "violet", 
         "skins": [
-            {"id": "violet", "name": "Classic Violet", "image": "/static/logos/Violet.png", "tier": "soul_companions"},
-            {"id": "violet_max", "name": "Violet Max", "image": "/static/logos/Violet.png", "tier": "soul_companions"}
+            {"id": "violet", "name": "Violet", "image": "/static/logos/Violet.png", "tier": "soul_companions"}
         ]
     },
     "lumen": {
         "name": "Lumen",
         "base_id": "lumen",
         "skins": [
-            {"id": "lumen", "name": "Classic Lumen", "image": "/static/logos/Lumen.png", "tier": "soul_companions"},
-            {"id": "lumen_silver", "name": "Lumen Silver", "image": "/static/logos/Lumen.png", "tier": "soul_companions"}
+            {"id": "lumen", "name": "Lumen", "image": "/static/logos/Lumen.png", "tier": "soul_companions"}
         ]
     },
     "gamerjay": {
         "name": "GamerJay",
         "base_id": "gamerjay",
         "skins": [
-            {"id": "gamerjay", "name": "Classic GamerJay", "image": "/static/logos/GamerJay.png", "tier": "soul_companions"},
-            {"id": "gamerjay_premium", "name": "GamerJay Premium", "image": "/static/logos/GamerJay.png", "tier": "soul_companions"}
+            {"id": "gamerjay", "name": "GamerJay", "image": "/static/logos/GamerJay.png", "tier": "soul_companions"}
         ]
     },
     "blayzica": {
         "name": "Blayzica", 
         "base_id": "blayzica",
         "skins": [
-            {"id": "blayzica", "name": "Classic Blayzica", "image": "/static/logos/Blayzica.png", "tier": "soul_companions"},
-            {"id": "blayzica_pro", "name": "Blayzica Pro", "image": "/static/logos/Blayzica.png", "tier": "soul_companions"}
+            {"id": "blayzica", "name": "Blayzica", "image": "/static/logos/Blayzica.png", "tier": "soul_companions"}
         ]
     },
     "watch_dog": {
         "name": "Watch Dog",
         "base_id": "watch_dog",
         "skins": [
-            {"id": "watch_dog", "name": "Watch Dog", "image": "/static/logos/Watch Dog.png", "tier": "soul_companions"},
-            {"id": "watch_dog_max", "name": "Watch Dog Max", "image": "/static/logos/Watch Dog skin.png", "tier": "soul_companions"}
+            {"id": "watch_dog", "name": "Watch Dog", "image": "/static/logos/Watch Dog.png", "tier": "soul_companions"}
         ]
     }
 }
