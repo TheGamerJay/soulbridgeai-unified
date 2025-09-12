@@ -131,8 +131,6 @@ SINGLE_COMPANIONS = [
     {"id": "ven_blayzica", "name": "Ven Blayzica", "image": "/static/logos/Ven Blayzica skin.png", "tier": "soul_companions"},
     {"id": "ven_sky", "name": "Ven Sky", "image": "/static/logos/Ven Sky skin.png", "tier": "soul_companions"},
     {"id": "nyxara", "name": "Nyxara", "image": "/static/logos/Nyxara.png", "tier": "soul_companions"},
-    {"id": "blazelian", "name": "Blazelian", "image": "/static/logos/Blazelian.png", "tier": "soul_companions"},
-    {"id": "blayzike", "name": "Blayzike", "image": "/static/logos/Blayzike.png", "tier": "soul_companions"}
 ]
 
 # Referral companions (now empty since all companions are available to everyone in Soul Companions tier)
