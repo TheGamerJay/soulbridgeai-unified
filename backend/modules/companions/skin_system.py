@@ -139,6 +139,10 @@ def get_consolidated_companions(user_referrals=0):
     """Get companions consolidated by name with skin variants - Soul Companions tier"""
     companions = []
     
+    # Import companion greetings from main companion data
+    from .companion_data import COMPANIONS
+    greeting_map = {comp["id"]: comp["greeting"] for comp in COMPANIONS}
+    
     # Add multi-skin companions
     for base_name, companion_data in COMPANION_SKINS.items():
         companions.append({
@@ -149,7 +153,8 @@ def get_consolidated_companions(user_referrals=0):
             "has_skins": True,
             "skins": companion_data["skins"],
             "tier": "soul_companions",  # Single tier
-            "base_name": base_name  # Add base_name for skin selector
+            "base_name": base_name,  # Add base_name for skin selector
+            "greeting": greeting_map.get(companion_data["base_id"], f"Hello! I'm {companion_data['name']}.")
         })
     
     # Add single companions
@@ -161,7 +166,8 @@ def get_consolidated_companions(user_referrals=0):
             "image_url": companion["image"],  # Frontend expects image_url
             "has_skins": False,
             "skins": [],
-            "tier": "soul_companions"  # Single tier
+            "tier": "soul_companions",  # Single tier
+            "greeting": greeting_map.get(companion["id"], f"Hello! I'm {companion['name']}.")
         })
     
     return companions
@@ -176,6 +182,10 @@ def get_companion_skins(base_name):
 
 def get_companion_by_id(companion_id):
     """Get companion data by ID, including skin info - Soul Companions tier"""
+    # Import companion greetings from main companion data
+    from .companion_data import COMPANIONS
+    greeting_map = {comp["id"]: comp["greeting"] for comp in COMPANIONS}
+    
     # Check multi-skin companions
     for base_name, companion_data in COMPANION_SKINS.items():
         for skin in companion_data["skins"]:
@@ -189,7 +199,8 @@ def get_companion_by_id(companion_id):
                     "image_url": skin["image"],
                     "tier": "soul_companions",  # Single tier
                     "has_skins": True,
-                    "available_skins": companion_data["skins"]
+                    "available_skins": companion_data["skins"],
+                    "greeting": greeting_map.get(companion_data["base_id"], f"Hello! I'm {companion_data['name']}.")
                 }
     
     # Check single companions
@@ -202,7 +213,8 @@ def get_companion_by_id(companion_id):
                 "image_url": companion["image"],
                 "tier": "soul_companions",  # Single tier
                 "has_skins": False,
-                "available_skins": []
+                "available_skins": [],
+                "greeting": greeting_map.get(companion["id"], f"Hello! I'm {companion['name']}.")
             }
     
     return None
