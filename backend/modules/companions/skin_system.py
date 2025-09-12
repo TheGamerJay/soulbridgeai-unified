@@ -20,9 +20,9 @@ COMPANION_SKINS = {
         "name": "Claude",
         "base_id": "claude",
         "skins": [
-            {"id": "claude", "name": "Classic Claude", "image": "/static/logos/Claude_Free.png", "tier": "soul_companions"},
-            {"id": "claude_growth", "name": "Claude Growth", "image": "/static/logos/Claude_Growth.png", "tier": "soul_companions"},
-            {"id": "claude_max", "name": "Claude Max", "image": "/static/logos/Claude_Max.png", "tier": "soul_companions"}
+            {"id": "claude", "name": "Classic Claude", "image": "/static/logos/Claude.png", "tier": "soul_companions"},
+            {"id": "claude_growth", "name": "Claude Growth", "image": "/static/logos/Claude.png", "tier": "soul_companions"},
+            {"id": "claude_max", "name": "Claude Max", "image": "/static/logos/Claude.png", "tier": "soul_companions"}
         ]
     },
     "crimson": {
@@ -45,16 +45,16 @@ COMPANION_SKINS = {
         "name": "Lumen",
         "base_id": "lumen",
         "skins": [
-            {"id": "lumen", "name": "Classic Lumen", "image": "/static/logos/Lumen_Bronze.png", "tier": "soul_companions"},
-            {"id": "lumen_silver", "name": "Lumen Silver", "image": "/static/logos/Lumen_Silver.png", "tier": "soul_companions"}
+            {"id": "lumen", "name": "Classic Lumen", "image": "/static/logos/Lumen.png", "tier": "soul_companions"},
+            {"id": "lumen_silver", "name": "Lumen Silver", "image": "/static/logos/Lumen.png", "tier": "soul_companions"}
         ]
     },
     "gamerjay": {
         "name": "GamerJay",
         "base_id": "gamerjay",
         "skins": [
-            {"id": "gamerjay", "name": "Classic GamerJay", "image": "/static/logos/GamerJay_Free_companion.png", "tier": "soul_companions"},
-            {"id": "gamerjay_premium", "name": "GamerJay Premium", "image": "/static/logos/GamerJay_Premium_companion.png", "tier": "soul_companions"}
+            {"id": "gamerjay", "name": "Classic GamerJay", "image": "/static/logos/GamerJay.png", "tier": "soul_companions"},
+            {"id": "gamerjay_premium", "name": "GamerJay Premium", "image": "/static/logos/GamerJay.png", "tier": "soul_companions"}
         ]
     },
     "blayzica": {
@@ -80,12 +80,12 @@ SINGLE_COMPANIONS = [
     {"id": "blayzia", "name": "Blayzia", "image": "/static/logos/Blayzia.png", "tier": "soul_companions"},
     {"id": "blayzion", "name": "Blayzion", "image": "/static/logos/Blayzion.png", "tier": "soul_companions"},
     {"id": "sky", "name": "Sky", "image": "/static/logos/Sky.png", "tier": "soul_companions"},
-    {"id": "rozia", "name": "Rozia", "image": "/static/logos/Rozia_Silver.png", "tier": "soul_companions"},
-    {"id": "royal", "name": "Royal", "image": "/static/logos/Royal_a_Max_companion.png", "tier": "soul_companions"},
-    {"id": "ven_blayzica", "name": "Ven Blayzica", "image": "/static/logos/Ven_Blayzica_a_Max_companion.png", "tier": "soul_companions"},
-    {"id": "ven_sky", "name": "Ven Sky", "image": "/static/logos/Ven_Sky_a_Max_companion.png", "tier": "soul_companions"},
+    {"id": "rozia", "name": "Rozia", "image": "/static/logos/Rozia.png", "tier": "soul_companions"},
+    {"id": "royal", "name": "Royal", "image": "/static/logos/Royal.png", "tier": "soul_companions"},
+    {"id": "ven_blayzica", "name": "Ven Blayzica", "image": "/static/logos/Ven Blayzica skin.png", "tier": "soul_companions"},
+    {"id": "ven_sky", "name": "Ven Sky", "image": "/static/logos/Ven Sky skin.png", "tier": "soul_companions"},
     {"id": "dr_madjay", "name": "Dr. MadJay", "image": "/static/logos/Dr.MadJay.png", "tier": "soul_companions"},
-    {"id": "maxzian", "name": "Maxzian", "image": "/static/logos/Maxzian.png", "tier": "soul_companions"},
+    {"id": "maxzian", "name": "Maxzian", "image": "/static/logos/maxzian.png", "tier": "soul_companions"},
     {"id": "miz_flee", "name": "Miz Flee", "image": "/static/logos/Miz Flee.png", "tier": "soul_companions"},
     {"id": "the_duel", "name": "The Duel", "image": "/static/logos/The Duel.png", "tier": "soul_companions"},
     {"id": "the_flee", "name": "The Flee", "image": "/static/logos/The Flee.png", "tier": "soul_companions"},
