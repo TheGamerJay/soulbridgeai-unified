@@ -7,15 +7,6 @@ from .companion_data import COMPANIONS
 
 # Define base companions with their available skins - Single Soul Companions Tier
 COMPANION_SKINS = {
-    "blayzo": {
-        "name": "Blayzo",
-        "base_id": "blayzo", 
-        "skins": [
-            {"id": "blayzo", "name": "Blayzo", "image": "/static/logos/Blayzo.png", "tier": "soul_companions"},
-            {"id": "blayzo_skin", "name": "Blayzo Skin", "image": "/static/logos/Blayzo skin.png", "tier": "soul_companions"},
-            {"id": "blayzo_skin_2", "name": "Blayzo Skin 2", "image": "/static/logos/Blayzo skin 2.png", "tier": "soul_companions"}
-        ]
-    },
     "claude": {
         "name": "Claude",
         "base_id": "claude",
@@ -130,7 +121,6 @@ SINGLE_COMPANIONS = [
     {"id": "royal", "name": "Royal", "image": "/static/logos/Royal.png", "tier": "soul_companions"},
     {"id": "ven_blayzica", "name": "Ven Blayzica", "image": "/static/logos/Ven Blayzica skin.png", "tier": "soul_companions"},
     {"id": "ven_sky", "name": "Ven Sky", "image": "/static/logos/Ven Sky skin.png", "tier": "soul_companions"},
-    {"id": "nyxara", "name": "Nyxara", "image": "/static/logos/Nyxara.png", "tier": "soul_companions"},
 ]
 
 # Referral companions (now empty since all companions are available to everyone in Soul Companions tier)
