@@ -4,33 +4,49 @@ SoulBridge AI - Application Constants
 Centralized configuration for all magic numbers and constants
 """
 
-# Feature limits per plan
+# Feature limits per plan - UNIFIED SOUL COMPANION TIER
 PLAN_LIMITS = {
+    "soul_companion": {
+        "decoder": 999999,     # Unlimited for unified tier
+        "fortune": 999999,     # Unlimited for unified tier
+        "horoscope": 999999,   # Unlimited for unified tier
+        "creative_writer": 999999,  # Unlimited for unified tier
+        "library_chats": 999999     # Unlimited chat storage
+    },
+    # Legacy tiers kept for compatibility during migration
     "bronze": {
         "decoder": 5,
-        "fortune": 5, 
+        "fortune": 5,
         "horoscope": 5,
-        "creative_writer": 5,  # 5 uses per day for bronze tier
-        "library_chats": 3     # Save max 3 chat conversations
+        "creative_writer": 5,
+        "library_chats": 3
     },
     "silver": {
         "decoder": 15,
-        "fortune": 12,        # Increased from 8 to 12 for better UX
+        "fortune": 12,
         "horoscope": 10,
-        "creative_writer": 15,  # 15 uses per day
-        "library_chats": 50     # Save max 50 chat conversations
+        "creative_writer": 15,
+        "library_chats": 50
     },
     "gold": {
-        "decoder": 100,      # Realistic premium limit instead of 999
-        "fortune": 150,      # Highest since it's most impulsive/quick
-        "horoscope": 50,     # Daily readings + compatibility checks
-        "creative_writer": 75, # Substantial for serious writers
-        "library_chats": 200   # Premium library storage
+        "decoder": 100,
+        "fortune": 150,
+        "horoscope": 50,
+        "creative_writer": 75,
+        "library_chats": 200
     }
 }
 
-# Feature access per plan
+# Feature access per plan - UNIFIED SOUL COMPANION TIER
 FEATURE_ACCESS = {
+    "soul_companion": {
+        "voice_journal": True,      # All features enabled for unified tier
+        "ai_image": True,
+        "creative_writer": True,
+        "library": True,
+        "mini_studio": True
+    },
+    # Legacy tiers kept for compatibility during migration
     "bronze": {
         "voice_journal": False,
         "ai_image": False,
