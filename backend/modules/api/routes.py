@@ -846,7 +846,7 @@ def check_companion_decoder_limit():
             }), 400
         
         # Get current credit balance
-        from ...modules.credits.operations import get_artistic_time
+        from ..credits.operations import get_artistic_time
         current_credits = get_artistic_time(user_id)
         decoder_cost = 3  # From constants.py
         
@@ -887,7 +887,7 @@ def use_companion_decoder():
             }), 400
         
         # Check and deduct credits for decoder (3 credits)
-        from ...modules.credits.operations import get_artistic_time, deduct_artistic_time
+        from ..credits.operations import get_artistic_time, deduct_artistic_time
         
         current_credits = get_artistic_time(user_id)
         decoder_cost = 3  # From constants.py
@@ -971,7 +971,7 @@ def check_soul_riddle_limit():
 @requires_login
 def use_soul_riddle():
     """Track Soul Riddle usage - Now uses Artistic Time credits"""
-    from ...modules.credits.decorators import require_credits
+    from ..credits.decorators import require_credits
     
     # Apply credit requirement
     @require_credits('soul_riddle')
@@ -1002,8 +1002,8 @@ def get_credit_balance():
     """Get user's current Artistic Time credit balance"""
     user_id = None
     try:
-        from ...modules.credits.operations import get_artistic_time
-        
+        from ..credits.operations import get_artistic_time
+
         user_id = get_user_id()
         if not user_id:
             return jsonify({
@@ -1011,7 +1011,7 @@ def get_credit_balance():
                 'error': 'User not authenticated',
                 'balance': 0
             }), 401
-            
+
         balance = get_artistic_time(user_id)
         
         return jsonify({
