@@ -4,73 +4,62 @@ SoulBridge AI - Application Constants
 Centralized configuration for all magic numbers and constants
 """
 
-# Feature limits per plan - UNIFIED SOUL COMPANION TIER
+# Feature costs - KEEP ORIGINAL COSTS FROM MODULES/CREDITS/CONSTANTS.PY
+# This section removed to avoid duplication - use modules/credits/constants.py instead
+
+# Soul Companion tier system (only 2 tiers)
 PLAN_LIMITS = {
     "soul_companion": {
-        "decoder": 0,          # Credit-based through Artistic Time system
-        "fortune": 0,          # Credit-based through Artistic Time system
-        "horoscope": 0,        # Credit-based through Artistic Time system
-        "creative_writer": 0,  # Credit-based through Artistic Time system
-        "library_chats": 1000  # High limit for chat storage
+        # All features are credit-based, no daily limits
+        "monthly_credits": 100,  # Free tier gets 100 credits
+        "library_chats": 1000
     },
-    # Legacy tiers kept for compatibility during migration
-    "bronze": {
-        "decoder": 5,
-        "fortune": 5,
-        "horoscope": 5,
-        "creative_writer": 5,
-        "library_chats": 3
-    },
-    "silver": {
-        "decoder": 15,
-        "fortune": 12,
-        "horoscope": 10,
-        "creative_writer": 15,
-        "library_chats": 50
-    },
-    "gold": {
-        "decoder": 100,
-        "fortune": 150,
-        "horoscope": 50,
-        "creative_writer": 75,
-        "library_chats": 200
+    "soul_companion_pro": {
+        # Pro tier gets more credits monthly
+        "monthly_credits": 300,  # Pro tier gets 300 credits/month
+        "library_chats": 1000
     }
 }
 
-# Feature access per plan - UNIFIED SOUL COMPANION TIER
+# Feature access - ALL FEATURES ENABLED FOR BOTH TIERS (credit-gated)
 FEATURE_ACCESS = {
     "soul_companion": {
-        "voice_journal": True,      # All features enabled for unified tier
+        "voice_journal": True,      # All features enabled, credit-gated
         "ai_image": True,
         "creative_writer": True,
         "library": True,
-        "mini_studio": True
+        "mini_studio": True,
+        "soul_riddle": True,
+        "decoder": True,
+        "fortune": True,
+        "horoscope": True,
+        "meditation": True
     },
-    # Legacy tiers kept for compatibility during migration
-    "bronze": {
-        "voice_journal": False,
-        "ai_image": False,
-        "creative_writer": True,
-        "library": True,
-        "mini_studio": False
-    },
-    "silver": {
-        "voice_journal": True,
+    "soul_companion_pro": {
+        "voice_journal": True,      # Same features, just more credits
         "ai_image": True,
         "creative_writer": True,
         "library": True,
-        "mini_studio": False
-    },
-    "gold": {
-        "voice_journal": True,
-        "ai_image": True,
-        "creative_writer": True,
-        "library": True,
-        "mini_studio": True
+        "mini_studio": True,
+        "soul_riddle": True,
+        "decoder": True,
+        "fortune": True,
+        "horoscope": True,
+        "meditation": True
     }
 }
 
-# Referral system thresholds  
+# Credit packages and pricing (per blueprint)
+CREDIT_PACKAGES = {
+    "signup_bonus": {"credits": 100, "price": 0.00, "description": "Free signup bonus"},
+    "monthly_subscription": {"credits": 300, "price": 12.99, "description": "Soul Companion Pro monthly"},
+    "yearly_subscription": {"credits": 300, "price": 117.00, "description": "Soul Companion Pro yearly (25% savings)"},
+    "topup_small": {"credits": 50, "price": 2.99, "description": "Small top-up pack"},
+    "topup_medium": {"credits": 120, "price": 5.99, "description": "Medium top-up pack"},
+    "topup_large": {"credits": 300, "price": 12.99, "description": "Large top-up pack"}
+}
+
+# Referral system thresholds
 REFERRAL_THRESHOLDS = {
     "blayzike": 2,
     "blazelian": 4,
