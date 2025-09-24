@@ -7,11 +7,11 @@ Centralized configuration for all magic numbers and constants
 # Feature limits per plan - UNIFIED SOUL COMPANION TIER
 PLAN_LIMITS = {
     "soul_companion": {
-        "decoder": 999999,     # Unlimited for unified tier
-        "fortune": 999999,     # Unlimited for unified tier
-        "horoscope": 999999,   # Unlimited for unified tier
-        "creative_writer": 999999,  # Unlimited for unified tier
-        "library_chats": 999999     # Unlimited chat storage
+        "decoder": 0,          # Credit-based through Artistic Time system
+        "fortune": 0,          # Credit-based through Artistic Time system
+        "horoscope": 0,        # Credit-based through Artistic Time system
+        "creative_writer": 0,  # Credit-based through Artistic Time system
+        "library_chats": 1000  # High limit for chat storage
     },
     # Legacy tiers kept for compatibility during migration
     "bronze": {
