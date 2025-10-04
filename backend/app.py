@@ -640,9 +640,9 @@ def create_app():
             
             if db.use_postgres:
                 # Check PostgreSQL table structure
-                cursor.execute(format_query("""
+                cursor.execute("""
                     SELECT column_name, data_type, is_nullable, column_default
-                    FROM information_schema.columns 
+                    FROM information_schema.columns
                     WHERE table_name = 'password_reset_tokens'
                     ORDER BY ordinal_position
                 """)
