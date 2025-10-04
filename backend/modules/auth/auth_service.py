@@ -115,7 +115,7 @@ class AuthService:
             cursor.execute("""
                 SELECT trial_started_at, trial_companion, trial_used_permanently, trial_expires_at
                 FROM users WHERE email = %s
-            """, (email,))
+            """), (email,))
             
             trial_result = cursor.fetchone()
             conn.close()

@@ -417,7 +417,7 @@ class CommunityService:
                 cursor.execute("""
                     SELECT companion_data, updated_at 
                     FROM users WHERE id = %s
-                """, (user_id,))
+                """), (user_id,))
             else:
                 cursor.execute(format_query("""
                     SELECT companion_data, updated_at 

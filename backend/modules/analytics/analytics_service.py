@@ -132,7 +132,7 @@ class AnalyticsService:
                     WHERE user_id = %s AND created_at >= %s
                     GROUP BY feature_type
                     ORDER BY usage_count DESC
-                """, (user_id, start_date))
+                """), (user_id, start_date))
             else:
                 cursor.execute(format_query("""
                     SELECT 
@@ -199,7 +199,7 @@ class AnalyticsService:
                     WHERE user_id = %s AND created_at >= %s
                     GROUP BY companion_id
                     ORDER BY message_count DESC
-                """, (user_id, start_date))
+                """), (user_id, start_date))
             else:
                 cursor.execute(format_query("""
                     SELECT 
@@ -271,7 +271,7 @@ class AnalyticsService:
                     WHERE user_id = %s AND created_at >= %s
                     GROUP BY DATE(created_at)
                     ORDER BY activity_date
-                """, (user_id, start_date))
+                """), (user_id, start_date))
             else:
                 cursor.execute(format_query("""
                     SELECT 
@@ -359,7 +359,7 @@ class AnalyticsService:
                     WHERE user_id = %s AND created_at >= %s
                     GROUP BY EXTRACT(DOW FROM created_at), EXTRACT(HOUR FROM created_at)
                     ORDER BY day_of_week, hour_of_day
-                """, (user_id, start_date))
+                """), (user_id, start_date))
             else:
                 cursor.execute(format_query("""
                     SELECT 

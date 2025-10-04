@@ -324,7 +324,7 @@ def admin_expire_all_trials():
                 UPDATE users 
                 SET trial_expires_at = %s
                 WHERE trial_active = TRUE
-            """, (now,))
+            """), (now,))
         else:
             cursor.execute(format_query("""
                 UPDATE users 
@@ -414,7 +414,7 @@ def admin_reset_user_trial(user_id):
                     trial_used_permanently = TRUE,
                     trial_expires_at = NULL
                 WHERE id = %s
-            """, (user_id,))
+            """), (user_id,))
         else:
             cursor.execute(format_query("""
                 UPDATE users 

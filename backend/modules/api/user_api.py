@@ -345,7 +345,7 @@ class UserAPI:
                     SELECT trial_active, trial_expires_at, trial_start_time
                     FROM users 
                     WHERE id = %s
-                """, (user_id,))
+                """), (user_id,))
             else:
                 cursor.execute(format_query("""
                     SELECT trial_active, trial_expires_at, trial_start_time
@@ -434,7 +434,7 @@ class UserAPI:
                         terms_version = %s,
                         terms_accepted_at = %s
                     WHERE id = %s
-                """, (terms_version, datetime.now(timezone.utc), user_id))
+                """), (terms_version, datetime.now(timezone.utc), user_id))
             else:
                 cursor.execute(format_query("""
                     UPDATE users 
@@ -469,7 +469,7 @@ class UserAPI:
                 cursor.execute("""
                     SELECT addon_type FROM user_addons 
                     WHERE user_id = %s AND active = true
-                """, (user_id,))
+                """), (user_id,))
             else:
                 cursor.execute(format_query("""
                     SELECT addon_type FROM user_addons 

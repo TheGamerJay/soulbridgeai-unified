@@ -408,7 +408,7 @@ class MigrationManager:
             cursor.execute("""
                 INSERT INTO migration_history (migration_name, description, module, rollback_sql)
                 VALUES (?, ?, ?, ?)
-            """, (
+            """), (
                 migration_name,
                 migration["description"],
                 migration["module"],

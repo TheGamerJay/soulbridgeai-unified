@@ -122,7 +122,7 @@ class SessionTracker:
                     WHERE user_id = %s 
                     ORDER BY completed_at DESC 
                     LIMIT %s
-                """, (user_id, limit))
+                """), (user_id, limit))
             else:
                 cursor.execute(format_query("""
                     SELECT id, meditation_id, title, category, duration_minutes, 
@@ -217,7 +217,7 @@ class SessionTracker:
                         COUNT(DISTINCT category) as categories_tried
                     FROM meditation_sessions 
                     WHERE user_id = %s AND completed = TRUE
-                """, (user_id,))
+                """), (user_id,))
             else:
                 cursor.execute(format_query("""
                     SELECT 
@@ -247,7 +247,7 @@ class SessionTracker:
                     GROUP BY category 
                     ORDER BY session_count DESC 
                     LIMIT 1
-                """, (user_id,))
+                """), (user_id,))
             else:
                 cursor.execute(format_query("""
                     SELECT category, COUNT(*) as session_count
@@ -269,7 +269,7 @@ class SessionTracker:
                         COUNT(CASE WHEN completed_at >= NOW() - INTERVAL '30 days' THEN 1 END) as month_sessions
                     FROM meditation_sessions 
                     WHERE user_id = %s AND completed = TRUE
-                """, (user_id,))
+                """), (user_id,))
             else:
                 cursor.execute(format_query("""
                     SELECT 
@@ -326,7 +326,7 @@ class SessionTracker:
                     WHERE user_id = %s AND completed = TRUE
                     GROUP BY category
                     ORDER BY session_count DESC
-                """, (user_id,))
+                """), (user_id,))
             else:
                 cursor.execute(format_query("""
                     SELECT 
@@ -391,7 +391,7 @@ class SessionTracker:
                         AND completed_at >= NOW() - INTERVAL '%s days'
                     GROUP BY DATE(completed_at)
                     ORDER BY session_date DESC
-                """, (user_id, days))
+                """), (user_id, days))
             else:
                 cursor.execute(format_query("""
                     SELECT 
@@ -445,7 +445,7 @@ class SessionTracker:
                     WHERE user_id = %s AND completed = TRUE
                     ORDER BY session_date DESC
                     LIMIT 100
-                """, (user_id,))
+                """), (user_id,))
             else:
                 cursor.execute(format_query("""
                     SELECT DISTINCT DATE(completed_at) as session_date
@@ -510,7 +510,7 @@ class SessionTracker:
                     UPDATE meditation_sessions 
                     SET satisfaction_rating = %s, notes = %s
                     WHERE id = %s AND user_id = %s
-                """, (rating, notes, session_id, user_id))
+                """), (rating, notes, session_id, user_id))
             else:
                 cursor.execute(format_query("""
                     UPDATE meditation_sessions 

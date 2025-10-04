@@ -442,7 +442,7 @@ class WellnessGallery:
                      hearts_count, created_at, metadata)
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                     RETURNING id
-                """, (
+                """), (
                     gallery_item['content_type'],
                     gallery_item['content'],
                     gallery_item['theme'],

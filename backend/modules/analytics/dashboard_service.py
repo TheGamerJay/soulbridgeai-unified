@@ -95,7 +95,7 @@ class DashboardService:
                 cursor.execute("""
                     SELECT COUNT(*) FROM chat_conversations 
                     WHERE user_id = %s AND created_at >= %s
-                """, (user_id, start_date))
+                """), (user_id, start_date))
             else:
                 cursor.execute(format_query("""
                     SELECT COUNT(*) FROM chat_conversations 
@@ -138,7 +138,7 @@ class DashboardService:
                     WHERE user_id = %s AND created_at >= %s
                     GROUP BY DATE(created_at)
                     ORDER BY usage_date
-                """, (user_id, start_date))
+                """), (user_id, start_date))
             else:
                 cursor.execute(format_query("""
                     SELECT 
@@ -382,7 +382,7 @@ class DashboardService:
                     WHERE user_id = %s AND created_at >= %s
                     GROUP BY EXTRACT(HOUR FROM created_at)
                     ORDER BY usage_count DESC
-                """, (user_id, start_date))
+                """), (user_id, start_date))
             else:
                 cursor.execute(format_query("""
                     SELECT 
@@ -406,7 +406,7 @@ class DashboardService:
                     WHERE user_id = %s AND created_at >= %s
                     GROUP BY EXTRACT(DOW FROM created_at)
                     ORDER BY usage_count DESC
-                """, (user_id, start_date))
+                """), (user_id, start_date))
             else:
                 cursor.execute(format_query("""
                     SELECT 
@@ -565,17 +565,17 @@ class DashboardService:
                         AVG(session_duration_seconds) as avg_session_duration
                     FROM user_activity_log 
                     WHERE created_at >= %s
-                """, (start_date,))
+                """), (start_date,))
             else:
                 cursor.execute(format_query("""
-                    SELECT 
+                    SELECT
                         COUNT(DISTINCT user_id) as active_users,
                         COUNT(*) as total_interactions,
                         COUNT(DISTINCT feature_type) as features_used,
                         AVG(session_duration_seconds) as avg_session_duration
-                    FROM user_activity_log 
+                    FROM user_activity_log
                     WHERE created_at >= ?
-                """, (start_date.isoformat(),))
+                """), (start_date.isoformat(),))
             
             row = cursor.fetchone()
             conn.close()

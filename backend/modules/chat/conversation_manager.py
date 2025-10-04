@@ -226,7 +226,7 @@ class ConversationManager:
                     (session_id, user_id, companion_id, started_at, duration_seconds, message_count, context_data)
                     VALUES (%s, %s, %s, %s, %s, %s, %s)
                     ON CONFLICT (session_id) DO NOTHING
-                """, (
+                """), (
                     session_id,
                     session['user_id'],
                     session['companion_id'], 
@@ -240,7 +240,7 @@ class ConversationManager:
                     INSERT OR IGNORE INTO conversation_sessions 
                     (session_id, user_id, companion_id, started_at, duration_seconds, message_count, context_data)
                     VALUES (?, ?, ?, ?, ?, ?, ?)
-                """, (
+                """), (
                     session_id,
                     session['user_id'],
                     session['companion_id'],

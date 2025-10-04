@@ -184,7 +184,7 @@ class MessageHandler:
                     WHERE user_id = %s 
                     ORDER BY created_at DESC 
                     LIMIT 5
-                """, (user_id,))
+                """), (user_id,))
             else:
                 cursor.execute(format_query("""
                     SELECT user_message FROM chat_conversations 
@@ -234,7 +234,7 @@ class MessageHandler:
                     INSERT INTO chat_usage_tracking 
                     (user_id, companion_id, message_length, model_used, tokens_used, created_at)
                     VALUES (%s, %s, %s, %s, %s, %s)
-                """, (
+                """), (
                     user_id, companion_id, message_length, 
                     model_used, tokens_used, usage_data['timestamp']
                 ))
@@ -243,7 +243,7 @@ class MessageHandler:
                     INSERT INTO chat_usage_tracking 
                     (user_id, companion_id, message_length, model_used, tokens_used, created_at)
                     VALUES (?, ?, ?, ?, ?, ?)
-                """, (
+                """), (
                     user_id, companion_id, message_length,
                     model_used, tokens_used, usage_data['timestamp'].isoformat()
                 ))

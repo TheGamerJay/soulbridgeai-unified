@@ -290,7 +290,7 @@ class SessionAPI:
                     SELECT trial_active, trial_expires_at 
                     FROM users 
                     WHERE id = %s
-                """, (user_id,))
+                """), (user_id,))
             else:
                 cursor.execute(format_query("""
                     SELECT trial_active, trial_expires_at 
@@ -330,7 +330,7 @@ class SessionAPI:
                     UPDATE users 
                     SET last_login = %s 
                     WHERE id = %s
-                """, (datetime.now(timezone.utc), user_id))
+                """), (datetime.now(timezone.utc), user_id))
             else:
                 cursor.execute(format_query("""
                     UPDATE users 

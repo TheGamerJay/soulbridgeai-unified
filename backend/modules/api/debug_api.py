@@ -325,7 +325,7 @@ class DebugAPI:
                         trial_expires_at = NULL,
                         trial_start_time = NULL
                     WHERE id = %s
-                """, (user_id,))
+                """), (user_id,))
             else:
                 cursor.execute(format_query("""
                     UPDATE users 

@@ -231,7 +231,7 @@ def referrals_submit():
         cursor.execute(format_query("""
             INSERT INTO referrals (referrer_id, referred_id, referral_code, status, verified_at, created_at)
             VALUES (?, ?, ?, 'verified', ?, ?)
-        """, (referrer_id, user_id, code, datetime.utcnow(), datetime.utcnow()))
+        """), (referrer_id, user_id, code, datetime.utcnow(), datetime.utcnow()))
         
         # Increment uses count
         cursor.execute(format_query("""

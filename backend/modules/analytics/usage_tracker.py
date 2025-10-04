@@ -240,7 +240,7 @@ class UsageTracker:
                     WHERE user_id = %s AND created_at >= %s
                     GROUP BY feature_type
                     ORDER BY usage_count DESC
-                """, (user_id, start_date))
+                """), (user_id, start_date))
             else:
                 cursor.execute(format_query("""
                     SELECT 
@@ -308,7 +308,7 @@ class UsageTracker:
                     GROUP BY feature_type
                     ORDER BY total_usage DESC
                     LIMIT %s
-                """, (start_date, limit))
+                """), (start_date, limit))
             else:
                 cursor.execute(format_query("""
                     SELECT
@@ -370,7 +370,7 @@ class UsageTracker:
                 cursor.execute("""
                     DELETE FROM user_activity_log 
                     WHERE created_at < %s
-                """, (cutoff_date,))
+                """), (cutoff_date,))
             else:
                 cursor.execute(format_query("""
                     DELETE FROM user_activity_log

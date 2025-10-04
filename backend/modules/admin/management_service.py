@@ -89,7 +89,7 @@ class AdminManagementService:
                         COUNT(CASE WHEN created_at >= ? THEN 1 END) as new_users_month,
                         COUNT(*) as total_users
                     FROM users
-                """, (one_week_ago.isoformat(), one_month_ago.isoformat()))
+                """), (one_week_ago.isoformat(), one_month_ago.isoformat()))
             
             registration_stats = cursor.fetchone()
             conn.close()
@@ -227,7 +227,7 @@ class AdminManagementService:
                         COUNT(DISTINCT feature_type) as features_used
                     FROM user_activity_log 
                     WHERE created_at >= ?
-                """, (one_week_ago.isoformat(),))
+                """), (one_week_ago.isoformat(),))
             
             activity_row = cursor.fetchone()
             
@@ -241,7 +241,7 @@ class AdminManagementService:
                 cursor.execute(format_query("""
                     SELECT COUNT(*) FROM chat_conversations 
                     WHERE created_at >= ?
-                """, (one_week_ago.isoformat(),))
+                """), (one_week_ago.isoformat(),))
             
             chat_messages = cursor.fetchone()[0] or 0
             conn.close()
@@ -412,7 +412,7 @@ class AdminManagementService:
                     UPDATE users 
                     SET user_plan = %s, updated_at = %s
                     WHERE id = %s
-                """, (new_plan, datetime.now(timezone.utc), user_id))
+                """), (new_plan, datetime.now(timezone.utc), user_id))
             else:
                 cursor.execute(format_query("""
                     UPDATE users 
@@ -466,7 +466,7 @@ class AdminManagementService:
                         created_at, last_login, referrals, credits
                     FROM users 
                     WHERE id = %s
-                """, (user_id,))
+                """), (user_id,))
             else:
                 cursor.execute(format_query("""
                     SELECT 
@@ -492,7 +492,7 @@ class AdminManagementService:
                         COUNT(DISTINCT feature_type) as features_used
                     FROM user_activity_log 
                     WHERE user_id = %s AND created_at >= %s
-                """, (user_id, one_week_ago))
+                """), (user_id, one_week_ago))
             else:
                 cursor.execute(format_query("""
                     SELECT 
@@ -547,14 +547,14 @@ class AdminManagementService:
                         FROM users 
                         WHERE id = %s
                         LIMIT %s
-                    """, (int(query), limit))
+                    """), (int(query), limit))
                 else:
                     cursor.execute(format_query("""
                         SELECT id, email, user_plan, trial_active, created_at
                         FROM users 
                         WHERE id = ?
                         LIMIT ?
-                    """, (int(query), limit))
+                    """), (int(query), limit))
             else:
                 # Search by email
                 search_pattern = f"%{query}%"

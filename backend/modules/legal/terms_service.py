@@ -92,7 +92,7 @@ class TermsService:
                 cursor.execute("""
                     SELECT terms_accepted, terms_accepted_at, terms_version, terms_language 
                     FROM users WHERE id = %s
-                """, (user_id,))
+                """), (user_id,))
             else:
                 cursor.execute(format_query("""
                     SELECT terms_accepted, terms_accepted_at, terms_version, terms_language 
@@ -177,7 +177,7 @@ class TermsService:
                         SET terms_accepted = %s, terms_accepted_at = %s, 
                             terms_version = %s, terms_language = %s 
                         WHERE id = %s
-                    """, (True, acceptance_date, terms_version, language, user_id))
+                    """), (True, acceptance_date, terms_version, language, user_id))
                 else:
                     cursor.execute(format_query("""
                         UPDATE users 
@@ -225,14 +225,14 @@ class TermsService:
                                                acceptance_details, accepted_at)
                         VALUES (%s, %s, %s, %s, %s)
                         ON CONFLICT DO NOTHING
-                    """, (user_id, terms_version, language, 
+                    """), (user_id, terms_version, language, 
                           json.dumps(acceptance_details), acceptance_date))
                 else:
                     cursor.execute(format_query("""
                         INSERT OR IGNORE INTO terms_log 
                         (user_id, terms_version, language, acceptance_details, accepted_at)
                         VALUES (?, ?, ?, ?, ?)
-                    """, (user_id, terms_version, language, 
+                    """), (user_id, terms_version, language, 
                           json.dumps(acceptance_details), acceptance_date))
                           
             except Exception as log_error:
@@ -287,7 +287,7 @@ class TermsService:
                         terms_revoked_at = ?,
                         terms_revoke_reason = ?
                     WHERE id = ?
-                """, (datetime.now(timezone.utc), reason, user_id))
+                """), (datetime.now(timezone.utc), reason, user_id))
             
             if cursor.rowcount == 0:
                 conn.close()

@@ -147,7 +147,7 @@ def record_enhanced_unlock(user_id: int, reward_id: str, reward_type: str, thres
             INSERT OR IGNORE INTO user_referral_rewards
             (user_id, reward_id, reward_type, base_character, unlock_threshold, unlocked_at)
             VALUES (?, ?, ?, ?, ?, datetime('now'))
-        """, (user_id, reward_id, reward_type, base_character, threshold))
+        """), (user_id, reward_id, reward_type, base_character, threshold))
         
         conn.commit()
         logger.info(f"✅ Recorded {reward_type} unlock: {reward_id} for user {user_id}")

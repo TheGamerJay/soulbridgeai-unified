@@ -121,7 +121,7 @@ class CreativeUsageTracker:
                 cursor.execute("""
                     SELECT usage_count FROM feature_usage
                     WHERE user_id = %s AND feature_name = %s AND usage_date = %s
-                """, (user_id, feature, today))
+                """), (user_id, feature, today))
             else:
                 cursor.execute(format_query("""
                     SELECT usage_count FROM feature_usage
@@ -138,7 +138,7 @@ class CreativeUsageTracker:
                         UPDATE feature_usage 
                         SET usage_count = %s, last_used_at = %s
                         WHERE user_id = %s AND feature_name = %s AND usage_date = %s
-                    """, (new_count, now, user_id, feature, today))
+                    """), (new_count, now, user_id, feature, today))
                 else:
                     cursor.execute(format_query("""
                         UPDATE feature_usage 
@@ -151,7 +151,7 @@ class CreativeUsageTracker:
                     cursor.execute("""
                         INSERT INTO feature_usage (user_id, feature_name, usage_date, usage_count, last_used_at)
                         VALUES (%s, %s, %s, %s, %s)
-                    """, (user_id, feature, today, 1, now))
+                    """), (user_id, feature, today, 1, now))
                 else:
                     cursor.execute(format_query("""
                         INSERT INTO feature_usage (user_id, feature_name, usage_date, usage_count, last_used_at)
@@ -184,7 +184,7 @@ class CreativeUsageTracker:
                     FROM feature_usage
                     WHERE user_id = %s AND usage_date >= CURRENT_DATE - INTERVAL '%s days'
                     GROUP BY feature_name
-                """, (user_id, days))
+                """), (user_id, days))
             else:
                 cursor.execute(format_query("""
                     SELECT feature_name, SUM(usage_count) as total_usage
@@ -222,7 +222,7 @@ class CreativeUsageTracker:
                     cursor.execute("""
                         DELETE FROM feature_usage
                         WHERE user_id = %s AND feature_name = %s AND usage_date = %s
-                    """, (user_id, feature, today))
+                    """), (user_id, feature, today))
                 else:
                     cursor.execute(format_query("""
                         DELETE FROM feature_usage
@@ -234,7 +234,7 @@ class CreativeUsageTracker:
                     cursor.execute("""
                         DELETE FROM feature_usage
                         WHERE user_id = %s AND usage_date = %s
-                    """, (user_id, today))
+                    """), (user_id, today))
                 else:
                     cursor.execute(format_query("""
                         DELETE FROM feature_usage
@@ -280,7 +280,7 @@ class CreativeUsageTracker:
                 cursor.execute("""
                     DELETE FROM feature_usage
                     WHERE usage_date < CURRENT_DATE - INTERVAL '%s days'
-                """, (days_to_keep,))
+                """), (days_to_keep,))
             else:
                 cursor.execute("""
                     DELETE FROM feature_usage
