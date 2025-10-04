@@ -343,13 +343,13 @@ class UserAPI:
             if db.use_postgres:
                 cursor.execute("""
                     SELECT trial_active, trial_expires_at, trial_start_time
-                    FROM users 
+                    FROM users
                     WHERE id = %s
-                """), (user_id,))
+                """, (user_id,))
             else:
                 cursor.execute(format_query("""
                     SELECT trial_active, trial_expires_at, trial_start_time
-                    FROM users 
+                    FROM users
                     WHERE id = ?
                 """), (user_id,))
             
@@ -429,20 +429,20 @@ class UserAPI:
             # Update terms acceptance
             if db.use_postgres:
                 cursor.execute("""
-                    UPDATE users 
-                    SET terms_accepted = true, 
+                    UPDATE users
+                    SET terms_accepted = true,
                         terms_version = %s,
                         terms_accepted_at = %s
                     WHERE id = %s
-                """), (terms_version, datetime.now(timezone.utc), user_id))
+                """, (terms_version, datetime.now(timezone.utc), user_id))
             else:
                 cursor.execute(format_query("""
-                    UPDATE users 
+                    UPDATE users
                     SET terms_accepted = 1,
                         terms_version = ?,
                         terms_accepted_at = ?
                     WHERE id = ?
-                """, (terms_version, datetime.now(timezone.utc).isoformat(), user_id))
+                """), (terms_version, datetime.now(timezone.utc).isoformat(), user_id))
             
             conn.commit()
             conn.close()
@@ -467,12 +467,12 @@ class UserAPI:
             
             if db.use_postgres:
                 cursor.execute("""
-                    SELECT addon_type FROM user_addons 
+                    SELECT addon_type FROM user_addons
                     WHERE user_id = %s AND active = true
-                """), (user_id,))
+                """, (user_id,))
             else:
                 cursor.execute(format_query("""
-                    SELECT addon_type FROM user_addons 
+                    SELECT addon_type FROM user_addons
                     WHERE user_id = ? AND active = 1
                 """), (user_id,))
             

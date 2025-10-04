@@ -292,10 +292,10 @@ class DebugAPI:
                 """, (new_plan, datetime.now(timezone.utc), user_id))
             else:
                 cursor.execute(format_query("""
-                    UPDATE users 
+                    UPDATE users
                     SET user_plan = ?, updated_at = ?
                     WHERE id = ?
-                """, (new_plan, datetime.now(timezone.utc).isoformat(), user_id))
+                """), (new_plan, datetime.now(timezone.utc).isoformat(), user_id))
             
             conn.commit()
             conn.close()
@@ -320,12 +320,12 @@ class DebugAPI:
             
             if db.db_type == 'postgresql':
                 cursor.execute("""
-                    UPDATE users 
+                    UPDATE users
                     SET trial_active = false,
                         trial_expires_at = NULL,
                         trial_start_time = NULL
                     WHERE id = %s
-                """), (user_id,))
+                """, (user_id,))
             else:
                 cursor.execute(format_query("""
                     UPDATE users 

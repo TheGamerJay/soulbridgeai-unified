@@ -287,14 +287,14 @@ class SessionAPI:
             
             if db.db_type == 'postgresql':
                 cursor.execute("""
-                    SELECT trial_active, trial_expires_at 
-                    FROM users 
+                    SELECT trial_active, trial_expires_at
+                    FROM users
                     WHERE id = %s
-                """), (user_id,))
+                """, (user_id,))
             else:
                 cursor.execute(format_query("""
-                    SELECT trial_active, trial_expires_at 
-                    FROM users 
+                    SELECT trial_active, trial_expires_at
+                    FROM users
                     WHERE id = ?
                 """), (user_id,))
             
@@ -327,16 +327,16 @@ class SessionAPI:
             
             if db.db_type == 'postgresql':
                 cursor.execute("""
-                    UPDATE users 
-                    SET last_login = %s 
+                    UPDATE users
+                    SET last_login = %s
                     WHERE id = %s
-                """), (datetime.now(timezone.utc), user_id))
+                """, (datetime.now(timezone.utc), user_id))
             else:
                 cursor.execute(format_query("""
-                    UPDATE users 
-                    SET last_login = ? 
+                    UPDATE users
+                    SET last_login = ?
                     WHERE id = ?
-                """, (datetime.now(timezone.utc).isoformat(), user_id))
+                """), (datetime.now(timezone.utc).isoformat(), user_id))
             
             conn.commit()
             conn.close()
