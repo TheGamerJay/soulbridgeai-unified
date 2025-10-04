@@ -56,12 +56,12 @@ class SessionTracker:
                 ))
             else:
                 cursor.execute(format_query("""
-                    INSERT INTO meditation_sessions 
-                    (user_id, meditation_id, title, category, duration_seconds, 
-                     duration_minutes, completed, started_at, completed_at, 
+                    INSERT INTO meditation_sessions
+                    (user_id, meditation_id, title, category, duration_seconds,
+                     duration_minutes, completed, started_at, completed_at,
                      satisfaction_rating, notes, metadata)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, (
+                """), (
                     session_data['user_id'],
                     session_data['meditation_id'],
                     session_data['title'],
@@ -115,14 +115,14 @@ class SessionTracker:
             # Get user's meditation sessions
             if self.database.use_postgres:
                 cursor.execute("""
-                    SELECT id, meditation_id, title, category, duration_minutes, 
-                           completed, started_at, completed_at, satisfaction_rating, 
+                    SELECT id, meditation_id, title, category, duration_minutes,
+                           completed, started_at, completed_at, satisfaction_rating,
                            notes, metadata
-                    FROM meditation_sessions 
-                    WHERE user_id = %s 
-                    ORDER BY completed_at DESC 
+                    FROM meditation_sessions
+                    WHERE user_id = %s
+                    ORDER BY completed_at DESC
                     LIMIT %s
-                """), (user_id, limit))
+                """, (user_id, limit))
             else:
                 cursor.execute(format_query("""
                     SELECT id, meditation_id, title, category, duration_minutes, 
@@ -160,7 +160,7 @@ class SessionTracker:
             
             # Get total count
             if self.database.use_postgres:
-                cursor.execute("SELECT COUNT(*) FROM meditation_sessions WHERE user_id = %s"), (user_id,))
+                cursor.execute("SELECT COUNT(*) FROM meditation_sessions WHERE user_id = %s", (user_id,))
             else:
                 cursor.execute(format_query("SELECT COUNT(*) FROM meditation_sessions WHERE user_id = ?"), (user_id,))
             
@@ -209,15 +209,15 @@ class SessionTracker:
             # Basic session statistics
             if self.database.use_postgres:
                 cursor.execute("""
-                    SELECT 
+                    SELECT
                         COUNT(*) as total_sessions,
                         COALESCE(SUM(duration_minutes), 0) as total_minutes,
                         COALESCE(MAX(duration_minutes), 0) as longest_session,
                         COALESCE(AVG(duration_minutes), 0) as average_session,
                         COUNT(DISTINCT category) as categories_tried
-                    FROM meditation_sessions 
+                    FROM meditation_sessions
                     WHERE user_id = %s AND completed = TRUE
-                """), (user_id,))
+                """, (user_id,))
             else:
                 cursor.execute(format_query("""
                     SELECT 
@@ -242,12 +242,12 @@ class SessionTracker:
             if self.database.use_postgres:
                 cursor.execute("""
                     SELECT category, COUNT(*) as session_count
-                    FROM meditation_sessions 
+                    FROM meditation_sessions
                     WHERE user_id = %s AND completed = TRUE
-                    GROUP BY category 
-                    ORDER BY session_count DESC 
+                    GROUP BY category
+                    ORDER BY session_count DESC
                     LIMIT 1
-                """), (user_id,))
+                """, (user_id,))
             else:
                 cursor.execute(format_query("""
                     SELECT category, COUNT(*) as session_count
@@ -264,12 +264,12 @@ class SessionTracker:
             # Calculate recent activity
             if self.database.use_postgres:
                 cursor.execute("""
-                    SELECT 
+                    SELECT
                         COUNT(CASE WHEN completed_at >= NOW() - INTERVAL '7 days' THEN 1 END) as week_sessions,
                         COUNT(CASE WHEN completed_at >= NOW() - INTERVAL '30 days' THEN 1 END) as month_sessions
-                    FROM meditation_sessions 
+                    FROM meditation_sessions
                     WHERE user_id = %s AND completed = TRUE
-                """), (user_id,))
+                """, (user_id,))
             else:
                 cursor.execute(format_query("""
                     SELECT 
@@ -316,17 +316,17 @@ class SessionTracker:
             # Get category breakdown
             if self.database.use_postgres:
                 cursor.execute("""
-                    SELECT 
+                    SELECT
                         category,
                         COUNT(*) as session_count,
                         SUM(duration_minutes) as total_minutes,
                         AVG(duration_minutes) as avg_minutes,
                         AVG(satisfaction_rating) as avg_rating
-                    FROM meditation_sessions 
+                    FROM meditation_sessions
                     WHERE user_id = %s AND completed = TRUE
                     GROUP BY category
                     ORDER BY session_count DESC
-                """), (user_id,))
+                """, (user_id,))
             else:
                 cursor.execute(format_query("""
                     SELECT 
@@ -381,17 +381,17 @@ class SessionTracker:
             # Get daily meditation data
             if self.database.use_postgres:
                 cursor.execute("""
-                    SELECT 
+                    SELECT
                         DATE(completed_at) as session_date,
                         COUNT(*) as session_count,
                         SUM(duration_minutes) as total_minutes
-                    FROM meditation_sessions 
-                    WHERE user_id = %s 
-                        AND completed = TRUE 
+                    FROM meditation_sessions
+                    WHERE user_id = %s
+                        AND completed = TRUE
                         AND completed_at >= NOW() - INTERVAL '%s days'
                     GROUP BY DATE(completed_at)
                     ORDER BY session_date DESC
-                """), (user_id, days))
+                """, (user_id, days))
             else:
                 cursor.execute(format_query("""
                     SELECT 
@@ -441,11 +441,11 @@ class SessionTracker:
             if self.database.use_postgres:
                 cursor.execute("""
                     SELECT DISTINCT DATE(completed_at) as session_date
-                    FROM meditation_sessions 
+                    FROM meditation_sessions
                     WHERE user_id = %s AND completed = TRUE
                     ORDER BY session_date DESC
                     LIMIT 100
-                """), (user_id,))
+                """, (user_id,))
             else:
                 cursor.execute(format_query("""
                     SELECT DISTINCT DATE(completed_at) as session_date
@@ -507,10 +507,10 @@ class SessionTracker:
             # Update session rating
             if self.database.use_postgres:
                 cursor.execute("""
-                    UPDATE meditation_sessions 
+                    UPDATE meditation_sessions
                     SET satisfaction_rating = %s, notes = %s
                     WHERE id = %s AND user_id = %s
-                """), (rating, notes, session_id, user_id))
+                """, (rating, notes, session_id, user_id))
             else:
                 cursor.execute(format_query("""
                     UPDATE meditation_sessions 
