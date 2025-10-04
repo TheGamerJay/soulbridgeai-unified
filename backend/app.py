@@ -479,7 +479,7 @@ def create_app():
                 cursor = conn.cursor()
                 
                 # Check if user exists
-                cursor.execute(format_query(SELECT id FROM users WHERE email = ?"), (email,))
+                cursor.execute(format_query("SELECT id FROM users WHERE email = ?"), (email,))
                 if cursor.fetchone():
                     error_msg = 'Email already registered'
                     if is_json_request:
