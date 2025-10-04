@@ -222,14 +222,14 @@ class ConversationManager:
             
             if db.db_type == 'postgresql':
                 cursor.execute("""
-                    INSERT INTO conversation_sessions 
+                    INSERT INTO conversation_sessions
                     (session_id, user_id, companion_id, started_at, duration_seconds, message_count, context_data)
                     VALUES (%s, %s, %s, %s, %s, %s, %s)
                     ON CONFLICT (session_id) DO NOTHING
-                """), (
+                """, (
                     session_id,
                     session['user_id'],
-                    session['companion_id'], 
+                    session['companion_id'],
                     session['started_at'],
                     int(duration.total_seconds()),
                     session['message_count'],
