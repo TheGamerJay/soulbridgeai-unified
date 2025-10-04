@@ -415,9 +415,9 @@ class CommunityService:
             # Get companion data with debugging
             if self.database.use_postgres:
                 cursor.execute("""
-                    SELECT companion_data, updated_at 
+                    SELECT companion_data, updated_at
                     FROM users WHERE id = %s
-                """), (user_id,))
+                """, (user_id,))
             else:
                 cursor.execute(format_query("""
                     SELECT companion_data, updated_at 
