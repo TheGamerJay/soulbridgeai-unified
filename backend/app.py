@@ -239,8 +239,8 @@ def create_app():
             
             # Fix companion_data column - use standardized /static/logos/ path
             if hasattr(db, 'use_postgres') and db.use_postgres:
-                cursor.execute(format_query("""
-                    UPDATE users 
+                cursor.execute("""
+                    UPDATE users
                     SET companion_data = replace(replace(companion_data::text, '/static/companions/', '/static/logos/'), '/static/images/companions/', '/static/logos/')::jsonb
                     WHERE companion_data::text LIKE '%/static/companions/%' OR companion_data::text LIKE '%/static/images/companions/%'
                 """)
