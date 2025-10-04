@@ -357,10 +357,10 @@ def create_app():
             
             try:
                 # Find user by email
-                cursor.execute("""
-                    SELECT id, email, password_hash, user_plan, display_name, 
+                cursor.execute(format_query("""
+                    SELECT id, email, password_hash, user_plan, display_name,
                            trial_active, artistic_credits, selected_companion
-                    FROM users 
+                    FROM users
                     WHERE email = ?
                 """), (email,))
                 
