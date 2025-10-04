@@ -1069,23 +1069,23 @@ def create_app():
                 
                 # Silver companions (8)
                 {"id": "sky_silver", "name": "Sky", "tier": "silver", "image_url": "/static/logos/Sky_a_premium_companion.png", "greeting": "Hello! I'm Sky. With enhanced features at your fingertips, let's soar to new heights together!"},
-                {"id": "gamerjay_silver", "name": "GamerJay.2", "tier": "silver", "image_url": "/static/logos/GamerJay_premium_companion.png", "greeting": "What's up! I'm GamerJay.2. Time to unlock the next level of features and dominate together!"},
+                {"id": "gamerjay_silver", "name": "GamerJay", "tier": "silver", "image_url": "/static/logos/GamerJay skin.png", "greeting": "What's up! I'm GamerJay. Time to unlock the next level of features and dominate together!"},
                 {"id": "claude_silver", "name": "Claude.3", "tier": "silver", "image_url": "/static/logos/Claude_Growth.png", "greeting": "Welcome! I'm Claude.3. With expanded capabilities, I'm ready to help you achieve more!"},
-                {"id": "blayzo_silver", "name": "Blayzo.3", "tier": "silver", "image_url": "/static/logos/Blayzo_premium_companion.png", "greeting": "Hey! I'm Blayzo.3. Ready to take your experience to the premium level?"},
+                {"id": "blayzo_silver", "name": "Blayzo", "tier": "silver", "image_url": "/static/logos/Blayzo skin.png", "greeting": "Hey! I'm Blayzo. Ready to take your experience to the premium level?"},
                 {"id": "blayzica_silver", "name": "Blayzica.2", "tier": "silver", "image_url": "/static/logos/Blayzica_Pro.png", "greeting": "Hi there! I'm Blayzica.2. Let's explore the enhanced features together!"},
-                {"id": "watchdog_silver", "name": "WatchDog", "tier": "silver", "image_url": "/static/logos/WatchDog_a_Premium_companion.png", "greeting": "Greetings! I'm WatchDog. I'll keep watch over your premium experience and help you stay on track."},
+                {"id": "watchdog_silver", "name": "WatchDog", "tier": "silver", "image_url": "/static/logos/Watch Dog skin.png", "greeting": "Greetings! I'm WatchDog. I'll keep watch over your premium experience and help you stay on track."},
                 {"id": "rozia_silver", "name": "Rozia", "tier": "silver", "image_url": "/static/logos/Rozia_Silver.png", "greeting": "Hello! I'm Rozia. I bring elegance and sophistication to your SoulBridge journey."},
                 {"id": "lumen_silver", "name": "Lumen.2", "tier": "silver", "image_url": "/static/logos/Lumen_Silver.png", "greeting": "Welcome! I'm Lumen.2. Let me illuminate your path to premium features and capabilities."},
                 
                 # Gold companions (8)
-                {"id": "crimson_gold", "name": "Crimson.2", "tier": "gold", "image_url": "/static/logos/Crimson_a_Max_companion.png", "greeting": "Welcome, I'm Crimson.2. You have access to unlimited features and the full power of SoulBridge AI!"},
+                {"id": "crimson_gold", "name": "Crimson", "tier": "gold", "image_url": "/static/logos/Crimson skin.png", "greeting": "Welcome, I'm Crimson. You have access to unlimited features and the full power of SoulBridge AI!"},
                 {"id": "violet_gold", "name": "Violet.2", "tier": "gold", "image_url": "/static/logos/Violet_a_Max_companion.png", "greeting": "Greetings! I'm Violet.2. Together we'll explore unlimited possibilities and exclusive features!"},
                 {"id": "claude_gold", "name": "Claude.2", "tier": "gold", "image_url": "/static/logos/Claude_Max.png", "greeting": "Hello! I'm Claude.2. With unlimited access to all features, let's achieve extraordinary things together!"},
                 {"id": "royal_gold", "name": "Royal", "tier": "gold", "image_url": "/static/logos/Royal_a_Max_companion.png", "greeting": "Greetings! I'm Royal. Experience the pinnacle of AI companionship with unlimited possibilities."},
                 {"id": "ven_blayzica_gold", "name": "Ven Blayzica", "tier": "gold", "image_url": "/static/logos/Ven_Blayzica_a_Max_companion.png", "greeting": "Hello! I'm Ven Blayzica. Let's venture into the ultimate SoulBridge experience together."},
                 {"id": "ven_sky_gold", "name": "Ven Sky", "tier": "gold", "image_url": "/static/logos/Ven_Sky_a_Max_companion.png", "greeting": "Welcome! I'm Ven Sky. Together we'll soar beyond limits with unlimited premium access."},
                 {"id": "watchdog_gold", "name": "WatchDog.2", "tier": "gold", "image_url": "/static/logos/WatchDog_a_Max_Companion.png", "greeting": "Greetings! I'm WatchDog.2. I'll safeguard your unlimited access and guide you through premium features."},
-                {"id": "dr_madjay_gold", "name": "Dr. MadJay", "tier": "gold", "image_url": "/static/logos/Dr. MadJay.png", "greeting": "Greetings! I'm Dr. MadJay. Let's explore the cutting-edge possibilities of unlimited AI access."},
+                {"id": "dr_madjay_gold", "name": "Dr. MadJay", "tier": "gold", "image_url": "/static/logos/Dr.MadJay skin.png", "greeting": "Greetings! I'm Dr. MadJay. Let's explore the cutting-edge possibilities of unlimited AI access."},
                 
                 # Referral companions (5)
                 {"id": "blayzike", "name": "Blayzike", "tier": "silver", "image_url": "/static/referral/blayzike.png", "min_referrals": 2},
