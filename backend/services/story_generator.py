@@ -12,6 +12,7 @@ from enum import Enum
 from typing import List, Dict, Any, Optional, Tuple
 from dataclasses import dataclass, asdict
 import random
+from database_utils import format_query
 
 logger = logging.getLogger(__name__)
 
@@ -552,7 +553,7 @@ class StoryDatabase:
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         
-        cursor.execute("""
+        cursor.execute(format_query("""
             CREATE TABLE IF NOT EXISTS stories (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 user_id TEXT NOT NULL,
@@ -604,7 +605,7 @@ class StoryDatabase:
         cursor.execute("""
             INSERT INTO stories (user_id, title, genre, length_type, content, outline, analysis)
             VALUES (?, ?, ?, ?, ?, ?, ?)
-        """, (user_id, title, genre.value, length_type.value, content, outline_json, analysis_json))
+        """), (user_id, title, genre.value, length_type.value, content, outline_json, analysis_json))
         
         story_id = cursor.lastrowid
         
@@ -612,10 +613,10 @@ class StoryDatabase:
         if outline and outline.characters:
             for character in outline.characters:
                 character_json = json.dumps(asdict(character))
-                cursor.execute("""
+                cursor.execute(format_query("""
                     INSERT INTO story_characters (story_id, character_data)
                     VALUES (?, ?)
-                """, (story_id, character_json))
+                """), (story_id, character_json))
         
         conn.commit()
         conn.close()
@@ -629,21 +630,21 @@ class StoryDatabase:
         cursor = conn.cursor()
         
         if genre:
-            cursor.execute("""
+            cursor.execute(format_query("""
                 SELECT id, title, genre, length_type, created_at, 
                        LENGTH(content) as word_count
                 FROM stories 
                 WHERE user_id = ? AND genre = ?
                 ORDER BY created_at DESC LIMIT ?
-            """, (user_id, genre.value, limit))
+            """), (user_id, genre.value, limit))
         else:
-            cursor.execute("""
+            cursor.execute(format_query("""
                 SELECT id, title, genre, length_type, created_at,
                        LENGTH(content) as word_count
                 FROM stories 
                 WHERE user_id = ?
                 ORDER BY created_at DESC LIMIT ?
-            """, (user_id, limit))
+            """), (user_id, limit))
         
         stories = []
         for row in cursor.fetchall():
@@ -666,10 +667,10 @@ class StoryDatabase:
         
         outline_json = json.dumps(asdict(outline))
         
-        cursor.execute("""
+        cursor.execute(format_query("""
             INSERT INTO story_outlines (user_id, title, genre, outline_data)
             VALUES (?, ?, ?, ?)
-        """, (user_id, outline.title, outline.genre.value, outline_json))
+        """), (user_id, outline.title, outline.genre.value, outline_json))
         
         outline_id = cursor.lastrowid
         conn.commit()

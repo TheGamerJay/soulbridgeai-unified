@@ -18,6 +18,7 @@ import json
 from datetime import datetime, timezone, timedelta
 from typing import Optional, Dict, Any, List, Tuple
 from flask import Blueprint, jsonify, request, session
+from database_utils import format_query
 
 logger = logging.getLogger(__name__)
 
@@ -171,19 +172,19 @@ def process_referral(referrer_id: int, referred_user_id: int, referral_code: str
         cursor = conn.cursor()
         
         # Create referral record
-        cursor.execute("""
+        cursor.execute(format_query("""
             INSERT INTO referrals (referrer_id, referred_id, referral_code, status, verification_method)
             VALUES (?, ?, ?, 'pending', 'signup')
-        """, (referrer_id, referred_user_id, referral_code))
+        """), (referrer_id, referred_user_id, referral_code))
         
         referral_id = cursor.lastrowid
         
         # Update referral code usage
-        cursor.execute("""
+        cursor.execute(format_query("""
             UPDATE referral_codes 
             SET uses_count = uses_count + 1 
             WHERE user_id = ? AND code = ?
-        """, (referrer_id, referral_code))
+        """), (referrer_id, referral_code))
         
         conn.commit()
         conn.close()
@@ -214,11 +215,11 @@ def verify_referral(referred_user_id: int, verification_method: str) -> Dict[str
         cursor = conn.cursor()
         
         # Find pending referral for this user
-        cursor.execute("""
+        cursor.execute(format_query("""
             SELECT id, referrer_id, referral_code 
             FROM referrals 
             WHERE referred_id = ? AND status = 'pending'
-        """, (referred_user_id,))
+        """), (referred_user_id,))
         
         referral = cursor.fetchone()
         if not referral:
@@ -228,11 +229,11 @@ def verify_referral(referred_user_id: int, verification_method: str) -> Dict[str
         referral_id, referrer_id, referral_code = referral
         
         # Update referral to verified
-        cursor.execute("""
+        cursor.execute(format_query("""
             UPDATE referrals 
             SET status = 'verified', verification_method = ?, verified_at = CURRENT_TIMESTAMP
             WHERE id = ?
-        """, (verification_method, referral_id))
+        """), (verification_method, referral_id))
         
         conn.commit()
         conn.close()
@@ -309,20 +310,20 @@ def validate_referral_eligibility(referrer_id: int, referred_user_id: int) -> Di
         cursor = conn.cursor()
         
         # Check if referral already exists
-        cursor.execute("""
+        cursor.execute(format_query("""
             SELECT id FROM referrals 
             WHERE referrer_id = ? AND referred_id = ?
-        """, (referrer_id, referred_user_id))
+        """), (referrer_id, referred_user_id))
         
         if cursor.fetchone():
             conn.close()
             return {'valid': False, 'reason': 'Referral already exists'}
         
         # Check referrer's pending referral count
-        cursor.execute("""
+        cursor.execute(format_query("""
             SELECT COUNT(*) FROM referrals 
             WHERE referrer_id = ? AND status = 'pending'
-        """, (referrer_id,))
+        """), (referrer_id,))
         
         pending_count = cursor.fetchone()[0]
         if pending_count >= REFERRAL_LIMITS['max_pending_per_user']:
@@ -352,10 +353,10 @@ def validate_account_for_referral_verification(user_id: int) -> bool:
         cursor = conn.cursor()
         
         # Check account age (24+ hours)
-        cursor.execute("""
+        cursor.execute(format_query("""
             SELECT created_at FROM users 
             WHERE id = ?
-        """, (user_id,))
+        """), (user_id,))
         
         result = cursor.fetchone()
         if not result:
@@ -399,11 +400,11 @@ def get_or_create_referral_code(user_id: int) -> str:
         cursor = conn.cursor()
         
         # Check if user already has a code
-        cursor.execute("""
+        cursor.execute(format_query("""
             SELECT code FROM referral_codes 
             WHERE user_id = ? AND is_active = TRUE 
             ORDER BY created_at DESC LIMIT 1
-        """, (user_id,))
+        """), (user_id,))
         
         result = cursor.fetchone()
         if result:
@@ -416,13 +417,13 @@ def get_or_create_referral_code(user_id: int) -> str:
             code = generate_referral_code()
             
             # Check uniqueness
-            cursor.execute("SELECT id FROM referral_codes WHERE code = ?", (code,))
+            cursor.execute(format_query(SELECT id FROM referral_codes WHERE code = ?"), (code,))
             if not cursor.fetchone():
                 # Create the code
-                cursor.execute("""
+                cursor.execute(format_query("""
                     INSERT INTO referral_codes (user_id, code, is_active)
                     VALUES (?, ?, TRUE)
-                """, (user_id, code))
+                """), (user_id, code))
                 
                 conn.commit()
                 conn.close()
@@ -457,10 +458,10 @@ def validate_referral_code(referral_code: str) -> Optional[int]:
         conn = db.get_connection()
         cursor = conn.cursor()
         
-        cursor.execute("""
+        cursor.execute(format_query("""
             SELECT user_id FROM referral_codes 
             WHERE code = ? AND is_active = TRUE
-        """, (referral_code,))
+        """), (referral_code,))
         
         result = cursor.fetchone()
         conn.close()
@@ -532,13 +533,13 @@ def get_referral_cosmetics(user_id: int) -> List[Dict[str, Any]]:
         conn = db.get_connection()
         cursor = conn.cursor()
         
-        cursor.execute("""
+        cursor.execute(format_query("""
             SELECT rr.threshold_reached, c.name, c.display_name, c.rarity, rr.unlocked_at
             FROM referral_rewards rr
             JOIN cosmetics c ON rr.cosmetic_id = c.id
             WHERE rr.user_id = ?
             ORDER BY rr.threshold_reached ASC
-        """, (user_id,))
+        """), (user_id,))
         
         cosmetics = []
         for row in cursor.fetchall():
@@ -570,10 +571,10 @@ def has_referral_reward(user_id: int, threshold: int) -> bool:
         conn = db.get_connection()
         cursor = conn.cursor()
         
-        cursor.execute("""
+        cursor.execute(format_query("""
             SELECT id FROM referral_rewards 
             WHERE user_id = ? AND threshold_reached = ?
-        """, (user_id, threshold))
+        """), (user_id, threshold))
         
         result = cursor.fetchone()
         conn.close()
@@ -597,7 +598,7 @@ def unlock_referral_cosmetic(user_id: int, threshold: int, cosmetic_name: str) -
         cursor = conn.cursor()
         
         # Get cosmetic ID
-        cursor.execute("SELECT id FROM cosmetics WHERE name = ?", (cosmetic_name,))
+        cursor.execute(format_query(SELECT id FROM cosmetics WHERE name = ?"), (cosmetic_name,))
         cosmetic_result = cursor.fetchone()
         
         if not cosmetic_result:
@@ -607,16 +608,16 @@ def unlock_referral_cosmetic(user_id: int, threshold: int, cosmetic_name: str) -
         cosmetic_id = cosmetic_result[0]
         
         # Record the referral reward
-        cursor.execute("""
+        cursor.execute(format_query("""
             INSERT INTO referral_rewards (user_id, threshold_reached, cosmetic_id)
             VALUES (?, ?, ?)
-        """, (user_id, threshold, cosmetic_id))
+        """), (user_id, threshold, cosmetic_id))
         
         # Add to user's cosmetics
-        cursor.execute("""
+        cursor.execute(format_query("""
             INSERT OR IGNORE INTO user_cosmetics (user_id, cosmetic_id, unlock_source)
             VALUES (?, ?, ?)
-        """, (user_id, cosmetic_id, f'referral_{threshold}'))
+        """), (user_id, cosmetic_id, f'referral_{threshold}'))
         
         conn.commit()
         conn.close()

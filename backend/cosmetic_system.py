@@ -16,6 +16,7 @@ import json
 from datetime import datetime, timezone
 from typing import Optional, Dict, Any, List
 from flask import Blueprint, jsonify, request, session
+from database_utils import format_query
 
 logger = logging.getLogger(__name__)
 
@@ -197,20 +198,20 @@ def unlock_cosmetic_for_user(user_id: int, cosmetic_id: int, unlock_source: str)
         cursor = conn.cursor()
         
         # Check if already unlocked
-        cursor.execute("""
+        cursor.execute(format_query("""
             SELECT id FROM user_cosmetics 
             WHERE user_id = ? AND cosmetic_id = ?
-        """, (user_id, cosmetic_id))
+        """), (user_id, cosmetic_id))
         
         if cursor.fetchone():
             conn.close()
             return True  # Already unlocked
         
         # Unlock the cosmetic
-        cursor.execute("""
+        cursor.execute(format_query("""
             INSERT INTO user_cosmetics (user_id, cosmetic_id, unlock_source)
             VALUES (?, ?, ?)
-        """, (user_id, cosmetic_id, unlock_source))
+        """), (user_id, cosmetic_id, unlock_source))
         
         conn.commit()
         conn.close()
@@ -239,19 +240,19 @@ def equip_cosmetic_for_user(user_id: int, cosmetic_id: int, cosmetic_type: str) 
         cursor = conn.cursor()
         
         # Remove any currently equipped item of this type
-        cursor.execute("""
+        cursor.execute(format_query("""
             DELETE FROM user_equipped_cosmetics 
             WHERE user_id = ? AND cosmetic_type = ?
-        """, (user_id, cosmetic_type))
+        """), (user_id, cosmetic_type))
         
         # Equip the new cosmetic
-        cursor.execute("""
+        cursor.execute(format_query("""
             INSERT INTO user_equipped_cosmetics (user_id, cosmetic_type, cosmetic_id)
             VALUES (?, ?, ?)
-        """, (user_id, cosmetic_type, cosmetic_id))
+        """), (user_id, cosmetic_type, cosmetic_id))
         
         # Update user_cosmetics to mark as equipped
-        cursor.execute("""
+        cursor.execute(format_query("""
             UPDATE user_cosmetics 
             SET is_equipped = FALSE 
             WHERE user_id = ? AND cosmetic_id IN (
@@ -259,13 +260,13 @@ def equip_cosmetic_for_user(user_id: int, cosmetic_id: int, cosmetic_type: str) 
                 JOIN cosmetics c ON uc.cosmetic_id = c.id
                 WHERE uc.user_id = ? AND c.type = ?
             )
-        """, (user_id, user_id, cosmetic_type))
+        """), (user_id, user_id, cosmetic_type))
         
-        cursor.execute("""
+        cursor.execute(format_query("""
             UPDATE user_cosmetics 
             SET is_equipped = TRUE 
             WHERE user_id = ? AND cosmetic_id = ?
-        """, (user_id, cosmetic_id))
+        """), (user_id, cosmetic_id))
         
         conn.commit()
         conn.close()
@@ -289,13 +290,13 @@ def unequip_cosmetic_for_user(user_id: int, cosmetic_type: str) -> bool:
         cursor = conn.cursor()
         
         # Remove equipped cosmetic of this type
-        cursor.execute("""
+        cursor.execute(format_query("""
             DELETE FROM user_equipped_cosmetics 
             WHERE user_id = ? AND cosmetic_type = ?
-        """, (user_id, cosmetic_type))
+        """), (user_id, cosmetic_type))
         
         # Update user_cosmetics to mark as not equipped
-        cursor.execute("""
+        cursor.execute(format_query("""
             UPDATE user_cosmetics 
             SET is_equipped = FALSE 
             WHERE user_id = ? AND cosmetic_id IN (
@@ -303,7 +304,7 @@ def unequip_cosmetic_for_user(user_id: int, cosmetic_type: str) -> bool:
                 JOIN cosmetics c ON uc.cosmetic_id = c.id
                 WHERE uc.user_id = ? AND c.type = ?
             )
-        """, (user_id, user_id, cosmetic_type))
+        """), (user_id, user_id, cosmetic_type))
         
         conn.commit()
         conn.close()
@@ -326,10 +327,10 @@ def user_owns_cosmetic(user_id: int, cosmetic_id: int) -> bool:
         conn = db.get_connection()
         cursor = conn.cursor()
         
-        cursor.execute("""
+        cursor.execute(format_query("""
             SELECT id FROM user_cosmetics 
             WHERE user_id = ? AND cosmetic_id = ?
-        """, (user_id, cosmetic_id))
+        """), (user_id, cosmetic_id))
         
         result = cursor.fetchone()
         conn.close()
@@ -352,12 +353,12 @@ def get_cosmetic_by_id(cosmetic_id: int) -> Optional[Dict[str, Any]]:
         conn = db.get_connection()
         cursor = conn.cursor()
         
-        cursor.execute("""
+        cursor.execute(format_query("""
             SELECT id, name, display_name, description, type, rarity, 
                    unlock_method, unlock_requirement, image_url, is_active
             FROM cosmetics 
             WHERE id = ? AND is_active = TRUE
-        """, (cosmetic_id,))
+        """), (cosmetic_id,))
         
         row = cursor.fetchone()
         conn.close()
@@ -394,7 +395,7 @@ def get_all_cosmetics() -> List[Dict[str, Any]]:
         conn = db.get_connection()
         cursor = conn.cursor()
         
-        cursor.execute("""
+        cursor.execute(format_query("""
             SELECT id, name, display_name, description, type, rarity, 
                    unlock_method, unlock_requirement, image_url, is_active
             FROM cosmetics 
@@ -441,7 +442,7 @@ def get_user_equipped_companions(user_id: int) -> List[Dict[str, Any]]:
             FROM user_equipped_cosmetics uec
             JOIN cosmetics c ON uec.cosmetic_id = c.id
             WHERE uec.user_id = ? AND c.type = 'companion'
-        """, (user_id,))
+        """), (user_id,))
         
         companions = []
         for row in cursor.fetchall():

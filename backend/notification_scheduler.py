@@ -7,6 +7,7 @@ import schedule
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any
 from notification_system import NotificationManager, NotificationTemplate, NotificationAutomation
+from database_utils import format_query
 
 logger = logging.getLogger(__name__)
 

@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from functools import wraps
 from flask import session, request, jsonify, redirect
 import logging
+from database_utils import format_query
 
 logger = logging.getLogger(__name__)
 

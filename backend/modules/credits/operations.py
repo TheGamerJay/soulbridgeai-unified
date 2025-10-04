@@ -7,6 +7,10 @@ import logging
 from datetime import date
 from typing import Optional
 from .constants import ARTISTIC_TIME_COSTS, TIER_ARTISTIC_TIME, TRIAL_ARTISTIC_TIME
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from database_utils import format_query
 
 logger = logging.getLogger(__name__)
 
@@ -16,50 +20,37 @@ def ensure_user_data_initialized(user_id: int, db) -> bool:
         conn = db.get_connection()
         cursor = conn.cursor()
         
-        # Get current user data
-        if db.use_postgres:
-            cursor.execute("""
-                SELECT user_plan, artistic_time, trial_active, trial_credits, last_credit_reset
-                FROM users WHERE id = %s
-            """, (user_id,))
-        else:
-            cursor.execute("""
-                SELECT user_plan, artistic_time, trial_active, trial_credits, last_credit_reset
-                FROM users WHERE id = ?
-            """, (user_id,))
-        
+        # Get current user data (no more trial system)
+        cursor.execute(format_query("""
+            SELECT user_plan, artistic_credits, last_credit_reset
+            FROM users WHERE id = ?
+        """), (user_id,))
+
         result = cursor.fetchone()
         if not result:
             logger.error(f"User {user_id} not found for credit initialization")
             conn.close()
             return False
-            
-        user_plan, artistic_time, trial_active, trial_credits, last_reset = result
-        logger.debug(f"Credit data for user {user_id}: plan={user_plan}, artistic_time={artistic_time}, trial_active={trial_active}, trial_credits={trial_credits}")
+
+        user_plan, artistic_credits, last_reset = result
+        logger.debug(f"Credit data for user {user_id}: plan={user_plan}, artistic_credits={artistic_credits}")
         
         # Initialize missing data
         updates = []
         params = []
-        
-        # Initialize artistic_time if NULL and user is subscriber
-        if artistic_time is None and user_plan in ['silver', 'gold']:
-            monthly_allowance = TIER_ARTISTIC_TIME.get(user_plan, 0)
-            updates.append("artistic_time = %s" if db.use_postgres else "artistic_time = ?")
+
+        # Initialize artistic_credits if NULL and user is subscriber
+        if artistic_credits is None and user_plan in ['silver', 'gold', 'soul_companion']:
+            monthly_allowance = TIER_ARTISTIC_TIME.get(user_plan, 200)
+            updates.append("artistic_credits = ?")
             params.append(monthly_allowance)
-            logger.info(f"Initializing artistic_time for {user_plan} user {user_id} with {monthly_allowance}")
-        
-        # Initialize trial_credits if NULL and user has active trial
-        if trial_credits is None and trial_active and user_plan == 'bronze':
-            updates.append("trial_credits = %s" if db.use_postgres else "trial_credits = ?")
-            params.append(TRIAL_ARTISTIC_TIME)
-            logger.info(f"Initializing trial_credits for Bronze trial user {user_id} with {TRIAL_ARTISTIC_TIME}")
-        
+            logger.info(f"Initializing artistic_credits for {user_plan} user {user_id} with {monthly_allowance}")
+
         # Apply updates if needed
         if updates:
-            param_placeholder = "%s" if db.use_postgres else "?"
-            query = f"UPDATE users SET {', '.join(updates)} WHERE id = {param_placeholder}"
+            query = format_query(f"UPDATE users SET {', '.join(updates)} WHERE id = ?")
             params.append(user_id)
-            
+
             cursor.execute(query, params)
             conn.commit()
             logger.info(f"Updated user {user_id} with missing credit data")
@@ -94,9 +85,9 @@ def get_artistic_time(user_id: int) -> int:
                 SELECT credits_remaining FROM user_credits WHERE user_id = %s
             """, (user_id,))
         else:
-            cursor.execute("""
+            cursor.execute(format_query("""
                 SELECT credits_remaining FROM user_credits WHERE user_id = ?
-            """, (user_id,))
+            """), (user_id,))
         
         result = cursor.fetchone()
         if result:
@@ -106,10 +97,10 @@ def get_artistic_time(user_id: int) -> int:
             return max(0, credits)
         
         # Fallback to old system for migration period
-        cursor.execute("""
+        cursor.execute(format_query("""
             SELECT user_plan, artistic_time, trial_active, trial_credits
             FROM users WHERE id = ?
-        """, (user_id,))
+        """), (user_id,))
         
         result = cursor.fetchone()
         if not result:
@@ -156,9 +147,9 @@ def deduct_artistic_time(user_id: int, amount: int) -> bool:
                 SELECT credits_remaining FROM user_credits WHERE user_id = %s
             """, (user_id,))
         else:
-            cursor.execute("""
+            cursor.execute(format_query("""
                 SELECT credits_remaining FROM user_credits WHERE user_id = ?
-            """, (user_id,))
+            """), (user_id,))
         
         result = cursor.fetchone()
         if result:
@@ -175,15 +166,15 @@ def deduct_artistic_time(user_id: int, amount: int) -> bool:
                     UPDATE user_credits SET credits_remaining = %s WHERE user_id = %s
                 """, (new_balance, user_id))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     UPDATE user_credits SET credits_remaining = ? WHERE user_id = ?
-                """, (new_balance, user_id))
+                """), (new_balance, user_id))
             
             # Add to ledger
-            cursor.execute("""
+            cursor.execute(format_query("""
                 INSERT INTO credit_ledger (user_id, delta, reason, metadata)
                 VALUES (?, ?, ?, ?)
-            """, (user_id, -amount, 'feature_usage', '{}'))
+            """), (user_id, -amount, 'feature_usage', '{}'))
             
             conn.commit()
             conn.close()
@@ -191,10 +182,10 @@ def deduct_artistic_time(user_id: int, amount: int) -> bool:
             return True
         
         # Fallback to old system during migration
-        cursor.execute("""
+        cursor.execute(format_query("""
             SELECT user_plan, artistic_time, trial_active, trial_credits
             FROM users WHERE id = ?
-        """, (user_id,))
+        """), (user_id,))
         
         result = cursor.fetchone()
         if not result:
@@ -232,11 +223,11 @@ def deduct_artistic_time(user_id: int, amount: int) -> bool:
         else:
             new_monthly_credits = monthly_balance - amount
         
-        cursor.execute("""
+        cursor.execute(format_query("""
             UPDATE users 
             SET artistic_time = ?, trial_credits = ?
             WHERE id = ?
-        """, (new_monthly_credits, new_trial_credits, user_id))
+        """), (new_monthly_credits, new_trial_credits, user_id))
         
         conn.commit()
         conn.close()
@@ -270,9 +261,9 @@ def refund_artistic_time(user_id: int, amount: int, reason: str = "refund") -> b
                 SELECT credits_remaining FROM user_credits WHERE user_id = %s
             """, (user_id,))
         else:
-            cursor.execute("""
+            cursor.execute(format_query("""
                 SELECT credits_remaining FROM user_credits WHERE user_id = ?
-            """, (user_id,))
+            """), (user_id,))
         
         result = cursor.fetchone()
         if result:
@@ -285,15 +276,15 @@ def refund_artistic_time(user_id: int, amount: int, reason: str = "refund") -> b
                     UPDATE user_credits SET credits_remaining = %s WHERE user_id = %s
                 """, (new_balance, user_id))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     UPDATE user_credits SET credits_remaining = ? WHERE user_id = ?
-                """, (new_balance, user_id))
+                """), (new_balance, user_id))
             
             # Add to ledger
-            cursor.execute("""
+            cursor.execute(format_query("""
                 INSERT INTO credit_ledger (user_id, delta, reason, metadata)
                 VALUES (?, ?, ?, ?)
-            """, (user_id, amount, reason, '{}'))
+            """), (user_id, amount, reason, '{}'))
             
             conn.commit()
             conn.close()
@@ -301,10 +292,10 @@ def refund_artistic_time(user_id: int, amount: int, reason: str = "refund") -> b
             return True
         
         # Fallback to old system
-        cursor.execute("""
+        cursor.execute(format_query("""
             SELECT user_plan, artistic_time, trial_active, trial_credits
             FROM users WHERE id = ?
-        """, (user_id,))
+        """), (user_id,))
         
         result = cursor.fetchone()
         if not result:
@@ -317,18 +308,18 @@ def refund_artistic_time(user_id: int, amount: int, reason: str = "refund") -> b
         # Use old system logic
         if trial_active and user_plan == 'bronze':
             new_trial_credits = (trial_credits or 0) + amount
-            cursor.execute("""
+            cursor.execute(format_query("""
                 UPDATE users 
                 SET trial_credits = ?
                 WHERE id = ?
-            """, (new_trial_credits, user_id))
+            """), (new_trial_credits, user_id))
         else:
             new_monthly_credits = (current_credits or 0) + amount
-            cursor.execute("""
+            cursor.execute(format_query("""
                 UPDATE users 
                 SET artistic_time = ?
                 WHERE id = ?
-            """, (new_monthly_credits, user_id))
+            """), (new_monthly_credits, user_id))
         
         conn.commit()
         conn.close()
@@ -368,11 +359,11 @@ def get_credit_summary(user_id: int) -> dict:
                 FROM users WHERE id = %s
             """, (user_id,))
         else:
-            cursor.execute("""
+            cursor.execute(format_query("""
                 SELECT user_plan, artistic_time, trial_active, trial_credits,
                        last_credit_reset, trial_expires_at
                 FROM users WHERE id = ?
-            """, (user_id,))
+            """), (user_id,))
         
         result = cursor.fetchone()
         if not result:

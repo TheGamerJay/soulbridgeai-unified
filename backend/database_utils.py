@@ -47,3 +47,11 @@ def is_postgres():
 def get_placeholder():
     """Get the correct parameter placeholder for current database"""
     return "%s" if is_postgres() else "?"
+
+
+def format_query(query):
+    """Convert SQLite ? placeholders to PostgreSQL %s if needed"""
+    if is_postgres():
+        # Replace all ? with %s for PostgreSQL
+        return query.replace('?', '%s')
+    return query

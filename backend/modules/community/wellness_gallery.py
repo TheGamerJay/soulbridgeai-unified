@@ -7,6 +7,7 @@ import logging
 from datetime import datetime, timedelta
 from typing import Dict, Any, List, Optional
 import json
+from database_utils import format_query
 
 logger = logging.getLogger(__name__)
 
@@ -234,14 +235,14 @@ class WellnessGallery:
                 """, (content_id,))
                 result = cursor.fetchone()
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     UPDATE wellness_gallery 
                     SET hearts_count = COALESCE(hearts_count, 0) + 1 
                     WHERE id = ? AND is_approved = 1
-                """, (content_id,))
+                """), (content_id,))
                 
                 # Get updated count for SQLite
-                cursor.execute("SELECT hearts_count FROM wellness_gallery WHERE id = ?", (content_id,))
+                cursor.execute(format_query(SELECT hearts_count FROM wellness_gallery WHERE id = ?"), (content_id,))
                 result = cursor.fetchone()
             
             if not result:
@@ -454,12 +455,12 @@ class WellnessGallery:
                 ))
                 content_id = cursor.fetchone()[0]
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     INSERT INTO wellness_gallery 
                     (content_type, content, theme, mood, is_approved, moderation_status, 
                      hearts_count, created_at, metadata)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, (
+                """), (
                     gallery_item['content_type'],
                     gallery_item['content'],
                     gallery_item['theme'],

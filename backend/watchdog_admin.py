@@ -17,6 +17,7 @@ import json
 # Add backend directory to path to import Database
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from auth import Database
+from database_utils import format_query
 
 # Configure logging
 logging.basicConfig(
@@ -331,7 +332,7 @@ def get_plan_count(plan):
         if db.use_postgres:
             cursor.execute("SELECT COUNT(*) FROM users WHERE user_plan = %s", (plan,))
         else:
-            cursor.execute("SELECT COUNT(*) FROM users WHERE user_plan = ?", (plan,))
+            cursor.execute(format_query(SELECT COUNT(*) FROM users WHERE user_plan = ?"), (plan,))
         count = cursor.fetchone()[0]
         conn.close()
         return count
@@ -386,7 +387,7 @@ def get_recent_actions(limit=10):
         
         # Check if action_logs table exists
         try:
-            cursor.execute("SELECT user_id, action, timestamp FROM action_logs ORDER BY timestamp DESC LIMIT ?", (limit,))
+            cursor.execute(format_query(SELECT user_id, action, timestamp FROM action_logs ORDER BY timestamp DESC LIMIT ?"), (limit,))
             actions = cursor.fetchall()
             conn.close()
             return [{'user_id': a[0], 'action': a[1], 'timestamp': a[2]} for a in actions]
@@ -412,7 +413,7 @@ def get_actions_today():
             if db.use_postgres:
                 cursor.execute("SELECT COUNT(*) FROM action_logs WHERE DATE(timestamp) = %s", (today,))
             else:
-                cursor.execute("SELECT COUNT(*) FROM action_logs WHERE DATE(timestamp) = ?", (today,))
+                cursor.execute(format_query(SELECT COUNT(*) FROM action_logs WHERE DATE(timestamp) = ?"), (today,))
             count = cursor.fetchone()[0]
             conn.close()
             return count
@@ -511,12 +512,12 @@ def get_user_by_id(user_id):
                 FROM users WHERE id = %s
             """, (user_id,))
         else:
-            cursor.execute("""
+            cursor.execute(format_query("""
                 SELECT id, email, display_name, user_plan, trial_active, trial_started_at,
                        trial_used_permanently, is_admin, decoder_used, fortune_used, 
                        horoscope_used, created_at, last_login
                 FROM users WHERE id = ?
-            """, (user_id,))
+            """), (user_id,))
         
         row = cursor.fetchone()
         conn.close()
@@ -648,13 +649,13 @@ def get_expired_trials(limit=50):
                 LIMIT %s
             """, (limit,))
         else:
-            cursor.execute("""
+            cursor.execute(format_query("""
                 SELECT id, email, display_name, trial_started_at, user_plan
                 FROM users 
                 WHERE trial_used_permanently = 1
                 ORDER BY trial_started_at DESC 
                 LIMIT ?
-            """, (limit,))
+            """), (limit,))
         
         expired = []
         for row in cursor.fetchall():
@@ -725,13 +726,13 @@ def get_recent_trial_activity(limit=20):
                 LIMIT %s
             """, (limit,))
         else:
-            cursor.execute("""
+            cursor.execute(format_query("""
                 SELECT email, display_name, trial_started_at, 'started' as activity
                 FROM users 
                 WHERE trial_started_at IS NOT NULL
                 ORDER BY trial_started_at DESC 
                 LIMIT ?
-            """, (limit,))
+            """), (limit,))
         
         for row in cursor.fetchall():
             activities.append({
@@ -871,13 +872,13 @@ def get_top_actions(limit=10):
         cursor = conn.cursor()
         
         try:
-            cursor.execute("""
+            cursor.execute(format_query("""
                 SELECT action, COUNT(*) as count
                 FROM action_logs 
                 GROUP BY action
                 ORDER BY count DESC
                 LIMIT ?
-            """, (limit,))
+            """), (limit,))
             
             actions = [{'action': row[0], 'count': row[1]} for row in cursor.fetchall()]
             conn.close()
@@ -899,13 +900,13 @@ def get_recent_action_logs(limit=100):
         cursor = conn.cursor()
         
         try:
-            cursor.execute("""
+            cursor.execute(format_query("""
                 SELECT al.user_id, u.email, al.action, al.timestamp, al.ip_address
                 FROM action_logs al
                 LEFT JOIN users u ON al.user_id = u.id
                 ORDER BY al.timestamp DESC
                 LIMIT ?
-            """, (limit,))
+            """), (limit,))
             
             logs = []
             for row in cursor.fetchall():

@@ -7,6 +7,7 @@ import logging
 from datetime import datetime
 from typing import Dict, Any, List, Optional
 import json
+from database_utils import format_query
 
 logger = logging.getLogger(__name__)
 
@@ -151,11 +152,11 @@ class CommunityService:
                         """, (companion_json, user_id))
                         rows_affected = cursor.rowcount
                     else:
-                        cursor.execute("""
+                        cursor.execute(format_query("""
                             UPDATE users 
                             SET companion_data = ?, updated_at = CURRENT_TIMESTAMP
                             WHERE id = ?
-                        """, (companion_json, user_id))
+                        """), (companion_json, user_id))
                         rows_affected = cursor.rowcount
                     
                     conn.commit()
@@ -418,10 +419,10 @@ class CommunityService:
                     FROM users WHERE id = %s
                 """, (user_id,))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     SELECT companion_data, updated_at 
                     FROM users WHERE id = ?
-                """, (user_id,))
+                """), (user_id,))
             
             result = cursor.fetchone()
             conn.close()

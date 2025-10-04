@@ -6,6 +6,7 @@ Extracted from monolith app.py with improvements
 import logging
 from typing import Dict, Any, List, Optional
 from datetime import datetime, timezone, timedelta
+from database_utils import format_query
 
 logger = logging.getLogger(__name__)
 
@@ -82,13 +83,13 @@ class AdminManagementService:
                     FROM users
                 """, (one_week_ago, one_month_ago))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     SELECT 
                         COUNT(CASE WHEN created_at >= ? THEN 1 END) as new_users_week,
                         COUNT(CASE WHEN created_at >= ? THEN 1 END) as new_users_month,
                         COUNT(*) as total_users
                     FROM users
-                """, (one_week_ago.isoformat(), one_month_ago.isoformat()))
+                """), (one_week_ago.isoformat(), one_month_ago.isoformat()))
             
             registration_stats = cursor.fetchone()
             conn.close()
@@ -219,14 +220,14 @@ class AdminManagementService:
                     WHERE created_at >= %s
                 """, (one_week_ago,))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     SELECT 
                         COUNT(DISTINCT user_id) as active_users,
                         COUNT(*) as total_interactions,
                         COUNT(DISTINCT feature_type) as features_used
                     FROM user_activity_log 
                     WHERE created_at >= ?
-                """, (one_week_ago.isoformat(),))
+                """), (one_week_ago.isoformat(),))
             
             activity_row = cursor.fetchone()
             
@@ -237,10 +238,10 @@ class AdminManagementService:
                     WHERE created_at >= %s
                 """, (one_week_ago,))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     SELECT COUNT(*) FROM chat_conversations 
                     WHERE created_at >= ?
-                """, (one_week_ago.isoformat(),))
+                """), (one_week_ago.isoformat(),))
             
             chat_messages = cursor.fetchone()[0] or 0
             conn.close()
@@ -339,17 +340,17 @@ class AdminManagementService:
                 result = cursor.fetchone()
                 user_email = result[0] if result else None
             else:
-                cursor.execute("SELECT email FROM users WHERE id = ?", (user_id,))
+                cursor.execute(format_query(SELECT email FROM users WHERE id = ?"), (user_id,))
                 result = cursor.fetchone()
                 user_email = result[0] if result else None
                 
-                cursor.execute("""
+                cursor.execute(format_query("""
                     UPDATE users 
                     SET trial_active = 0, 
                         trial_expires_at = NULL,
                         trial_start_time = NULL
                     WHERE id = ?
-                """, (user_id,))
+                """), (user_id,))
             
             conn.commit()
             conn.close()
@@ -396,7 +397,7 @@ class AdminManagementService:
             if db.db_type == 'postgresql':
                 cursor.execute("SELECT email, user_plan FROM users WHERE id = %s", (user_id,))
             else:
-                cursor.execute("SELECT email, user_plan FROM users WHERE id = ?", (user_id,))
+                cursor.execute(format_query(SELECT email, user_plan FROM users WHERE id = ?"), (user_id,))
             
             user_data = cursor.fetchone()
             if not user_data:
@@ -413,11 +414,11 @@ class AdminManagementService:
                     WHERE id = %s
                 """, (new_plan, datetime.now(timezone.utc), user_id))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     UPDATE users 
                     SET user_plan = ?, updated_at = ?
                     WHERE id = ?
-                """, (new_plan, datetime.now(timezone.utc).isoformat(), user_id))
+                """), (new_plan, datetime.now(timezone.utc).isoformat(), user_id))
             
             conn.commit()
             conn.close()
@@ -467,13 +468,13 @@ class AdminManagementService:
                     WHERE id = %s
                 """, (user_id,))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     SELECT 
                         id, email, user_plan, trial_active, trial_expires_at,
                         created_at, last_login, referrals, COALESCE(credits, 0)
                     FROM users 
                     WHERE id = ?
-                """, (user_id,))
+                """), (user_id,))
             
             user_row = cursor.fetchone()
             
@@ -493,13 +494,13 @@ class AdminManagementService:
                     WHERE user_id = %s AND created_at >= %s
                 """, (user_id, one_week_ago))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     SELECT 
                         COUNT(*) as recent_activity,
                         COUNT(DISTINCT feature_type) as features_used
                     FROM user_activity_log 
                     WHERE user_id = ? AND created_at >= ?
-                """, (user_id, one_week_ago.isoformat()))
+                """), (user_id, one_week_ago.isoformat()))
             
             activity_row = cursor.fetchone()
             conn.close()
@@ -548,12 +549,12 @@ class AdminManagementService:
                         LIMIT %s
                     """, (int(query), limit))
                 else:
-                    cursor.execute("""
+                    cursor.execute(format_query("""
                         SELECT id, email, user_plan, trial_active, created_at
                         FROM users 
                         WHERE id = ?
                         LIMIT ?
-                    """, (int(query), limit))
+                    """), (int(query), limit))
             else:
                 # Search by email
                 search_pattern = f"%{query}%"
@@ -566,13 +567,13 @@ class AdminManagementService:
                         LIMIT %s
                     """, (search_pattern, limit))
                 else:
-                    cursor.execute("""
+                    cursor.execute(format_query("""
                         SELECT id, email, user_plan, trial_active, created_at
                         FROM users 
                         WHERE email LIKE ? COLLATE NOCASE
                         ORDER BY created_at DESC
                         LIMIT ?
-                    """, (search_pattern, limit))
+                    """), (search_pattern, limit))
             
             rows = cursor.fetchall()
             conn.close()

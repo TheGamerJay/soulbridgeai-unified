@@ -7,6 +7,7 @@ import sqlite3
 from datetime import datetime, timedelta
 import hashlib
 import secrets
+from database_utils import format_query
 
 def test_password_reset_table():
     """Test if password reset tokens table works"""
@@ -29,22 +30,22 @@ def test_password_reset_table():
         test_token_hash = hashlib.sha256(test_token.encode('utf-8')).hexdigest()
         test_expires = (datetime.utcnow() + timedelta(hours=1)).isoformat() + 'Z'
         
-        cursor.execute("""
+        cursor.execute(format_query("""
             INSERT INTO password_reset_tokens 
             (user_id, token_hash, expires_at, request_ip, request_ua)
             VALUES (?, ?, ?, ?, ?)
-        """, (test_user_id, test_token_hash, test_expires, '127.0.0.1', 'test-agent'))
+        """), (test_user_id, test_token_hash, test_expires, '127.0.0.1', 'test-agent'))
         
         test_id = cursor.lastrowid
         print(f"Test insert successful: ID {test_id}")
         
         # Test select
-        cursor.execute("SELECT * FROM password_reset_tokens WHERE id = ?", (test_id,))
+        cursor.execute(format_query(SELECT * FROM password_reset_tokens WHERE id = ?"), (test_id,))
         result = cursor.fetchone()
         print(f"Test select result: {result}")
         
         # Clean up test data
-        cursor.execute("DELETE FROM password_reset_tokens WHERE id = ?", (test_id,))
+        cursor.execute(format_query(DELETE FROM password_reset_tokens WHERE id = ?"), (test_id,))
         conn.commit()
         print("Test data cleaned up")
         

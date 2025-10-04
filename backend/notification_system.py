@@ -11,6 +11,7 @@ from collections import defaultdict
 import asyncio
 import threading
 import time
+from database_utils import format_query
 
 logger = logging.getLogger(__name__)
 
@@ -519,12 +520,12 @@ class NotificationManager:
         """Store notification in database"""
         try:
             cursor = self.db.connection.cursor()
-            cursor.execute("""
+            cursor.execute(format_query("""
                 INSERT INTO notifications (
                     id, user_id, title, message, type, priority, channels,
                     data, created_at, expires_at, is_persistent, action_url
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
+            """), (
                 notification.id,
                 notification.user_id,
                 notification.title,
@@ -546,11 +547,11 @@ class NotificationManager:
         """Update notification read status in database"""
         try:
             cursor = self.db.connection.cursor()
-            cursor.execute("""
+            cursor.execute(format_query("""
                 UPDATE notifications 
                 SET read_at = ? 
                 WHERE id = ?
-            """, (read_at.isoformat(), notification_id))
+            """), (read_at.isoformat(), notification_id))
             self.db.connection.commit()
         except Exception as e:
             logger.error(f"Error updating notification read status: {e}")
@@ -559,13 +560,13 @@ class NotificationManager:
         """Store user preferences in database"""
         try:
             cursor = self.db.connection.cursor()
-            cursor.execute("""
+            cursor.execute(format_query("""
                 INSERT OR REPLACE INTO notification_preferences (
                     user_id, email_enabled, push_enabled, sms_enabled, in_app_enabled,
                     quiet_hours_start, quiet_hours_end, frequency_limit, priority_threshold,
                     blocked_types
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
+            """), (
                 preferences.user_id,
                 preferences.email_enabled,
                 preferences.push_enabled,
@@ -585,9 +586,9 @@ class NotificationManager:
         """Load user preferences from database"""
         try:
             cursor = self.db.connection.cursor()
-            cursor.execute("""
+            cursor.execute(format_query("""
                 SELECT * FROM notification_preferences WHERE user_id = ?
-            """, (user_id,))
+            """), (user_id,))
             
             row = cursor.fetchone()
             if row:
@@ -614,7 +615,7 @@ class NotificationManager:
         """Get user email from database"""
         try:
             cursor = self.db.connection.cursor()
-            cursor.execute("SELECT email FROM users WHERE id = ?", (user_id,))
+            cursor.execute(format_query(SELECT email FROM users WHERE id = ?"), (user_id,))
             row = cursor.fetchone()
             return row[0] if row else None
         except Exception as e:

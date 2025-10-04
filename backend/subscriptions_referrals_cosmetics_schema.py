@@ -13,6 +13,7 @@ This module creates and manages the database tables for:
 import logging
 from datetime import datetime, timezone
 from typing import Optional, Dict, Any
+from database_utils import format_query
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +22,7 @@ def create_subscriptions_tables(db_connection):
     cursor = db_connection.cursor()
     
     # Subscriptions table - tracks Growth/Max tier subscriptions
-    cursor.execute("""
+    cursor.execute(format_query("""
         CREATE TABLE IF NOT EXISTS subscriptions (
             id SERIAL PRIMARY KEY,
             user_id INTEGER NOT NULL,
@@ -276,7 +277,7 @@ def insert_default_cosmetics(db_connection):
             cursor.execute("""
                 INSERT INTO cosmetics (name, display_name, description, type, rarity, unlock_method, unlock_requirement, image_url)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-            """, (
+            """), (
                 cosmetic['name'],
                 cosmetic['display_name'],
                 cosmetic['description'],
@@ -287,10 +288,10 @@ def insert_default_cosmetics(db_connection):
                 cosmetic['image_url']
             ))
         else:
-            cursor.execute("""
+            cursor.execute(format_query("""
                 INSERT INTO cosmetics (name, display_name, description, type, rarity, unlock_method, unlock_requirement, image_url)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
+            """), (
                 cosmetic['name'],
                 cosmetic['display_name'],
                 cosmetic['description'],

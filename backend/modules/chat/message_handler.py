@@ -7,6 +7,7 @@ import re
 import logging
 from typing import Dict, Any, Optional
 from datetime import datetime, timedelta
+from database_utils import format_query
 
 logger = logging.getLogger(__name__)
 
@@ -110,10 +111,10 @@ class MessageHandler:
                     WHERE user_id = %s AND created_at >= %s
                 """, (user_id, one_hour_ago))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     SELECT COUNT(*) FROM chat_conversations 
                     WHERE user_id = ? AND created_at >= ?
-                """, (user_id, one_hour_ago.isoformat()))
+                """), (user_id, one_hour_ago.isoformat()))
             
             message_count = cursor.fetchone()[0]
             conn.close()
@@ -185,12 +186,12 @@ class MessageHandler:
                     LIMIT 5
                 """, (user_id,))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     SELECT user_message FROM chat_conversations 
                     WHERE user_id = ? 
                     ORDER BY created_at DESC 
                     LIMIT 5
-                """, (user_id,))
+                """), (user_id,))
             
             recent_messages = [row[0].lower().strip() for row in cursor.fetchall()]
             conn.close()
@@ -238,11 +239,11 @@ class MessageHandler:
                     model_used, tokens_used, usage_data['timestamp']
                 ))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     INSERT INTO chat_usage_tracking 
                     (user_id, companion_id, message_length, model_used, tokens_used, created_at)
                     VALUES (?, ?, ?, ?, ?, ?)
-                """, (
+                """), (
                     user_id, companion_id, message_length,
                     model_used, tokens_used, usage_data['timestamp'].isoformat()
                 ))
@@ -282,7 +283,7 @@ class MessageHandler:
                     WHERE user_id = %s AND created_at >= %s
                 """, (user_id, start_date))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     SELECT 
                         COUNT(*) as total_messages,
                         AVG(LENGTH(user_message)) as avg_message_length,
@@ -290,7 +291,7 @@ class MessageHandler:
                         COUNT(DISTINCT DATE(created_at)) as active_days
                     FROM chat_conversations 
                     WHERE user_id = ? AND created_at >= ?
-                """, (user_id, start_date.isoformat()))
+                """), (user_id, start_date.isoformat()))
             
             row = cursor.fetchone()
             conn.close()

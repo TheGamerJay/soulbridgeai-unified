@@ -9,6 +9,7 @@ Fix database schema issues causing 500 errors
 import os
 import logging
 from database_utils import get_database
+from database_utils import format_query
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -121,10 +122,10 @@ def fix_database_schema():
                 """, (tier, feature, limit))
         else:
             for tier, feature, limit in tier_limits_data:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     INSERT OR IGNORE INTO tier_limits (tier, feature, daily_limit)
                     VALUES (?, ?, ?)
-                """, (tier, feature, limit))
+                """), (tier, feature, limit))
         
         # Fix 3: Fix feature_usage table structure
         logger.info("Fixing feature_usage table...")

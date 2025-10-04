@@ -15,6 +15,7 @@ import base64
 from cryptography.fernet import Fernet
 import shutil
 import json
+from database_utils import format_query
 
 # Try to import PostgreSQL support
 try:
@@ -702,7 +703,7 @@ class User:
         cursor = conn.cursor()
 
         cursor.execute(
-            "SELECT id, email, display_name, email_verified, created_at FROM users WHERE oauth_provider = ? AND oauth_id = ?",
+            format_query(SELECT id, email, display_name, email_verified, created_at FROM users WHERE oauth_provider = ? AND oauth_id = ?"),
             (provider, oauth_id),
         )
         user_data = cursor.fetchone()

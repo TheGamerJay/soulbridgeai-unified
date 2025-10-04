@@ -10,6 +10,7 @@ from ..auth.session_manager import requires_login, get_user_id
 from .creative_service import CreativeService
 from .features_config import get_feature_limit, get_creative_limits_summary, validate_zodiac_sign
 from .usage_tracker import CreativeUsageTracker
+from database_utils import format_query
 
 logger = logging.getLogger(__name__)
 
@@ -297,11 +298,11 @@ def debug_feature_usage_table():
                     ORDER BY last_used_at DESC LIMIT 10
                 """, (user_id,))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     SELECT feature_name, usage_date, usage_count, last_used_at
                     FROM feature_usage WHERE user_id = ?
                     ORDER BY last_used_at DESC LIMIT 10
-                """, (user_id,))
+                """), (user_id,))
             user_records = cursor.fetchall()
         
         conn.close()
@@ -465,7 +466,7 @@ def reset_user_usage():
         if db.use_postgres:
             cursor.execute('DELETE FROM feature_usage WHERE user_id = %s AND usage_date = %s', (user_id, today))
         else:
-            cursor.execute('DELETE FROM feature_usage WHERE user_id = ? AND usage_date = ?', (user_id, today))
+            cursor.execute(format_query(DELETE FROM feature_usage WHERE user_id = ? AND usage_date = ?)', (user_id, today))
         
         rows_deleted = cursor.rowcount
         conn.commit()

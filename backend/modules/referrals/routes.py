@@ -10,6 +10,7 @@ from flask import Blueprint, request, session, jsonify
 from ..auth.session_manager import requires_login, get_user_id
 from database_utils import get_database
 from .enhanced_rewards import check_and_grant_enhanced_rewards, get_user_referral_rewards
+from database_utils import format_query
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +38,7 @@ def ensure_user_has_code(user_id):
     
     try:
         # Check if user already has a code
-        cursor.execute("SELECT code FROM referral_codes WHERE user_id = ? AND is_active = 1", (user_id,))
+        cursor.execute(format_query(SELECT code FROM referral_codes WHERE user_id = ? AND is_active = 1"), (user_id,))
         result = cursor.fetchone()
         
         if result:
@@ -46,15 +47,15 @@ def ensure_user_has_code(user_id):
         # Generate unique code
         while True:
             code = generate_referral_code()
-            cursor.execute("SELECT id FROM referral_codes WHERE code = ?", (code,))
+            cursor.execute(format_query(SELECT id FROM referral_codes WHERE code = ?"), (code,))
             if not cursor.fetchone():
                 break
         
         # Insert new code
-        cursor.execute("""
+        cursor.execute(format_query("""
             INSERT INTO referral_codes (user_id, code, is_active, created_at)
             VALUES (?, ?, 1, ?)
-        """, (user_id, code, datetime.utcnow()))
+        """), (user_id, code, datetime.utcnow()))
         
         conn.commit()
         return code
@@ -74,10 +75,10 @@ def get_referral_stats(user_id):
     
     try:
         # Count total referrals for this user
-        cursor.execute("""
+        cursor.execute(format_query("""
             SELECT COUNT(*) FROM referrals 
             WHERE referrer_id = ? AND status = 'verified'
-        """, (user_id,))
+        """), (user_id,))
         
         result = cursor.fetchone()
         total = result[0] if result else 0
@@ -130,10 +131,10 @@ def referrals_me():
     
     referred_by_user_id = None
     try:
-        cursor.execute("""
+        cursor.execute(format_query("""
             SELECT referrer_id FROM referrals 
             WHERE referred_id = ? AND status = 'verified'
-        """, (user_id,))
+        """), (user_id,))
         result = cursor.fetchone()
         if result:
             referred_by_user_id = result[0]
@@ -181,10 +182,10 @@ def referrals_submit():
     
     try:
         # Check if already referred
-        cursor.execute("""
+        cursor.execute(format_query("""
             SELECT referrer_id FROM referrals 
             WHERE referred_id = ? AND status = 'verified'
-        """, (user_id,))
+        """), (user_id,))
         
         existing = cursor.fetchone()
         if existing:
@@ -198,10 +199,10 @@ def referrals_submit():
             }), 200
 
         # Find referrer by code
-        cursor.execute("""
+        cursor.execute(format_query("""
             SELECT user_id FROM referral_codes 
             WHERE code = ? AND is_active = 1
-        """, (code,))
+        """), (code,))
         
         referrer_result = cursor.fetchone()
         if not referrer_result:
@@ -212,10 +213,10 @@ def referrals_submit():
             return jsonify({"error": "You cannot use your own referral code"}), 400
 
         # Check for existing referral record (idempotency)
-        cursor.execute("""
+        cursor.execute(format_query("""
             SELECT id FROM referrals 
             WHERE referred_id = ?
-        """, (user_id,))
+        """), (user_id,))
         
         if cursor.fetchone():
             stats = get_referral_stats(referrer_id)
@@ -227,17 +228,17 @@ def referrals_submit():
             }), 200
 
         # Record referral
-        cursor.execute("""
+        cursor.execute(format_query("""
             INSERT INTO referrals (referrer_id, referred_id, referral_code, status, verified_at, created_at)
             VALUES (?, ?, ?, 'verified', ?, ?)
-        """, (referrer_id, user_id, code, datetime.utcnow(), datetime.utcnow()))
+        """), (referrer_id, user_id, code, datetime.utcnow(), datetime.utcnow()))
         
         # Increment uses count
-        cursor.execute("""
+        cursor.execute(format_query("""
             UPDATE referral_codes 
             SET uses_count = uses_count + 1
             WHERE code = ?
-        """, (code,))
+        """), (code,))
         
         conn.commit()
         

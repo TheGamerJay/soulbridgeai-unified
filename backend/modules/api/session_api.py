@@ -7,6 +7,7 @@ import logging
 from typing import Dict, Any, Optional
 from datetime import datetime, timezone
 from flask import session, request
+from database_utils import format_query
 
 logger = logging.getLogger(__name__)
 
@@ -208,12 +209,12 @@ class SessionAPI:
                     WHERE id = %s
                 """, (user_id,))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     SELECT id, email, user_plan, trial_active, trial_expires_at,
                            referrals, COALESCE(credits, 0), last_login
                     FROM users 
                     WHERE id = ?
-                """, (user_id,))
+                """), (user_id,))
             
             row = cursor.fetchone()
             conn.close()
@@ -291,11 +292,11 @@ class SessionAPI:
                     WHERE id = %s
                 """, (user_id,))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     SELECT trial_active, trial_expires_at 
                     FROM users 
                     WHERE id = ?
-                """, (user_id,))
+                """), (user_id,))
             
             row = cursor.fetchone()
             conn.close()
@@ -331,11 +332,11 @@ class SessionAPI:
                     WHERE id = %s
                 """, (datetime.now(timezone.utc), user_id))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     UPDATE users 
                     SET last_login = ? 
                     WHERE id = ?
-                """, (datetime.now(timezone.utc).isoformat(), user_id))
+                """), (datetime.now(timezone.utc).isoformat(), user_id))
             
             conn.commit()
             conn.close()

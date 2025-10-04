@@ -9,6 +9,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from database_utils import get_database
 import logging
+from database_utils import format_query
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)

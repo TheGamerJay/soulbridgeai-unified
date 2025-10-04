@@ -6,6 +6,7 @@ from werkzeug.security import check_password_hash
 import os
 import sys
 import logging
+from database_utils import format_query
 
 # Setup logger
 logger = logging.getLogger(__name__)
@@ -103,7 +104,7 @@ def login():
             conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
             
-            cursor.execute("SELECT id, email, password_hash, user_plan FROM users WHERE email = ?", (email,))
+            cursor.execute(format_query(SELECT id, email, password_hash, user_plan FROM users WHERE email = ?"), (email,))
             user_row = cursor.fetchone()
             conn.close()
             

@@ -6,6 +6,7 @@ Extracted from monolith with improvements
 import logging
 from typing import Dict, Any, Optional
 from datetime import datetime, timezone
+from database_utils import format_query
 
 logger = logging.getLogger(__name__)
 
@@ -191,11 +192,11 @@ class UsageTracker:
                     json.dumps(activity_data['metadata'])
                 ))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     INSERT INTO user_activity_log 
                     (user_id, feature_type, created_at, session_duration_seconds, metadata)
                     VALUES (?, ?, ?, ?, ?)
-                """, (
+                """), (
                     activity_data['user_id'],
                     activity_data['feature_type'],
                     activity_data['created_at'].isoformat(),
@@ -241,7 +242,7 @@ class UsageTracker:
                     ORDER BY usage_count DESC
                 """, (user_id, start_date))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     SELECT 
                         feature_type,
                         COUNT(*) as usage_count,
@@ -251,7 +252,7 @@ class UsageTracker:
                     WHERE user_id = ? AND created_at >= ?
                     GROUP BY feature_type
                     ORDER BY usage_count DESC
-                """, (user_id, start_date.isoformat()))
+                """), (user_id, start_date.isoformat()))
             
             rows = cursor.fetchall()
             conn.close()
@@ -309,7 +310,7 @@ class UsageTracker:
                     LIMIT %s
                 """, (start_date, limit))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     SELECT 
                         feature_type,
                         COUNT(*) as total_usage,
@@ -320,7 +321,7 @@ class UsageTracker:
                     GROUP BY feature_type
                     ORDER BY total_usage DESC
                     LIMIT ?
-                """, (start_date.isoformat(), limit))
+                """), (start_date.isoformat(), limit))
             
             rows = cursor.fetchall()
             conn.close()
@@ -371,10 +372,10 @@ class UsageTracker:
                     WHERE created_at < %s
                 """, (cutoff_date,))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     DELETE FROM user_activity_log 
                     WHERE created_at < ?
-                """, (cutoff_date.isoformat(),))
+                """), (cutoff_date.isoformat(),))
             
             deleted_count = cursor.rowcount
             conn.commit()

@@ -8,6 +8,7 @@ import psycopg2
 from datetime import datetime, timezone
 from flask import session
 from ..shared.database import get_database
+from database_utils import format_query
 
 logger = logging.getLogger(__name__)
 
@@ -85,11 +86,11 @@ class AuthService:
                     WHERE id = %s AND (plan_type = %s OR user_plan = %s)
                 """, (new_plan_type, new_user_plan, user_id, raw_plan, raw_user_plan))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     UPDATE users 
                     SET plan_type = ?, user_plan = ? 
                     WHERE id = ? AND (plan_type = ? OR user_plan = ?)
-                """, (new_plan_type, new_user_plan, user_id, raw_plan, raw_user_plan))
+                """), (new_plan_type, new_user_plan, user_id, raw_plan, raw_user_plan))
                 
             if cursor.rowcount > 0:
                 conn.commit()
@@ -225,7 +226,7 @@ def has_accepted_terms() -> bool:
             if db.is_postgresql():
                 cursor.execute("SELECT terms_accepted FROM users WHERE id = %s", (user_id,))
             else:  # SQLite
-                cursor.execute("SELECT terms_accepted FROM users WHERE id = ?", (user_id,))
+                cursor.execute(format_query(SELECT terms_accepted FROM users WHERE id = ?"), (user_id,))
             
             result = cursor.fetchone()
             if result and result[0]:

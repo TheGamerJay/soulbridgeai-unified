@@ -7,6 +7,7 @@ import logging
 from datetime import datetime, timezone, timedelta
 from typing import Dict, Any, List, Optional
 import json
+from database_utils import format_query
 
 logger = logging.getLogger(__name__)
 
@@ -50,12 +51,12 @@ class PrivacyManager:
                     FROM users WHERE id = %s
                 """, (user_id,))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     SELECT id, email, display_name, created_at, user_plan, 
                            trial_active, terms_accepted, terms_accepted_at, 
                            profile_image, theme, language_preference
                     FROM users WHERE id = ?
-                """, (user_id,))
+                """), (user_id,))
             
             user_data = cursor.fetchone()
             
@@ -147,7 +148,7 @@ class PrivacyManager:
             if self.database.use_postgres:
                 cursor.execute("SELECT email FROM users WHERE id = %s", (user_id,))
             else:
-                cursor.execute("SELECT email FROM users WHERE id = ?", (user_id,))
+                cursor.execute(format_query(SELECT email FROM users WHERE id = ?"), (user_id,))
             
             user_data = cursor.fetchone()
             if not user_data:
@@ -191,7 +192,7 @@ class PrivacyManager:
             if self.database.use_postgres:
                 cursor.execute("DELETE FROM users WHERE id = %s", (user_id,))
             else:
-                cursor.execute("DELETE FROM users WHERE id = ?", (user_id,))
+                cursor.execute(format_query(DELETE FROM users WHERE id = ?"), (user_id,))
             
             if cursor.rowcount == 0:
                 conn.close()
@@ -253,7 +254,7 @@ class PrivacyManager:
                     WHERE id = %s
                 """, (anonymous_id, anonymization_timestamp, reason, user_id))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     UPDATE users 
                     SET email = ?,
                         display_name = 'Anonymous User',
@@ -261,7 +262,7 @@ class PrivacyManager:
                         anonymized_at = ?,
                         anonymization_reason = ?
                     WHERE id = ?
-                """, (anonymous_id, anonymization_timestamp, reason, user_id))
+                """), (anonymous_id, anonymization_timestamp, reason, user_id))
             
             if cursor.rowcount == 0:
                 conn.close()
@@ -283,11 +284,11 @@ class PrivacyManager:
                         WHERE user_id = %s
                     """, (user_id,))
                 else:
-                    cursor.execute("""
+                    cursor.execute(format_query("""
                         UPDATE wellness_gallery 
                         SET user_id = NULL
                         WHERE user_id = ?
-                    """, (user_id,))
+                    """), (user_id,))
                 anonymized_gallery = cursor.rowcount
             except Exception:
                 anonymized_gallery = 0
@@ -303,13 +304,13 @@ class PrivacyManager:
                         WHERE user_id = %s
                     """, (user_id,))
                 else:
-                    cursor.execute("""
+                    cursor.execute(format_query("""
                         UPDATE usage_logs 
                         SET ip_address = 'anonymized',
                             user_agent = 'anonymized',
                             session_id = 'anonymized'
                         WHERE user_id = ?
-                    """, (user_id,))
+                    """), (user_id,))
                 anonymized_logs = cursor.rowcount
             except Exception:
                 anonymized_logs = 0
@@ -356,12 +357,12 @@ class PrivacyManager:
                     FROM users WHERE id = %s
                 """, (user_id,))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     SELECT data_sharing_consent, marketing_consent, 
                            analytics_consent, cookie_consent,
                            privacy_settings_updated_at
                     FROM users WHERE id = ?
-                """, (user_id,))
+                """), (user_id,))
             
             result = cursor.fetchone()
             conn.close()
@@ -432,7 +433,7 @@ class PrivacyManager:
                     user_id
                 ))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     UPDATE users 
                     SET data_sharing_consent = ?,
                         marketing_consent = ?,
@@ -440,7 +441,7 @@ class PrivacyManager:
                         cookie_consent = ?,
                         privacy_settings_updated_at = ?
                     WHERE id = ?
-                """, (
+                """), (
                     settings.get('data_sharing_consent', True),
                     settings.get('marketing_consent', False),
                     settings.get('analytics_consent', True),
@@ -566,11 +567,11 @@ class PrivacyManager:
                     WHERE user_id = %s AND is_approved = TRUE
                 """, (user_id,))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     SELECT COUNT(*), MIN(created_at), MAX(created_at)
                     FROM wellness_gallery 
                     WHERE user_id = ? AND is_approved = 1
-                """, (user_id,))
+                """), (user_id,))
             
             result = cursor.fetchone()
             
@@ -608,10 +609,10 @@ class PrivacyManager:
                     FROM users WHERE id = %s
                 """, (user_id,))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     SELECT referral_code, referral_points
                     FROM users WHERE id = ?
-                """, (user_id,))
+                """), (user_id,))
             
             result = cursor.fetchone()
             
@@ -646,11 +647,11 @@ class PrivacyManager:
                     VALUES (%s, %s, %s, %s, %s)
                 """, (user_id, user_email, reason, json.dumps(deletion_log), timestamp))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     INSERT INTO data_deletion_log 
                     (user_id, user_email, deletion_reason, deletion_details, deleted_at)
                     VALUES (?, ?, ?, ?, ?)
-                """, (user_id, user_email, reason, json.dumps(deletion_log), timestamp))
+                """), (user_id, user_email, reason, json.dumps(deletion_log), timestamp))
                 
         except Exception as log_error:
             logger.warning(f"Could not log data deletion: {log_error}")

@@ -6,6 +6,7 @@ Extracted from routes_analytics.py with improvements
 import logging
 from typing import Dict, Any, List, Optional
 from datetime import datetime, timezone, timedelta
+from database_utils import format_query
 
 logger = logging.getLogger(__name__)
 
@@ -68,14 +69,14 @@ class AnalyticsService:
                     WHERE user_id = %s AND created_at >= %s
                 """, (user_id, start_date))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     SELECT 
                         COUNT(DISTINCT DATE(created_at)) as active_days,
                         COUNT(*) as total_interactions,
                         COUNT(DISTINCT feature_type) as features_used
                     FROM user_activity_log 
                     WHERE user_id = ? AND created_at >= ?
-                """, (user_id, start_date.isoformat()))
+                """), (user_id, start_date.isoformat()))
             
             row = cursor.fetchone()
             
@@ -133,7 +134,7 @@ class AnalyticsService:
                     ORDER BY usage_count DESC
                 """, (user_id, start_date))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     SELECT 
                         feature_type,
                         COUNT(*) as usage_count,
@@ -143,7 +144,7 @@ class AnalyticsService:
                     WHERE user_id = ? AND created_at >= ?
                     GROUP BY feature_type
                     ORDER BY usage_count DESC
-                """, (user_id, start_date.isoformat()))
+                """), (user_id, start_date.isoformat()))
             
             rows = cursor.fetchall()
             conn.close()
@@ -200,7 +201,7 @@ class AnalyticsService:
                     ORDER BY message_count DESC
                 """, (user_id, start_date))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     SELECT 
                         companion_id,
                         COUNT(*) as message_count,
@@ -210,7 +211,7 @@ class AnalyticsService:
                     WHERE user_id = ? AND created_at >= ?
                     GROUP BY companion_id
                     ORDER BY message_count DESC
-                """, (user_id, start_date.isoformat()))
+                """), (user_id, start_date.isoformat()))
             
             rows = cursor.fetchall()
             conn.close()
@@ -272,7 +273,7 @@ class AnalyticsService:
                     ORDER BY activity_date
                 """, (user_id, start_date))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     SELECT 
                         DATE(created_at) as activity_date,
                         COUNT(*) as interactions,
@@ -281,7 +282,7 @@ class AnalyticsService:
                     WHERE user_id = ? AND created_at >= ?
                     GROUP BY DATE(created_at)
                     ORDER BY activity_date
-                """, (user_id, start_date.isoformat()))
+                """), (user_id, start_date.isoformat()))
             
             rows = cursor.fetchall()
             conn.close()
@@ -360,7 +361,7 @@ class AnalyticsService:
                     ORDER BY day_of_week, hour_of_day
                 """, (user_id, start_date))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     SELECT 
                         strftime('%w', created_at) as day_of_week,
                         strftime('%H', created_at) as hour_of_day,
@@ -369,7 +370,7 @@ class AnalyticsService:
                     WHERE user_id = ? AND created_at >= ?
                     GROUP BY strftime('%w', created_at), strftime('%H', created_at)
                     ORDER BY day_of_week, hour_of_day
-                """, (user_id, start_date.isoformat()))
+                """), (user_id, start_date.isoformat()))
             
             rows = cursor.fetchall()
             conn.close()

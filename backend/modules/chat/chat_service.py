@@ -8,6 +8,7 @@ import json
 import logging
 from typing import Dict, Any, List, Optional
 from datetime import datetime
+from database_utils import format_query
 
 logger = logging.getLogger(__name__)
 
@@ -166,13 +167,13 @@ You are {companion['name']} - maintain this identity consistently."""
                     LIMIT %s
                 """, (user_id, companion_id, limit))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     SELECT user_message, ai_response, created_at 
                     FROM chat_conversations 
                     WHERE user_id = ? AND companion_id = ? 
                     ORDER BY created_at DESC 
                     LIMIT ?
-                """, (user_id, companion_id, limit))
+                """), (user_id, companion_id, limit))
             
             rows = cursor.fetchall()
             conn.close()
@@ -210,11 +211,11 @@ You are {companion['name']} - maintain this identity consistently."""
                     VALUES (%s, %s, %s, %s, %s)
                 """, (user_id, companion_id, user_message, ai_response, datetime.now()))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     INSERT INTO chat_conversations 
                     (user_id, companion_id, user_message, ai_response, created_at)
                     VALUES (?, ?, ?, ?, ?)
-                """, (user_id, companion_id, user_message, ai_response, datetime.now().isoformat()))
+                """), (user_id, companion_id, user_message, ai_response, datetime.now().isoformat()))
             
             conn.commit()
             conn.close()
@@ -266,13 +267,13 @@ You are {companion['name']} - maintain this identity consistently."""
                     WHERE user_id = %s
                 """, (user_id,))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     SELECT 
                         COUNT(*) as total_conversations,
                         COUNT(DISTINCT companion_id) as companions_chatted
                     FROM chat_conversations 
                     WHERE user_id = ?
-                """, (user_id,))
+                """), (user_id,))
             
             row = cursor.fetchone()
             conn.close()
@@ -306,15 +307,15 @@ You are {companion['name']} - maintain this identity consistently."""
                         WHERE user_id = %s AND companion_id = %s
                     """, (user_id, companion_id))
                 else:
-                    cursor.execute("""
+                    cursor.execute(format_query("""
                         DELETE FROM chat_conversations 
                         WHERE user_id = ? AND companion_id = ?
-                    """, (user_id, companion_id))
+                    """), (user_id, companion_id))
             else:
                 if db.db_type == 'postgresql':
                     cursor.execute("DELETE FROM chat_conversations WHERE user_id = %s", (user_id,))
                 else:
-                    cursor.execute("DELETE FROM chat_conversations WHERE user_id = ?", (user_id,))
+                    cursor.execute(format_query(DELETE FROM chat_conversations WHERE user_id = ?"), (user_id,))
             
             conn.commit()
             conn.close()

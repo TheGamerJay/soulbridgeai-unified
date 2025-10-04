@@ -92,6 +92,7 @@ from flask import Flask, session, request, redirect, jsonify, url_for
 from flask_cors import CORS
 from werkzeug.middleware.proxy_fix import ProxyFix
 from security_config import init_security, enhance_security_headers, secure_error_handlers
+from database_utils import format_query
 
 # Initialize safe logging to prevent unicode crashes
 try:
@@ -238,7 +239,7 @@ def create_app():
             
             # Fix companion_data column - use standardized /static/logos/ path
             if hasattr(db, 'use_postgres') and db.use_postgres:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     UPDATE users 
                     SET companion_data = replace(replace(companion_data::text, '/static/companions/', '/static/logos/'), '/static/images/companions/', '/static/logos/')::jsonb
                     WHERE companion_data::text LIKE '%/static/companions/%' OR companion_data::text LIKE '%/static/images/companions/%'
@@ -361,7 +362,7 @@ def create_app():
                            trial_active, artistic_credits, selected_companion
                     FROM users 
                     WHERE email = ?
-                """, (email,))
+                """), (email,))
                 
                 user = cursor.fetchone()
                 if not user:
@@ -387,11 +388,11 @@ def create_app():
                 session.permanent = True
                 
                 # Update last login
-                cursor.execute("""
+                cursor.execute(format_query("""
                     UPDATE users 
                     SET last_login = datetime('now')
                     WHERE id = ?
-                """, (user_id,))
+                """), (user_id,))
                 conn.commit()
                 
                 # Generate referral code if user doesn't have one
@@ -478,7 +479,7 @@ def create_app():
                 cursor = conn.cursor()
                 
                 # Check if user exists
-                cursor.execute("SELECT id FROM users WHERE email = ?", (email,))
+                cursor.execute(format_query(SELECT id FROM users WHERE email = ?"), (email,))
                 if cursor.fetchone():
                     error_msg = 'Email already registered'
                     if is_json_request:
@@ -486,10 +487,10 @@ def create_app():
                     return redirect(f'/auth/register?error={error_msg}')
                 
                 # Create user
-                cursor.execute("""
+                cursor.execute(format_query("""
                     INSERT INTO users (email, password_hash, display_name, user_plan, created_at)
                     VALUES (?, ?, ?, 'bronze', datetime('now'))
-                """, (email, password_hash, display_name))
+                """), (email, password_hash, display_name))
                 
                 user_id = cursor.lastrowid
                 conn.commit()
@@ -639,7 +640,7 @@ def create_app():
             
             if db.use_postgres:
                 # Check PostgreSQL table structure
-                cursor.execute("""
+                cursor.execute(format_query("""
                     SELECT column_name, data_type, is_nullable, column_default
                     FROM information_schema.columns 
                     WHERE table_name = 'password_reset_tokens'
@@ -772,7 +773,7 @@ def create_app():
                 FROM password_reset_tokens 
                 WHERE token_hash = {placeholder} 
                 LIMIT 1
-            """, (token_hash,))
+            """), (token_hash,))
             
             result = cursor.fetchone()
             cursor.close()
@@ -865,11 +866,11 @@ def create_app():
             """, (token_hash,))
             
             # Invalidate other unused tokens for this user
-            cursor.execute("""
+            cursor.execute(format_query("""
                 UPDATE password_reset_tokens 
                 SET used_at = CURRENT_TIMESTAMP 
                 WHERE user_id = ? AND used_at IS NULL AND token_hash != ?
-            """, (user_id, token_hash))
+            """), (user_id, token_hash))
             
             conn.commit()
             cursor.close()

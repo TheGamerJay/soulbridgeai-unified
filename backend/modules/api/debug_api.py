@@ -7,6 +7,7 @@ import logging
 from typing import Dict, Any
 from datetime import datetime, timezone
 from flask import session, request
+from database_utils import format_query
 
 logger = logging.getLogger(__name__)
 
@@ -290,11 +291,11 @@ class DebugAPI:
                     WHERE id = %s
                 """, (new_plan, datetime.now(timezone.utc), user_id))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     UPDATE users 
                     SET user_plan = ?, updated_at = ?
                     WHERE id = ?
-                """, (new_plan, datetime.now(timezone.utc).isoformat(), user_id))
+                """), (new_plan, datetime.now(timezone.utc).isoformat(), user_id))
             
             conn.commit()
             conn.close()
@@ -326,13 +327,13 @@ class DebugAPI:
                     WHERE id = %s
                 """, (user_id,))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     UPDATE users 
                     SET trial_active = 0,
                         trial_expires_at = NULL,
                         trial_start_time = NULL
                     WHERE id = ?
-                """, (user_id,))
+                """), (user_id,))
             
             conn.commit()
             conn.close()

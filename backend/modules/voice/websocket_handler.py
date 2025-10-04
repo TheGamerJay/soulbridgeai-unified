@@ -11,6 +11,7 @@ from datetime import datetime
 from flask import request
 from flask_socketio import SocketIO, emit, join_room, leave_room, disconnect
 from typing import Dict, Any, Optional
+from database_utils import format_query
 
 logger = logging.getLogger(__name__)
 

@@ -6,6 +6,7 @@ Extracted from monolith app.py with improvements
 import logging
 from typing import Dict, Any, Optional, List
 from flask import session, request
+from database_utils import format_query
 
 logger = logging.getLogger(__name__)
 
@@ -278,13 +279,13 @@ class NavigationService:
                     LIMIT 5
                 """, (user_id, three_days_ago))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     SELECT feature_type, created_at, COALESCE(metadata, '{}')
                     FROM user_activity_log 
                     WHERE user_id = ? AND created_at >= ?
                     ORDER BY created_at DESC
                     LIMIT 5
-                """, (user_id, three_days_ago.isoformat()))
+                """), (user_id, three_days_ago.isoformat()))
             
             rows = cursor.fetchall()
             conn.close()

@@ -13,6 +13,7 @@ import logging
 import os
 from typing import Dict, Any, Optional
 from datetime import datetime
+from database_utils import format_query
 
 logger = logging.getLogger(__name__)
 
@@ -94,7 +95,7 @@ def get_feature_usage_today(user_id: int, feature: str) -> int:
                 if db.use_postgres:
                     cursor.execute("SELECT COUNT(*) FROM feature_usage WHERE user_id = %s AND feature = %s AND DATE(created_at) = %s", (user_id, feature, today))
                 else:
-                    cursor.execute("SELECT COUNT(*) FROM feature_usage WHERE user_id = ? AND feature = ? AND DATE(created_at) = ?", (user_id, feature, today))
+                    cursor.execute(format_query(SELECT COUNT(*) FROM feature_usage WHERE user_id = ? AND feature = ? AND DATE(created_at) = ?"), (user_id, feature, today))
                 
                 result = cursor.fetchone()
                 conn.close()

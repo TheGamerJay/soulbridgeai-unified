@@ -7,6 +7,7 @@ import logging
 from typing import Dict, Any, List, Optional
 from datetime import datetime, timezone
 from flask import session, request
+from database_utils import format_query
 
 logger = logging.getLogger(__name__)
 
@@ -298,12 +299,12 @@ class UserAPI:
                     else:
                         raise
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     SELECT id, email, user_plan, trial_active, trial_expires_at,
                            referrals, COALESCE(credits, 0), created_at, last_login
                     FROM users 
                     WHERE id = ?
-                """, (user_id,))
+                """), (user_id,))
             
             row = cursor.fetchone()
             conn.close()
@@ -346,11 +347,11 @@ class UserAPI:
                     WHERE id = %s
                 """, (user_id,))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     SELECT trial_active, trial_expires_at, trial_start_time
                     FROM users 
                     WHERE id = ?
-                """, (user_id,))
+                """), (user_id,))
             
             row = cursor.fetchone()
             conn.close()
@@ -435,13 +436,13 @@ class UserAPI:
                     WHERE id = %s
                 """, (terms_version, datetime.now(timezone.utc), user_id))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     UPDATE users 
                     SET terms_accepted = 1,
                         terms_version = ?,
                         terms_accepted_at = ?
                     WHERE id = ?
-                """, (terms_version, datetime.now(timezone.utc).isoformat(), user_id))
+                """), (terms_version, datetime.now(timezone.utc).isoformat(), user_id))
             
             conn.commit()
             conn.close()
@@ -470,10 +471,10 @@ class UserAPI:
                     WHERE user_id = %s AND active = true
                 """, (user_id,))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     SELECT addon_type FROM user_addons 
                     WHERE user_id = ? AND active = 1
-                """, (user_id,))
+                """), (user_id,))
             
             rows = cursor.fetchall()
             conn.close()

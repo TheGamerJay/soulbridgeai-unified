@@ -3,6 +3,7 @@
 Quick Avatar Persistence Debug Script
 Run this to test if the avatar persistence is working
 """
+from database_utils import format_query
 
 def test_avatar_persistence():
     """Test avatar persistence functionality"""

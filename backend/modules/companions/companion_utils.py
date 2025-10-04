@@ -5,6 +5,7 @@ Extracted from app.py monolith for modular architecture
 import logging
 from datetime import datetime, date
 from ..shared.database import get_database
+from database_utils import format_query
 
 logger = logging.getLogger(__name__)
 
@@ -41,10 +42,10 @@ def track_companion_selection(user_id: int, companion_id: str):
                     selected_at = EXCLUDED.selected_at
             """, (user_id, companion_id, datetime.now()))
         else:
-            cursor.execute("""
+            cursor.execute(format_query("""
                 INSERT OR REPLACE INTO companion_selections (user_id, companion_id, selected_at)
                 VALUES (?, ?, ?)
-            """, (user_id, companion_id, datetime.now()))
+            """), (user_id, companion_id, datetime.now()))
         
         conn.commit()
         conn.close()
@@ -75,13 +76,13 @@ def get_user_companion_history(user_id: int, limit: int = 10) -> list:
                 LIMIT %s
             """, (user_id, limit))
         else:
-            cursor.execute("""
+            cursor.execute(format_query("""
                 SELECT companion_id, selected_at
                 FROM companion_selections
                 WHERE user_id = ?
                 ORDER BY selected_at DESC
                 LIMIT ?
-            """, (user_id, limit))
+            """), (user_id, limit))
         
         history = cursor.fetchall()
         conn.close()
@@ -171,14 +172,14 @@ def get_companion_usage_stats(companion_id: str, days: int = 30) -> dict:
                 AND selected_at >= CURRENT_DATE - INTERVAL '%s days'
             """, (companion_id, days))
         else:
-            cursor.execute("""
+            cursor.execute(format_query("""
                 SELECT 
                     COUNT(*) as total_selections,
                     COUNT(DISTINCT user_id) as unique_users
                 FROM companion_selections
                 WHERE companion_id = ? 
                 AND selected_at >= date('now', '-%s days')
-            """, (companion_id, days))
+            """), (companion_id, days))
         
         result = cursor.fetchone()
         conn.close()

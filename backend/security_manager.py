@@ -17,6 +17,7 @@ from dataclasses import dataclass, asdict
 from functools import wraps
 from flask import request, session, jsonify, g
 from werkzeug.security import check_password_hash, generate_password_hash
+from database_utils import format_query
 
 # Optional imports with fallbacks for CI/CD
 try:

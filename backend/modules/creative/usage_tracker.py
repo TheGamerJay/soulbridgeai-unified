@@ -20,6 +20,7 @@ except ImportError:
 
 from ..shared.database import get_database
 from .features_config import get_feature_limit
+from database_utils import format_query
 
 logger = logging.getLogger(__name__)
 
@@ -73,10 +74,10 @@ class CreativeUsageTracker:
                     WHERE user_id = %s AND feature_name = %s AND usage_date = %s
                 """, (user_id, feature, today))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     SELECT usage_count FROM feature_usage
                     WHERE user_id = ? AND feature_name = ? AND usage_date = ?
-                """, (user_id, feature, today))
+                """), (user_id, feature, today))
             
             result = cursor.fetchone()
             conn.close()
@@ -122,10 +123,10 @@ class CreativeUsageTracker:
                     WHERE user_id = %s AND feature_name = %s AND usage_date = %s
                 """, (user_id, feature, today))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     SELECT usage_count FROM feature_usage
                     WHERE user_id = ? AND feature_name = ? AND usage_date = ?
-                """, (user_id, feature, today))
+                """), (user_id, feature, today))
             
             result = cursor.fetchone()
             
@@ -139,11 +140,11 @@ class CreativeUsageTracker:
                         WHERE user_id = %s AND feature_name = %s AND usage_date = %s
                     """, (new_count, now, user_id, feature, today))
                 else:
-                    cursor.execute("""
+                    cursor.execute(format_query("""
                         UPDATE feature_usage 
                         SET usage_count = ?, last_used_at = ?
                         WHERE user_id = ? AND feature_name = ? AND usage_date = ?
-                    """, (new_count, now, user_id, feature, today))
+                    """), (new_count, now, user_id, feature, today))
             else:
                 # Create new record
                 if self.db.use_postgres:
@@ -152,10 +153,10 @@ class CreativeUsageTracker:
                         VALUES (%s, %s, %s, %s, %s)
                     """, (user_id, feature, today, 1, now))
                 else:
-                    cursor.execute("""
+                    cursor.execute(format_query("""
                         INSERT INTO feature_usage (user_id, feature_name, usage_date, usage_count, last_used_at)
                         VALUES (?, ?, ?, ?, ?)
-                    """, (user_id, feature, today, 1, now))
+                    """), (user_id, feature, today, 1, now))
             
             conn.commit()
             conn.close()
@@ -185,12 +186,12 @@ class CreativeUsageTracker:
                     GROUP BY feature_name
                 """, (user_id, days))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     SELECT feature_name, SUM(usage_count) as total_usage
                     FROM feature_usage
                     WHERE user_id = ? AND usage_date >= date('now', '-%s days')
                     GROUP BY feature_name
-                """, (user_id, days))
+                """), (user_id, days))
             
             stats = {}
             for row in cursor.fetchall():
@@ -223,10 +224,10 @@ class CreativeUsageTracker:
                         WHERE user_id = %s AND feature_name = %s AND usage_date = %s
                     """, (user_id, feature, today))
                 else:
-                    cursor.execute("""
+                    cursor.execute(format_query("""
                         DELETE FROM feature_usage
                         WHERE user_id = ? AND feature_name = ? AND usage_date = ?
-                    """, (user_id, feature, today))
+                    """), (user_id, feature, today))
             else:
                 # Reset all features for today
                 if self.db.use_postgres:
@@ -235,10 +236,10 @@ class CreativeUsageTracker:
                         WHERE user_id = %s AND usage_date = %s
                     """, (user_id, today))
                 else:
-                    cursor.execute("""
+                    cursor.execute(format_query("""
                         DELETE FROM feature_usage
                         WHERE user_id = ? AND usage_date = ?
-                    """, (user_id, today))
+                    """), (user_id, today))
             
             conn.commit()
             conn.close()

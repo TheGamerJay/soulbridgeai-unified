@@ -6,6 +6,7 @@ import os
 import logging
 from datetime import datetime
 from typing import Dict, List, Any, Optional
+from database_utils import format_query
 
 logger = logging.getLogger(__name__)
 
@@ -336,7 +337,7 @@ class MigrationManager:
             
             # Check if migration_history table exists
             if hasattr(self.database, 'use_postgres') and self.database.use_postgres:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     SELECT EXISTS (
                         SELECT FROM information_schema.tables 
                         WHERE table_name = 'migration_history'
@@ -407,7 +408,7 @@ class MigrationManager:
             cursor.execute("""
                 INSERT INTO migration_history (migration_name, description, module, rollback_sql)
                 VALUES (?, ?, ?, ?)
-            """, (
+            """), (
                 migration_name,
                 migration["description"],
                 migration["module"],

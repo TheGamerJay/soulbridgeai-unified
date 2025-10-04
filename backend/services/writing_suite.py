@@ -12,6 +12,7 @@ from enum import Enum
 from typing import List, Dict, Any, Optional, Tuple
 from dataclasses import dataclass, asdict
 import random
+from database_utils import format_query
 
 logger = logging.getLogger(__name__)
 
@@ -727,7 +728,7 @@ class WritingSuiteDatabase:
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         
-        cursor.execute("""
+        cursor.execute(format_query("""
             CREATE TABLE IF NOT EXISTS writings (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 user_id TEXT NOT NULL,
@@ -766,16 +767,16 @@ class WritingSuiteDatabase:
         cursor.execute("""
             INSERT INTO writings (user_id, title, writing_type, content, word_count, tone, target_audience)
             VALUES (?, ?, ?, ?, ?, ?, ?)
-        """, (user_id, title, prompt.writing_type.value, writing_output.content, 
+        """), (user_id, title, prompt.writing_type.value, writing_output.content, 
               writing_output.word_count, prompt.tone.value, prompt.target_audience))
         
         writing_id = cursor.lastrowid
         
         # Save analytics
-        cursor.execute("""
+        cursor.execute(format_query("""
             INSERT INTO writing_analytics (writing_id, style_score, readability_score, suggestions, format_analysis)
             VALUES (?, ?, ?, ?, ?)
-        """, (writing_id, writing_output.style_score, writing_output.readability_score,
+        """), (writing_id, writing_output.style_score, writing_output.readability_score,
               json.dumps(writing_output.suggestions), json.dumps(writing_output.format_analysis)))
         
         conn.commit()
@@ -790,19 +791,19 @@ class WritingSuiteDatabase:
         cursor = conn.cursor()
         
         if writing_type:
-            cursor.execute("""
+            cursor.execute(format_query("""
                 SELECT id, title, writing_type, word_count, created_at
                 FROM writings 
                 WHERE user_id = ? AND writing_type = ?
                 ORDER BY created_at DESC LIMIT ?
-            """, (user_id, writing_type.value, limit))
+            """), (user_id, writing_type.value, limit))
         else:
-            cursor.execute("""
+            cursor.execute(format_query("""
                 SELECT id, title, writing_type, word_count, created_at
                 FROM writings 
                 WHERE user_id = ?
                 ORDER BY created_at DESC LIMIT ?
-            """, (user_id, limit))
+            """), (user_id, limit))
         
         writings = []
         for row in cursor.fetchall():

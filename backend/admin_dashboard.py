@@ -8,6 +8,7 @@ from flask import Blueprint, jsonify, request, render_template_string, make_resp
 from business_intelligence import BusinessIntelligenceManager
 from data_visualization import DataVisualizationManager
 import sqlite3
+from database_utils import format_query
 
 logger = logging.getLogger(__name__)
 
@@ -102,7 +103,7 @@ class AdminDashboardManager:
                 cursor = self.db.connection.cursor()
                 
                 # Get recent user registrations
-                cursor.execute("""
+                cursor.execute(format_query("""
                     SELECT email, display_name, created_at 
                     FROM users 
                     WHERE created_at > datetime('now', '-24 hours')
@@ -196,7 +197,7 @@ class AdminDashboardManager:
                         SELECT COUNT(*) 
                         FROM users 
                         WHERE DATE(created_at) = ?
-                    """, (date_str,))
+                    """), (date_str,))
                     
                     count = cursor.fetchone()[0]
                     trends["user_growth"].append({

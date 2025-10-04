@@ -10,6 +10,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from database_utils import get_database
 from datetime import datetime, timezone
+from database_utils import format_query
 
 def clear_trial_session_data(user_id=104):
     """Clear any stale trial session data in the database"""
@@ -25,7 +26,7 @@ def clear_trial_session_data(user_id=104):
         cursor = conn.cursor()
         
         # Check current user status
-        cursor.execute("SELECT user_plan, trial_active, trial_expires_at FROM users WHERE id = ?", (user_id,))
+        cursor.execute(format_query(SELECT user_plan, trial_active, trial_expires_at FROM users WHERE id = ?"), (user_id,))
         
         result = cursor.fetchone()
         if not result:
@@ -57,11 +58,11 @@ def clear_trial_session_data(user_id=104):
         if user_plan == 'bronze' and (trial_active or should_expire_trial):
             print(f"FIXING: Setting trial_active=False for Bronze user {user_id}")
             
-            cursor.execute("""
+            cursor.execute(format_query("""
                 UPDATE users 
                 SET trial_active = ?, trial_used_permanently = ?
                 WHERE id = ?
-            """, (False, True, user_id))
+            """), (False, True, user_id))
             
             conn.commit()
             print(f"SUCCESS: Updated database: trial_active=False, trial_used_permanently=True")

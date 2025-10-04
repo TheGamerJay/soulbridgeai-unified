@@ -14,6 +14,7 @@ from .access_control import (
     companion_unlock_state_new
 )
 from .chat_service import CompanionChatService
+from database_utils import format_query
 
 logger = logging.getLogger(__name__)
 
@@ -322,7 +323,7 @@ def set_companion_skin():
                     if hasattr(db, 'use_postgres') and db.use_postgres:
                         cursor.execute("UPDATE users SET companion_data = %s WHERE id = %s", (json_data, user_id))
                     else:
-                        cursor.execute("UPDATE users SET companion_data = ? WHERE id = ?", (json_data, user_id))
+                        cursor.execute(format_query(UPDATE users SET companion_data = ? WHERE id = ?"), (json_data, user_id))
                     
                     conn.commit()
                     cursor.close()
@@ -387,10 +388,10 @@ def select_companion_skin():
                 cursor = conn.cursor()
                 
                 # Save user's skin preference
-                cursor.execute("""
+                cursor.execute(format_query("""
                     INSERT OR REPLACE INTO user_data (user_id, key, value) 
                     VALUES (?, ?, ?)
-                """, (user_id, f'skin_preference_{companion.get("base_name", companion.get("name", "").lower())}', companion_id))
+                """), (user_id, f'skin_preference_{companion.get("base_name", companion.get("name", "").lower())}', companion_id))
                 
                 conn.commit()
                 cursor.close()

@@ -8,6 +8,7 @@ import json
 import logging
 from datetime import datetime
 from typing import List, Dict, Optional, Union, Any
+from database_utils import format_query
 
 logger = logging.getLogger(__name__)
 

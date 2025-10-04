@@ -6,6 +6,7 @@ Creates your user account in the local SQLite database for development
 
 from auth import Database
 import hashlib
+from database_utils import format_query
 
 def setup_dev_user():
     """Create development user account"""
@@ -26,7 +27,7 @@ def setup_dev_user():
         cursor = conn.cursor()
         
         # Check if user already exists
-        cursor.execute("SELECT id FROM users WHERE email = ?", (email,))
+        cursor.execute(format_query(SELECT id FROM users WHERE email = ?"), (email,))
         if cursor.fetchone():
             print(f"User {email} already exists in development database")
             conn.close()
@@ -36,10 +37,10 @@ def setup_dev_user():
         password_hash = hashlib.sha256(password.encode()).hexdigest()
         
         # Create user
-        cursor.execute("""
+        cursor.execute(format_query("""
             INSERT INTO users (email, password_hash, display_name, user_plan, terms_accepted, created_at)
             VALUES (?, ?, ?, ?, ?, datetime('now'))
-        """, (email, password_hash, display_name, 'free', True))
+        """), (email, password_hash, display_name, 'free', True))
         
         user_id = cursor.lastrowid
         conn.commit()

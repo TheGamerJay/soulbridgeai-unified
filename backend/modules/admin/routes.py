@@ -11,6 +11,7 @@ from ..auth.session_manager import requires_login
 from .admin_utils import get_system_stats, get_user_management_stats, get_trial_statistics
 from .management_service import AdminManagementService
 from .admin_styles import get_admin_dashboard_template
+from database_utils import format_query
 
 logger = logging.getLogger(__name__)
 
@@ -129,12 +130,12 @@ def admin_users():
                 LIMIT %s OFFSET %s
             """, (limit, offset))
         else:
-            cursor.execute("""
+            cursor.execute(format_query("""
                 SELECT id, email, user_plan, trial_active, created_at
                 FROM users 
                 ORDER BY created_at DESC 
                 LIMIT ? OFFSET ?
-            """, (limit, offset))
+            """), (limit, offset))
         
         users = cursor.fetchall()
         
@@ -325,11 +326,11 @@ def admin_expire_all_trials():
                 WHERE trial_active = TRUE
             """, (now,))
         else:
-            cursor.execute("""
+            cursor.execute(format_query("""
                 UPDATE users 
                 SET trial_expires_at = ?
                 WHERE trial_active = 1
-            """, (now,))
+            """), (now,))
         
         affected_rows = cursor.rowcount
         conn.commit()
@@ -415,13 +416,13 @@ def admin_reset_user_trial(user_id):
                 WHERE id = %s
             """, (user_id,))
         else:
-            cursor.execute("""
+            cursor.execute(format_query("""
                 UPDATE users 
                 SET trial_active = 0, 
                     trial_used_permanently = 1,
                     trial_expires_at = NULL
                 WHERE id = ?
-            """, (user_id,))
+            """), (user_id,))
         
         if cursor.rowcount > 0:
             conn.commit()
@@ -481,7 +482,7 @@ def admin_delete_user(user_id):
         if db.use_postgres:
             cursor.execute("DELETE FROM users WHERE id = %s", (user_id,))
         else:
-            cursor.execute("DELETE FROM users WHERE id = ?", (user_id,))
+            cursor.execute(format_query(DELETE FROM users WHERE id = ?"), (user_id,))
         
         if cursor.rowcount > 0:
             conn.commit()

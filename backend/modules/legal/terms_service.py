@@ -7,6 +7,7 @@ import logging
 from datetime import datetime, timezone
 from typing import Dict, Any, Optional
 import json
+from database_utils import format_query
 
 logger = logging.getLogger(__name__)
 
@@ -45,11 +46,11 @@ class TermsService:
                     WHERE id = %s AND terms_accepted = TRUE
                 """, (user_id,))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     SELECT terms_accepted, terms_version 
                     FROM users 
                     WHERE id = ? AND terms_accepted = 1
-                """, (user_id,))
+                """), (user_id,))
             
             result = cursor.fetchone()
             conn.close()
@@ -93,10 +94,10 @@ class TermsService:
                     FROM users WHERE id = %s
                 """, (user_id,))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     SELECT terms_accepted, terms_accepted_at, terms_version, terms_language 
                     FROM users WHERE id = ?
-                """, (user_id,))
+                """), (user_id,))
             
             result = cursor.fetchone()
             conn.close()
@@ -178,12 +179,12 @@ class TermsService:
                         WHERE id = %s
                     """, (True, acceptance_date, terms_version, language, user_id))
                 else:
-                    cursor.execute("""
+                    cursor.execute(format_query("""
                         UPDATE users 
                         SET terms_accepted = ?, terms_accepted_at = ?, 
                             terms_version = ?, terms_language = ? 
                         WHERE id = ?
-                    """, (True, acceptance_date, terms_version, language, user_id))
+                    """), (True, acceptance_date, terms_version, language, user_id))
                 
                 if cursor.rowcount == 0:
                     conn.close()
@@ -200,7 +201,7 @@ class TermsService:
                         cursor.execute("UPDATE users SET terms_accepted = %s WHERE id = %s", 
                                        (True, user_id))
                     else:
-                        cursor.execute("UPDATE users SET terms_accepted = ? WHERE id = ?", 
+                        cursor.execute(format_query(UPDATE users SET terms_accepted = ? WHERE id = ?"), 
                                        (True, user_id))
                 except Exception as fallback_error:
                     logger.error(f"Even fallback terms update failed: {fallback_error}")
@@ -228,11 +229,11 @@ class TermsService:
                     """, (user_id, terms_version, language, 
                           json.dumps(acceptance_details), acceptance_date))
                 else:
-                    cursor.execute("""
+                    cursor.execute(format_query("""
                         INSERT OR IGNORE INTO terms_log 
                         (user_id, terms_version, language, acceptance_details, accepted_at)
                         VALUES (?, ?, ?, ?, ?)
-                    """, (user_id, terms_version, language, 
+                    """), (user_id, terms_version, language, 
                           json.dumps(acceptance_details), acceptance_date))
                           
             except Exception as log_error:
@@ -281,13 +282,13 @@ class TermsService:
                     WHERE id = %s
                 """, (datetime.now(timezone.utc), reason, user_id))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     UPDATE users 
                     SET terms_accepted = 0,
                         terms_revoked_at = ?,
                         terms_revoke_reason = ?
                     WHERE id = ?
-                """, (datetime.now(timezone.utc), reason, user_id))
+                """), (datetime.now(timezone.utc), reason, user_id))
             
             if cursor.rowcount == 0:
                 conn.close()
@@ -474,13 +475,13 @@ class TermsService:
                     FROM users
                 """, (self.current_version,))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     SELECT 
                         COUNT(*) as total_users,
                         SUM(CASE WHEN terms_accepted = 1 THEN 1 ELSE 0 END) as accepted_users,
                         SUM(CASE WHEN terms_version = ? THEN 1 ELSE 0 END) as current_version_users
                     FROM users
-                """, (self.current_version,))
+                """), (self.current_version,))
             
             result = cursor.fetchone()
             

@@ -6,6 +6,7 @@ Extracted from routes_analytics.py with improvements
 import logging
 from typing import Dict, Any, List, Optional
 from datetime import datetime, timezone, timedelta
+from database_utils import format_query
 
 logger = logging.getLogger(__name__)
 
@@ -62,7 +63,7 @@ class DashboardService:
                     WHERE user_id = %s AND created_at >= %s
                 """, (user_id, start_date))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     SELECT 
                         COUNT(*) as total_interactions,
                         COUNT(DISTINCT feature_type) as features_used,
@@ -70,7 +71,7 @@ class DashboardService:
                         SUM(session_duration_seconds) as total_time_seconds
                     FROM user_activity_log 
                     WHERE user_id = ? AND created_at >= ?
-                """, (user_id, start_date.isoformat()))
+                """), (user_id, start_date.isoformat()))
             
             row = cursor.fetchone()
             
@@ -96,10 +97,10 @@ class DashboardService:
                     WHERE user_id = %s AND created_at >= %s
                 """, (user_id, start_date))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     SELECT COUNT(*) FROM chat_conversations 
                     WHERE user_id = ? AND created_at >= ?
-                """, (user_id, start_date.isoformat()))
+                """), (user_id, start_date.isoformat()))
             
             chat_messages = cursor.fetchone()[0] or 0
             overview["chat_messages"] = chat_messages
@@ -139,7 +140,7 @@ class DashboardService:
                     ORDER BY usage_date
                 """, (user_id, start_date))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     SELECT 
                         DATE(created_at) as usage_date,
                         COUNT(*) as daily_interactions,
@@ -149,7 +150,7 @@ class DashboardService:
                     WHERE user_id = ? AND created_at >= ?
                     GROUP BY DATE(created_at)
                     ORDER BY usage_date
-                """, (user_id, start_date.isoformat()))
+                """), (user_id, start_date.isoformat()))
             
             rows = cursor.fetchall()
             conn.close()
@@ -383,7 +384,7 @@ class DashboardService:
                     ORDER BY usage_count DESC
                 """, (user_id, start_date))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     SELECT 
                         strftime('%H', created_at) as hour_of_day,
                         COUNT(*) as usage_count
@@ -391,7 +392,7 @@ class DashboardService:
                     WHERE user_id = ? AND created_at >= ?
                     GROUP BY strftime('%H', created_at)
                     ORDER BY usage_count DESC
-                """, (user_id, start_date.isoformat()))
+                """), (user_id, start_date.isoformat()))
             
             hourly_data = cursor.fetchall()
             
@@ -407,7 +408,7 @@ class DashboardService:
                     ORDER BY usage_count DESC
                 """, (user_id, start_date))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     SELECT 
                         strftime('%w', created_at) as day_of_week,
                         COUNT(*) as usage_count
@@ -415,7 +416,7 @@ class DashboardService:
                     WHERE user_id = ? AND created_at >= ?
                     GROUP BY strftime('%w', created_at)
                     ORDER BY usage_count DESC
-                """, (user_id, start_date.isoformat()))
+                """), (user_id, start_date.isoformat()))
             
             daily_data = cursor.fetchall()
             conn.close()
@@ -566,7 +567,7 @@ class DashboardService:
                     WHERE created_at >= %s
                 """, (start_date,))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     SELECT 
                         COUNT(DISTINCT user_id) as active_users,
                         COUNT(*) as total_interactions,
@@ -574,7 +575,7 @@ class DashboardService:
                         AVG(session_duration_seconds) as avg_session_duration
                     FROM user_activity_log 
                     WHERE created_at >= ?
-                """, (start_date.isoformat(),))
+                """), (start_date.isoformat(),))
             
             row = cursor.fetchone()
             conn.close()

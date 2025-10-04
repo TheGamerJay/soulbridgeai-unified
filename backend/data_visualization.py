@@ -7,6 +7,7 @@ from typing import Dict, List, Optional, Any, Tuple
 import base64
 import io
 from business_intelligence import BusinessIntelligenceManager
+from database_utils import format_query
 
 logger = logging.getLogger(__name__)
 
@@ -47,11 +48,11 @@ class DataVisualizationManager:
                     label = date.strftime('%m/%d')
                     
                     # Get new users for this day
-                    cursor.execute("""
+                    cursor.execute(format_query("""
                         SELECT COUNT(*) 
                         FROM users 
                         WHERE DATE(created_at) = ?
-                    """, (date_str,))
+                    """), (date_str,))
                     
                     new_users = cursor.fetchone()[0]
                     total_users += new_users

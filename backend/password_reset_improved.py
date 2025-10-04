@@ -8,6 +8,7 @@ import logging
 from datetime import datetime, timedelta
 from flask import request, jsonify, flash, redirect, render_template
 from auth import Database
+from database_utils import format_query
 
 logger = logging.getLogger(__name__)
 
@@ -85,11 +86,11 @@ def auth_forgot_password_improved():
                 """, (user_email, token_hash, expires_str, 0))
             else:
                 expires_str = expires_at.isoformat() + 'Z'
-                cursor.execute("""
+                cursor.execute(format_query("""
                     INSERT INTO password_reset_tokens 
                     (user_id, token_hash, expires_at, request_ip, request_ua)
                     VALUES (?, ?, ?, ?, ?)
-                """, (user_id, token_hash, expires_str, client_ip, user_agent))
+                """), (user_id, token_hash, expires_str, client_ip, user_agent))
             
             conn.commit()
             
@@ -164,12 +165,12 @@ def verify_reset_token_improved(token_raw):
                     return False
             else:
                 # SQLite schema: user_id, token_hash, expires_at, used_at, etc.
-                cursor.execute("""
+                cursor.execute(format_query("""
                     SELECT user_id, expires_at, used_at 
                     FROM password_reset_tokens 
                     WHERE token_hash = ? 
                     LIMIT 1
-                """, (token_hash,))
+                """), (token_hash,))
                 
                 result = cursor.fetchone()
                 if not result:
@@ -245,12 +246,12 @@ def use_reset_token_improved(token_raw, new_password):
                 
             else:
                 # SQLite schema: user_id, token_hash, expires_at, used_at, etc.
-                cursor.execute("""
+                cursor.execute(format_query("""
                     SELECT user_id, expires_at, used_at 
                     FROM password_reset_tokens 
                     WHERE token_hash = ? 
                     LIMIT 1
-                """, (token_hash,))
+                """), (token_hash,))
                 
                 result = cursor.fetchone()
                 if not result:
@@ -289,18 +290,18 @@ def use_reset_token_improved(token_raw, new_password):
                 # Security: Mark all other unused tokens for this email as used
                 cursor.execute("UPDATE password_reset_tokens SET used = %s WHERE email = %s AND used = %s", (1, user_email, 0))
             else:
-                cursor.execute("UPDATE users SET password_hash = ? WHERE id = ?", (password_hash, user_id))
+                cursor.execute(format_query(UPDATE users SET password_hash = ? WHERE id = ?"), (password_hash, user_id))
                 
                 # Mark token as used with timestamp
                 time_str = _now().isoformat() + 'Z'
-                cursor.execute("UPDATE password_reset_tokens SET used_at = ? WHERE token_hash = ?", (time_str, token_hash))
+                cursor.execute(format_query(UPDATE password_reset_tokens SET used_at = ? WHERE token_hash = ?"), (time_str, token_hash))
                 
                 # Security: Mark all other unused tokens for this user as used
-                cursor.execute("""
+                cursor.execute(format_query("""
                     UPDATE password_reset_tokens 
                     SET used_at = COALESCE(used_at, ?)
                     WHERE user_id = ? AND used_at IS NULL
-                """, (time_str, user_id))
+                """), (time_str, user_id))
             
             conn.commit()
             logger.info(f"Password reset completed for user ID: {user_id}")

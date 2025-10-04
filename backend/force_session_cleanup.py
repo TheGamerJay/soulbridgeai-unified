@@ -4,6 +4,7 @@ Force cleanup of trial session data for aceelnene@gmail.com
 """
 import sqlite3
 import os
+from database_utils import format_query
 
 def force_cleanup_trial_data():
     """Force cleanup of trial data for aceelnene user"""
@@ -38,19 +39,19 @@ def force_cleanup_trial_data():
         if user_plan == 'bronze':
             print(f"FORCING: Setting trial_active=False for Bronze user {user_id}")
             
-            cursor.execute("""
+            cursor.execute(format_query("""
                 UPDATE users 
                 SET trial_active = 0, 
                     trial_used_permanently = 1,
                     trial_expires_at = NULL
                 WHERE id = ?
-            """, (user_id,))
+            """), (user_id,))
             
             conn.commit()
             print(f"SUCCESS: Force updated database - trial_active=False")
             
             # Verify the change
-            cursor.execute('SELECT user_plan, trial_active, trial_expires_at FROM users WHERE id = ?', (user_id,))
+            cursor.execute(format_query(SELECT user_plan, trial_active, trial_expires_at FROM users WHERE id = ?)', (user_id,))
             new_result = cursor.fetchone()
             if new_result:
                 new_plan, new_trial, new_expires = new_result

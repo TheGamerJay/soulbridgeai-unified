@@ -7,6 +7,7 @@ import json
 import logging
 from typing import Dict, Any, List, Optional
 from datetime import datetime, timedelta
+from database_utils import format_query
 
 logger = logging.getLogger(__name__)
 
@@ -142,7 +143,7 @@ class ConversationManager:
                     AND created_at >= %s
                 """, (user_id, companion_id, start_date))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     SELECT 
                         COUNT(*) as total_messages,
                         COUNT(DISTINCT DATE(created_at)) as conversation_days,
@@ -151,7 +152,7 @@ class ConversationManager:
                     FROM chat_conversations 
                     WHERE user_id = ? AND companion_id = ? 
                     AND created_at >= ?
-                """, (user_id, companion_id, start_date.isoformat()))
+                """), (user_id, companion_id, start_date.isoformat()))
             
             row = cursor.fetchone()
             conn.close()
@@ -235,11 +236,11 @@ class ConversationManager:
                     json.dumps(session['context'])
                 ))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     INSERT OR IGNORE INTO conversation_sessions 
                     (session_id, user_id, companion_id, started_at, duration_seconds, message_count, context_data)
                     VALUES (?, ?, ?, ?, ?, ?, ?)
-                """, (
+                """), (
                     session_id,
                     session['user_id'],
                     session['companion_id'],
@@ -285,7 +286,7 @@ class ConversationManager:
                     ORDER BY message_count DESC
                 """, (user_id, start_date))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     SELECT 
                         companion_id,
                         COUNT(*) as message_count,
@@ -295,7 +296,7 @@ class ConversationManager:
                     WHERE user_id = ? AND created_at >= ?
                     GROUP BY companion_id
                     ORDER BY message_count DESC
-                """, (user_id, start_date.isoformat()))
+                """), (user_id, start_date.isoformat()))
             
             companion_stats = cursor.fetchall()
             conn.close()

@@ -6,6 +6,7 @@ import logging
 import json
 from datetime import datetime
 from typing import Dict, Any, Optional
+from database_utils import format_query
 
 logger = logging.getLogger(__name__)
 
@@ -101,11 +102,11 @@ class AvatarPersistenceManager:
                     WHERE id = %s
                 """, (avatar_json, user_id))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     UPDATE users 
                     SET companion_data = ?, updated_at = CURRENT_TIMESTAMP
                     WHERE id = ?
-                """, (avatar_json, user_id))
+                """), (avatar_json, user_id))
             
             if cursor.rowcount > 0:
                 conn.commit()
@@ -131,7 +132,7 @@ class AvatarPersistenceManager:
             if self.database.use_postgres:
                 cursor.execute("SELECT companion_data FROM users WHERE id = %s", (user_id,))
             else:
-                cursor.execute("SELECT companion_data FROM users WHERE id = ?", (user_id,))
+                cursor.execute(format_query(SELECT companion_data FROM users WHERE id = ?"), (user_id,))
             
             result = cursor.fetchone()
             conn.close()

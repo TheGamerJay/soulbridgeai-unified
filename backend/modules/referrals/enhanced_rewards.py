@@ -6,6 +6,7 @@ import logging
 from database_utils import get_database
 from ..companions.companion_data import COMPANIONS
 from ..companions.skin_system import COMPANION_SKINS
+from database_utils import format_query
 
 logger = logging.getLogger(__name__)
 
@@ -123,7 +124,7 @@ def record_enhanced_unlock(user_id: int, reward_id: str, reward_type: str, thres
     
     try:
         # Create enhanced table if it doesn't exist
-        cursor.execute("""
+        cursor.execute(format_query("""
             CREATE TABLE IF NOT EXISTS user_referral_rewards (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 user_id INTEGER NOT NULL,
@@ -146,7 +147,7 @@ def record_enhanced_unlock(user_id: int, reward_id: str, reward_type: str, thres
             INSERT OR IGNORE INTO user_referral_rewards 
             (user_id, reward_id, reward_type, base_character, unlock_threshold, unlocked_at)
             VALUES (?, ?, ?, ?, ?, datetime('now'))
-        """, (user_id, reward_id, reward_type, base_character, threshold))
+        """), (user_id, reward_id, reward_type, base_character, threshold))
         
         conn.commit()
         logger.info(f"✅ Recorded {reward_type} unlock: {reward_id} for user {user_id}")
@@ -231,12 +232,12 @@ def get_user_referral_rewards(user_id: int) -> dict:
     cursor = conn.cursor()
     
     try:
-        cursor.execute("""
+        cursor.execute(format_query("""
             SELECT reward_id, reward_type, base_character, unlock_threshold, unlocked_at
             FROM user_referral_rewards 
             WHERE user_id = ?
             ORDER BY unlocked_at
-        """, (user_id,))
+        """), (user_id,))
         
         results = cursor.fetchall()
         

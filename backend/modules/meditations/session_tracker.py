@@ -6,6 +6,7 @@ import logging
 from datetime import datetime, timezone, timedelta
 from typing import Dict, Any, List, Optional
 import json
+from database_utils import format_query
 
 logger = logging.getLogger(__name__)
 
@@ -54,13 +55,13 @@ class SessionTracker:
                     json.dumps(session_data.get('metadata', {}))
                 ))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     INSERT INTO meditation_sessions 
                     (user_id, meditation_id, title, category, duration_seconds, 
                      duration_minutes, completed, started_at, completed_at, 
                      satisfaction_rating, notes, metadata)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, (
+                """), (
                     session_data['user_id'],
                     session_data['meditation_id'],
                     session_data['title'],
@@ -123,7 +124,7 @@ class SessionTracker:
                     LIMIT %s
                 """, (user_id, limit))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     SELECT id, meditation_id, title, category, duration_minutes, 
                            completed, started_at, completed_at, satisfaction_rating, 
                            notes, metadata
@@ -131,7 +132,7 @@ class SessionTracker:
                     WHERE user_id = ? 
                     ORDER BY completed_at DESC 
                     LIMIT ?
-                """, (user_id, limit))
+                """), (user_id, limit))
             
             sessions = []
             for row in cursor.fetchall():
@@ -161,7 +162,7 @@ class SessionTracker:
             if self.database.use_postgres:
                 cursor.execute("SELECT COUNT(*) FROM meditation_sessions WHERE user_id = %s", (user_id,))
             else:
-                cursor.execute("SELECT COUNT(*) FROM meditation_sessions WHERE user_id = ?", (user_id,))
+                cursor.execute(format_query(SELECT COUNT(*) FROM meditation_sessions WHERE user_id = ?"), (user_id,))
             
             total_count = cursor.fetchone()[0] or 0
             
@@ -218,7 +219,7 @@ class SessionTracker:
                     WHERE user_id = %s AND completed = TRUE
                 """, (user_id,))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     SELECT 
                         COUNT(*) as total_sessions,
                         COALESCE(SUM(duration_minutes), 0) as total_minutes,
@@ -227,7 +228,7 @@ class SessionTracker:
                         COUNT(DISTINCT category) as categories_tried
                     FROM meditation_sessions 
                     WHERE user_id = ? AND completed = 1
-                """, (user_id,))
+                """), (user_id,))
             
             result = cursor.fetchone()
             if result:
@@ -248,14 +249,14 @@ class SessionTracker:
                     LIMIT 1
                 """, (user_id,))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     SELECT category, COUNT(*) as session_count
                     FROM meditation_sessions 
                     WHERE user_id = ? AND completed = 1
                     GROUP BY category 
                     ORDER BY session_count DESC 
                     LIMIT 1
-                """, (user_id,))
+                """), (user_id,))
             
             favorite_result = cursor.fetchone()
             stats['favorite_type'] = favorite_result[0] if favorite_result else 'Stress Relief'
@@ -270,13 +271,13 @@ class SessionTracker:
                     WHERE user_id = %s AND completed = TRUE
                 """, (user_id,))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     SELECT 
                         COUNT(CASE WHEN completed_at >= date('now', '-7 days') THEN 1 END) as week_sessions,
                         COUNT(CASE WHEN completed_at >= date('now', '-30 days') THEN 1 END) as month_sessions
                     FROM meditation_sessions 
                     WHERE user_id = ? AND completed = 1
-                """, (user_id,))
+                """), (user_id,))
             
             activity_result = cursor.fetchone()
             if activity_result:
@@ -327,7 +328,7 @@ class SessionTracker:
                     ORDER BY session_count DESC
                 """, (user_id,))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     SELECT 
                         category,
                         COUNT(*) as session_count,
@@ -338,7 +339,7 @@ class SessionTracker:
                     WHERE user_id = ? AND completed = 1
                     GROUP BY category
                     ORDER BY session_count DESC
-                """, (user_id,))
+                """), (user_id,))
             
             categories = {}
             for row in cursor.fetchall():
@@ -392,7 +393,7 @@ class SessionTracker:
                     ORDER BY session_date DESC
                 """, (user_id, days))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     SELECT 
                         DATE(completed_at) as session_date,
                         COUNT(*) as session_count,
@@ -403,7 +404,7 @@ class SessionTracker:
                         AND completed_at >= date('now', '-%s days')
                     GROUP BY DATE(completed_at)
                     ORDER BY session_date DESC
-                """, (user_id, days))
+                """), (user_id, days))
             
             history = []
             days_with_sessions = 0
@@ -446,13 +447,13 @@ class SessionTracker:
                     LIMIT 100
                 """, (user_id,))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     SELECT DISTINCT DATE(completed_at) as session_date
                     FROM meditation_sessions 
                     WHERE user_id = ? AND completed = 1
                     ORDER BY session_date DESC
                     LIMIT 100
-                """, (user_id,))
+                """), (user_id,))
             
             session_dates = [row[0] for row in cursor.fetchall()]
             
@@ -511,11 +512,11 @@ class SessionTracker:
                     WHERE id = %s AND user_id = %s
                 """, (rating, notes, session_id, user_id))
             else:
-                cursor.execute("""
+                cursor.execute(format_query("""
                     UPDATE meditation_sessions 
                     SET satisfaction_rating = ?, notes = ?
                     WHERE id = ? AND user_id = ?
-                """, (rating, notes, session_id, user_id))
+                """), (rating, notes, session_id, user_id))
             
             if cursor.rowcount == 0:
                 conn.close()

@@ -8,6 +8,7 @@ import psycopg2
 import logging
 from flask import Blueprint, request, jsonify, session
 from typing import Optional, Dict, Any
+from database_utils import format_query
 
 # Stripe import with fallback
 try:
@@ -356,7 +357,7 @@ def stripe_webhook():
                 conn = get_db_connection()
                 cursor = conn.cursor()
                 cursor.execute(
-                    "SELECT id FROM users WHERE stripe_subscription_id = ?",
+                    format_query(SELECT id FROM users WHERE stripe_subscription_id = ?"),
                     (subscription_id,)
                 )
                 result = cursor.fetchone()

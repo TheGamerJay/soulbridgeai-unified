@@ -19,6 +19,7 @@ import hashlib
 from datetime import datetime, timezone, timedelta
 from typing import Optional, Dict, Any, List
 from flask import Blueprint, jsonify, request, session, redirect
+from database_utils import format_query
 
 logger = logging.getLogger(__name__)
 
@@ -1450,7 +1451,7 @@ def set_community_avatar():
                 if db.use_postgres:
                     cursor.execute("SELECT user_plan, trial_active FROM users WHERE id = %s", (user_id,))
                 else:
-                    cursor.execute("SELECT user_plan, trial_active FROM users WHERE id = ?", (user_id,))
+                    cursor.execute(format_query(SELECT user_plan, trial_active FROM users WHERE id = ?"), (user_id,))
                 result = cursor.fetchone()
                 if result:
                     db_user_plan, db_trial_active = result
@@ -1802,7 +1803,7 @@ def get_companions():
                 if db.use_postgres:
                     cursor.execute("SELECT user_plan, trial_active, trial_expires_at FROM users WHERE id = %s", (user_id,))
                 else:
-                    cursor.execute("SELECT user_plan, trial_active, trial_expires_at FROM users WHERE id = ?", (user_id,))
+                    cursor.execute(format_query(SELECT user_plan, trial_active, trial_expires_at FROM users WHERE id = ?"), (user_id,))
                 result = cursor.fetchone()
                 if result:
                     db_user_plan, db_trial_active, db_trial_expires = result

@@ -7,6 +7,7 @@ import os
 import logging
 from datetime import datetime, date
 from typing import Optional, Tuple
+from database_utils import format_query
 
 logger = logging.getLogger(__name__)
 
@@ -172,11 +173,11 @@ def get_artistic_time(user_id: int) -> int:
         except Exception as db_error:
             logger.warning(f"PostgreSQL query failed, trying SQLite: {db_error}")
             # Fallback to SQLite style
-            cursor.execute("""
+            cursor.execute(format_query("""
                 SELECT user_plan, artistic_time, trial_active, 
                        last_credit_reset, trial_credits
                 FROM users WHERE id = ?
-            """, (user_id,))
+            """), (user_id,))
         
         result = cursor.fetchone()
         if not result:
@@ -207,11 +208,11 @@ def get_artistic_time(user_id: int) -> int:
                 """, (monthly_allowance, today, user_id))
             except Exception:
                 # Fallback to SQLite style
-                cursor.execute("""
+                cursor.execute(format_query("""
                     UPDATE users 
                     SET artistic_time = ?, last_credit_reset = ? 
                     WHERE id = ?
-                """, (monthly_allowance, today, user_id))
+                """), (monthly_allowance, today, user_id))
             conn.commit()
             current_credits = monthly_allowance
             logger.info(f"Reset artistic time for {user_plan} user {user_id}: {monthly_allowance}")

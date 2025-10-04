@@ -16,6 +16,7 @@ import json
 from datetime import datetime, timezone, timedelta
 from typing import Optional, Dict, Any, Tuple
 from flask import Blueprint, jsonify, request, session
+from database_utils import format_query
 
 logger = logging.getLogger(__name__)
 
@@ -310,13 +311,13 @@ def create_subscription_record(user_id: int, stripe_data: Dict[str, Any]) -> boo
         period_start = datetime.fromtimestamp(stripe_data['current_period_start'], tz=timezone.utc)
         period_end = datetime.fromtimestamp(stripe_data['current_period_end'], tz=timezone.utc)
         
-        cursor.execute("""
+        cursor.execute(format_query("""
             INSERT INTO subscriptions (
                 user_id, stripe_subscription_id, stripe_customer_id, 
                 plan_type, billing_interval, status,
                 current_period_start, current_period_end
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        """, (
+        """), (
             user_id,
             stripe_data['id'],
             stripe_data['customer'],
@@ -349,11 +350,11 @@ def update_subscription_cancellation(subscription_id: int, canceled_at: datetime
         conn = db.get_connection()
         cursor = conn.cursor()
         
-        cursor.execute("""
+        cursor.execute(format_query("""
             UPDATE subscriptions 
             SET cancel_at_period_end = TRUE, canceled_at = ?, updated_at = CURRENT_TIMESTAMP
             WHERE id = ?
-        """, (canceled_at, subscription_id))
+        """), (canceled_at, subscription_id))
         
         conn.commit()
         conn.close()
@@ -376,10 +377,10 @@ def log_subscription_event(user_id: int, action: str, metadata: Dict[str, Any]) 
         conn = db.get_connection()
         cursor = conn.cursor()
         
-        cursor.execute("""
+        cursor.execute(format_query("""
             INSERT INTO subscription_history (user_id, action, metadata)
             VALUES (?, ?, ?)
-        """, (user_id, action, json.dumps(metadata)))
+        """), (user_id, action, json.dumps(metadata)))
         
         conn.commit()
         conn.close()
@@ -435,7 +436,7 @@ def reset_monthly_credits_for_all_users():
         cursor = conn.cursor()
         
         # Get all active subscribers
-        cursor.execute("""
+        cursor.execute(format_query("""
             SELECT user_id, plan_type 
             FROM subscriptions 
             WHERE status = 'active' AND cancel_at_period_end = FALSE
@@ -476,7 +477,7 @@ def validate_subscription_eligibility(user_id: int) -> Tuple[bool, str]:
         cursor.execute("""
             SELECT COUNT(*) FROM subscriptions 
             WHERE user_id = ? AND canceled_at > datetime('now', '-7 days')
-        """, (user_id,))
+        """), (user_id,))
         
         recent_cancellations = cursor.fetchone()[0]
         
@@ -485,11 +486,11 @@ def validate_subscription_eligibility(user_id: int) -> Tuple[bool, str]:
             return False, "Must wait 7 days after cancellation before resubscribing"
         
         # Check for excessive subscription churn
-        cursor.execute("""
+        cursor.execute(format_query("""
             SELECT COUNT(*) FROM subscription_history 
             WHERE user_id = ? AND action IN ('canceled', 'upgrade_initiated') 
             AND created_at > datetime('now', '-30 days')
-        """, (user_id,))
+        """), (user_id,))
         
         recent_changes = cursor.fetchone()[0]
         
