@@ -123,16 +123,16 @@ class AnalyticsService:
             # Get feature usage stats
             if db.db_type == 'postgresql':
                 cursor.execute("""
-                    SELECT 
+                    SELECT
                         feature_type,
                         COUNT(*) as usage_count,
                         COUNT(DISTINCT DATE(created_at)) as days_used,
                         AVG(session_duration_seconds) as avg_session_duration
-                    FROM user_activity_log 
+                    FROM user_activity_log
                     WHERE user_id = %s AND created_at >= %s
                     GROUP BY feature_type
                     ORDER BY usage_count DESC
-                """), (user_id, start_date))
+                """, (user_id, start_date))
             else:
                 cursor.execute(format_query("""
                     SELECT 
@@ -190,16 +190,16 @@ class AnalyticsService:
             # Get companion chat stats
             if db.db_type == 'postgresql':
                 cursor.execute("""
-                    SELECT 
+                    SELECT
                         companion_id,
                         COUNT(*) as message_count,
                         COUNT(DISTINCT DATE(created_at)) as chat_days,
                         AVG(LENGTH(user_message)) as avg_message_length
-                    FROM chat_conversations 
+                    FROM chat_conversations
                     WHERE user_id = %s AND created_at >= %s
                     GROUP BY companion_id
                     ORDER BY message_count DESC
-                """), (user_id, start_date))
+                """, (user_id, start_date))
             else:
                 cursor.execute(format_query("""
                     SELECT 
@@ -263,15 +263,15 @@ class AnalyticsService:
             # Get daily activity trends
             if db.db_type == 'postgresql':
                 cursor.execute("""
-                    SELECT 
+                    SELECT
                         DATE(created_at) as activity_date,
                         COUNT(*) as interactions,
                         COUNT(DISTINCT feature_type) as features_used
-                    FROM user_activity_log 
+                    FROM user_activity_log
                     WHERE user_id = %s AND created_at >= %s
                     GROUP BY DATE(created_at)
                     ORDER BY activity_date
-                """), (user_id, start_date))
+                """, (user_id, start_date))
             else:
                 cursor.execute(format_query("""
                     SELECT 
@@ -351,15 +351,15 @@ class AnalyticsService:
             # Get activity by hour and day of week
             if db.db_type == 'postgresql':
                 cursor.execute("""
-                    SELECT 
+                    SELECT
                         EXTRACT(DOW FROM created_at) as day_of_week,
                         EXTRACT(HOUR FROM created_at) as hour_of_day,
                         COUNT(*) as activity_count
-                    FROM user_activity_log 
+                    FROM user_activity_log
                     WHERE user_id = %s AND created_at >= %s
                     GROUP BY EXTRACT(DOW FROM created_at), EXTRACT(HOUR FROM created_at)
                     ORDER BY day_of_week, hour_of_day
-                """), (user_id, start_date))
+                """, (user_id, start_date))
             else:
                 cursor.execute(format_query("""
                     SELECT 
