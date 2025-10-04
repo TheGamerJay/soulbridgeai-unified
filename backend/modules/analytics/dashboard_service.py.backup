@@ -93,9 +93,9 @@ class DashboardService:
             # Get companion chat stats
             if db.db_type == 'postgresql':
                 cursor.execute("""
-                    SELECT COUNT(*) FROM chat_conversations
+                    SELECT COUNT(*) FROM chat_conversations 
                     WHERE user_id = %s AND created_at >= %s
-                """, (user_id, start_date))
+                """), (user_id, start_date))
             else:
                 cursor.execute(format_query("""
                     SELECT COUNT(*) FROM chat_conversations 
@@ -129,16 +129,16 @@ class DashboardService:
             # Get daily usage pattern
             if db.db_type == 'postgresql':
                 cursor.execute("""
-                    SELECT
+                    SELECT 
                         DATE(created_at) as usage_date,
                         COUNT(*) as daily_interactions,
                         COUNT(DISTINCT feature_type) as daily_features,
                         SUM(session_duration_seconds) as daily_time_seconds
-                    FROM user_activity_log
+                    FROM user_activity_log 
                     WHERE user_id = %s AND created_at >= %s
                     GROUP BY DATE(created_at)
                     ORDER BY usage_date
-                """, (user_id, start_date))
+                """), (user_id, start_date))
             else:
                 cursor.execute(format_query("""
                     SELECT 
@@ -375,14 +375,14 @@ class DashboardService:
             # Get hourly usage patterns
             if db.db_type == 'postgresql':
                 cursor.execute("""
-                    SELECT
+                    SELECT 
                         EXTRACT(HOUR FROM created_at) as hour_of_day,
                         COUNT(*) as usage_count
-                    FROM user_activity_log
+                    FROM user_activity_log 
                     WHERE user_id = %s AND created_at >= %s
                     GROUP BY EXTRACT(HOUR FROM created_at)
                     ORDER BY usage_count DESC
-                """, (user_id, start_date))
+                """), (user_id, start_date))
             else:
                 cursor.execute(format_query("""
                     SELECT 
@@ -399,14 +399,14 @@ class DashboardService:
             # Get day of week patterns
             if db.db_type == 'postgresql':
                 cursor.execute("""
-                    SELECT
+                    SELECT 
                         EXTRACT(DOW FROM created_at) as day_of_week,
                         COUNT(*) as usage_count
-                    FROM user_activity_log
+                    FROM user_activity_log 
                     WHERE user_id = %s AND created_at >= %s
                     GROUP BY EXTRACT(DOW FROM created_at)
                     ORDER BY usage_count DESC
-                """, (user_id, start_date))
+                """), (user_id, start_date))
             else:
                 cursor.execute(format_query("""
                     SELECT 
@@ -558,14 +558,14 @@ class DashboardService:
             # Get system-wide metrics
             if db.db_type == 'postgresql':
                 cursor.execute("""
-                    SELECT
+                    SELECT 
                         COUNT(DISTINCT user_id) as active_users,
                         COUNT(*) as total_interactions,
                         COUNT(DISTINCT feature_type) as features_used,
                         AVG(session_duration_seconds) as avg_session_duration
-                    FROM user_activity_log
+                    FROM user_activity_log 
                     WHERE created_at >= %s
-                """, (start_date,))
+                """), (start_date,))
             else:
                 cursor.execute(format_query("""
                     SELECT

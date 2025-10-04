@@ -7,7 +7,8 @@
       "Bash(do python -m py_compile \"$file\")",
       "Bash(echo \"$file\")",
       "Bash(done)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Read(//c//**)"
     ],
     "deny": [],
     "ask": [],
