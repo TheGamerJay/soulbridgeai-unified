@@ -206,13 +206,13 @@ You are {companion['name']} - maintain this identity consistently."""
             # Insert conversation record
             if db.db_type == 'postgresql':
                 cursor.execute("""
-                    INSERT INTO chat_conversations 
+                    INSERT INTO chat_conversations
                     (user_id, companion_id, user_message, ai_response, created_at)
                     VALUES (%s, %s, %s, %s, %s)
-                """), (user_id, companion_id, user_message, ai_response, datetime.now()))
+                """, (user_id, companion_id, user_message, ai_response, datetime.now()))
             else:
                 cursor.execute(format_query("""
-                    INSERT INTO chat_conversations 
+                    INSERT INTO chat_conversations
                     (user_id, companion_id, user_message, ai_response, created_at)
                     VALUES (?, ?, ?, ?, ?)
                 """), (user_id, companion_id, user_message, ai_response, datetime.now().isoformat()))
@@ -303,17 +303,17 @@ You are {companion['name']} - maintain this identity consistently."""
             if companion_id:
                 if db.db_type == 'postgresql':
                     cursor.execute("""
-                        DELETE FROM chat_conversations 
+                        DELETE FROM chat_conversations
                         WHERE user_id = %s AND companion_id = %s
-                    """), (user_id, companion_id))
+                    """, (user_id, companion_id))
                 else:
                     cursor.execute(format_query("""
-                        DELETE FROM chat_conversations 
+                        DELETE FROM chat_conversations
                         WHERE user_id = ? AND companion_id = ?
                     """), (user_id, companion_id))
             else:
                 if db.db_type == 'postgresql':
-                    cursor.execute("DELETE FROM chat_conversations WHERE user_id = %s"), (user_id,))
+                    cursor.execute("DELETE FROM chat_conversations WHERE user_id = %s", (user_id,))
                 else:
                     cursor.execute(format_query("DELETE FROM chat_conversations WHERE user_id = ?"), (user_id,))
             
