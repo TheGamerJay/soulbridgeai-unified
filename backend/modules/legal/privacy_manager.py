@@ -146,7 +146,7 @@ class PrivacyManager:
             
             # Get user email before deletion for logging
             if self.database.use_postgres:
-                cursor.execute("SELECT email FROM users WHERE id = %s"), (user_id,))
+                cursor.execute("SELECT email FROM users WHERE id = %s", (user_id,))
             else:
                 cursor.execute(format_query("SELECT email FROM users WHERE id = ?"), (user_id,))
             
@@ -179,7 +179,7 @@ class PrivacyManager:
             for table in cleanup_tables:
                 try:
                     if self.database.use_postgres:
-                        cursor.execute(f"DELETE FROM {table} WHERE user_id = %s"), (user_id,))
+                        cursor.execute(f"DELETE FROM {table} WHERE user_id = %s", (user_id,))
                     else:
                         cursor.execute(f"DELETE FROM {table} WHERE user_id = ?", (user_id,))
                     deleted_records[table] = cursor.rowcount
@@ -245,14 +245,14 @@ class PrivacyManager:
             # Anonymize user profile
             if self.database.use_postgres:
                 cursor.execute("""
-                    UPDATE users 
+                    UPDATE users
                     SET email = %s,
                         display_name = 'Anonymous User',
                         profile_image = NULL,
                         anonymized_at = %s,
                         anonymization_reason = %s
                     WHERE id = %s
-                """), (anonymous_id, anonymization_timestamp, reason, user_id))
+                """, (anonymous_id, anonymization_timestamp, reason, user_id))
             else:
                 cursor.execute(format_query("""
                     UPDATE users 
@@ -275,14 +275,14 @@ class PrivacyManager:
             try:
                 if self.database.use_postgres:
                     cursor.execute("""
-                        UPDATE wellness_gallery 
+                        UPDATE wellness_gallery
                         SET user_id = NULL,
                             metadata = jsonb_set(
                                 COALESCE(metadata, '{}'),
                                 '{anonymized}', 'true'
                             )
                         WHERE user_id = %s
-                    """), (user_id,))
+                    """, (user_id,))
                 else:
                     cursor.execute(format_query("""
                         UPDATE wellness_gallery 
@@ -297,12 +297,12 @@ class PrivacyManager:
             try:
                 if self.database.use_postgres:
                     cursor.execute("""
-                        UPDATE usage_logs 
+                        UPDATE usage_logs
                         SET ip_address = 'anonymized',
                             user_agent = 'anonymized',
                             session_id = 'anonymized'
                         WHERE user_id = %s
-                    """), (user_id,))
+                    """, (user_id,))
                 else:
                     cursor.execute(format_query("""
                         UPDATE usage_logs 
@@ -351,11 +351,11 @@ class PrivacyManager:
             # Get privacy-related settings
             if self.database.use_postgres:
                 cursor.execute("""
-                    SELECT data_sharing_consent, marketing_consent, 
+                    SELECT data_sharing_consent, marketing_consent,
                            analytics_consent, cookie_consent,
                            privacy_settings_updated_at
                     FROM users WHERE id = %s
-                """), (user_id,))
+                """, (user_id,))
             else:
                 cursor.execute(format_query("""
                     SELECT data_sharing_consent, marketing_consent, 
@@ -434,14 +434,14 @@ class PrivacyManager:
                 ))
             else:
                 cursor.execute(format_query("""
-                    UPDATE users 
+                    UPDATE users
                     SET data_sharing_consent = ?,
                         marketing_consent = ?,
                         analytics_consent = ?,
                         cookie_consent = ?,
                         privacy_settings_updated_at = ?
                     WHERE id = ?
-                """, (
+                """), (
                     settings.get('data_sharing_consent', True),
                     settings.get('marketing_consent', False),
                     settings.get('analytics_consent', True),
@@ -504,14 +504,14 @@ class PrivacyManager:
                     
                     if self.database.use_postgres:
                         cursor.execute(f"""
-                            DELETE FROM {table} 
+                            DELETE FROM {table}
                             WHERE {date_column} < %s
-                        """), (cutoff_date,))
+                        """, (cutoff_date,))
                     else:
                         cursor.execute(f"""
-                            DELETE FROM {table} 
+                            DELETE FROM {table}
                             WHERE {date_column} < ?
-                        """), (cutoff_date,))
+                        """, (cutoff_date,))
                     
                     deleted_count = cursor.rowcount
                     cleanup_results[table] = deleted_count
@@ -563,9 +563,9 @@ class PrivacyManager:
             if self.database.use_postgres:
                 cursor.execute("""
                     SELECT COUNT(*), MIN(created_at), MAX(created_at)
-                    FROM wellness_gallery 
+                    FROM wellness_gallery
                     WHERE user_id = %s AND is_approved = TRUE
-                """), (user_id,))
+                """, (user_id,))
             else:
                 cursor.execute(format_query("""
                     SELECT COUNT(*), MIN(created_at), MAX(created_at)
@@ -607,7 +607,7 @@ class PrivacyManager:
                 cursor.execute("""
                     SELECT referral_code, referral_points
                     FROM users WHERE id = %s
-                """), (user_id,))
+                """, (user_id,))
             else:
                 cursor.execute(format_query("""
                     SELECT referral_code, referral_points
@@ -642,10 +642,10 @@ class PrivacyManager:
             
             if self.database.use_postgres:
                 cursor.execute("""
-                    INSERT INTO data_deletion_log 
+                    INSERT INTO data_deletion_log
                     (user_id, user_email, deletion_reason, deletion_details, deleted_at)
                     VALUES (%s, %s, %s, %s, %s)
-                """), (user_id, user_email, reason, json.dumps(deletion_log), timestamp))
+                """, (user_id, user_email, reason, json.dumps(deletion_log), timestamp))
             else:
                 cursor.execute(format_query("""
                     INSERT INTO data_deletion_log 
