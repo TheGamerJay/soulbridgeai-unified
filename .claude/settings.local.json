@@ -8,7 +8,9 @@
       "Bash(echo \"$file\")",
       "Bash(done)",
       "Bash(python3:*)",
-      "Read(//c//**)"
+      "Read(//c//**)",
+      "Bash(for file in modules/**/*.py)",
+      "Bash(break)"
     ],
     "deny": [],
     "ask": [],

@@ -321,10 +321,10 @@ def admin_expire_all_trials():
         
         if db.use_postgres:
             cursor.execute("""
-                UPDATE users 
+                UPDATE users
                 SET trial_expires_at = %s
                 WHERE trial_active = TRUE
-            """), (now,))
+            """, (now,))
         else:
             cursor.execute(format_query("""
                 UPDATE users 
@@ -409,12 +409,12 @@ def admin_reset_user_trial(user_id):
         # Reset user's trial
         if db.use_postgres:
             cursor.execute("""
-                UPDATE users 
-                SET trial_active = FALSE, 
+                UPDATE users
+                SET trial_active = FALSE,
                     trial_used_permanently = TRUE,
                     trial_expires_at = NULL
                 WHERE id = %s
-            """), (user_id,))
+            """, (user_id,))
         else:
             cursor.execute(format_query("""
                 UPDATE users 
@@ -480,7 +480,7 @@ def admin_delete_user(user_id):
         
         # Delete user (this should cascade to related tables)
         if db.use_postgres:
-            cursor.execute("DELETE FROM users WHERE id = %s"), (user_id,))
+            cursor.execute("DELETE FROM users WHERE id = %s", (user_id,))
         else:
             cursor.execute(format_query("DELETE FROM users WHERE id = ?"), (user_id,))
         
