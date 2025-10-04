@@ -180,16 +180,16 @@ class MessageHandler:
             # Check last 5 messages
             if db.db_type == 'postgresql':
                 cursor.execute("""
-                    SELECT user_message FROM chat_conversations 
-                    WHERE user_id = %s 
-                    ORDER BY created_at DESC 
+                    SELECT user_message FROM chat_conversations
+                    WHERE user_id = %s
+                    ORDER BY created_at DESC
                     LIMIT 5
-                """), (user_id,))
+                """, (user_id,))
             else:
                 cursor.execute(format_query("""
-                    SELECT user_message FROM chat_conversations 
-                    WHERE user_id = ? 
-                    ORDER BY created_at DESC 
+                    SELECT user_message FROM chat_conversations
+                    WHERE user_id = ?
+                    ORDER BY created_at DESC
                     LIMIT 5
                 """), (user_id,))
             
@@ -231,16 +231,16 @@ class MessageHandler:
             
             if db.db_type == 'postgresql':
                 cursor.execute("""
-                    INSERT INTO chat_usage_tracking 
+                    INSERT INTO chat_usage_tracking
                     (user_id, companion_id, message_length, model_used, tokens_used, created_at)
                     VALUES (%s, %s, %s, %s, %s, %s)
-                """), (
-                    user_id, companion_id, message_length, 
+                """, (
+                    user_id, companion_id, message_length,
                     model_used, tokens_used, usage_data['timestamp']
                 ))
             else:
                 cursor.execute(format_query("""
-                    INSERT INTO chat_usage_tracking 
+                    INSERT INTO chat_usage_tracking
                     (user_id, companion_id, message_length, model_used, tokens_used, created_at)
                     VALUES (?, ?, ?, ?, ?, ?)
                 """), (
