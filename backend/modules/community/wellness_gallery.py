@@ -437,12 +437,12 @@ class WellnessGallery:
             
             if hasattr(self.database, 'use_postgres') and self.database.use_postgres:
                 cursor.execute("""
-                    INSERT INTO wellness_gallery 
-                    (content_type, content, theme, mood, is_approved, moderation_status, 
+                    INSERT INTO wellness_gallery
+                    (content_type, content, theme, mood, is_approved, moderation_status,
                      hearts_count, created_at, metadata)
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                     RETURNING id
-                """), (
+                """, (
                     gallery_item['content_type'],
                     gallery_item['content'],
                     gallery_item['theme'],
