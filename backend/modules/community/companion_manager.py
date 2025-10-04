@@ -53,7 +53,7 @@ class CompanionManager:
             {"id":"royal_gold","name":"Royal","tier":"gold","image_url":"/static/logos/Royal_a_Max_companion.png","min_referrals":0,"greeting":"Greetings! I'm Royal. Experience the pinnacle of AI companionship with unlimited possibilities."},
             {"id":"ven_blayzica_gold","name":"Ven Blayzica","tier":"gold","image_url":"/static/logos/Ven_Blayzica_a_Max_companion.png","min_referrals":0,"greeting":"Hello! I'm Ven Blayzica. Let's venture into the ultimate SoulBridge experience together."},
             {"id":"ven_sky_gold","name":"Ven Sky","tier":"gold","image_url":"/static/logos/Ven_Sky_a_Max_companion.png","min_referrals":0,"greeting":"Welcome! I'm Ven Sky. Together we'll soar beyond limits with unlimited premium access."},
-            {"id":"watchdog_gold","name":"WatchDog.2","tier":"gold","image_url":"/static/logos/WatchDog_a_Max_Companion.png","min_referrals":0,"greeting":"Greetings! I'm WatchDog.2. I'll safeguard your unlimited access and guide you through premium features."},
+            {"id":"watchdog_gold","name":"WatchDog.2","tier":"gold","image_url":"/static/logos/Watch Dog skin.png","min_referrals":0,"greeting":"Greetings! I'm WatchDog.2. I'll safeguard your unlimited access and guide you through premium features."},
             {"id":"dr_madjay_gold","name":"Dr. MadJay","tier":"gold","image_url": "/static/logos/Dr.MadJay skin.png","min_referrals":0,"greeting":"Greetings! I'm Dr. MadJay. Let's explore the cutting-edge possibilities of unlimited AI access."},
             
             # Referral-locked companions

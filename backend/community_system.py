@@ -1577,15 +1577,15 @@ def select_companion_direct(companion_id):
             12: {'name': 'Blazelian', 'tier': 'referral', 'avatar_url': '/static/logos/Blazelian.png'},
             # Silver tier companions
             2: {'name': 'Sky', 'tier': 'silver', 'avatar_url': '/static/logos/Sky_a_premium_companion.png'},
-            7: {'name': 'GamerJay', 'tier': 'silver', 'avatar_url': '/static/logos/GamerJay_premium_companion.png'},
+            7: {'name': 'GamerJay', 'tier': 'silver', 'avatar_url': '/static/logos/GamerJay skin.png'},
             20: {'name': 'Claude', 'tier': 'silver', 'avatar_url': '/static/logos/Claude_Growth.png'},
-            21: {'name': 'Blayzo', 'tier': 'silver', 'avatar_url': '/static/logos/Blayzo_premium_companion.png'},
+            21: {'name': 'Blayzo', 'tier': 'silver', 'avatar_url': '/static/logos/Blayzo skin.png'},
             22: {'name': 'Blayzica', 'tier': 'silver', 'avatar_url': '/static/logos/Blayzica_Pro.png'},
             23: {'name': 'WatchDog', 'tier': 'silver', 'avatar_url': '/static/logos/WatchDog a Premium companion.png'},
             24: {'name': 'Rozia', 'tier': 'silver', 'avatar_url': '/static/logos/Rozia_Silver.png'},
             26: {'name': 'Lumen', 'tier': 'silver', 'avatar_url': '/static/logos/Lumen_Silver.png'},
             # Gold tier companions
-            3: {'name': 'Crimson', 'tier': 'gold', 'avatar_url': '/static/logos/Crimson_a_Max_companion.png'},
+            3: {'name': 'Crimson', 'tier': 'gold', 'avatar_url': '/static/logos/Crimson skin.png'},
             4: {'name': 'Violet', 'tier': 'gold', 'avatar_url': '/static/logos/Violet.png'},
             30: {'name': 'Claude', 'tier': 'gold', 'avatar_url': '/static/logos/Claude_Max.png'},
             31: {'name': 'Royal', 'tier': 'gold', 'avatar_url': '/static/logos/Royal_a_Max_companion.png'},

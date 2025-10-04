@@ -11,7 +11,8 @@
       "Bash(npm run lint)",
       "Bash(mv:*)",
       "Bash(cp:*)",
-      "Bash(sqlite3:*)"
+      "Bash(sqlite3:*)",
+      "Bash(xargs -I {} python -c \"\nimport sys\ncontent = open(''''{}'''', ''''r'''').read()\ncontent = content.replace(''''GamerJay_premium_companion.png'''', ''''GamerJay skin.png'''')\ncontent = content.replace(''''Blayzo_premium_companion.png'''', ''''Blayzo skin.png'''')\ncontent = content.replace(''''WatchDog_a_Premium_companion.png'''', ''''Watch Dog skin.png'''')\ncontent = content.replace(''''WatchDog_a_Max_Companion.png'''', ''''Watch Dog skin.png'''')\ncontent = content.replace(''''Crimson_a_Max_companion.png'''', ''''Crimson skin.png'''')\ncontent = content.replace(''''Dr. MadJay.png'''', ''''Dr.MadJay skin.png'''')\nopen(''''{}'''', ''''w'''').write(content)\nprint(''''Fixed: {}'''')\n\")"
     ],
     "deny": [],
     "ask": [],
