@@ -95,39 +95,34 @@ def ensure_user_artistic_time_data(user_id: int, conn) -> bool:
     try:
         cursor = conn.cursor()
         
-        # Check if user has artistic_time and trial_credits columns set
+        # Check if user has artistic_credits column set (no more trial system)
         try:
             cursor.execute("""
-                SELECT user_plan, artistic_time, trial_active, trial_credits
+                SELECT user_plan, artistic_credits
                 FROM users WHERE id = %s
             """, (user_id,))
         except Exception:
             cursor.execute("""
-                SELECT user_plan, artistic_time, trial_active, trial_credits
-                FROM users WHERE id = ?
+                SELECT user_plan, artistic_credits
+                FROM users WHERE id = %s
             """, (user_id,))
         
         result = cursor.fetchone()
         if not result:
             return False
-            
-        user_plan, artistic_time, trial_active, trial_credits = result
-        logger.info(f"Raw user data for {user_id}: plan={user_plan}, artistic_time={artistic_time}, trial_active={trial_active}, trial_credits={trial_credits}")
-        
+
+        user_plan, artistic_credits = result
+        logger.info(f"Raw user data for {user_id}: plan={user_plan}, artistic_credits={artistic_credits}")
+
         # Initialize missing data
         updates_needed = []
         params = []
-        
-        if artistic_time is None and user_plan in ['silver', 'gold']:
-            monthly_allowance = TIER_ARTISTIC_TIME.get(user_plan, 0)
-            updates_needed.append("artistic_time = %s")
+
+        if artistic_credits is None and user_plan in ['silver', 'gold', 'soul_companion']:
+            monthly_allowance = TIER_ARTISTIC_TIME.get(user_plan, 200)
+            updates_needed.append("artistic_credits = %s")
             params.append(monthly_allowance)
-            logger.info(f"Initializing artistic_time for {user_plan} user {user_id}: {monthly_allowance}")
-        
-        if trial_credits is None and trial_active and user_plan == 'bronze':
-            updates_needed.append("trial_credits = %s")
-            params.append(TRIAL_ARTISTIC_TIME)
-            logger.info(f"Initializing trial_credits for Bronze user {user_id}: {TRIAL_ARTISTIC_TIME}")
+            logger.info(f"Initializing artistic_credits for {user_plan} user {user_id}: {monthly_allowance}")
         
         if updates_needed:
             query = f"UPDATE users SET {', '.join(updates_needed)} WHERE id = %s"
