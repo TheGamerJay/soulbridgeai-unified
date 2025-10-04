@@ -357,7 +357,7 @@ def stripe_webhook():
                 conn = get_db_connection()
                 cursor = conn.cursor()
                 cursor.execute(
-                    format_query(SELECT id FROM users WHERE stripe_subscription_id = ?"),
+                    format_query("SELECT id FROM users WHERE stripe_subscription_id = ?"),
                     (subscription_id,)
                 )
                 result = cursor.fetchone()

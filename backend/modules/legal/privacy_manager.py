@@ -148,7 +148,7 @@ class PrivacyManager:
             if self.database.use_postgres:
                 cursor.execute("SELECT email FROM users WHERE id = %s", (user_id,))
             else:
-                cursor.execute(format_query(SELECT email FROM users WHERE id = ?"), (user_id,))
+                cursor.execute(format_query("SELECT email FROM users WHERE id = ?"), (user_id,))
             
             user_data = cursor.fetchone()
             if not user_data:
@@ -192,7 +192,7 @@ class PrivacyManager:
             if self.database.use_postgres:
                 cursor.execute("DELETE FROM users WHERE id = %s", (user_id,))
             else:
-                cursor.execute(format_query(DELETE FROM users WHERE id = ?"), (user_id,))
+                cursor.execute(format_query("DELETE FROM users WHERE id = ?"), (user_id,))
             
             if cursor.rowcount == 0:
                 conn.close()

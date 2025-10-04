@@ -95,7 +95,7 @@ def get_feature_usage_today(user_id: int, feature: str) -> int:
                 if db.use_postgres:
                     cursor.execute("SELECT COUNT(*) FROM feature_usage WHERE user_id = %s AND feature = %s AND DATE(created_at) = %s", (user_id, feature, today))
                 else:
-                    cursor.execute(format_query(SELECT COUNT(*) FROM feature_usage WHERE user_id = ? AND feature = ? AND DATE(created_at) = ?"), (user_id, feature, today))
+                    cursor.execute(format_query("SELECT COUNT(*) FROM feature_usage WHERE user_id = ? AND feature = ? AND DATE(created_at) = ?"), (user_id, feature, today))
                 
                 result = cursor.fetchone()
                 conn.close()

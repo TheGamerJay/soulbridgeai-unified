@@ -615,7 +615,7 @@ class NotificationManager:
         """Get user email from database"""
         try:
             cursor = self.db.connection.cursor()
-            cursor.execute(format_query(SELECT email FROM users WHERE id = ?"), (user_id,))
+            cursor.execute(format_query("SELECT email FROM users WHERE id = ?"), (user_id,))
             row = cursor.fetchone()
             return row[0] if row else None
         except Exception as e:

@@ -410,7 +410,7 @@ def trial_activate():
                     if db.use_postgres:
                         cursor.execute("UPDATE users SET trial_credits = COALESCE(trial_credits, %s) WHERE id = %s", (60, uid))
                     else:
-                        cursor.execute(format_query(UPDATE users SET trial_credits = COALESCE(trial_credits, ?) WHERE id = ?"), (60, uid))
+                        cursor.execute(format_query("UPDATE users SET trial_credits = COALESCE(trial_credits, ?) WHERE id = ?"), (60, uid))
                     conn.commit()
                     logger.info(f"💳 Ensured trial credits in database for user {uid}")
                 except Exception as e:
@@ -469,7 +469,7 @@ def trial_activate():
                 if db.use_postgres:
                     cursor.execute("UPDATE users SET trial_credits = %s WHERE id = %s", (60, uid))
                 else:
-                    cursor.execute(format_query(UPDATE users SET trial_credits = ? WHERE id = ?"), (60, uid))
+                    cursor.execute(format_query("UPDATE users SET trial_credits = ? WHERE id = ?"), (60, uid))
                 
                 conn.commit()
                 conn.close()

@@ -38,7 +38,7 @@ def ensure_user_has_code(user_id):
     
     try:
         # Check if user already has a code
-        cursor.execute(format_query(SELECT code FROM referral_codes WHERE user_id = ? AND is_active = 1"), (user_id,))
+        cursor.execute(format_query("SELECT code FROM referral_codes WHERE user_id = ? AND is_active = 1"), (user_id,))
         result = cursor.fetchone()
         
         if result:
@@ -47,7 +47,7 @@ def ensure_user_has_code(user_id):
         # Generate unique code
         while True:
             code = generate_referral_code()
-            cursor.execute(format_query(SELECT id FROM referral_codes WHERE code = ?"), (code,))
+            cursor.execute(format_query("SELECT id FROM referral_codes WHERE code = ?"), (code,))
             if not cursor.fetchone():
                 break
         

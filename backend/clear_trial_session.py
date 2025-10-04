@@ -26,7 +26,7 @@ def clear_trial_session_data(user_id=104):
         cursor = conn.cursor()
         
         # Check current user status
-        cursor.execute(format_query(SELECT user_plan, trial_active, trial_expires_at FROM users WHERE id = ?"), (user_id,))
+        cursor.execute(format_query("SELECT user_plan, trial_active, trial_expires_at FROM users WHERE id = ?"), (user_id,))
         
         result = cursor.fetchone()
         if not result:

@@ -332,7 +332,7 @@ def get_plan_count(plan):
         if db.use_postgres:
             cursor.execute("SELECT COUNT(*) FROM users WHERE user_plan = %s", (plan,))
         else:
-            cursor.execute(format_query(SELECT COUNT(*) FROM users WHERE user_plan = ?"), (plan,))
+            cursor.execute(format_query("SELECT COUNT(*) FROM users WHERE user_plan = ?"), (plan,))
         count = cursor.fetchone()[0]
         conn.close()
         return count
@@ -387,7 +387,7 @@ def get_recent_actions(limit=10):
         
         # Check if action_logs table exists
         try:
-            cursor.execute(format_query(SELECT user_id, action, timestamp FROM action_logs ORDER BY timestamp DESC LIMIT ?"), (limit,))
+            cursor.execute(format_query("SELECT user_id, action, timestamp FROM action_logs ORDER BY timestamp DESC LIMIT ?"), (limit,))
             actions = cursor.fetchall()
             conn.close()
             return [{'user_id': a[0], 'action': a[1], 'timestamp': a[2]} for a in actions]
@@ -413,7 +413,7 @@ def get_actions_today():
             if db.use_postgres:
                 cursor.execute("SELECT COUNT(*) FROM action_logs WHERE DATE(timestamp) = %s", (today,))
             else:
-                cursor.execute(format_query(SELECT COUNT(*) FROM action_logs WHERE DATE(timestamp) = ?"), (today,))
+                cursor.execute(format_query("SELECT COUNT(*) FROM action_logs WHERE DATE(timestamp) = ?"), (today,))
             count = cursor.fetchone()[0]
             conn.close()
             return count

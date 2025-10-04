@@ -226,7 +226,7 @@ def auto_set_avatar(companion_id):
         if db.use_postgres:
             cursor.execute("UPDATE users SET companion_data = %s WHERE id = %s", (json_data, user_id))
         else:
-            cursor.execute(format_query(UPDATE users SET companion_data = ? WHERE id = ?"), (json_data, user_id))
+            cursor.execute(format_query("UPDATE users SET companion_data = ? WHERE id = ?"), (json_data, user_id))
         
         rows_affected = cursor.rowcount
         conn.commit()
@@ -472,7 +472,7 @@ def anonymous_community():
                 if db.use_postgres:
                     cursor.execute("SELECT companion_data FROM users WHERE id = %s", (user_id,))
                 else:
-                    cursor.execute(format_query(SELECT companion_data FROM users WHERE id = ?"), (user_id,))
+                    cursor.execute(format_query("SELECT companion_data FROM users WHERE id = ?"), (user_id,))
                     
                 result = cursor.fetchone()
                 conn.close()
@@ -523,7 +523,7 @@ def anonymous_community():
                                             if hasattr(db, 'use_postgres') and db.use_postgres:
                                                 cursor.execute("UPDATE users SET companion_data = %s WHERE id = %s", (corrected_json, user_id))
                                             else:
-                                                cursor.execute(format_query(UPDATE users SET companion_data = ? WHERE id = ?"), (corrected_json, user_id))
+                                                cursor.execute(format_query("UPDATE users SET companion_data = ? WHERE id = ?"), (corrected_json, user_id))
                                             conn.commit()
                                             logger.info(f"✅ SAVED CORRECTED DATA: {base_companion_id} for user {user_id}")
                                         except Exception as save_error:
@@ -1371,7 +1371,7 @@ def community_companions():
                 if db_instance.use_postgres:
                     cursor.execute("SELECT referral_points FROM users WHERE id = %s", (user_id,))
                 else:
-                    cursor.execute(format_query(SELECT referral_points FROM users WHERE id = ?"), (user_id,))
+                    cursor.execute(format_query("SELECT referral_points FROM users WHERE id = ?"), (user_id,))
                 result = cursor.fetchone()
                 if result:
                     referrals = result[0] or 0
@@ -1499,7 +1499,7 @@ def community_get_avatar():
                 if db.use_postgres:
                     cursor.execute("SELECT companion_data FROM users WHERE id = %s", (user_id,))
                 else:
-                    cursor.execute(format_query(SELECT companion_data FROM users WHERE id = ?"), (user_id,))
+                    cursor.execute(format_query("SELECT companion_data FROM users WHERE id = ?"), (user_id,))
                 
                 result = cursor.fetchone()
                 conn.close()
@@ -1583,7 +1583,7 @@ def community_get_avatar_new():
                 if db.use_postgres:
                     cursor.execute("SELECT companion_data FROM users WHERE id = %s", (user_id,))
                 else:
-                    cursor.execute(format_query(SELECT companion_data FROM users WHERE id = ?"), (user_id,))
+                    cursor.execute(format_query("SELECT companion_data FROM users WHERE id = ?"), (user_id,))
                 
                 result = cursor.fetchone()
                 conn.close()
@@ -1884,7 +1884,7 @@ def debug_avatar_persistence():
         if db.use_postgres:
             cursor.execute("SELECT id, companion_data FROM users WHERE id = %s", (user_id,))
         else:
-            cursor.execute(format_query(SELECT id, companion_data FROM users WHERE id = ?"), (user_id,))
+            cursor.execute(format_query("SELECT id, companion_data FROM users WHERE id = ?"), (user_id,))
             
         result = cursor.fetchone()
         conn.close()
@@ -2154,7 +2154,7 @@ def api_referrals_share_templates():
                 if db_instance.use_postgres:
                     cursor.execute("SELECT referral_code FROM users WHERE id = %s", (user_id,))
                 else:
-                    cursor.execute(format_query(SELECT referral_code FROM users WHERE id = ?"), (user_id,))
+                    cursor.execute(format_query("SELECT referral_code FROM users WHERE id = ?"), (user_id,))
                 
                 result = cursor.fetchone()
                 if result and result[0]:
@@ -2282,7 +2282,7 @@ def debug_current_user():
         if db.use_postgres:
             cursor.execute("SELECT id, email, display_name, companion_data FROM users WHERE id = %s", (user_id,))
         else:
-            cursor.execute(format_query(SELECT id, email, display_name, companion_data FROM users WHERE id = ?"), (user_id,))
+            cursor.execute(format_query("SELECT id, email, display_name, companion_data FROM users WHERE id = ?"), (user_id,))
         
         user_row = cursor.fetchone()
         conn.close()
@@ -2470,7 +2470,7 @@ def test_avatar_save():
         if db.use_postgres:
             cursor.execute("SELECT id FROM users WHERE id = %s", (user_id,))
         else:
-            cursor.execute(format_query(SELECT id FROM users WHERE id = ?"), (user_id,))
+            cursor.execute(format_query("SELECT id FROM users WHERE id = ?"), (user_id,))
         user_exists = cursor.fetchone()
         
         logger.info(f"👤 User {user_id} exists: {user_exists is not None}")
@@ -2495,7 +2495,7 @@ def test_avatar_save():
             # SQLite needs JSON string
             json_data = json.dumps(companion_data)
             logger.info(f"🗃️ JSON data being saved: {json_data}")
-            cursor.execute(format_query(UPDATE users SET companion_data = ? WHERE id = ?"), (json_data, user_id))
+            cursor.execute(format_query("UPDATE users SET companion_data = ? WHERE id = ?"), (json_data, user_id))
         
         rows_affected = cursor.rowcount
         logger.info(f"💾 PRE-COMMIT: {rows_affected} rows affected for user {user_id}")
@@ -2507,7 +2507,7 @@ def test_avatar_save():
         if db.use_postgres:
             cursor.execute("SELECT companion_data FROM users WHERE id = %s", (user_id,))
         else:
-            cursor.execute(format_query(SELECT companion_data FROM users WHERE id = ?"), (user_id,))
+            cursor.execute(format_query("SELECT companion_data FROM users WHERE id = ?"), (user_id,))
         verify_result = cursor.fetchone()
         
         logger.info(f"🔍 VERIFICATION: Data saved = {verify_result[0] is not None if verify_result else 'No result'}")

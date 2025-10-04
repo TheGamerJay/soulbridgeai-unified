@@ -315,7 +315,7 @@ You are {companion['name']} - maintain this identity consistently."""
                 if db.db_type == 'postgresql':
                     cursor.execute("DELETE FROM chat_conversations WHERE user_id = %s", (user_id,))
                 else:
-                    cursor.execute(format_query(DELETE FROM chat_conversations WHERE user_id = ?"), (user_id,))
+                    cursor.execute(format_query("DELETE FROM chat_conversations WHERE user_id = ?"), (user_id,))
             
             conn.commit()
             conn.close()

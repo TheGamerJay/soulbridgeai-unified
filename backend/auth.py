@@ -703,7 +703,7 @@ class User:
         cursor = conn.cursor()
 
         cursor.execute(
-            format_query(SELECT id, email, display_name, email_verified, created_at FROM users WHERE oauth_provider = ? AND oauth_id = ?"),
+            format_query("SELECT id, email, display_name, email_verified, created_at FROM users WHERE oauth_provider = ? AND oauth_id = ?"),
             (provider, oauth_id),
         )
         user_data = cursor.fetchone()

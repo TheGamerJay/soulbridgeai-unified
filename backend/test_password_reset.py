@@ -40,12 +40,12 @@ def test_password_reset_table():
         print(f"Test insert successful: ID {test_id}")
         
         # Test select
-        cursor.execute(format_query(SELECT * FROM password_reset_tokens WHERE id = ?"), (test_id,))
+        cursor.execute(format_query("SELECT * FROM password_reset_tokens WHERE id = ?"), (test_id,))
         result = cursor.fetchone()
         print(f"Test select result: {result}")
         
         # Clean up test data
-        cursor.execute(format_query(DELETE FROM password_reset_tokens WHERE id = ?"), (test_id,))
+        cursor.execute(format_query("DELETE FROM password_reset_tokens WHERE id = ?"), (test_id,))
         conn.commit()
         print("Test data cleaned up")
         

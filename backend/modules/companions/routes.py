@@ -323,7 +323,7 @@ def set_companion_skin():
                     if hasattr(db, 'use_postgres') and db.use_postgres:
                         cursor.execute("UPDATE users SET companion_data = %s WHERE id = %s", (json_data, user_id))
                     else:
-                        cursor.execute(format_query(UPDATE users SET companion_data = ? WHERE id = ?"), (json_data, user_id))
+                        cursor.execute(format_query("UPDATE users SET companion_data = ? WHERE id = ?"), (json_data, user_id))
                     
                     conn.commit()
                     cursor.close()

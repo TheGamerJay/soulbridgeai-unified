@@ -162,7 +162,7 @@ class SessionTracker:
             if self.database.use_postgres:
                 cursor.execute("SELECT COUNT(*) FROM meditation_sessions WHERE user_id = %s", (user_id,))
             else:
-                cursor.execute(format_query(SELECT COUNT(*) FROM meditation_sessions WHERE user_id = ?"), (user_id,))
+                cursor.execute(format_query("SELECT COUNT(*) FROM meditation_sessions WHERE user_id = ?"), (user_id,))
             
             total_count = cursor.fetchone()[0] or 0
             

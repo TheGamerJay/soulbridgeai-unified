@@ -104,7 +104,7 @@ def login():
             conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
             
-            cursor.execute(format_query(SELECT id, email, password_hash, user_plan FROM users WHERE email = ?"), (email,))
+            cursor.execute(format_query("SELECT id, email, password_hash, user_plan FROM users WHERE email = ?"), (email,))
             user_row = cursor.fetchone()
             conn.close()
             

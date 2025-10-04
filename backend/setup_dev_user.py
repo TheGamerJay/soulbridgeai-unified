@@ -27,7 +27,7 @@ def setup_dev_user():
         cursor = conn.cursor()
         
         # Check if user already exists
-        cursor.execute(format_query(SELECT id FROM users WHERE email = ?"), (email,))
+        cursor.execute(format_query("SELECT id FROM users WHERE email = ?"), (email,))
         if cursor.fetchone():
             print(f"User {email} already exists in development database")
             conn.close()

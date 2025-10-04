@@ -290,11 +290,11 @@ def use_reset_token_improved(token_raw, new_password):
                 # Security: Mark all other unused tokens for this email as used
                 cursor.execute("UPDATE password_reset_tokens SET used = %s WHERE email = %s AND used = %s", (1, user_email, 0))
             else:
-                cursor.execute(format_query(UPDATE users SET password_hash = ? WHERE id = ?"), (password_hash, user_id))
+                cursor.execute(format_query("UPDATE users SET password_hash = ? WHERE id = ?"), (password_hash, user_id))
                 
                 # Mark token as used with timestamp
                 time_str = _now().isoformat() + 'Z'
-                cursor.execute(format_query(UPDATE password_reset_tokens SET used_at = ? WHERE token_hash = ?"), (time_str, token_hash))
+                cursor.execute(format_query("UPDATE password_reset_tokens SET used_at = ? WHERE token_hash = ?"), (time_str, token_hash))
                 
                 # Security: Mark all other unused tokens for this user as used
                 cursor.execute(format_query("""

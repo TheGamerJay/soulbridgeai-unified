@@ -417,7 +417,7 @@ def get_or_create_referral_code(user_id: int) -> str:
             code = generate_referral_code()
             
             # Check uniqueness
-            cursor.execute(format_query(SELECT id FROM referral_codes WHERE code = ?"), (code,))
+            cursor.execute(format_query("SELECT id FROM referral_codes WHERE code = ?"), (code,))
             if not cursor.fetchone():
                 # Create the code
                 cursor.execute(format_query("""
@@ -598,7 +598,7 @@ def unlock_referral_cosmetic(user_id: int, threshold: int, cosmetic_name: str) -
         cursor = conn.cursor()
         
         # Get cosmetic ID
-        cursor.execute(format_query(SELECT id FROM cosmetics WHERE name = ?"), (cosmetic_name,))
+        cursor.execute(format_query("SELECT id FROM cosmetics WHERE name = ?"), (cosmetic_name,))
         cosmetic_result = cursor.fetchone()
         
         if not cosmetic_result:

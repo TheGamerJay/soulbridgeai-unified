@@ -242,7 +242,7 @@ class WellnessGallery:
                 """), (content_id,))
                 
                 # Get updated count for SQLite
-                cursor.execute(format_query(SELECT hearts_count FROM wellness_gallery WHERE id = ?"), (content_id,))
+                cursor.execute(format_query("SELECT hearts_count FROM wellness_gallery WHERE id = ?"), (content_id,))
                 result = cursor.fetchone()
             
             if not result:

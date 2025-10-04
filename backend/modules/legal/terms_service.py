@@ -201,7 +201,7 @@ class TermsService:
                         cursor.execute("UPDATE users SET terms_accepted = %s WHERE id = %s", 
                                        (True, user_id))
                     else:
-                        cursor.execute(format_query(UPDATE users SET terms_accepted = ? WHERE id = ?"), 
+                        cursor.execute(format_query("UPDATE users SET terms_accepted = ? WHERE id = ?"), 
                                        (True, user_id))
                 except Exception as fallback_error:
                     logger.error(f"Even fallback terms update failed: {fallback_error}")

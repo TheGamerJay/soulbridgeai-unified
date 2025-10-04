@@ -23,7 +23,7 @@ class SimpleDisplayNameManager:
             
             # Direct update: user_id -> display_name column
             cursor.execute(
-                format_query(UPDATE users SET display_name = ? WHERE id = ?"),
+                format_query("UPDATE users SET display_name = ? WHERE id = ?"),
                 (display_name.strip(), user_id)
             )
             
@@ -50,7 +50,7 @@ class SimpleDisplayNameManager:
             
             # Direct query: user_id -> display_name column
             cursor.execute(
-                format_query(SELECT display_name, email FROM users WHERE id = ?"),
+                format_query("SELECT display_name, email FROM users WHERE id = ?"),
                 (user_id,)
             )
             

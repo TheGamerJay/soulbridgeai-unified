@@ -618,7 +618,7 @@ def get_community_avatar():
                 if database.use_postgres:
                     cursor.execute("SELECT companion_data FROM users WHERE id = %s", (uid,))
                 else:
-                    cursor.execute(format_query(SELECT companion_data FROM users WHERE id = ?"), (uid,))
+                    cursor.execute(format_query("SELECT companion_data FROM users WHERE id = ?"), (uid,))
                 row = cursor.fetchone()
                 conn.close()
 
@@ -702,7 +702,7 @@ def set_community_avatar():
                     else:
                         logger.warning(f"⚠️ No user row matched id={uid} when saving companion_data")
                 else:
-                    cursor.execute(format_query(UPDATE users SET companion_data = ? WHERE id = ?"), (payload, uid))
+                    cursor.execute(format_query("UPDATE users SET companion_data = ? WHERE id = ?"), (payload, uid))
                     if cursor.rowcount > 0:
                         conn.commit()
                         database_saved = True
@@ -770,7 +770,7 @@ def debug_avatar_database():
         if database.use_postgres:
             cursor.execute("SELECT id, companion_data FROM users WHERE id = %s", (user_id,))
         else:
-            cursor.execute(format_query(SELECT id, companion_data FROM users WHERE id = ?"), (user_id,))
+            cursor.execute(format_query("SELECT id, companion_data FROM users WHERE id = ?"), (user_id,))
         
         result = cursor.fetchone()
         conn.close()
