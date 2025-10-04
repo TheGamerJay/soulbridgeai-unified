@@ -226,7 +226,7 @@ def has_accepted_terms() -> bool:
             if db.is_postgresql():
                 cursor.execute("SELECT terms_accepted FROM users WHERE id = %s", (user_id,))
             else:  # SQLite
-                cursor.execute(format_query(SELECT terms_accepted FROM users WHERE id = ?"), (user_id,))
+                cursor.execute(format_query("SELECT terms_accepted FROM users WHERE id = ?"), (user_id,))
             
             result = cursor.fetchone()
             if result and result[0]:
