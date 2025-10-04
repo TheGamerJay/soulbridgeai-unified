@@ -773,7 +773,7 @@ def create_app():
                 FROM password_reset_tokens 
                 WHERE token_hash = {placeholder} 
                 LIMIT 1
-            """), (token_hash,))
+            """, (token_hash,))
             
             result = cursor.fetchone()
             cursor.close()
