@@ -10,7 +10,8 @@
       "Bash(python3:*)",
       "Read(//c//**)",
       "Bash(for file in modules/**/*.py)",
-      "Bash(break)"
+      "Bash(break)",
+      "Bash(echo \"Exit code: $?\")"
     ],
     "deny": [],
     "ask": [],
