@@ -74,7 +74,7 @@ def get_user_companion_history(user_id: int, limit: int = 10) -> list:
                 WHERE user_id = %s
                 ORDER BY selected_at DESC
                 LIMIT %s
-            """), (user_id, limit))
+            """, (user_id, limit))
         else:
             cursor.execute(format_query("""
                 SELECT companion_id, selected_at
