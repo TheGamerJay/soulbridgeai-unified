@@ -164,20 +164,20 @@ def get_companion_usage_stats(companion_id: str, days: int = 30) -> dict:
         # Get selection count and unique users for this companion
         if db.use_postgres:
             cursor.execute("""
-                SELECT 
+                SELECT
                     COUNT(*) as total_selections,
                     COUNT(DISTINCT user_id) as unique_users
                 FROM companion_selections
-                WHERE companion_id = %s 
+                WHERE companion_id = %s
                 AND selected_at >= CURRENT_DATE - INTERVAL '%s days'
-            """), (companion_id, days))
+            """, (companion_id, days))
         else:
             cursor.execute(format_query("""
-                SELECT 
+                SELECT
                     COUNT(*) as total_selections,
                     COUNT(DISTINCT user_id) as unique_users
                 FROM companion_selections
-                WHERE companion_id = ? 
+                WHERE companion_id = ?
                 AND selected_at >= date('now', '-%s days')
             """), (companion_id, days))
         
