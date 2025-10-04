@@ -37,24 +37,24 @@ class CompanionManager:
             {"id":"violet_bronze","name":"Violet","tier":"bronze","image_url":"/static/logos/Violet_Free.png","min_referrals":0,"greeting":"Hello! I'm Violet. I see the creative beauty in every moment and I'm here to inspire your journey!"},
             
             # Silver tier - 8 companions
-            {"id":"gamerjay_silver","name":"GamerJay.2","tier":"silver","image_url":"/static/logos/GamerJay_premium_companion.png","min_referrals":0,"greeting":"What's up! I'm GamerJay.2. Time to unlock the next level of features and dominate together!"},
-            {"id":"blayzo_silver","name":"Blayzo.3","tier":"silver","image_url":"/static/logos/Blayzo_premium_companion.png","min_referrals":0,"greeting":"Hey! I'm Blayzo.3. Ready to take your experience to the premium level?"},
+            {"id":"gamerjay_silver","name":"GamerJay","tier":"silver","image_url":"/static/logos/GamerJay skin.png","min_referrals":0,"greeting":"What's up! I'm GamerJay. Time to unlock the next level of features and dominate together!"},
+            {"id":"blayzo_silver","name":"Blayzo","tier":"silver","image_url":"/static/logos/Blayzo skin.png","min_referrals":0,"greeting":"Hey! I'm Blayzo. Ready to take your experience to the premium level?"},
             {"id":"blayzica_silver","name":"Blayzica.2","tier":"silver","image_url":"/static/logos/Blayzica_Pro.png","min_referrals":0,"greeting":"Hi there! I'm Blayzica.2. Let's explore the enhanced features together!"},
             {"id":"claude_silver","name":"Claude.3","tier":"silver","image_url":"/static/logos/Claude_Growth.png","min_referrals":0,"greeting":"Welcome! I'm Claude.3. With expanded capabilities, I'm ready to help you achieve more!"},
             {"id":"sky_silver","name":"Sky","tier":"silver","image_url":"/static/logos/Sky_a_premium_companion.png","min_referrals":0,"greeting":"Hello! I'm Sky. Ready to soar to new heights with your Silver experience?"},
             {"id":"lumen_silver","name":"Lumen.2","tier":"silver","image_url":"/static/logos/Lumen_Silver.png","min_referrals":0,"greeting":"Welcome! I'm Lumen.2. Let me illuminate your path to premium features and capabilities."},
             {"id":"rozia_silver","name":"Rozia","tier":"silver","image_url":"/static/logos/Rozia_Silver.png","min_referrals":0,"greeting":"Hello! I'm Rozia. Ready for an elegant Silver-tier experience!"},
-            {"id":"watchdog_silver","name":"WatchDog","tier":"silver","image_url":"/static/logos/WatchDog_a_Premium_companion.png","min_referrals":0,"greeting":"Hello! I'm WatchDog. I'll keep watch over your Silver experience!"},
+            {"id":"watchdog_silver","name":"WatchDog","tier":"silver","image_url":"/static/logos/Watch Dog skin.png","min_referrals":0,"greeting":"Hello! I'm WatchDog. I'll keep watch over your Silver experience!"},
             
             # Gold tier - 8 companions
-            {"id":"crimson_gold","name":"Crimson.2","tier":"gold","image_url":"/static/logos/Crimson_a_Max_companion.png","min_referrals":0,"greeting":"Welcome, I'm Crimson.2. You have access to unlimited features and the full power of SoulBridge AI!"},
+            {"id":"crimson_gold","name":"Crimson","tier":"gold","image_url":"/static/logos/Crimson skin.png","min_referrals":0,"greeting":"Welcome, I'm Crimson. You have access to unlimited features and the full power of SoulBridge AI!"},
             {"id":"violet_gold","name":"Violet.2","tier":"gold","image_url":"/static/logos/Violet_a_Max_companion.png","min_referrals":0,"greeting":"Greetings! I'm Violet.2. Together we'll explore unlimited possibilities and exclusive features!"},
             {"id":"claude_gold","name":"Claude.2","tier":"gold","image_url":"/static/logos/Claude_Max.png","min_referrals":0,"greeting":"Hello! I'm Claude.2. With unlimited access to all features, let's achieve extraordinary things together!"},
             {"id":"royal_gold","name":"Royal","tier":"gold","image_url":"/static/logos/Royal_a_Max_companion.png","min_referrals":0,"greeting":"Greetings! I'm Royal. Experience the pinnacle of AI companionship with unlimited possibilities."},
             {"id":"ven_blayzica_gold","name":"Ven Blayzica","tier":"gold","image_url":"/static/logos/Ven_Blayzica_a_Max_companion.png","min_referrals":0,"greeting":"Hello! I'm Ven Blayzica. Let's venture into the ultimate SoulBridge experience together."},
             {"id":"ven_sky_gold","name":"Ven Sky","tier":"gold","image_url":"/static/logos/Ven_Sky_a_Max_companion.png","min_referrals":0,"greeting":"Welcome! I'm Ven Sky. Together we'll soar beyond limits with unlimited premium access."},
             {"id":"watchdog_gold","name":"WatchDog.2","tier":"gold","image_url":"/static/logos/WatchDog_a_Max_Companion.png","min_referrals":0,"greeting":"Greetings! I'm WatchDog.2. I'll safeguard your unlimited access and guide you through premium features."},
-            {"id":"dr_madjay_gold","name":"Dr. MadJay","tier":"gold","image_url": "/static/logos/Dr. MadJay.png","min_referrals":0,"greeting":"Greetings! I'm Dr. MadJay. Let's explore the cutting-edge possibilities of unlimited AI access."},
+            {"id":"dr_madjay_gold","name":"Dr. MadJay","tier":"gold","image_url": "/static/logos/Dr.MadJay skin.png","min_referrals":0,"greeting":"Greetings! I'm Dr. MadJay. Let's explore the cutting-edge possibilities of unlimited AI access."},
             
             # Referral-locked companions
             {"id":"blayzike","name":"Blayzike","tier":"silver","image_url":"/static/referral/blayzike.png","min_referrals":2},
