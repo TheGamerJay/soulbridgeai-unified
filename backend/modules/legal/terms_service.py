@@ -90,9 +90,9 @@ class TermsService:
             
             if self.database.use_postgres:
                 cursor.execute("""
-                    SELECT terms_accepted, terms_accepted_at, terms_version, terms_language 
+                    SELECT terms_accepted, terms_accepted_at, terms_version, terms_language
                     FROM users WHERE id = %s
-                """), (user_id,))
+                """, (user_id,))
             else:
                 cursor.execute(format_query("""
                     SELECT terms_accepted, terms_accepted_at, terms_version, terms_language 
@@ -173,11 +173,11 @@ class TermsService:
             try:
                 if self.database.use_postgres:
                     cursor.execute("""
-                        UPDATE users 
-                        SET terms_accepted = %s, terms_accepted_at = %s, 
-                            terms_version = %s, terms_language = %s 
+                        UPDATE users
+                        SET terms_accepted = %s, terms_accepted_at = %s,
+                            terms_version = %s, terms_language = %s
                         WHERE id = %s
-                    """), (True, acceptance_date, terms_version, language, user_id))
+                    """, (True, acceptance_date, terms_version, language, user_id))
                 else:
                     cursor.execute(format_query("""
                         UPDATE users 
@@ -198,7 +198,7 @@ class TermsService:
                 # Fallback: try just updating basic acceptance if columns don't exist
                 try:
                     if self.database.use_postgres:
-                        cursor.execute("UPDATE users SET terms_accepted = %s WHERE id = %s"), (True, user_id))
+                        cursor.execute("UPDATE users SET terms_accepted = %s WHERE id = %s", (True, user_id))
                     else:
                         cursor.execute(format_query("UPDATE users SET terms_accepted = ? WHERE id = ?"), 
                                        (True, user_id))
@@ -221,11 +221,11 @@ class TermsService:
                 
                 if self.database.use_postgres:
                     cursor.execute("""
-                        INSERT INTO terms_log (user_id, terms_version, language, 
+                        INSERT INTO terms_log (user_id, terms_version, language,
                                                acceptance_details, accepted_at)
                         VALUES (%s, %s, %s, %s, %s)
                         ON CONFLICT DO NOTHING
-                    """), (user_id, terms_version, language, 
+                    """, (user_id, terms_version, language,
                           json.dumps(acceptance_details), acceptance_date))
                 else:
                     cursor.execute(format_query("""
