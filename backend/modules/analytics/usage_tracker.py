@@ -231,16 +231,16 @@ class UsageTracker:
             
             if db.db_type == 'postgresql':
                 cursor.execute("""
-                    SELECT 
+                    SELECT
                         feature_type,
                         COUNT(*) as usage_count,
                         SUM(session_duration_seconds) as total_time_seconds,
                         MAX(created_at) as last_used
-                    FROM user_activity_log 
+                    FROM user_activity_log
                     WHERE user_id = %s AND created_at >= %s
                     GROUP BY feature_type
                     ORDER BY usage_count DESC
-                """), (user_id, start_date))
+                """, (user_id, start_date))
             else:
                 cursor.execute(format_query("""
                     SELECT 
@@ -298,17 +298,17 @@ class UsageTracker:
             
             if db.db_type == 'postgresql':
                 cursor.execute("""
-                    SELECT 
+                    SELECT
                         feature_type,
                         COUNT(*) as total_usage,
                         COUNT(DISTINCT user_id) as unique_users,
                         AVG(session_duration_seconds) as avg_session_duration
-                    FROM user_activity_log 
+                    FROM user_activity_log
                     WHERE created_at >= %s
                     GROUP BY feature_type
                     ORDER BY total_usage DESC
                     LIMIT %s
-                """), (start_date, limit))
+                """, (start_date, limit))
             else:
                 cursor.execute(format_query("""
                     SELECT
@@ -368,9 +368,9 @@ class UsageTracker:
             
             if db.db_type == 'postgresql':
                 cursor.execute("""
-                    DELETE FROM user_activity_log 
+                    DELETE FROM user_activity_log
                     WHERE created_at < %s
-                """), (cutoff_date,))
+                """, (cutoff_date,))
             else:
                 cursor.execute(format_query("""
                     DELETE FROM user_activity_log
