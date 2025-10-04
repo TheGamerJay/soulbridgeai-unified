@@ -83,7 +83,7 @@ def get_artistic_time(user_id: int) -> int:
         if db.use_postgres:
             cursor.execute("""
                 SELECT credits_remaining FROM user_credits WHERE user_id = %s
-            """), (user_id,))
+            """, (user_id,))
         else:
             cursor.execute(format_query("""
                 SELECT credits_remaining FROM user_credits WHERE user_id = ?
@@ -145,7 +145,7 @@ def deduct_artistic_time(user_id: int, amount: int) -> bool:
         if db.use_postgres:
             cursor.execute("""
                 SELECT credits_remaining FROM user_credits WHERE user_id = %s
-            """), (user_id,))
+            """, (user_id,))
         else:
             cursor.execute(format_query("""
                 SELECT credits_remaining FROM user_credits WHERE user_id = ?
@@ -164,7 +164,7 @@ def deduct_artistic_time(user_id: int, amount: int) -> bool:
             if db.use_postgres:
                 cursor.execute("""
                     UPDATE user_credits SET credits_remaining = %s WHERE user_id = %s
-                """), (new_balance, user_id))
+                """, (new_balance, user_id))
             else:
                 cursor.execute(format_query("""
                     UPDATE user_credits SET credits_remaining = ? WHERE user_id = ?
@@ -259,7 +259,7 @@ def refund_artistic_time(user_id: int, amount: int, reason: str = "refund") -> b
         if db.use_postgres:
             cursor.execute("""
                 SELECT credits_remaining FROM user_credits WHERE user_id = %s
-            """), (user_id,))
+            """, (user_id,))
         else:
             cursor.execute(format_query("""
                 SELECT credits_remaining FROM user_credits WHERE user_id = ?
@@ -270,11 +270,11 @@ def refund_artistic_time(user_id: int, amount: int, reason: str = "refund") -> b
             # Use new system
             current_credits = result[0] or 0
             new_balance = current_credits + amount
-            
+
             if db.use_postgres:
                 cursor.execute("""
                     UPDATE user_credits SET credits_remaining = %s WHERE user_id = %s
-                """), (new_balance, user_id))
+                """, (new_balance, user_id))
             else:
                 cursor.execute(format_query("""
                     UPDATE user_credits SET credits_remaining = ? WHERE user_id = ?
@@ -354,10 +354,10 @@ def get_credit_summary(user_id: int) -> dict:
         # Get user credit data
         if db.use_postgres:
             cursor.execute("""
-                SELECT user_plan, artistic_time, trial_active, trial_credits, 
+                SELECT user_plan, artistic_time, trial_active, trial_credits,
                        last_credit_reset, trial_expires_at
                 FROM users WHERE id = %s
-            """), (user_id,))
+            """, (user_id,))
         else:
             cursor.execute(format_query("""
                 SELECT user_plan, artistic_time, trial_active, trial_credits,
