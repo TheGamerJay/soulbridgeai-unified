@@ -98,7 +98,7 @@ def chat_tier(tier):
             return redirect("/companion-selection")
         
         companions = get_companions_by_tier(tier)
-        return render_template("chat_bronze.html", 
+        return render_template("chat_soul_companion.html",
                              companions=companions,
                              trial_active=session.get('trial_active', False))
         
@@ -125,7 +125,7 @@ def companion_specific_chat(tier, companion_id):
         session['selected_companion'] = companion_id
         session.modified = True
         
-        return render_template("chat_bronze.html", 
+        return render_template("chat_soul_companion.html",
                              companion_info=companion,
                              ai_character_name=companion.get('name', 'AI Assistant'),
                              companion_avatar=companion.get('image_url', '/static/logos/New IntroLogo.png'),

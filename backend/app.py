@@ -1105,7 +1105,7 @@ def create_app():
             logger.info(f"✅ Loading chat for companion: {companion_id}")
             
             from flask import render_template
-            return render_template('chat_bronze.html', 
+            return render_template('chat_soul_companion.html',
                                  companion_info=companion,
                                  ai_character_name=companion.get('name', 'AI Assistant'),
                                  companion_avatar=companion.get('image_url', '/static/logos/New IntroLogo.png'),

@@ -7,7 +7,11 @@
       "Bash(git add:*)",
       "Bash(git push:*)",
       "Bash(git commit:*)",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(npm run lint)",
+      "Bash(mv:*)",
+      "Bash(cp:*)",
+      "Bash(sqlite3:*)"
     ],
     "deny": [],
     "ask": [],
