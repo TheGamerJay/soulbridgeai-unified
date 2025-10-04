@@ -2098,9 +2098,9 @@ def api_referrals_dashboard():
                 # Get user referral data
                 if db_instance.use_postgres:
                     cursor.execute("""
-                        SELECT referral_points, referral_code 
+                        SELECT referral_points, referral_code
                         FROM users WHERE id = %s
-                    """), (user_id,))
+                    """, (user_id,))
                 else:
                     cursor.execute(format_query("""
                         SELECT referral_points, referral_code 
