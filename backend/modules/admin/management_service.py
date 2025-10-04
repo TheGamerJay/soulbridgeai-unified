@@ -395,7 +395,7 @@ class AdminManagementService:
             
             # Get current user info
             if db.db_type == 'postgresql':
-                cursor.execute("SELECT email, user_plan FROM users WHERE id = %s"), (user_id,))
+                cursor.execute("SELECT email, user_plan FROM users WHERE id = %s", (user_id,))
             else:
                 cursor.execute(format_query("SELECT email, user_plan FROM users WHERE id = ?"), (user_id,))
             
@@ -409,16 +409,16 @@ class AdminManagementService:
             # Update user plan
             if db.db_type == 'postgresql':
                 cursor.execute("""
-                    UPDATE users 
+                    UPDATE users
                     SET user_plan = %s, updated_at = %s
                     WHERE id = %s
-                """), (new_plan, datetime.now(timezone.utc), user_id))
+                """, (new_plan, datetime.now(timezone.utc), user_id))
             else:
                 cursor.execute(format_query("""
-                    UPDATE users 
+                    UPDATE users
                     SET user_plan = ?, updated_at = ?
                     WHERE id = ?
-                """, (new_plan, datetime.now(timezone.utc).isoformat(), user_id))
+                """), (new_plan, datetime.now(timezone.utc).isoformat(), user_id))
             
             conn.commit()
             conn.close()
@@ -461,12 +461,12 @@ class AdminManagementService:
             # Get user details
             if db.db_type == 'postgresql':
                 cursor.execute("""
-                    SELECT 
+                    SELECT
                         id, email, user_plan, trial_active, trial_expires_at,
                         created_at, last_login, referrals, credits
-                    FROM users 
+                    FROM users
                     WHERE id = %s
-                """), (user_id,))
+                """, (user_id,))
             else:
                 cursor.execute(format_query("""
                     SELECT 
@@ -487,12 +487,12 @@ class AdminManagementService:
             
             if db.db_type == 'postgresql':
                 cursor.execute("""
-                    SELECT 
+                    SELECT
                         COUNT(*) as recent_activity,
                         COUNT(DISTINCT feature_type) as features_used
-                    FROM user_activity_log 
+                    FROM user_activity_log
                     WHERE user_id = %s AND created_at >= %s
-                """), (user_id, one_week_ago))
+                """, (user_id, one_week_ago))
             else:
                 cursor.execute(format_query("""
                     SELECT 
@@ -544,10 +544,10 @@ class AdminManagementService:
                 if db.db_type == 'postgresql':
                     cursor.execute("""
                         SELECT id, email, user_plan, trial_active, created_at
-                        FROM users 
+                        FROM users
                         WHERE id = %s
                         LIMIT %s
-                    """), (int(query), limit))
+                    """, (int(query), limit))
                 else:
                     cursor.execute(format_query("""
                         SELECT id, email, user_plan, trial_active, created_at
