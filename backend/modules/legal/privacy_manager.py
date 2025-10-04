@@ -146,7 +146,7 @@ class PrivacyManager:
             
             # Get user email before deletion for logging
             if self.database.use_postgres:
-                cursor.execute("SELECT email FROM users WHERE id = %s", (user_id,))
+                cursor.execute("SELECT email FROM users WHERE id = %s"), (user_id,))
             else:
                 cursor.execute(format_query("SELECT email FROM users WHERE id = ?"), (user_id,))
             
@@ -179,7 +179,7 @@ class PrivacyManager:
             for table in cleanup_tables:
                 try:
                     if self.database.use_postgres:
-                        cursor.execute(f"DELETE FROM {table} WHERE user_id = %s", (user_id,))
+                        cursor.execute(f"DELETE FROM {table} WHERE user_id = %s"), (user_id,))
                     else:
                         cursor.execute(f"DELETE FROM {table} WHERE user_id = ?", (user_id,))
                     deleted_records[table] = cursor.rowcount
@@ -441,7 +441,7 @@ class PrivacyManager:
                         cookie_consent = ?,
                         privacy_settings_updated_at = ?
                     WHERE id = ?
-                """), (
+                """, (
                     settings.get('data_sharing_consent', True),
                     settings.get('marketing_consent', False),
                     settings.get('analytics_consent', True),
@@ -506,7 +506,7 @@ class PrivacyManager:
                         cursor.execute(f"""
                             DELETE FROM {table} 
                             WHERE {date_column} < %s
-                        """, (cutoff_date,))
+                        """), (cutoff_date,))
                     else:
                         cursor.execute(f"""
                             DELETE FROM {table} 
@@ -651,7 +651,7 @@ class PrivacyManager:
                     INSERT INTO data_deletion_log 
                     (user_id, user_email, deletion_reason, deletion_details, deleted_at)
                     VALUES (?, ?, ?, ?, ?)
-                """), (user_id, user_email, reason, json.dumps(deletion_log), timestamp))
+                """, (user_id, user_email, reason, json.dumps(deletion_log), timestamp))
                 
         except Exception as log_error:
             logger.warning(f"Could not log data deletion: {log_error}")

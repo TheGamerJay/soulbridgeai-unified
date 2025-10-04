@@ -741,7 +741,7 @@ class WritingSuiteDatabase:
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
-        """)
+        """))
         
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS writing_analytics (
@@ -767,7 +767,7 @@ class WritingSuiteDatabase:
         cursor.execute("""
             INSERT INTO writings (user_id, title, writing_type, content, word_count, tone, target_audience)
             VALUES (?, ?, ?, ?, ?, ?, ?)
-        """), (user_id, title, prompt.writing_type.value, writing_output.content, 
+        """, (user_id, title, prompt.writing_type.value, writing_output.content, 
               writing_output.word_count, prompt.tone.value, prompt.target_audience))
         
         writing_id = cursor.lastrowid

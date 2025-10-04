@@ -1,11 +1,10 @@
 # ============ requirements.txt ============
-Flask==3.0.3
-Flask-SQLAlchemy==3.1.1
-SQLAlchemy==2.0.32
-psycopg2-binary==2.9.9
-Werkzeug==3.0.3
-requests==2.32.3
-"""
+# Flask==3.0.3
+# Flask-SQLAlchemy==3.1.1
+# SQLAlchemy==2.0.32
+# psycopg2-binary==2.9.9
+# Werkzeug==3.0.3
+# requests==2.32.3
 
 import os, secrets, hashlib, datetime, random, string
 from typing import Optional

@@ -108,14 +108,14 @@ def record_companion_unlock(user_id: int, companion_id: str, referral_threshold:
                 UNIQUE(user_id, companion_id),
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             )
-        """)
+        """))
         
         # Insert the unlock record (ignore if already exists)
         cursor.execute("""
-            INSERT OR IGNORE INTO user_companion_unlocks 
+            INSERT OR IGNORE INTO user_companion_unlocks
             (user_id, companion_id, unlock_type, unlock_threshold, unlocked_at)
             VALUES (?, ?, 'referral', ?, datetime('now'))
-        """), (user_id, companion_id, referral_threshold))
+        """, (user_id, companion_id, referral_threshold))
         
         conn.commit()
         

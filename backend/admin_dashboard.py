@@ -104,12 +104,12 @@ class AdminDashboardManager:
                 
                 # Get recent user registrations
                 cursor.execute(format_query("""
-                    SELECT email, display_name, created_at 
-                    FROM users 
+                    SELECT email, display_name, created_at
+                    FROM users
                     WHERE created_at > datetime('now', '-24 hours')
-                    ORDER BY created_at DESC 
+                    ORDER BY created_at DESC
                     LIMIT 10
-                """)
+                """))
                 
                 for row in cursor.fetchall():
                     activities.append({
@@ -194,10 +194,10 @@ class AdminDashboardManager:
                     date_str = date.strftime('%Y-%m-%d')
                     
                     cursor.execute("""
-                        SELECT COUNT(*) 
-                        FROM users 
+                        SELECT COUNT(*)
+                        FROM users
                         WHERE DATE(created_at) = ?
-                    """), (date_str,))
+                    """, (date_str,))
                     
                     count = cursor.fetchone()[0]
                     trends["user_growth"].append({

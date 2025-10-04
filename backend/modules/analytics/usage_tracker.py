@@ -196,7 +196,7 @@ class UsageTracker:
                     INSERT INTO user_activity_log 
                     (user_id, feature_type, created_at, session_duration_seconds, metadata)
                     VALUES (?, ?, ?, ?, ?)
-                """), (
+                """, (
                     activity_data['user_id'],
                     activity_data['feature_type'],
                     activity_data['created_at'].isoformat(),
@@ -321,7 +321,7 @@ class UsageTracker:
                     GROUP BY feature_type
                     ORDER BY total_usage DESC
                     LIMIT ?
-                """), (start_date.isoformat(), limit))
+                """, (start_date.isoformat(), limit))
             
             rows = cursor.fetchall()
             conn.close()
@@ -375,7 +375,7 @@ class UsageTracker:
                 cursor.execute(format_query("""
                     DELETE FROM user_activity_log 
                     WHERE created_at < ?
-                """), (cutoff_date.isoformat(),))
+                """, (cutoff_date.isoformat(),))
             
             deleted_count = cursor.rowcount
             conn.commit()

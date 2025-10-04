@@ -525,7 +525,7 @@ class NotificationManager:
                     id, user_id, title, message, type, priority, channels,
                     data, created_at, expires_at, is_persistent, action_url
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """), (
+            """, (
                 notification.id,
                 notification.user_id,
                 notification.title,
@@ -551,7 +551,7 @@ class NotificationManager:
                 UPDATE notifications 
                 SET read_at = ? 
                 WHERE id = ?
-            """), (read_at.isoformat(), notification_id))
+            """, (read_at.isoformat(), notification_id))
             self.db.connection.commit()
         except Exception as e:
             logger.error(f"Error updating notification read status: {e}")
@@ -566,7 +566,7 @@ class NotificationManager:
                     quiet_hours_start, quiet_hours_end, frequency_limit, priority_threshold,
                     blocked_types
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """), (
+            """, (
                 preferences.user_id,
                 preferences.email_enabled,
                 preferences.push_enabled,

@@ -282,10 +282,10 @@ def use_reset_token_improved(token_raw, new_password):
             
             # Update user's password
             if db.use_postgres:
-                cursor.execute("UPDATE users SET password_hash = %s WHERE id = %s", (password_hash, user_id))
+                cursor.execute("UPDATE users SET password_hash = %s WHERE id = %s"), (password_hash, user_id))
                 
                 # Mark token as used (integer field in PostgreSQL: 0 = false, 1 = true)
-                cursor.execute("UPDATE password_reset_tokens SET used = %s WHERE token = %s", (1, token_hash))
+                cursor.execute("UPDATE password_reset_tokens SET used = %s WHERE token = %s"), (1, token_hash))
                 
                 # Security: Mark all other unused tokens for this email as used
                 cursor.execute("UPDATE password_reset_tokens SET used = %s WHERE email = %s AND used = %s", (1, user_email, 0))

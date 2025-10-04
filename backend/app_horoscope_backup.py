@@ -199,7 +199,7 @@ def compatibility(a: str, b: str) -> Dict[str, Any]:
     # modality spice
     if A["modality"] == B["modality"]: score += 5
     score = max(5, min(95, score))
-    note = f"{A['element']} + {B['element']} dynamic; {A['modality']} meeting {B['modality'}}."
+    note = f"{A['element']} + {B['element']} dynamic; {A['modality']} meeting {B['modality']}."
     return {"a":a,"b":b,"score":score,"note":note}
 
 # -----------------------------

@@ -480,7 +480,7 @@ def admin_delete_user(user_id):
         
         # Delete user (this should cascade to related tables)
         if db.use_postgres:
-            cursor.execute("DELETE FROM users WHERE id = %s", (user_id,))
+            cursor.execute("DELETE FROM users WHERE id = %s"), (user_id,))
         else:
             cursor.execute(format_query("DELETE FROM users WHERE id = ?"), (user_id,))
         

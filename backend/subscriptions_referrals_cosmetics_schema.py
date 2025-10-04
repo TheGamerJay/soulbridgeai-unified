@@ -268,7 +268,7 @@ def insert_default_cosmetics(db_connection):
     
     for cosmetic in default_cosmetics:
         # Check if cosmetic already exists
-        cursor.execute(f"SELECT id FROM cosmetics WHERE name = {placeholder}", (cosmetic['name'],))
+        cursor.execute(f"SELECT id FROM cosmetics WHERE name = {placeholder}"), (cosmetic['name'],))
         if cursor.fetchone():
             logger.info(f"📦 Cosmetic {cosmetic['name']} already exists, skipping")
             continue
@@ -277,7 +277,7 @@ def insert_default_cosmetics(db_connection):
             cursor.execute("""
                 INSERT INTO cosmetics (name, display_name, description, type, rarity, unlock_method, unlock_requirement, image_url)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-            """), (
+            """, (
                 cosmetic['name'],
                 cosmetic['display_name'],
                 cosmetic['description'],

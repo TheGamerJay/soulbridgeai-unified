@@ -391,7 +391,7 @@ def select_companion_skin():
                 cursor.execute(format_query("""
                     INSERT OR REPLACE INTO user_data (user_id, key, value) 
                     VALUES (?, ?, ?)
-                """), (user_id, f'skin_preference_{companion.get("base_name", companion.get("name", "").lower())}', companion_id))
+                """, (user_id, f'skin_preference_{companion.get("base_name", companion.get("name", "").lower())}', companion_id))
                 
                 conn.commit()
                 cursor.close()

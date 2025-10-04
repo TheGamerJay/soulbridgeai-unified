@@ -464,7 +464,7 @@ def reset_user_usage():
         
         # Reset usage for all features for current user today
         if db.use_postgres:
-            cursor.execute('DELETE FROM feature_usage WHERE user_id = %s AND usage_date = %s', (user_id, today))
+            cursor.execute('DELETE FROM feature_usage WHERE user_id = %s AND usage_date = %s'), (user_id, today))
         else:
             cursor.execute(format_query("DELETE FROM feature_usage WHERE user_id = ? AND usage_date = "), (user_id, today))
         

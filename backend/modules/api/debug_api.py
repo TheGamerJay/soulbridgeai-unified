@@ -295,7 +295,7 @@ class DebugAPI:
                     UPDATE users 
                     SET user_plan = ?, updated_at = ?
                     WHERE id = ?
-                """), (new_plan, datetime.now(timezone.utc).isoformat(), user_id))
+                """, (new_plan, datetime.now(timezone.utc).isoformat(), user_id))
             
             conn.commit()
             conn.close()

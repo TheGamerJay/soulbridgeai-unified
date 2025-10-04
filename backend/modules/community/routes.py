@@ -268,7 +268,7 @@ def emergency_database_fix():
         
         # 1. Create user_activity_log table
         try:
-            cursor.execute(format_query("""
+            cursor.execute("""
                 CREATE TABLE IF NOT EXISTS user_activity_log (
                     id SERIAL PRIMARY KEY,
                     user_id INTEGER NOT NULL,
@@ -1711,10 +1711,10 @@ def community_set_avatar():
             # Simple, direct PostgreSQL save
             if db.use_postgres:
                 cursor.execute("""
-                    UPDATE users 
+                    UPDATE users
                     SET companion_data = %s::jsonb
                     WHERE id = %s
-                """), (json.dumps(companion_info), user_id))
+                """, (json.dumps(companion_info), user_id))
             else:
                 cursor.execute(format_query("""
                     UPDATE users 

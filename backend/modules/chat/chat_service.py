@@ -215,7 +215,7 @@ You are {companion['name']} - maintain this identity consistently."""
                     INSERT INTO chat_conversations 
                     (user_id, companion_id, user_message, ai_response, created_at)
                     VALUES (?, ?, ?, ?, ?)
-                """), (user_id, companion_id, user_message, ai_response, datetime.now().isoformat()))
+                """, (user_id, companion_id, user_message, ai_response, datetime.now().isoformat()))
             
             conn.commit()
             conn.close()
@@ -313,7 +313,7 @@ You are {companion['name']} - maintain this identity consistently."""
                     """), (user_id, companion_id))
             else:
                 if db.db_type == 'postgresql':
-                    cursor.execute("DELETE FROM chat_conversations WHERE user_id = %s", (user_id,))
+                    cursor.execute("DELETE FROM chat_conversations WHERE user_id = %s"), (user_id,))
                 else:
                     cursor.execute(format_query("DELETE FROM chat_conversations WHERE user_id = ?"), (user_id,))
             

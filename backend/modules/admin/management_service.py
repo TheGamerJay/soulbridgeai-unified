@@ -89,7 +89,7 @@ class AdminManagementService:
                         COUNT(CASE WHEN created_at >= ? THEN 1 END) as new_users_month,
                         COUNT(*) as total_users
                     FROM users
-                """), (one_week_ago.isoformat(), one_month_ago.isoformat()))
+                """, (one_week_ago.isoformat(), one_month_ago.isoformat()))
             
             registration_stats = cursor.fetchone()
             conn.close()
@@ -227,7 +227,7 @@ class AdminManagementService:
                         COUNT(DISTINCT feature_type) as features_used
                     FROM user_activity_log 
                     WHERE created_at >= ?
-                """), (one_week_ago.isoformat(),))
+                """, (one_week_ago.isoformat(),))
             
             activity_row = cursor.fetchone()
             
@@ -241,7 +241,7 @@ class AdminManagementService:
                 cursor.execute(format_query("""
                     SELECT COUNT(*) FROM chat_conversations 
                     WHERE created_at >= ?
-                """), (one_week_ago.isoformat(),))
+                """, (one_week_ago.isoformat(),))
             
             chat_messages = cursor.fetchone()[0] or 0
             conn.close()
@@ -395,7 +395,7 @@ class AdminManagementService:
             
             # Get current user info
             if db.db_type == 'postgresql':
-                cursor.execute("SELECT email, user_plan FROM users WHERE id = %s", (user_id,))
+                cursor.execute("SELECT email, user_plan FROM users WHERE id = %s"), (user_id,))
             else:
                 cursor.execute(format_query("SELECT email, user_plan FROM users WHERE id = ?"), (user_id,))
             
@@ -418,7 +418,7 @@ class AdminManagementService:
                     UPDATE users 
                     SET user_plan = ?, updated_at = ?
                     WHERE id = ?
-                """), (new_plan, datetime.now(timezone.utc).isoformat(), user_id))
+                """, (new_plan, datetime.now(timezone.utc).isoformat(), user_id))
             
             conn.commit()
             conn.close()
@@ -554,7 +554,7 @@ class AdminManagementService:
                         FROM users 
                         WHERE id = ?
                         LIMIT ?
-                    """), (int(query), limit))
+                    """, (int(query), limit))
             else:
                 # Search by email
                 search_pattern = f"%{query}%"

@@ -216,7 +216,7 @@ class WeeklyEventsService:
                      reaction_breakdown, final_score, last_updated)
                     SELECT ?, ?, author_uid, created_at, ?, ?, ?, ?, ?
                     FROM community_posts WHERE id = ?
-                """), (event_id, post_id, total_reactions, unique_reactors,
+                """, (event_id, post_id, total_reactions, unique_reactors,
                       json.dumps(reaction_breakdown), final_score, datetime.now(), post_id))
             
             # Update the community_posts table as well

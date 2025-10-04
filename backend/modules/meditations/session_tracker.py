@@ -61,7 +61,7 @@ class SessionTracker:
                      duration_minutes, completed, started_at, completed_at, 
                      satisfaction_rating, notes, metadata)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """), (
+                """, (
                     session_data['user_id'],
                     session_data['meditation_id'],
                     session_data['title'],
@@ -160,7 +160,7 @@ class SessionTracker:
             
             # Get total count
             if self.database.use_postgres:
-                cursor.execute("SELECT COUNT(*) FROM meditation_sessions WHERE user_id = %s", (user_id,))
+                cursor.execute("SELECT COUNT(*) FROM meditation_sessions WHERE user_id = %s"), (user_id,))
             else:
                 cursor.execute(format_query("SELECT COUNT(*) FROM meditation_sessions WHERE user_id = ?"), (user_id,))
             

@@ -773,7 +773,7 @@ def create_app():
                 FROM password_reset_tokens 
                 WHERE token_hash = {placeholder} 
                 LIMIT 1
-            """, (token_hash,))
+            """), (token_hash,))
             
             result = cursor.fetchone()
             cursor.close()
@@ -1030,8 +1030,7 @@ def create_app():
                 database = get_database()
                 if database and session.get('user_id'):
                     database.execute(
-                        "UPDATE users SET selected_companion = ? WHERE id = ?",
-                        (companion_id, session.get('user_id'))
+                        "UPDATE users SET selected_companion = ? WHERE id = ?"), (companion_id, session.get('user_id'))
                     )
                     database.commit()
                     logger.info(f"✅ Saved companion selection to database: {companion_id}")

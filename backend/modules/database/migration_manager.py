@@ -339,10 +339,10 @@ class MigrationManager:
             if hasattr(self.database, 'use_postgres') and self.database.use_postgres:
                 cursor.execute(format_query("""
                     SELECT EXISTS (
-                        SELECT FROM information_schema.tables 
+                        SELECT FROM information_schema.tables
                         WHERE table_name = 'migration_history'
                     )
-                """)
+                """))
             else:
                 cursor.execute("""
                     SELECT name FROM sqlite_master 
@@ -408,7 +408,7 @@ class MigrationManager:
             cursor.execute("""
                 INSERT INTO migration_history (migration_name, description, module, rollback_sql)
                 VALUES (?, ?, ?, ?)
-            """), (
+            """, (
                 migration_name,
                 migration["description"],
                 migration["module"],

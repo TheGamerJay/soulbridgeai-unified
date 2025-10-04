@@ -575,7 +575,7 @@ class DashboardService:
                         AVG(session_duration_seconds) as avg_session_duration
                     FROM user_activity_log 
                     WHERE created_at >= ?
-                """), (start_date.isoformat(),))
+                """, (start_date.isoformat(),))
             
             row = cursor.fetchone()
             conn.close()

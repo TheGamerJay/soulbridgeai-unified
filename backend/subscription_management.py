@@ -477,7 +477,7 @@ def validate_subscription_eligibility(user_id: int) -> Tuple[bool, str]:
         cursor.execute("""
             SELECT COUNT(*) FROM subscriptions 
             WHERE user_id = ? AND canceled_at > datetime('now', '-7 days')
-        """), (user_id,))
+        """, (user_id,))
         
         recent_cancellations = cursor.fetchone()[0]
         

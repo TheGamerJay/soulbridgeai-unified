@@ -336,7 +336,7 @@ class SessionAPI:
                     UPDATE users 
                     SET last_login = ? 
                     WHERE id = ?
-                """), (datetime.now(timezone.utc).isoformat(), user_id))
+                """, (datetime.now(timezone.utc).isoformat(), user_id))
             
             conn.commit()
             conn.close()

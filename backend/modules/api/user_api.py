@@ -442,7 +442,7 @@ class UserAPI:
                         terms_version = ?,
                         terms_accepted_at = ?
                     WHERE id = ?
-                """), (terms_version, datetime.now(timezone.utc).isoformat(), user_id))
+                """, (terms_version, datetime.now(timezone.utc).isoformat(), user_id))
             
             conn.commit()
             conn.close()

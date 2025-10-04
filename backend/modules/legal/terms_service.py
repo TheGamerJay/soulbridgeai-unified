@@ -198,8 +198,7 @@ class TermsService:
                 # Fallback: try just updating basic acceptance if columns don't exist
                 try:
                     if self.database.use_postgres:
-                        cursor.execute("UPDATE users SET terms_accepted = %s WHERE id = %s", 
-                                       (True, user_id))
+                        cursor.execute("UPDATE users SET terms_accepted = %s WHERE id = %s"), (True, user_id))
                     else:
                         cursor.execute(format_query("UPDATE users SET terms_accepted = ? WHERE id = ?"), 
                                        (True, user_id))
@@ -233,7 +232,7 @@ class TermsService:
                         INSERT OR IGNORE INTO terms_log 
                         (user_id, terms_version, language, acceptance_details, accepted_at)
                         VALUES (?, ?, ?, ?, ?)
-                    """), (user_id, terms_version, language, 
+                    """, (user_id, terms_version, language, 
                           json.dumps(acceptance_details), acceptance_date))
                           
             except Exception as log_error:
@@ -288,7 +287,7 @@ class TermsService:
                         terms_revoked_at = ?,
                         terms_revoke_reason = ?
                     WHERE id = ?
-                """), (datetime.now(timezone.utc), reason, user_id))
+                """, (datetime.now(timezone.utc), reason, user_id))
             
             if cursor.rowcount == 0:
                 conn.close()

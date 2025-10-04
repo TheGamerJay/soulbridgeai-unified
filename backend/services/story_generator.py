@@ -566,7 +566,7 @@ class StoryDatabase:
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
-        """)
+        """))
         
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS story_characters (
@@ -605,7 +605,7 @@ class StoryDatabase:
         cursor.execute("""
             INSERT INTO stories (user_id, title, genre, length_type, content, outline, analysis)
             VALUES (?, ?, ?, ?, ?, ?, ?)
-        """), (user_id, title, genre.value, length_type.value, content, outline_json, analysis_json))
+        """, (user_id, title, genre.value, length_type.value, content, outline_json, analysis_json))
         
         story_id = cursor.lastrowid
         

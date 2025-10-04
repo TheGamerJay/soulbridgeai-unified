@@ -136,7 +136,7 @@ def record_enhanced_unlock(user_id: int, reward_id: str, reward_type: str, thres
                 UNIQUE(user_id, reward_id),
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             )
-        """)
+        """))
         
         # Classify the reward
         classification = classify_reward_type(reward_id)
@@ -144,10 +144,10 @@ def record_enhanced_unlock(user_id: int, reward_id: str, reward_type: str, thres
         
         # Insert the unlock record
         cursor.execute("""
-            INSERT OR IGNORE INTO user_referral_rewards 
+            INSERT OR IGNORE INTO user_referral_rewards
             (user_id, reward_id, reward_type, base_character, unlock_threshold, unlocked_at)
             VALUES (?, ?, ?, ?, ?, datetime('now'))
-        """), (user_id, reward_id, reward_type, base_character, threshold))
+        """, (user_id, reward_id, reward_type, base_character, threshold))
         
         conn.commit()
         logger.info(f"✅ Recorded {reward_type} unlock: {reward_id} for user {user_id}")

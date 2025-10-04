@@ -396,12 +396,12 @@ def get_all_cosmetics() -> List[Dict[str, Any]]:
         cursor = conn.cursor()
         
         cursor.execute(format_query("""
-            SELECT id, name, display_name, description, type, rarity, 
+            SELECT id, name, display_name, description, type, rarity,
                    unlock_method, unlock_requirement, image_url, is_active
-            FROM cosmetics 
+            FROM cosmetics
             WHERE is_active = TRUE
             ORDER BY unlock_method, rarity, name
-        """)
+        """))
         
         cosmetics = []
         for row in cursor.fetchall():
@@ -442,7 +442,7 @@ def get_user_equipped_companions(user_id: int) -> List[Dict[str, Any]]:
             FROM user_equipped_cosmetics uec
             JOIN cosmetics c ON uec.cosmetic_id = c.id
             WHERE uec.user_id = ? AND c.type = 'companion'
-        """), (user_id,))
+        """, (user_id,))
         
         companions = []
         for row in cursor.fetchall():

@@ -51,7 +51,7 @@ def force_cleanup_trial_data():
             print(f"SUCCESS: Force updated database - trial_active=False")
             
             # Verify the change
-            cursor.execute(format_query("SELECT user_plan, trial_active, trial_expires_at FROM users WHERE id = ?)', (user_id,))
+            cursor.execute(format_query("SELECT user_plan, trial_active, trial_expires_at FROM users WHERE id = ?"), (user_id,))
             new_result = cursor.fetchone()
             if new_result:
                 new_plan, new_trial, new_expires = new_result

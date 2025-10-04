@@ -243,7 +243,7 @@ class MessageHandler:
                     INSERT INTO chat_usage_tracking 
                     (user_id, companion_id, message_length, model_used, tokens_used, created_at)
                     VALUES (?, ?, ?, ?, ?, ?)
-                """), (
+                """, (
                     user_id, companion_id, message_length,
                     model_used, tokens_used, usage_data['timestamp'].isoformat()
                 ))
