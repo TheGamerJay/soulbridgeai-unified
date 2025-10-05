@@ -11,7 +11,10 @@
       "Read(//c//**)",
       "Bash(for file in modules/**/*.py)",
       "Bash(break)",
-      "Bash(echo \"Exit code: $?\")"
+      "Bash(echo \"Exit code: $?\")",
+      "Bash(cat:*)",
+      "Bash(curl:*)",
+      "Bash(git ls-tree:*)"
     ],
     "deny": [],
     "ask": [],

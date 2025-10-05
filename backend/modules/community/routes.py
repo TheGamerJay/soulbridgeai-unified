@@ -536,7 +536,7 @@ def anonymous_community():
                         current_avatar = {
                             'name': companion_data.get('name', 'Soul'),
                             'companion_id': companion_data.get('id', 'soul'),  
-                            'avatar_url': avatar_url or f'/static/logos/New IntroLogo.png?t={cache_buster}',
+                            'avatar_url': avatar_url or f'/static/logos/The IntroLogo.png?t={cache_buster}',
                             'tier': companion_data.get('tier', 'bronze')
                         }
                         logger.info(f"✅ SERVER-SIDE: Loaded COMMUNITY avatar for user {user_id}: {current_avatar['name']} from {avatar_url}")
@@ -552,7 +552,7 @@ def anonymous_community():
                 if session_companion:
                     import time
                     cache_buster = int(time.time())
-                    avatar_url = session_companion.get('image_url', '/static/logos/New IntroLogo.png')
+                    avatar_url = session_companion.get('image_url', '/static/logos/The IntroLogo.png')
                     if '?' not in avatar_url:
                         avatar_url += f"?t={cache_buster}"
                         
@@ -574,7 +574,7 @@ def anonymous_community():
             current_avatar = {
                 'name': 'Soul',
                 'companion_id': 'soul', 
-                'avatar_url': f'/static/logos/New IntroLogo.png?t={cache_buster}',
+                'avatar_url': f'/static/logos/The IntroLogo.png?t={cache_buster}',
                 'tier': 'bronze'
             }
             logger.info(f"🔄 SERVER-SIDE: Using default Soul avatar (intro logo) for user {user_id}")
@@ -821,7 +821,7 @@ def community_posts():
             author_uid = post[8]
             
             # Use image_url, fallback to default
-            avatar_url = image_url or "/static/logos/New IntroLogo.png"
+            avatar_url = image_url or "/static/logos/The IntroLogo.png"
             
             # Parse hashtags JSON
             try:
@@ -899,7 +899,7 @@ def create_community_post():
             companion_info = session.get('companion_info', {})
             # Use companion_id from companion_info, fallback to selected_companion_id
             companion_id = companion_info.get('companion_id') or session.get('selected_companion_id')
-            image_url = companion_info.get('image_url') or companion_info.get('avatar_url', '/static/logos/New IntroLogo.png')
+            image_url = companion_info.get('image_url') or companion_info.get('avatar_url', '/static/logos/The IntroLogo.png')
             
             # DEBUG: Log session contents to understand what's happening
             logger.info(f"🔍 SESSION DEBUG: companion_info = {companion_info}")
@@ -942,7 +942,7 @@ def create_community_post():
             "title": msg[:50] + "..." if len(msg) > 50 else msg,
             "content": msg,
             "author": "Anonymous Companion",
-            "companion_avatar": "/static/logos/New IntroLogo.png",
+            "companion_avatar": "/static/logos/The IntroLogo.png",
             "category": category,
             "hearts": 0,
             "created_at": datetime.now().isoformat(),
@@ -1517,7 +1517,7 @@ def community_get_avatar():
                         # Add cache busting
                         import time
                         cache_buster = int(time.time())
-                        avatar_url = companion_data.get('avatar_url') or companion_data.get('image_url', '/static/logos/New IntroLogo.png')
+                        avatar_url = companion_data.get('avatar_url') or companion_data.get('image_url', '/static/logos/The IntroLogo.png')
                         if '?' not in avatar_url:
                             avatar_url += f"?t={cache_buster}"
                         
@@ -1554,8 +1554,8 @@ def community_get_avatar():
             "companion": {
                 "name": "Soul",
                 "companion_id": "soul",
-                "avatar_url": f"/static/logos/New IntroLogo.png?t={cache_buster}",
-                "image_url": f"/static/logos/New IntroLogo.png?t={cache_buster}",
+                "avatar_url": f"/static/logos/The IntroLogo.png?t={cache_buster}",
+                "image_url": f"/static/logos/The IntroLogo.png?t={cache_buster}",
                 "tier": "bronze"
             }
         })
@@ -1617,8 +1617,8 @@ def community_get_avatar_new():
             "companion": {
                 "name": "Soul",
                 "companion_id": "soul",
-                "avatar_url": f"/static/logos/New IntroLogo.png?t={cache_buster}",
-                "image_url": f"/static/logos/New IntroLogo.png?t={cache_buster}",
+                "avatar_url": f"/static/logos/The IntroLogo.png?t={cache_buster}",
+                "image_url": f"/static/logos/The IntroLogo.png?t={cache_buster}",
                 "tier": "bronze"
             }
         })

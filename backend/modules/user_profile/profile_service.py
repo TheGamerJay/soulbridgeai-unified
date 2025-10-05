@@ -259,7 +259,7 @@ class ProfileService:
                 'library': library_stats,
                 'profile': {
                     'hasCustomImage': bool(profile.get('profileImage') and 
-                                         not profile.get('profileImage', '').endswith('New IntroLogo.png')),
+                                         not profile.get('profileImage', '').endswith('The IntroLogo.png')),
                     'hasCustomTheme': bool(profile.get('themePreferences')),
                     'displayName': profile.get('displayName'),
                     'emailVerified': profile.get('emailVerified', False)
@@ -290,7 +290,7 @@ class ProfileService:
         # Preserve custom profile image (exclude defaults)
         profile_image = session.get('profile_image')
         if (profile_image and 
-            profile_image not in ['/static/logos/Sapphire.png', '/static/logos/New IntroLogo.png']):
+            profile_image not in ['/static/logos/Sapphire.png', '/static/logos/The IntroLogo.png']):
             preserved['profile_image'] = profile_image
         
         # Preserve theme preferences
@@ -332,10 +332,10 @@ class ProfileService:
             return profile_image
         elif profile_image_data:
             return f"/api/profile-image/{user_id}"
-        elif profile_image and not profile_image.endswith(('Sapphire.png', 'New IntroLogo.png')):
+        elif profile_image and not profile_image.endswith(('Sapphire.png', 'The IntroLogo.png')):
             return f"/api/profile-image/{user_id}"
         else:
-            return '/static/logos/New IntroLogo.png'
+            return '/static/logos/The IntroLogo.png'
     
     def _calculate_access_permissions(self, profile: Dict[str, Any]) -> Dict[str, Any]:
         """Calculate user access permissions based on plan and trial status"""

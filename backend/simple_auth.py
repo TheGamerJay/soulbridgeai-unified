@@ -193,7 +193,7 @@ class SimpleAuth:
                             profile_img = f"/api/profile-image/{user_id}"
                             logger.info(f"🔄 Migrated old filesystem path to API endpoint: {profile_img}")
                         else:
-                            profile_img = '/static/logos/New IntroLogo.png'
+                            profile_img = '/static/logos/The IntroLogo.png'
                             logger.warning("Could not migrate filesystem path, using default")
                     
                     session['profile_image'] = profile_img
@@ -206,7 +206,7 @@ class SimpleAuth:
                         # Keep the existing uploaded image
                     else:
                         # Set default profile image if none exists and no upload in session
-                        session['profile_image'] = '/static/logos/New IntroLogo.png'
+                        session['profile_image'] = '/static/logos/The IntroLogo.png'
                         logger.info("No profile image found, using default IntroLogo.png")
                     
             except Exception as profile_error:
@@ -233,7 +233,7 @@ class SimpleAuth:
                     # Keep the existing uploaded image
                 else:
                     # Set default profile image due to database schema issue
-                    session['profile_image'] = '/static/logos/New IntroLogo.png'
+                    session['profile_image'] = '/static/logos/The IntroLogo.png'
                     logger.info("Set default profile image due to database schema issue")
             
             conn.close()
@@ -246,7 +246,7 @@ class SimpleAuth:
                 # Keep the existing uploaded image
             else:
                 # Set default profile image on error
-                session['profile_image'] = '/static/logos/New IntroLogo.png'
+                session['profile_image'] = '/static/logos/The IntroLogo.png'
         
         logger.info(f"Secure session created for user: {user_data['email']}")
     

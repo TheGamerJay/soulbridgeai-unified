@@ -311,22 +311,22 @@ def serve_profile_image(user_id):
                     logger.info("📷 ProfileImageManager initialized lazily for serve")
                 else:
                     logger.error("No database connection available for ProfileImageManager serve")
-                    return redirect('/static/logos/New IntroLogo.png')
+                    return redirect('/static/logos/The IntroLogo.png')
                     
             except Exception as init_error:
                 logger.error(f"Failed to initialize ProfileImageManager for serve: {init_error}")
-                return redirect('/static/logos/New IntroLogo.png')
+                return redirect('/static/logos/The IntroLogo.png')
         
         image_bytes, mime_type = image_manager.serve_profile_image(user_id)
         
         if image_bytes:
             return Response(image_bytes, mimetype=mime_type)
         else:
-            return redirect('/static/logos/New IntroLogo.png')
+            return redirect('/static/logos/The IntroLogo.png')
         
     except Exception as e:
         logger.error(f"Serve profile image error: {e}")
-        return redirect('/static/logos/New IntroLogo.png')
+        return redirect('/static/logos/The IntroLogo.png')
 
 @profile_bp.route("/api/delete-profile-image", methods=["DELETE"])
 def delete_profile_image():

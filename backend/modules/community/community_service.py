@@ -50,8 +50,8 @@ class CommunityService:
                 companion_data = {
                     'name': companion_info.get('name', 'Soul'),
                     'companion_id': companion_info.get('id', 'soul'),
-                    'avatar_url': companion_info.get('image_url', '/static/logos/New IntroLogo.png'),
-                    'image_url': companion_info.get('image_url', '/static/logos/New IntroLogo.png'),
+                    'avatar_url': companion_info.get('image_url', '/static/logos/The IntroLogo.png'),
+                    'image_url': companion_info.get('image_url', '/static/logos/The IntroLogo.png'),
                     'tier': companion_info.get('tier', 'bronze')
                 }
                 return {
@@ -68,8 +68,8 @@ class CommunityService:
             default_companion = {
                 'name': 'Soul',
                 'companion_id': 'soul',
-                'avatar_url': '/static/logos/New IntroLogo.png',
-                'image_url': '/static/logos/New IntroLogo.png',
+                'avatar_url': '/static/logos/The IntroLogo.png',
+                'image_url': '/static/logos/The IntroLogo.png',
                 'tier': 'bronze'
             }
             
@@ -446,8 +446,8 @@ class CommunityService:
                                 return {
                                     'name': companion_info.get('name', companion_data.get('name', 'Soul')),
                                     'companion_id': companion_info['id'],
-                                    'avatar_url': companion_data.get('image_url', '/static/logos/New IntroLogo.png'),
-                                    'image_url': companion_data.get('image_url', '/static/logos/New IntroLogo.png'),
+                                    'avatar_url': companion_data.get('image_url', '/static/logos/The IntroLogo.png'),
+                                    'image_url': companion_data.get('image_url', '/static/logos/The IntroLogo.png'),
                                     'tier': companion_data.get('tier', 'bronze'),
                                     'last_update': last_update.isoformat() if last_update else None
                                 }
@@ -459,8 +459,8 @@ class CommunityService:
                         return {
                             'name': companion_info.get('name', 'Soul'),
                             'companion_id': companion_info['id'],
-                            'avatar_url': companion_info.get('image_url', '/static/logos/New IntroLogo.png'),
-                            'image_url': companion_info.get('image_url', '/static/logos/New IntroLogo.png'), 
+                            'avatar_url': companion_info.get('image_url', '/static/logos/The IntroLogo.png'),
+                            'image_url': companion_info.get('image_url', '/static/logos/The IntroLogo.png'), 
                             'tier': companion_info.get('tier', 'bronze'),
                             'last_update': last_update.isoformat() if last_update else None
                         }

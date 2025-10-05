@@ -129,7 +129,7 @@ def companion_specific_chat(tier, companion_id):
         return render_template("chat_soul_companion.html",
                              companion_info=companion,
                              ai_character_name=companion.get('name', 'AI Assistant'),
-                             companion_avatar=companion.get('image_url', '/static/logos/New IntroLogo.png'),
+                             companion_avatar=companion.get('image_url', '/static/logos/The IntroLogo.png'),
                              trial_active=session.get('trial_active', False))
         
     except Exception as e:

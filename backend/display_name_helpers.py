@@ -86,7 +86,7 @@ def get_profile_image(user_id: int) -> str:
         db = get_database()
         if not db:
             logger.error("Database not available")
-            return "/static/logos/New IntroLogo.png"
+            return "/static/logos/The IntroLogo.png"
             
         conn = db.get_connection()
         try:
@@ -112,19 +112,19 @@ def get_profile_image(user_id: int) -> str:
                     return profile_image
                 else:
                     # Default image
-                    default = "/static/logos/New IntroLogo.png"
+                    default = "/static/logos/The IntroLogo.png"
                     logger.info(f"📷 READER: User {user_id} using default image '{default}'")
                     return default
             else:
                 logger.error(f"❌ READER: User {user_id} not found")
-                return "/static/logos/New IntroLogo.png"
+                return "/static/logos/The IntroLogo.png"
                 
         finally:
             conn.close()
             
     except Exception as e:
         logger.error(f"Failed to get profile image for user {user_id}: {e}")
-        return "/static/logos/New IntroLogo.png"
+        return "/static/logos/The IntroLogo.png"
 
 def get_companion_data(user_id: int) -> dict:
     """Get companion data - DB read only"""

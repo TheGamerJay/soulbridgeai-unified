@@ -158,7 +158,7 @@ def me():
                     # User has profile image data, use API endpoint
                     db_profile_image = f"/api/profile-image/{uid}"
                 elif (user_row.get('profile_image') and 
-                      not user_row['profile_image'].endswith(('Sapphire.png', 'New IntroLogo.png'))):
+                      not user_row['profile_image'].endswith(('Sapphire.png', 'The IntroLogo.png'))):
                     # User has custom profile image path
                     db_profile_image = user_row['profile_image']
             else:
@@ -175,7 +175,7 @@ def me():
             session['profile_image'] = profile_image
             session.modified = True
         else:
-            profile_image = session.get("profile_image", "/static/logos/New IntroLogo.png")
+            profile_image = session.get("profile_image", "/static/logos/The IntroLogo.png")
 
         user_data = {
             "id": uid,

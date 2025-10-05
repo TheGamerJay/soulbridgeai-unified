@@ -204,15 +204,15 @@ class ProfileImageManager:
             
             # If has old filesystem path, convert to API endpoint
             if (profile_image_path and 
-                not profile_image_path.endswith(('Sapphire.png', 'New IntroLogo.png'))):
+                not profile_image_path.endswith(('Sapphire.png', 'The IntroLogo.png'))):
                 return f"/api/profile-image/{user_id}"
             
             # Default image
-            return '/static/logos/New IntroLogo.png'
+            return '/static/logos/The IntroLogo.png'
             
         except Exception as e:
             logger.error(f"Failed to get profile image URL: {e}")
-            return '/static/logos/New IntroLogo.png'
+            return '/static/logos/The IntroLogo.png'
     
     def _validate_media_file(self, media_file) -> Dict[str, Any]:
         """Validate uploaded image or video file"""
