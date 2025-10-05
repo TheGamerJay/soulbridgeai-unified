@@ -362,7 +362,8 @@
 
 <script>
 // Stripe integration
-const stripe = Stripe('{{ stripe_public_key }}');
+const stripeKey = '{{ stripe_public_key if stripe_public_key else "" }}';
+const stripe = stripeKey ? Stripe(stripeKey) : null;
 
 // Pricing plans with Stripe price IDs
 const plans = {
@@ -407,6 +408,11 @@ function selectPlan(planType) {
 
   if (planType === 'soul_companion_pro') {
     // Pro tier - create Stripe checkout
+    if (!stripe) {
+      alert('Payment system is not configured. Please contact support.');
+      return;
+    }
+
     const planData = plans[currentBilling].soul_companion_pro;
 
     stripe.redirectToCheckout({
