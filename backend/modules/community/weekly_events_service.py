@@ -88,7 +88,7 @@ class WeeklyEventsService:
                     WHERE wpm.event_id = %s
                     ORDER BY wpm.final_score DESC, wpm.total_reactions DESC, wpm.unique_reactors DESC
                     LIMIT %s
-                """), (event_id, limit))
+                """, (event_id, limit))
             else:
                 cursor.execute(format_query("""
                     SELECT wpm.post_id, wpm.user_id, wpm.total_reactions, wpm.unique_reactors,
@@ -143,17 +143,17 @@ class WeeklyEventsService:
             # Get current reaction stats for this post
             if self.database.use_postgres:
                 cursor.execute("""
-                    SELECT 
+                    SELECT
                         COUNT(*) as total_reactions,
                         COUNT(DISTINCT viewer_uid) as unique_reactors,
                         JSON_OBJECT_AGG(emoji, reaction_count) as reaction_breakdown
                     FROM (
                         SELECT emoji, COUNT(*) as reaction_count
-                        FROM community_reactions 
-                        WHERE post_id = %s 
+                        FROM community_reactions
+                        WHERE post_id = %s
                         GROUP BY emoji
                     ) emoji_counts
-                """), (post_id,))
+                """, (post_id,))
             else:
                 cursor.execute(format_query("""
                     SELECT 
@@ -171,10 +171,10 @@ class WeeklyEventsService:
             if self.database.use_postgres:
                 cursor.execute("""
                     SELECT emoji, COUNT(*) as count
-                    FROM community_reactions 
-                    WHERE post_id = %s 
+                    FROM community_reactions
+                    WHERE post_id = %s
                     GROUP BY emoji
-                """), (post_id,))
+                """, (post_id,))
             else:
                 cursor.execute(format_query("""
                     SELECT emoji, COUNT(*) as count
@@ -211,21 +211,21 @@ class WeeklyEventsService:
                       json.dumps(reaction_breakdown), final_score, datetime.now()))
             else:
                 cursor.execute(format_query("""
-                    INSERT OR REPLACE INTO weekly_post_metrics 
+                    INSERT OR REPLACE INTO weekly_post_metrics
                     (event_id, post_id, user_id, post_created_at, total_reactions, unique_reactors,
                      reaction_breakdown, final_score, last_updated)
                     SELECT ?, ?, author_uid, created_at, ?, ?, ?, ?, ?
                     FROM community_posts WHERE id = ?
-                """, (event_id, post_id, total_reactions, unique_reactors,
-                      json.dumps(reaction_breakdown), final_score, datetime.now(), post_id))
+                """), (event_id, post_id, total_reactions, unique_reactors,
+                       json.dumps(reaction_breakdown), final_score, datetime.now(), post_id))
             
             # Update the community_posts table as well
             if self.database.use_postgres:
                 cursor.execute("""
-                    UPDATE community_posts 
+                    UPDATE community_posts
                     SET total_reactions = %s, unique_reactors = %s, reaction_score = %s
                     WHERE id = %s
-                """), (total_reactions, unique_reactors, final_score, post_id))
+                """, (total_reactions, unique_reactors, final_score, post_id))
             else:
                 cursor.execute(format_query("""
                     UPDATE community_posts 
@@ -257,7 +257,7 @@ class WeeklyEventsService:
                     INSERT INTO event_participants (event_id, user_id, companion_id)
                     VALUES (%s, %s, %s)
                     ON CONFLICT (event_id, user_id) DO NOTHING
-                """), (event_id, user_id, companion_id))
+                """, (event_id, user_id, companion_id))
             else:
                 cursor.execute(format_query("""
                     INSERT OR IGNORE INTO event_participants (event_id, user_id, companion_id)
@@ -283,12 +283,12 @@ class WeeklyEventsService:
             
             if self.database.use_postgres:
                 cursor.execute("""
-                    SELECT 
+                    SELECT
                         posts_submitted, total_reactions_received, best_post_score,
                         (SELECT COUNT(*) FROM event_participants WHERE event_id = %s AND best_post_score > ep.best_post_score) + 1 as current_rank
                     FROM event_participants ep
                     WHERE event_id = %s AND user_id = %s
-                """), (event_id, event_id, user_id))
+                """, (event_id, event_id, user_id))
             else:
                 cursor.execute(format_query("""
                     SELECT 
@@ -365,7 +365,7 @@ class WeeklyEventsService:
                 cursor.execute("""
                     INSERT INTO weekly_events (event_type, title, description, start_date, end_date, status)
                     VALUES (%s, %s, %s, %s, %s, %s)
-                """), (
+                """, (
                     'most_appreciated_post',
                     'Most Appreciated Post This Week 🏆',
                     'Share your most meaningful content with the community! The post that receives the most genuine appreciation wins special recognition and rewards.',
@@ -419,16 +419,16 @@ class WeeklyEventsService:
                 # Update the event with winner information
                 if self.database.use_postgres:
                     cursor.execute("""
-                        UPDATE weekly_events 
-                        SET status = 'ended', 
-                            winner_post_id = %s, 
+                        UPDATE weekly_events
+                        SET status = 'ended',
+                            winner_post_id = %s,
                             winner_user_id = %s,
                             winner_prize_type = %s,
                             winner_prize_value = %s,
                             updated_at = CURRENT_TIMESTAMP
                         WHERE id = %s
-                    """), (
-                        winner['post_id'], 
+                    """, (
+                        winner['post_id'],
                         winner['user_id'],
                         'recognition_badge',
                         'Most Appreciated Post Winner 🏆',
@@ -455,10 +455,10 @@ class WeeklyEventsService:
                 # Mark the winning post in weekly_post_metrics
                 if self.database.use_postgres:
                     cursor.execute("""
-                        UPDATE weekly_post_metrics 
+                        UPDATE weekly_post_metrics
                         SET is_winner = TRUE, ranking_position = 1
                         WHERE event_id = %s AND post_id = %s
-                    """), (current_event['id'], winner['post_id']))
+                    """, (current_event['id'], winner['post_id']))
                 else:
                     cursor.execute(format_query("""
                         UPDATE weekly_post_metrics 
@@ -469,10 +469,10 @@ class WeeklyEventsService:
                 # Update participant stats
                 if self.database.use_postgres:
                     cursor.execute("""
-                        UPDATE event_participants 
+                        UPDATE event_participants
                         SET best_post_id = %s, best_post_score = %s
                         WHERE event_id = %s AND user_id = %s
-                    """), (winner['post_id'], winner['final_score'], current_event['id'], winner['user_id']))
+                    """, (winner['post_id'], winner['final_score'], current_event['id'], winner['user_id']))
                 else:
                     cursor.execute(format_query("""
                         UPDATE event_participants 
@@ -507,10 +507,10 @@ class WeeklyEventsService:
                 # No participants, just end the event
                 if self.database.use_postgres:
                     cursor.execute("""
-                        UPDATE weekly_events 
+                        UPDATE weekly_events
                         SET status = 'ended', updated_at = CURRENT_TIMESTAMP
                         WHERE id = %s
-                    """), (current_event['id'],))
+                    """, (current_event['id'],))
                 else:
                     cursor.execute(format_query("""
                         UPDATE weekly_events 
@@ -590,7 +590,7 @@ class WeeklyEventsService:
                     WHERE we.status = 'ended'
                     ORDER BY we.end_date DESC
                     LIMIT %s
-                """), (limit,))
+                """, (limit,))
             else:
                 cursor.execute(format_query("""
                     SELECT we.id, we.title, we.start_date, we.end_date, we.status,
