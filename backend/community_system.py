@@ -76,7 +76,7 @@ def resolve_avatar_url(companion_id, fallback="/static/logos/GamerJay_Free_compa
         2: 'Sky_a_premium_companion',
         3: 'Crimson',
         4: 'Violet',
-        7: 'GamerJay_premium_companion',
+        7: 'GamerJay_Premium_companion',
         8: 'Claude_Free',
         20: 'Claude_Growth',
         30: 'Claude_Max',
