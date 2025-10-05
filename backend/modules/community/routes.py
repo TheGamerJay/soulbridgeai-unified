@@ -1417,11 +1417,11 @@ def get_weekly_event():
             })
         
         # Get leaderboard
-        leaderboard = events_service.get_weekly_leaderboard(current_event['id'], limit=10)
-        
+        leaderboard = weekly_events_service.get_weekly_leaderboard(current_event['id'], limit=10)
+
         # Get user's stats
         user_id = session.get('user_id')
-        user_stats = events_service.get_user_event_stats(user_id, current_event['id'])
+        user_stats = weekly_events_service.get_user_event_stats(user_id, current_event['id'])
         
         return jsonify({
             "success": True,
@@ -1457,9 +1457,9 @@ def join_weekly_event():
             }), 400
         
         user_id = session.get('user_id')
-        success = events_service.register_participant(
-            current_event['id'], 
-            user_id, 
+        success = weekly_events_service.register_participant(
+            current_event['id'],
+            user_id,
             companion_id
         )
         
