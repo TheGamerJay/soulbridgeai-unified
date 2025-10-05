@@ -2710,7 +2710,7 @@
 
         function showConfirmationDialog() {
             const companionName = selectedCompanion.display_name || selectedCompanion.name;
-            const avatarUrl = selectedCompanion.image_url || '/static/logos/New IntroLogo.png';
+            const avatarUrl = selectedCompanion.image_url || '/static/logos/The IntroLogo.png';
             
             // Create professional confirmation modal
             const confirmModal = document.createElement('div');
@@ -3189,7 +3189,7 @@
                 if (!comp) return;
                 avatarLocked = true;
 
-                const imgUrl = (comp.avatar_url || comp.image_url || '/static/logos/New IntroLogo.png') + `?v=${Date.now()}`;
+                const imgUrl = (comp.avatar_url || comp.image_url || '/static/logos/The IntroLogo.png') + `?v=${Date.now()}`;
                 
                 const avatarContainer = document.getElementById('composer-avatar');
                 const companionName = document.getElementById('companion-name');
@@ -3300,7 +3300,7 @@
 
                 const companion_id = selected.dataset.id;
                 const name = selected.dataset.name || companion_id;
-                const avatar_url = selected.dataset.image || '/static/logos/New IntroLogo.png';
+                const avatar_url = selected.dataset.image || '/static/logos/The IntroLogo.png';
 
                 try {
                     const r = await fetch('/community/avatar', {
