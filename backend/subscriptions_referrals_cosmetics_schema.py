@@ -248,7 +248,7 @@ def insert_default_cosmetics(db_connection):
             'rarity': 'legendary',
             'unlock_method': 'referral',
             'unlock_requirement': '{"referral_threshold": 8}',
-            'image_url': '/static/logos/Claude_Referral.png'
+            'image_url': '/static/logos/Claude_Referral.png?v=20250104'
         },
         {
             'name': 'blayzo',
@@ -258,7 +258,7 @@ def insert_default_cosmetics(db_connection):
             'rarity': 'legendary',
             'unlock_method': 'referral',
             'unlock_requirement': '{"referral_threshold": 10}',
-            'image_url': '/static/logos/Blayzo_Referral.png'
+            'image_url': '/static/logos/Blayzo_Referral.png?v=20250104'
         }
     ]
     

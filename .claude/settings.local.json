@@ -14,7 +14,9 @@
       "Bash(echo \"Exit code: $?\")",
       "Bash(cat:*)",
       "Bash(curl:*)",
-      "Bash(git ls-tree:*)"
+      "Bash(git ls-tree:*)",
+      "Bash(for:*)",
+      "Bash(do echo -n \"$file: \" curl -s -I \"https://soulbridgeai.com/static/logos/$file\")"
     ],
     "deny": [],
     "ask": [],

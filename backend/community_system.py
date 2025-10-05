@@ -1594,8 +1594,8 @@ def select_companion_direct(companion_id):
             33: {'name': 'Ven Sky', 'tier': 'gold', 'avatar_url': '/static/logos/Ven_Sky_a_Max_companion.png'},
             34: {'name': 'WatchDog', 'tier': 'gold', 'avatar_url': '/static/logos/WatchDog a Max Companion.png'},
             # Referral tier companions
-            40: {'name': 'Claude Referral', 'tier': 'referral', 'avatar_url': '/static/logos/Claude_Referral.png'},
-            41: {'name': 'Blayzo Referral', 'tier': 'referral', 'avatar_url': '/static/logos/Blayzo Referral.png'},
+            40: {'name': 'Claude Referral', 'tier': 'referral', 'avatar_url': '/static/logos/Claude_Referral.png?v=20250104'},
+            41: {'name': 'Blayzo Referral', 'tier': 'referral', 'avatar_url': '/static/logos/Blayzo_Referral.png?v=20250104'},
             42: {'name': 'Nyxara', 'tier': 'referral', 'avatar_url': '/static/logos/Nyxara.png'},
         }
         
