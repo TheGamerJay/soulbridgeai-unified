@@ -53,7 +53,7 @@ def get_spreads():
 @fortune_bp.route('/api/fortune/reading', methods=['POST'])
 def generate_reading():
     """Generate deterministic tarot reading - Now uses Artistic Time credits"""
-    from ...modules.credits.decorators import require_credits
+    from ..credits.decorators import require_credits
     
     # Apply credit requirement (but allow anonymous users to continue without credits for basic readings)
     user_id = session.get('user_id')

@@ -68,7 +68,7 @@ def horoscope_page():
 @requires_login
 def api_decoder():
     """Dream decoder API endpoint - Now uses Artistic Time credits"""
-    from ...modules.credits.decorators import require_credits
+    from ..credits.decorators import require_credits
     
     # Apply credit requirement first
     @require_credits('decoder')
@@ -127,7 +127,7 @@ def api_decoder():
 @requires_login
 def api_horoscope():
     """Horoscope API endpoint - Now uses Artistic Time credits"""
-    from ...modules.credits.decorators import require_credits
+    from ..credits.decorators import require_credits
     
     # Apply credit requirement first
     @require_credits('horoscope')
@@ -185,7 +185,7 @@ def api_horoscope():
 @requires_login
 def api_creative_writing():
     """Creative writing API endpoint - Now uses Artistic Time credits"""
-    from ...modules.credits.decorators import require_credits
+    from ..credits.decorators import require_credits
     
     # Apply credit requirement first
     @require_credits('creative_writer')
