@@ -22,7 +22,9 @@
       "Bash(sqlite3 soulbridge.db \"PRAGMA table_info(users);\")",
       "Bash(python add_credits_simple.py)",
       "Bash(git add -A)",
-      "Bash(git commit -m \"$(cat <<''EOF''\nAdd testing script for artistic credits management\n\nCreated utility scripts to add artistic credits to user accounts for testing purposes.\n\n- add_credits_temp.py: Add credits to specific user\n- add_credits_simple.py: Add credits to all users\n- Added 500 test credits to user 104 (total: 700 credits)\n\nTesting Features:\n- Credit system validation\n- AI image generation\n- Voice journaling\n- Relationship profiles\n- Mini Studio access\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")"
+      "Bash(git commit -m \"$(cat <<''EOF''\nAdd testing script for artistic credits management\n\nCreated utility scripts to add artistic credits to user accounts for testing purposes.\n\n- add_credits_temp.py: Add credits to specific user\n- add_credits_simple.py: Add credits to all users\n- Added 500 test credits to user 104 (total: 700 credits)\n\nTesting Features:\n- Credit system validation\n- AI image generation\n- Voice journaling\n- Relationship profiles\n- Mini Studio access\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git push)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nUpdate summary document with artistic credits testing system\n\nAdded documentation for new testing utilities:\n- Credit addition scripts for testing\n- Database validation of credit systems\n- Test results showing 500 credits added to user 104\n\nSummary Updates:\n- Issue #26: Artistic Credits Testing Scripts\n- Final status updated to 26 completed issues\n- Added Credits Testing System status indicator\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")"
     ],
     "deny": [],
     "ask": [],
