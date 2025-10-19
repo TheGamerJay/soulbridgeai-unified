@@ -16,7 +16,13 @@
       "Bash(curl:*)",
       "Bash(git ls-tree:*)",
       "Bash(for:*)",
-      "Bash(do echo -n \"$file: \" curl -s -I \"https://soulbridgeai.com/static/logos/$file\")"
+      "Bash(do echo -n \"$file: \" curl -s -I \"https://soulbridgeai.com/static/logos/$file\")",
+      "Bash(sha256sum:*)",
+      "Bash(python add_credits_temp.py 1 500)",
+      "Bash(sqlite3 soulbridge.db \"PRAGMA table_info(users);\")",
+      "Bash(python add_credits_simple.py)",
+      "Bash(git add -A)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nAdd testing script for artistic credits management\n\nCreated utility scripts to add artistic credits to user accounts for testing purposes.\n\n- add_credits_temp.py: Add credits to specific user\n- add_credits_simple.py: Add credits to all users\n- Added 500 test credits to user 104 (total: 700 credits)\n\nTesting Features:\n- Credit system validation\n- AI image generation\n- Voice journaling\n- Relationship profiles\n- Mini Studio access\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")"
     ],
     "deny": [],
     "ask": [],
