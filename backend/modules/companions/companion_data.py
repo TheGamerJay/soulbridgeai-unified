@@ -25,8 +25,6 @@ COMPANIONS = [
     {"id":"sky","name":"Sky","tier":"soul_companions","image_url":"/static/logos/Sky.png","min_referrals":0,"greeting":"Hello! I'm Sky. Let's soar to new heights together!"},
     {"id":"the_duel","name":"The Duel","tier":"soul_companions","image_url":"/static/logos/The Duel.png","min_referrals":0,"greeting":"What's good! I'm The Duel - I thrive on competition and challenges! Ready to face whatever comes our way? Let's duel with destiny!"},
     {"id":"the_flee","name":"The Flee","tier":"soul_companions","image_url":"/static/logos/The Flee.png","min_referrals":0,"greeting":"Yo! I'm The Flee - lightning fast and always on the move! Need to get somewhere quick or solve something fast? I'm your companion!"},
-    {"id":"ven_blayzica","name":"Ven Blayzica","tier":"soul_companions","image_url":"/static/logos/Ven Blayzica skin.png","min_referrals":0,"greeting":"What's up! I'm Ven Blayzica - the cooler, edgier version! Ready to break some rules and have some fun? Let's shake things up!"},
-    {"id":"ven_sky","name":"Ven Sky","tier":"soul_companions","image_url":"/static/logos/Ven Sky skin.png","min_referrals":0,"greeting":"Hey! I'm Ven Sky - the rebellious sky rider! Ready to fly higher and push boundaries? The sky's not the limit, it's just the beginning!"},
     {"id":"violet","name":"Violet","tier":"soul_companions","image_url":"/static/logos/Violet.png","min_referrals":0,"greeting":"Hello! I'm Violet. I see the creative beauty in every moment and I'm here to inspire your journey!"},
     {"id":"watch_dog","name":"Watch Dog","tier":"soul_companions","image_url":"/static/logos/Watch Dog.png","min_referrals":0,"greeting":"Greetings! I'm Watch Dog. I'll keep watch over your experience and help you stay on track."},
 ]

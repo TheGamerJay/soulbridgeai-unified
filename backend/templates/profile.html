@@ -1865,7 +1865,7 @@
                 // Update credits display
                 const creditsDisplay = document.getElementById('creditsDisplay');
                 if (creditsDisplay) {
-                    const credits = this.userData.trainerCredits || 0;
+                    const credits = this.userData.artistic_credits || this.userData.trainerCredits || 0;
                     const trialCredits = this.userAccess?.trial_credits || 0;
                     const totalCredits = credits + trialCredits;
                     creditsDisplay.innerHTML = `
@@ -3965,7 +3965,7 @@
             
             if (creditsEl) {
                 // Try to get credits from access data or user data
-                const credits = (accessData && accessData.trial_credits) || userData.trainer_credits || 0;
+                const credits = (accessData && accessData.trial_credits) || userData.artistic_credits || userData.trainer_credits || 0;
                 creditsEl.innerHTML = `<div class="credits-info">💎 ${credits} Credits</div>`;
             }
             
