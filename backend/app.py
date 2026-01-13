@@ -1544,13 +1544,11 @@ def create_app():
     # HEALTH ROUTES (from health module blueprint)
     @app.route("/health")
     def health():
-        """Health check - from health blueprint"""
+        """Health check - Railway compatible format"""
         return jsonify({
-            'status': 'healthy',
-            'timestamp': datetime.now().isoformat(),
-            'version': '1.0.0',
-            'service': 'soulbridge-ai'
-        })
+            'healthy': True,
+            'status': 'ok'
+        }), 200
     
     # UTILITY ROUTES
     @app.route("/whoami")
