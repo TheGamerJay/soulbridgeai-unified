@@ -88,7 +88,7 @@ if globals().get("_REGISTER_BLUEPRINTS_DEFINED"):
 import logging
 import traceback
 from datetime import datetime, timedelta
-from flask import Flask, session, request, redirect, jsonify, url_for
+from flask import Flask, session, request, redirect, jsonify, url_for, send_from_directory
 from flask_cors import CORS
 from werkzeug.middleware.proxy_fix import ProxyFix
 from security_config import init_security, enhance_security_headers, secure_error_handlers
@@ -1549,7 +1549,16 @@ def create_app():
             'healthy': True,
             'status': 'ok'
         }), 200
-    
+
+    @app.route('/favicon.ico')
+    def favicon():
+        """Serve favicon from static directory"""
+        return send_from_directory(
+            os.path.join(app.root_path, 'static'),
+            'favicon.ico',
+            mimetype='image/vnd.microsoft.icon'
+        )
+
     # UTILITY ROUTES
     @app.route("/whoami")
     def whoami():

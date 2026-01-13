@@ -93,7 +93,7 @@ def enhance_security_headers(app):
                 "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; "
                 "img-src 'self' data: blob: https:; "
                 "media-src 'self' blob: data:; "
-                "connect-src 'self' wss: https:; "
+                "connect-src 'self' https://www.gstatic.com https://*.googleapis.com https://*.firebaseapp.com https://*.appspot.com wss://*.firebaseio.com wss: https:; "
                 "frame-src 'self' https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://ep2.adtrafficquality.google https://www.google.com https://js.stripe.com; "
                 "frame-ancestors 'none'; "
                 "base-uri 'self'; "
