@@ -310,7 +310,7 @@ Message:
         
         <p><strong>Message:</strong></p>
         <div style="background: #f8f9fa; padding: 15px; border-radius: 4px; border-left: 4px solid #22d3ee;">
-            {user_message.replace('\n', '<br>')}
+            {user_message.replace(chr(10), '<br>')}
         </div>
         
         <div class="footer">
@@ -433,7 +433,7 @@ The {self.from_name} Team
         </div>
         
         <div class="notification-{notification_type}">
-            {message.replace('\n', '<br>')}
+            {message.replace(chr(10), '<br>')}
         </div>
         
         <div class="footer">
