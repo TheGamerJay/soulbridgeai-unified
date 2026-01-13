@@ -278,7 +278,7 @@ The {self.from_name} Team
     def contact_form_notification(self, user_email, user_message):
         """Generate contact form notification email to support team"""
         subject = f"New Contact Form Submission from {user_email}"
-        
+
         text_content = f"""
 New contact form submission received:
 
@@ -289,7 +289,10 @@ Message:
 ---
 {self.from_name} Contact Form System
         """.strip()
-        
+
+        # Format message with line breaks outside f-string
+        formatted_message = user_message.replace('\n', '<br>')
+
         html_content = f"""
 <!DOCTYPE html>
 <html>
@@ -305,14 +308,14 @@ Message:
             <div class="logo">{self.from_name}</div>
             <h1>New Contact Form Submission</h1>
         </div>
-        
+
         <p><strong>From:</strong> {user_email}</p>
-        
+
         <p><strong>Message:</strong></p>
         <div style="background: #f8f9fa; padding: 15px; border-radius: 4px; border-left: 4px solid #22d3ee;">
-            {user_message.replace(chr(10), '<br>')}
+            {formatted_message}
         </div>
-        
+
         <div class="footer">
             <p>{self.from_name} Contact Form System</p>
         </div>
@@ -384,7 +387,7 @@ The {self.from_name} Team
     def notification_email(self, email, subject, message, notification_type="info"):
         """Generate generic notification email"""
         # Use provided subject directly
-        
+
         text_content = f"""
 Hello,
 
@@ -396,16 +399,19 @@ The {self.from_name} Team
 ---
 {self.from_name} - Your AI-powered emotional companion
         """.strip()
-        
+
         # Color scheme based on notification type
         type_colors = {
             "info": "#22d3ee",
-            "success": "#10b981", 
+            "success": "#10b981",
             "warning": "#f59e0b",
             "error": "#dc2626"
         }
         color = type_colors.get(notification_type, "#22d3ee")
-        
+
+        # Format message with line breaks outside f-string
+        formatted_message = message.replace('\n', '<br>')
+
         html_content = f"""
 <!DOCTYPE html>
 <html>
@@ -431,11 +437,11 @@ The {self.from_name} Team
             <div class="logo">{self.from_name}</div>
             <h1>{subject}</h1>
         </div>
-        
+
         <div class="notification-{notification_type}">
-            {message.replace(chr(10), '<br>')}
+            {formatted_message}
         </div>
-        
+
         <div class="footer">
             <p>Best regards,<br>The {self.from_name} Team</p>
             <p>{self.from_name} - Your AI-powered emotional companion</p>
