@@ -40,16 +40,17 @@ class ProfileService:
             cursor.execute(f"""
                 SELECT id, email, display_name, created_at, email_verified, user_plan,
                        profile_image, profile_image_data, theme_preferences,
-                       trial_active, trial_started_at, trial_expires_at, trial_used_permanently
+                       trial_active, trial_started_at, trial_expires_at, trial_used_permanently,
+                       artistic_credits
                 FROM users WHERE id = {placeholder}
             """, (user_id,))
-            
+
             result = cursor.fetchone()
             conn.close()
-            
+
             if not result:
                 return {'success': False, 'error': 'User not found'}
-            
+
             # Build profile data
             profile_data = {
                 'id': result[0],
@@ -60,13 +61,15 @@ class ProfileService:
                 'emailVerified': result[4] or False,
                 'plan': result[5] or 'bronze',
                 'isActive': True,
-                'addons': []  # TODO: Get from session or separate table
+                'addons': [],  # TODO: Get from session or separate table
+                'artistic_credits': result[13] or 0,  # Add artistic credits field
+                'trainerCredits': result[13] or 0  # Legacy compatibility
             }
-            
+
             # Handle profile image
             profile_image = self._get_profile_image_url(result[6], result[7], user_id)
             profile_data['profileImage'] = profile_image
-            
+
             # Handle theme preferences
             if result[8]:
                 try:
@@ -75,7 +78,7 @@ class ProfileService:
                     profile_data['themePreferences'] = {}
             else:
                 profile_data['themePreferences'] = {}
-            
+
             # Trial information
             profile_data['trial'] = {
                 'active': result[9] or False,
